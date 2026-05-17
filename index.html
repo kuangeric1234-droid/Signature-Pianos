@@ -595,22 +595,16 @@
     transition: background 0.12s ease;
     -webkit-tap-highlight-color: transparent;
   }
+  /* No background tint on hover/active — the visible keys in the close-up
+     image aren't pixel-perfectly aligned with our rectangular click
+     targets, so tinting them exposes the misalignment. The note bubble
+     (floating gold italic letter) + the radial flash at the click point
+     are enough feedback, and both appear where the user actually
+     clicked, not where the click target's box is. */
   .pk-white { height: 100%; }
-  .pk-white:hover { background: rgba(212, 180, 131, 0.20); }
-  .pk-white.pk-active {
-    background: rgba(245, 215, 145, 0.70);
-    box-shadow: 0 0 24px rgba(245, 215, 145, 0.65) inset,
-                0 0 40px rgba(245, 215, 145, 0.4);
-  }
   .pk-black {
     height: 60%;
     z-index: 2;
-  }
-  .pk-black:hover { background: rgba(212, 180, 131, 0.30); }
-  .pk-black.pk-active {
-    background: rgba(245, 215, 145, 0.85);
-    box-shadow: 0 0 20px rgba(245, 215, 145, 0.7) inset,
-                0 0 32px rgba(245, 215, 145, 0.5);
   }
 
   /* DEBUG MODE — append ?debug to the URL to make the click targets
@@ -879,6 +873,8 @@
     will-change: transform;
     transform-style: preserve-3d;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    display: block;
+    color: inherit;
   }
   .piano-card:hover {
     border-color: var(--border-hover);
@@ -1274,10 +1270,10 @@
 <nav id="nav">
   <a href="#" class="logo">Signature <span>Pianos</span></a>
   <div class="nav-links">
-    <a href="#instruments">Instruments</a>
+    <a href="instruments.html">Instruments</a>
     <a href="#matcher">Find My Piano</a>
-    <a href="#teachers">Teachers</a>
-    <a href="#about">Our Story</a>
+    <a href="teachers.html">Teachers</a>
+    <a href="#">Our Story</a>
   </div>
   <button class="nav-cta">Book a visit</button>
   <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
@@ -1300,7 +1296,7 @@
         <p class="hero-sub">From first lesson to concert hall. We match every buyer to the perfect instrument — with expert guidance, not sales pressure.</p>
         <div class="hero-btns">
           <button class="btn-primary" onclick="document.getElementById('matcher').scrollIntoView({behavior:'smooth'})">Find my piano</button>
-          <button class="btn-link">Explore instruments <i class="ti ti-arrow-right"></i></button>
+          <a href="instruments.html" class="btn-link">Explore instruments <i class="ti ti-arrow-right"></i></a>
         </div>
       </div>
 
@@ -1309,8 +1305,8 @@
         <h1 class="hero-h1">Hand-picked.<br/><em>Quality</em>-checked.</h1>
         <p class="hero-sub">Grands, uprights, and digitals — every piece vetted for tone, action and history before it earns its place in our Melbourne showroom.</p>
         <div class="hero-btns">
-          <button class="btn-primary" onclick="document.getElementById('instruments').scrollIntoView({behavior:'smooth'})">Browse the collection</button>
-          <button class="btn-link">Filter by brand <i class="ti ti-arrow-right"></i></button>
+          <a href="instruments.html" class="btn-primary">Browse the collection</a>
+          <a href="instruments.html?brand=Yamaha" class="btn-link">Filter by brand <i class="ti ti-arrow-right"></i></a>
         </div>
       </div>
 
@@ -1319,8 +1315,8 @@
         <h1 class="hero-h1">Find a teacher<br/>who <em>fits</em>.</h1>
         <p class="hero-sub">80+ vetted piano teachers across every suburb, style and skill level. Match in minutes, book a trial lesson today — and we'll handle the introduction.</p>
         <div class="hero-btns">
-          <button class="btn-primary">Find a teacher</button>
-          <button class="btn-link">Hear them play <i class="ti ti-arrow-right"></i></button>
+          <a href="teachers.html" class="btn-primary">Find a teacher</a>
+          <a href="teachers-match.html" class="btn-link">Get matched in 90s <i class="ti ti-arrow-right"></i></a>
         </div>
       </div>
     </div>
@@ -1470,7 +1466,7 @@
     <p class="section-body reveal">New, pre-loved, acoustic and digital — curated for Melbourne homes and studios.</p>
 
     <div class="piano-cards reveal-stagger">
-      <article class="piano-card">
+      <a href="instruments.html?category=grand" class="piano-card">
         <div class="piano-card-image piano-card-image--grand">
           <span class="piano-card-tag">Grand Piano</span>
         </div>
@@ -1479,9 +1475,9 @@
           <p class="piano-card-brand">Yamaha · Kawai · Shigeru Kawai</p>
           <p class="piano-card-price">From $18,000</p>
         </div>
-      </article>
+      </a>
 
-      <article class="piano-card">
+      <a href="instruments.html?category=upright" class="piano-card">
         <div class="piano-card-image piano-card-image--upright">
           <span class="piano-card-tag">Upright</span>
         </div>
@@ -1490,9 +1486,9 @@
           <p class="piano-card-brand">Yamaha · Kawai & more</p>
           <p class="piano-card-price">From $4,200</p>
         </div>
-      </article>
+      </a>
 
-      <article class="piano-card">
+      <a href="instruments.html?category=digital" class="piano-card">
         <div class="piano-card-image piano-card-image--digital">
           <span class="piano-card-tag">Digital</span>
         </div>
@@ -1501,10 +1497,10 @@
           <p class="piano-card-brand">Roland · Kawai · Casio</p>
           <p class="piano-card-price">From $899</p>
         </div>
-      </article>
+      </a>
     </div>
 
-    <a href="#" class="featured-cta-link reveal">View full collection <i class="ti ti-arrow-right"></i></a>
+    <a href="instruments.html" class="featured-cta-link reveal">View full collection <i class="ti ti-arrow-right"></i></a>
   </div>
 </section>
 
@@ -1580,11 +1576,11 @@
     </div>
     <div class="footer-col">
       <div class="footer-col-title">Explore</div>
-      <a href="#instruments" class="footer-link">Instruments</a>
+      <a href="instruments.html" class="footer-link">Instruments</a>
       <a href="#matcher" class="footer-link">Find my piano</a>
-      <a href="#" class="footer-link">Teachers</a>
+      <a href="teachers.html" class="footer-link">Teachers</a>
+      <a href="teachers-match.html" class="footer-link">Find a teacher</a>
       <a href="#" class="footer-link">Our story</a>
-      <a href="#" class="footer-link">Buyer's guide</a>
     </div>
     <div class="footer-col">
       <div class="footer-col-title">Visit</div>

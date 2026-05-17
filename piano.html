@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title id="docTitle">Loading… — Signature Pianos</title>
+<meta name="description" id="docDesc" content="" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+<style>
+  :root {
+    --bg-1: #0e0e0d;
+    --bg-2: #1a1a18;
+    --bg-3: #242422;
+    --gold: #b8935a;
+    --gold-light: #d4b483;
+    --text-1: #f5f0e8;
+    --text-2: #9a9590;
+    --text-3: #6b6760;
+    --border: rgba(184, 147, 90, 0.15);
+    --border-hover: rgba(184, 147, 90, 0.4);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-1);
+    color: var(--text-1);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; }
+  ::selection { background: var(--gold); color: var(--bg-1); }
+
+  /* ============ NAV (matches homepage) ============ */
+  nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 100;
+    padding: 22px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(14, 14, 13, 0.92);
+    -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 24px;
+    color: var(--text-1);
+  }
+  .logo span { color: var(--gold); font-style: italic; font-weight: 400; }
+  .nav-links { display: flex; align-items: center; gap: 38px; }
+  .nav-links a {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    transition: color 0.25s ease;
+  }
+  .nav-links a.active { color: var(--text-1); }
+  .nav-links a:hover { color: var(--text-1); }
+  .nav-cta {
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    background: transparent;
+    padding: 11px 22px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .nav-cta:hover { background: var(--gold); color: var(--bg-1); }
+  .nav-burger { display: none; background: none; border: 0; color: var(--text-1); font-size: 24px; cursor: pointer; }
+
+  /* ============ BREADCRUMB ============ */
+  .breadcrumb {
+    padding: 110px 40px 0;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .breadcrumb a {
+    color: var(--text-3);
+    transition: color 0.2s ease;
+  }
+  .breadcrumb a:hover { color: var(--gold); }
+  .breadcrumb span { color: var(--text-1); }
+
+  /* ============ PRODUCT HERO ============ */
+  .product-hero {
+    padding: 40px 40px 80px;
+  }
+  .product-hero-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+  .product-gallery {
+    position: sticky;
+    top: 100px;
+  }
+  .product-image-main {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .product-image-main.grand {
+    background:
+      radial-gradient(ellipse at 30% 60%, rgba(184, 147, 90, 0.3), transparent 60%),
+      linear-gradient(135deg, #1f1812, #0a0807);
+  }
+  .product-image-main.upright {
+    background:
+      radial-gradient(ellipse at 60% 40%, rgba(184, 147, 90, 0.25), transparent 55%),
+      linear-gradient(160deg, #1a1714, #0c0a09);
+  }
+  .product-image-main.digital {
+    background:
+      radial-gradient(ellipse at 50% 70%, rgba(184, 147, 90, 0.20), transparent 50%),
+      linear-gradient(180deg, #1a1a18, #0e0e0d);
+  }
+  .product-image-main i {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 100px;
+    color: rgba(184, 147, 90, 0.4);
+  }
+  .product-image-main .placeholder-label {
+    position: absolute;
+    bottom: 20px; left: 24px;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .product-thumbs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .product-thumb {
+    aspect-ratio: 1;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+  .product-thumb:hover { border-color: var(--border-hover); }
+  .product-thumb i {
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: var(--text-3);
+  }
+
+  /* ============ PRODUCT INFO COLUMN ============ */
+  .product-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .product-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(40px, 4vw, 72px);
+    line-height: 1.05;
+    margin: 0 0 12px 0;
+    color: var(--text-1);
+  }
+  .product-brand {
+    font-size: 15px;
+    color: var(--text-2);
+    margin: 0 0 28px 0;
+  }
+  .product-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  .product-meta {
+    display: flex;
+    flex-direction: column;
+  }
+  .product-meta-label {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 4px;
+  }
+  .product-meta-value {
+    font-size: 14px;
+    color: var(--text-1);
+  }
+  .product-price-row {
+    margin-bottom: 32px;
+  }
+  .product-price-label {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 6px;
+  }
+  .product-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: 36px;
+    color: var(--gold);
+  }
+  .product-summary {
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--text-1);
+    margin: 0 0 36px 0;
+  }
+  .product-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: center;
+  }
+  .btn-primary {
+    background: var(--gold);
+    color: var(--bg-1);
+    border: 1px solid var(--gold);
+    padding: 16px 32px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+  }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
+  .btn-link {
+    color: var(--text-1);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: transparent;
+    border: 0;
+    padding: 16px 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: color 0.25s ease, gap 0.25s ease;
+  }
+  .btn-link:hover { color: var(--gold); gap: 16px; }
+
+  /* ============ DETAILS SECTION ============ */
+  .product-details {
+    padding: 80px 40px;
+    background: var(--bg-2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .product-details-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 80px;
+  }
+  .details-block-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 32px;
+    margin: 0 0 24px 0;
+    color: var(--text-1);
+  }
+  .product-description {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--text-2);
+  }
+  .specs-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .specs-table tr {
+    border-bottom: 1px solid var(--border);
+  }
+  .specs-table tr:last-child { border-bottom: 0; }
+  .specs-table th, .specs-table td {
+    padding: 14px 0;
+    text-align: left;
+    font-weight: 400;
+    font-size: 14px;
+    vertical-align: top;
+  }
+  .specs-table th {
+    color: var(--text-3);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    width: 40%;
+  }
+  .specs-table td { color: var(--text-1); }
+
+  /* ============ HEAR IT PLAY (video placeholder) ============ */
+  .video-section {
+    padding: 100px 40px;
+    text-align: center;
+  }
+  .video-section-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .video-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 18px;
+  }
+  .video-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(32px, 3vw, 56px);
+    margin: 0 0 40px 0;
+    color: var(--text-1);
+  }
+  .video-title em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .video-placeholder {
+    aspect-ratio: 16 / 9;
+    background:
+      radial-gradient(ellipse at center, rgba(184, 147, 90, 0.15), transparent 60%),
+      linear-gradient(135deg, #1a1714, #0c0a09);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+  }
+  .video-placeholder:hover { border-color: var(--gold); }
+  .video-play {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(14, 14, 13, 0.6);
+    border: 2px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    font-size: 28px;
+    padding-left: 4px;
+    transition: background 0.25s ease, transform 0.3s ease;
+  }
+  .video-placeholder:hover .video-play {
+    background: var(--gold);
+    color: var(--bg-1);
+    transform: scale(1.06);
+  }
+
+  /* ============ RELATED ============ */
+  .related-section {
+    padding: 100px 40px;
+    border-top: 1px solid var(--border);
+  }
+  .related-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .related-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 48px;
+  }
+  .related-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(32px, 3vw, 48px);
+    margin: 0;
+  }
+  .related-title em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .related-cta {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-1);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.25s ease, gap 0.25s ease;
+  }
+  .related-cta:hover { color: var(--gold); gap: 14px; }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+  /* reuse catalogue-card styles */
+  .related-grid .catalogue-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+    display: block;
+    color: inherit;
+  }
+  .related-grid .catalogue-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+  }
+  .related-grid .catalogue-card-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+  }
+  .related-grid .catalogue-card-image--grand {
+    background: radial-gradient(ellipse at 30% 60%, rgba(184, 147, 90, 0.28), transparent 60%), linear-gradient(135deg, #1f1812, #0a0807);
+  }
+  .related-grid .catalogue-card-image--upright {
+    background: radial-gradient(ellipse at 60% 40%, rgba(184, 147, 90, 0.22), transparent 55%), linear-gradient(160deg, #1a1714, #0c0a09);
+  }
+  .related-grid .catalogue-card-image--digital {
+    background: radial-gradient(ellipse at 50% 70%, rgba(184, 147, 90, 0.18), transparent 50%), linear-gradient(180deg, #1a1a18, #0e0e0d);
+  }
+  .related-grid .catalogue-card-image i {
+    position: absolute;
+    bottom: 20px; right: 20px;
+    font-size: 36px;
+    color: rgba(184, 147, 90, 0.3);
+  }
+  .related-grid .catalogue-card-tag {
+    position: absolute;
+    top: 16px; left: 18px;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+  }
+  .related-grid .catalogue-card-body { padding: 22px 24px 24px; }
+  .related-grid .catalogue-card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.2;
+    margin: 0 0 16px 0;
+  }
+  .related-grid .catalogue-card-price {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0;
+  }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    background: var(--bg-1);
+    padding: 80px 40px 0;
+    border-top: 1px solid var(--border);
+  }
+  .footer-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 64px;
+    padding-bottom: 56px;
+  }
+  .footer-brand .logo { font-size: 26px; }
+  .footer-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-2);
+    margin: 18px 0 0 0;
+    max-width: 320px;
+  }
+  .footer-col-title {
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 22px;
+    font-weight: 500;
+  }
+  .footer-link {
+    display: block;
+    font-size: 14px;
+    color: var(--text-2);
+    margin-bottom: 12px;
+    transition: color 0.2s ease;
+  }
+  .footer-link:hover { color: var(--text-1); }
+  .footer-contact { font-size: 14px; color: var(--text-2); margin: 0 0 12px 0; line-height: 1.6; }
+  .footer-socials { display: flex; gap: 12px; }
+  .footer-social {
+    width: 40px; height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-size: 18px;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .footer-social:hover { border-color: var(--gold); color: var(--gold); }
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    text-align: center;
+  }
+  .footer-bottom p { font-size: 12px; color: var(--text-3); margin: 0; }
+  .footer-bottom a { color: var(--text-3); transition: color 0.2s ease; }
+  .footer-bottom a:hover { color: var(--text-1); }
+
+  /* ============ MOBILE ============ */
+  @media (max-width: 960px) {
+    nav { padding: 18px 24px; }
+    .nav-links, .nav-cta { display: none; }
+    .nav-burger { display: inline-flex; }
+
+    .breadcrumb { padding: 100px 24px 0; }
+    .product-hero { padding: 24px 24px 60px; }
+    .product-hero-inner { grid-template-columns: 1fr; gap: 40px; }
+    .product-gallery { position: static; }
+
+    .product-details { padding: 60px 24px; }
+    .product-details-inner { grid-template-columns: 1fr; gap: 48px; }
+
+    .video-section { padding: 60px 24px; }
+    .related-section { padding: 60px 24px; }
+    .related-grid { grid-template-columns: 1fr; gap: 20px; }
+    .related-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+
+    .footer { padding: 60px 24px 0; }
+    .footer-inner { grid-template-columns: 1fr; gap: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav>
+  <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+  <div class="nav-links">
+    <a href="instruments.html" class="active">Instruments</a>
+    <a href="index.html#matcher">Find My Piano</a>
+    <a href="teachers.html">Teachers</a>
+    <a href="#">Our Story</a>
+  </div>
+  <button class="nav-cta">Book a visit</button>
+  <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+</nav>
+
+<!-- ============ BREADCRUMB ============ -->
+<div class="breadcrumb">
+  <a href="instruments.html">All instruments</a> · <a href="#" id="breadcrumbCat">Pianos</a> · <span id="breadcrumbName">Loading…</span>
+</div>
+
+<!-- ============ PRODUCT HERO ============ -->
+<section class="product-hero">
+  <div class="product-hero-inner">
+    <div class="product-gallery">
+      <div class="product-image-main" id="productImageMain">
+        <i id="productImageIcon" class="ti ti-music"></i>
+        <span class="placeholder-label">Photo coming · gradient placeholder</span>
+      </div>
+      <div class="product-thumbs">
+        <div class="product-thumb"><i class="ti ti-photo"></i></div>
+        <div class="product-thumb"><i class="ti ti-photo"></i></div>
+        <div class="product-thumb"><i class="ti ti-photo"></i></div>
+        <div class="product-thumb"><i class="ti ti-video"></i></div>
+      </div>
+    </div>
+
+    <div class="product-info">
+      <div class="product-eyebrow" id="productCategory">—</div>
+      <h1 class="product-name" id="productName">Loading…</h1>
+      <p class="product-brand" id="productBrand"></p>
+
+      <div class="product-meta-row">
+        <div class="product-meta">
+          <div class="product-meta-label">Condition</div>
+          <div class="product-meta-value" id="productCondition">—</div>
+        </div>
+        <div class="product-meta">
+          <div class="product-meta-label">Year</div>
+          <div class="product-meta-value" id="productYear">—</div>
+        </div>
+        <div class="product-meta">
+          <div class="product-meta-label">Origin</div>
+          <div class="product-meta-value" id="productOrigin">—</div>
+        </div>
+      </div>
+
+      <div class="product-price-row">
+        <div class="product-price-label">Price</div>
+        <div class="product-price" id="productPrice">—</div>
+      </div>
+
+      <p class="product-summary" id="productSummary"></p>
+
+      <div class="product-actions">
+        <button class="btn-primary" id="inquireBtn">Inquire about this piano</button>
+        <button class="btn-link">Book a viewing <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DESCRIPTION + SPECS ============ -->
+<section class="product-details">
+  <div class="product-details-inner">
+    <div>
+      <h2 class="details-block-title">About this instrument</h2>
+      <p class="product-description" id="productDescription"></p>
+    </div>
+    <div>
+      <h2 class="details-block-title">Specifications</h2>
+      <table class="specs-table" id="specsTable"></table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HEAR IT PLAY ============ -->
+<section class="video-section">
+  <div class="video-section-inner">
+    <div class="video-eyebrow">Hear it play</div>
+    <h2 class="video-title">Voiced by hand. <em>Recorded</em> at the showroom.</h2>
+    <div class="video-placeholder">
+      <div class="video-play"><i class="ti ti-player-play-filled"></i></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RELATED ============ -->
+<section class="related-section">
+  <div class="related-inner">
+    <div class="related-header">
+      <h2 class="related-title">Other <em id="relatedCategory">pianos</em> you might like</h2>
+      <a href="instruments.html" class="related-cta">View all instruments <i class="ti ti-arrow-right"></i></a>
+    </div>
+    <div class="related-grid" id="relatedGrid"></div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-col footer-brand">
+      <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+      <p class="footer-tagline">Find the piano that moves you.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Explore</div>
+      <a href="instruments.html" class="footer-link">Instruments</a>
+      <a href="index.html#matcher" class="footer-link">Find my piano</a>
+      <a href="teachers.html" class="footer-link">Teachers</a>
+      <a href="teachers-match.html" class="footer-link">Find a teacher</a>
+      <a href="#" class="footer-link">Our story</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Visit</div>
+      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
+      <a href="tel:+61300000000" class="footer-link">+61 3 0000 0000</a>
+      <a href="mailto:hello@signaturepianos.com" class="footer-link">hello@signaturepianos.com</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Follow</div>
+      <div class="footer-socials">
+        <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
+        <a href="#" class="footer-social" aria-label="YouTube"><i class="ti ti-brand-youtube"></i></a>
+        <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
+  </div>
+</footer>
+
+<script src="pianos-data.js"></script>
+<script>
+  /* Load piano data based on ?id= URL param. If missing or unknown,
+     redirect to the catalogue page. */
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const piano = id ? getPianoById(id) : null;
+
+  if (!piano) {
+    window.location.replace('instruments.html');
+  } else {
+    document.title = piano.name + ' — Signature Pianos Melbourne';
+    document.getElementById('docDesc').setAttribute('content', piano.summary);
+
+    document.getElementById('breadcrumbCat').textContent = piano.categoryLabel + 's';
+    document.getElementById('breadcrumbCat').href = 'instruments.html?category=' + piano.category;
+    document.getElementById('breadcrumbName').textContent = piano.name;
+
+    document.getElementById('productCategory').textContent = piano.categoryLabel;
+    document.getElementById('productName').textContent = piano.name;
+    document.getElementById('productBrand').textContent = piano.brand + ' · Model ' + piano.model;
+
+    document.getElementById('productCondition').textContent = piano.condition === 'new' ? 'New' : 'Pre-loved';
+    document.getElementById('productYear').textContent = piano.year;
+    document.getElementById('productOrigin').textContent = piano.specs.country || '—';
+    document.getElementById('productPrice').textContent = piano.priceLabel;
+
+    document.getElementById('productSummary').textContent = piano.summary;
+    document.getElementById('productDescription').textContent = piano.description;
+
+    // Image category gradient
+    const main = document.getElementById('productImageMain');
+    main.classList.add(piano.category);
+    const iconMap = { grand: 'ti-music', upright: 'ti-piano', digital: 'ti-device-speaker' };
+    document.getElementById('productImageIcon').className = 'ti ' + (iconMap[piano.category] || 'ti-music');
+
+    // Specs table
+    const specsTable = document.getElementById('specsTable');
+    Object.entries(piano.specs).forEach(([k, v]) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<th>' + k.charAt(0).toUpperCase() + k.slice(1) + '</th><td>' + v + '</td>';
+      specsTable.appendChild(tr);
+    });
+
+    // Related: 3 other pianos in the same category
+    document.getElementById('relatedCategory').textContent = piano.categoryLabel.toLowerCase() + 's';
+    const related = PIANOS.filter(p => p.category === piano.category && p.id !== piano.id).slice(0, 3);
+    const relatedGrid = document.getElementById('relatedGrid');
+    related.forEach(p => {
+      const card = document.createElement('a');
+      card.className = 'catalogue-card';
+      card.href = 'piano.html?id=' + p.id;
+      card.innerHTML = `
+        <div class="catalogue-card-image catalogue-card-image--${p.category}">
+          <span class="catalogue-card-tag">${p.categoryLabel}</span>
+          <i class="ti ${iconMap[p.category] || 'ti-music'}"></i>
+        </div>
+        <div class="catalogue-card-body">
+          <h3 class="catalogue-card-name">${p.name}</h3>
+          <p class="catalogue-card-price">${p.priceLabel}</p>
+        </div>
+      `;
+      relatedGrid.appendChild(card);
+    });
+
+    // Inquire button — placeholder; can wire to a form modal later
+    document.getElementById('inquireBtn').addEventListener('click', () => {
+      alert('Inquiry form coming soon. For now, email hello@signaturepianos.com about the ' + piano.name + '.');
+    });
+  }
+</script>
+
+</body>
+</html>

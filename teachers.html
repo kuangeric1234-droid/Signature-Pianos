@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Find a Piano Teacher in Melbourne — Signature Pianos</title>
+<meta name="description" content="Hand-picked Melbourne piano teachers. Browse by suburb, style and skill level. Book a trial lesson with a verified teacher in minutes." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+  :root {
+    --bg-1: #0e0e0d;
+    --bg-2: #1a1a18;
+    --bg-3: #242422;
+    --gold: #b8935a;
+    --gold-light: #d4b483;
+    --text-1: #f5f0e8;
+    --text-2: #9a9590;
+    --text-3: #6b6760;
+    --border: rgba(184, 147, 90, 0.15);
+    --border-hover: rgba(184, 147, 90, 0.4);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg-1);
+    color: var(--text-1);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; }
+  ::selection { background: var(--gold); color: var(--bg-1); }
+
+  /* ============ NAV (matches homepage) ============ */
+  nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 100;
+    padding: 22px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(14, 14, 13, 0.92);
+    -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 24px;
+    color: var(--text-1);
+  }
+  .logo span { color: var(--gold); font-style: italic; font-weight: 400; }
+  .nav-links { display: flex; align-items: center; gap: 38px; }
+  .nav-links a {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    transition: color 0.25s ease;
+  }
+  .nav-links a.active { color: var(--text-1); }
+  .nav-links a:hover { color: var(--text-1); }
+  .nav-cta {
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    background: transparent;
+    padding: 11px 22px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .nav-cta:hover { background: var(--gold); color: var(--bg-1); }
+  .nav-burger { display: none; background: none; border: 0; color: var(--text-1); font-size: 24px; cursor: pointer; }
+
+  /* ============ PAGE HEADER ============ */
+  .page-header {
+    padding: 130px 40px 36px;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-header-inner {
+    max-width: 1500px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    align-items: end;
+  }
+  .page-eyebrow {
+    font-size: clamp(11px, 0.78vw, 14px);
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 18px;
+  }
+  .page-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(36px, 4vw, 72px);
+    line-height: 1.05;
+    margin: 0 0 14px 0;
+    max-width: 1000px;
+  }
+  .page-headline em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .page-sub {
+    font-size: clamp(15px, 1vw, 18px);
+    line-height: 1.7;
+    color: var(--text-2);
+    max-width: 640px;
+    margin: 0;
+  }
+
+  /* Match-me CTA card in the header */
+  .match-cta {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    padding: 22px 26px;
+    max-width: 340px;
+    text-align: left;
+    transition: border-color 0.3s ease;
+  }
+  .match-cta:hover { border-color: var(--border-hover); }
+  .match-cta-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 8px 0;
+    font-weight: 500;
+  }
+  .match-cta-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.25;
+    margin: 0 0 8px 0;
+  }
+  .match-cta-title em { font-style: italic; color: var(--gold); }
+  .match-cta-sub {
+    font-size: 13px;
+    color: var(--text-2);
+    margin: 0 0 16px 0;
+    line-height: 1.55;
+  }
+  .match-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    transition: gap 0.2s ease, color 0.2s ease;
+    font-weight: 500;
+  }
+  .match-cta-btn:hover { gap: 14px; color: var(--gold-light); }
+
+  /* ============ FILTER BAR ============ */
+  .filter-bar {
+    position: sticky;
+    top: 71px;
+    z-index: 50;
+    padding: 18px 40px;
+    background: rgba(14, 14, 13, 0.92);
+    -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  .filter-bar-inner {
+    max-width: 1500px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    align-items: center;
+  }
+  .filter-dropdown { position: relative; }
+  .filter-trigger {
+    background: transparent;
+    border: 0;
+    color: var(--text-1);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 10px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: color 0.2s ease;
+    position: relative;
+  }
+  .filter-trigger::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 4px;
+    height: 1px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .filter-trigger.has-value { color: var(--gold); }
+  .filter-trigger.has-value::after { transform: scaleX(1); }
+  .filter-trigger:hover { color: var(--gold); }
+  .filter-trigger i {
+    font-size: 14px;
+    transition: transform 0.3s ease;
+  }
+  .filter-dropdown:hover .filter-trigger i,
+  .filter-dropdown.open .filter-trigger i { transform: rotate(180deg); }
+
+  .filter-menu {
+    position: absolute;
+    top: 100%;
+    left: -18px;
+    margin-top: 8px;
+    min-width: 220px;
+    max-height: 360px;
+    overflow-y: auto;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    padding: 14px 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
+    z-index: 60;
+  }
+  /* invisible bridge so cursor moving from trigger to menu doesn't close it */
+  .filter-dropdown::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    height: 10px;
+  }
+  .filter-dropdown:hover .filter-menu,
+  .filter-dropdown.open .filter-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .filter-menu-label {
+    font-size: 9px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    padding: 4px 22px 12px;
+    font-weight: 500;
+  }
+  .filter-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    color: var(--text-2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    font-weight: 400;
+  }
+  .filter-option:hover { background: var(--bg-3); color: var(--text-1); }
+  .filter-option.active { color: var(--gold); }
+  .filter-option.active::before { content: '· '; color: var(--gold); }
+
+  .filter-slider-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 220px;
+    padding: 4px 0;
+  }
+  .filter-slider-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .filter-slider-label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-1);
+    font-weight: 500;
+  }
+  .filter-slider-value {
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .filter-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, var(--gold) 0%, var(--gold) var(--fill, 100%), var(--bg-3) var(--fill, 100%));
+    outline: none;
+    border: 0;
+    cursor: pointer;
+    border-radius: 1px;
+  }
+  .filter-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    border: 2px solid var(--bg-1);
+    box-shadow: 0 0 0 1px var(--gold), 0 0 12px rgba(184, 147, 90, 0.4);
+    transition: transform 0.15s ease;
+  }
+  .filter-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+  .filter-slider::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    border: 2px solid var(--bg-1);
+    box-shadow: 0 0 0 1px var(--gold), 0 0 12px rgba(184, 147, 90, 0.4);
+  }
+
+  .filter-clear {
+    background: transparent;
+    border: 0;
+    color: var(--text-3);
+    padding: 10px 0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    margin-left: auto;
+  }
+  .filter-clear:hover { color: var(--gold); }
+  .filter-count {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .filter-count strong { color: var(--gold); font-weight: 600; }
+
+  /* ============ DIRECTORY LAYOUT (split: cards left, map right) ============ */
+  .directory {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    /* fill the viewport below nav + filter bar */
+    min-height: calc(100vh - 71px - 64px);
+  }
+  .teacher-list {
+    padding: 40px 40px 80px;
+    overflow-y: auto;
+  }
+  .teacher-list-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .map-wrap {
+    position: sticky;
+    top: calc(71px + 64px);
+    height: calc(100vh - 71px - 64px);
+    border-left: 1px solid var(--border);
+    background: var(--bg-2);
+  }
+  #teacherMap {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ============ TEACHER CARD ============ */
+  .teacher-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    color: inherit;
+  }
+  .teacher-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.6);
+  }
+  .teacher-card.highlighted {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 1px var(--gold), 0 20px 40px -20px rgba(0, 0, 0, 0.6);
+  }
+  .teacher-card-image {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background:
+      radial-gradient(ellipse at 40% 50%, rgba(184, 147, 90, 0.25), transparent 60%),
+      linear-gradient(140deg, #1f1812, #0a0807);
+    overflow: hidden;
+  }
+  .teacher-card-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 45% 42%, rgba(184, 147, 90, 0.5), transparent 28%),
+      radial-gradient(circle at 45% 75%, rgba(184, 147, 90, 0.3), transparent 40%);
+    opacity: 0.5;
+  }
+  .teacher-card-initials {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 64px;
+    color: rgba(245, 240, 232, 0.9);
+    z-index: 1;
+    letter-spacing: -0.02em;
+  }
+  .teacher-card-rate-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(14, 14, 13, 0.85);
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    z-index: 2;
+  }
+  .teacher-card-body {
+    padding: 22px 22px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .teacher-card-suburb {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 6px 0;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .teacher-card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 24px;
+    line-height: 1.2;
+    margin: 0 0 8px 0;
+  }
+  .teacher-card-headline {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-2);
+    margin: 0 0 16px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+  }
+  .teacher-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    font-size: 11px;
+    color: var(--text-3);
+    margin: 0 0 14px 0;
+  }
+  .teacher-card-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .teacher-card-meta i { font-size: 13px; color: var(--text-3); }
+  .teacher-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .teacher-tag {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    font-weight: 400;
+  }
+  .teacher-card-trial {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--gold);
+    margin: 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Empty state */
+  .directory-empty {
+    grid-column: 1 / -1;
+    padding: 80px 40px;
+    text-align: center;
+    color: var(--text-2);
+  }
+  .directory-empty h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 26px;
+    color: var(--text-1);
+    margin: 0 0 12px 0;
+  }
+  .directory-empty a { color: var(--gold); text-decoration: underline; }
+
+  /* ============ LEAFLET — dark theme overrides + gold piano pins ============ */
+  .leaflet-container {
+    background: #0a0a09;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .leaflet-control-attribution {
+    background: rgba(14, 14, 13, 0.7) !important;
+    color: var(--text-3) !important;
+    font-size: 10px !important;
+    padding: 2px 8px !important;
+  }
+  .leaflet-control-attribution a {
+    color: var(--text-2) !important;
+  }
+  .leaflet-control-zoom a {
+    background: var(--bg-2) !important;
+    color: var(--text-1) !important;
+    border: 1px solid var(--border) !important;
+    border-bottom: 0 !important;
+  }
+  .leaflet-control-zoom a:hover {
+    background: var(--bg-3) !important;
+    color: var(--gold) !important;
+  }
+  .leaflet-control-zoom a:last-child {
+    border-bottom: 1px solid var(--border) !important;
+  }
+
+  .piano-pin {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid var(--bg-1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bg-1);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--gold);
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .piano-pin:hover, .piano-pin.active {
+    transform: scale(1.18);
+    background: var(--gold-light);
+    z-index: 1000 !important;
+  }
+
+  .leaflet-popup-content-wrapper {
+    background: var(--bg-2) !important;
+    color: var(--text-1) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 0 !important;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8) !important;
+    padding: 0 !important;
+  }
+  .leaflet-popup-content {
+    margin: 0 !important;
+    width: 240px !important;
+  }
+  .leaflet-popup-tip {
+    background: var(--bg-2) !important;
+    border: 1px solid var(--border) !important;
+  }
+  .leaflet-popup-close-button {
+    color: var(--text-2) !important;
+    padding: 8px 8px 0 0 !important;
+  }
+  .leaflet-popup-close-button:hover { color: var(--gold) !important; }
+
+  .map-popup {
+    padding: 18px 20px 18px;
+  }
+  .map-popup-suburb {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 6px 0;
+    font-weight: 500;
+  }
+  .map-popup-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 1.2;
+    margin: 0 0 8px 0;
+    color: var(--text-1);
+  }
+  .map-popup-rate {
+    font-size: 12px;
+    color: var(--text-2);
+    margin: 0 0 14px 0;
+  }
+  .map-popup-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    transition: gap 0.2s ease;
+  }
+  .map-popup-link:hover { gap: 12px; }
+
+  /* ============ FOOTER (matches homepage) ============ */
+  .footer {
+    background: var(--bg-1);
+    padding: 80px 40px 0;
+    border-top: 1px solid var(--border);
+  }
+  .footer-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 64px;
+    padding-bottom: 56px;
+  }
+  .footer-brand .logo { font-size: 26px; }
+  .footer-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-2);
+    margin: 18px 0 0 0;
+    max-width: 320px;
+  }
+  .footer-col-title {
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 22px;
+    font-weight: 500;
+  }
+  .footer-link {
+    display: block;
+    font-size: 14px;
+    color: var(--text-2);
+    margin-bottom: 12px;
+    transition: color 0.2s ease;
+  }
+  .footer-link:hover { color: var(--text-1); }
+  .footer-contact {
+    font-size: 14px;
+    color: var(--text-2);
+    margin: 0 0 12px 0;
+    line-height: 1.6;
+  }
+  .footer-socials { display: flex; gap: 12px; }
+  .footer-social {
+    width: 40px; height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-size: 18px;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .footer-social:hover { border-color: var(--gold); color: var(--gold); }
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    text-align: center;
+  }
+  .footer-bottom p { font-size: 12px; color: var(--text-3); margin: 0; }
+  .footer-bottom a { color: var(--text-3); transition: color 0.2s ease; }
+  .footer-bottom a:hover { color: var(--text-1); }
+
+  /* ============ TABLET / MOBILE ============ */
+  @media (max-width: 1200px) {
+    .teacher-list-inner { grid-template-columns: 1fr; max-width: 560px; }
+  }
+  @media (max-width: 960px) {
+    nav { padding: 18px 24px; }
+    .nav-links, .nav-cta { display: none; }
+    .nav-burger { display: inline-flex; }
+
+    .page-header {
+      padding: 120px 24px 32px;
+      grid-template-columns: 1fr;
+    }
+    .page-header-inner { grid-template-columns: 1fr; gap: 28px; align-items: start; }
+    .match-cta { max-width: none; }
+
+    .filter-bar { padding: 14px 24px; top: 66px; }
+    .filter-bar-inner { gap: 22px; }
+    .filter-slider-wrap { min-width: 100%; order: 99; }
+    .filter-clear { margin-left: 0; }
+
+    /* Stack the map above the list on small screens */
+    .directory { grid-template-columns: 1fr; min-height: 0; }
+    .map-wrap {
+      position: static;
+      height: 360px;
+      border-left: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .teacher-list { padding: 32px 24px 60px; overflow: visible; }
+    .teacher-list-inner { grid-template-columns: 1fr; }
+
+    .footer { padding: 60px 24px 0; }
+    .footer-inner { grid-template-columns: 1fr; gap: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav>
+  <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+  <div class="nav-links">
+    <a href="instruments.html">Instruments</a>
+    <a href="index.html#matcher">Find My Piano</a>
+    <a href="teachers.html" class="active">Teachers</a>
+    <a href="#">Our Story</a>
+  </div>
+  <button class="nav-cta">Book a visit</button>
+  <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+</nav>
+
+<!-- ============ PAGE HEADER ============ -->
+<section class="page-header">
+  <div class="page-header-inner">
+    <div>
+      <div class="page-eyebrow">Verified Melbourne teachers</div>
+      <h1 class="page-headline">The teacher who <em>fits</em> the player.</h1>
+      <p class="page-sub">Every teacher on Signature Pianos is interviewed, reference-checked and reviewed by our team. Book a trial lesson directly — no agency in the middle.</p>
+    </div>
+    <a href="teachers-match.html" class="match-cta">
+      <p class="match-cta-eyebrow">In a hurry?</p>
+      <h2 class="match-cta-title">Get <em>matched</em> in 90 seconds.</h2>
+      <p class="match-cta-sub">Answer five questions. We'll narrow the directory to your three best teachers.</p>
+      <span class="match-cta-btn">Start the quiz <i class="ti ti-arrow-right"></i></span>
+    </a>
+  </div>
+</section>
+
+<!-- ============ FILTER BAR ============ -->
+<div class="filter-bar">
+  <div class="filter-bar-inner">
+
+    <!-- Suburb -->
+    <div class="filter-dropdown" data-filter="suburb">
+      <button class="filter-trigger" type="button" data-default="Anywhere in Melbourne">
+        <span class="filter-trigger-label">Anywhere in Melbourne</span>
+        <i class="ti ti-chevron-down"></i>
+      </button>
+      <div class="filter-menu" id="suburbMenu">
+        <div class="filter-menu-label">Suburb</div>
+        <button class="filter-option active" type="button" data-value="">Anywhere in Melbourne</button>
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Style -->
+    <div class="filter-dropdown" data-filter="style">
+      <button class="filter-trigger" type="button" data-default="Any style">
+        <span class="filter-trigger-label">Any style</span>
+        <i class="ti ti-chevron-down"></i>
+      </button>
+      <div class="filter-menu" id="styleMenu">
+        <div class="filter-menu-label">Teaching style</div>
+        <button class="filter-option active" type="button" data-value="">Any style</button>
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Student age -->
+    <div class="filter-dropdown" data-filter="ageGroup">
+      <button class="filter-trigger" type="button" data-default="Any age">
+        <span class="filter-trigger-label">Any age</span>
+        <i class="ti ti-chevron-down"></i>
+      </button>
+      <div class="filter-menu" id="ageMenu">
+        <div class="filter-menu-label">Student age</div>
+        <button class="filter-option active" type="button" data-value="">Any age</button>
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Format -->
+    <div class="filter-dropdown" data-filter="format">
+      <button class="filter-trigger" type="button" data-default="In-person or online">
+        <span class="filter-trigger-label">In-person or online</span>
+        <i class="ti ti-chevron-down"></i>
+      </button>
+      <div class="filter-menu" id="formatMenu">
+        <div class="filter-menu-label">Lesson format</div>
+        <button class="filter-option active" type="button" data-value="">In-person or online</button>
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Skill level -->
+    <div class="filter-dropdown" data-filter="skillLevel">
+      <button class="filter-trigger" type="button" data-default="Any level">
+        <span class="filter-trigger-label">Any level</span>
+        <i class="ti ti-chevron-down"></i>
+      </button>
+      <div class="filter-menu" id="skillMenu">
+        <div class="filter-menu-label">Your level</div>
+        <button class="filter-option active" type="button" data-value="">Any level</button>
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Budget slider -->
+    <div class="filter-slider-wrap">
+      <div class="filter-slider-label-row">
+        <span class="filter-slider-label">Budget</span>
+        <span class="filter-slider-value">Up to $<span id="budgetMaxValue">150</span> / hr</span>
+      </div>
+      <input type="range" id="filterBudget" class="filter-slider" min="40" max="150" step="5" value="150">
+    </div>
+
+    <button class="filter-clear" type="button" id="filterClear">Reset filters</button>
+    <div class="filter-count"><strong id="resultCount">0</strong> teachers</div>
+  </div>
+</div>
+
+<!-- ============ DIRECTORY (split: cards + map) ============ -->
+<section class="directory">
+  <div class="teacher-list">
+    <div class="teacher-list-inner" id="teacherListInner">
+      <!-- teacher cards inserted by JS -->
+    </div>
+  </div>
+  <div class="map-wrap">
+    <div id="teacherMap"></div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-col footer-brand">
+      <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+      <p class="footer-tagline">Find the piano that moves you.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Explore</div>
+      <a href="instruments.html" class="footer-link">Instruments</a>
+      <a href="index.html#matcher" class="footer-link">Find my piano</a>
+      <a href="teachers.html" class="footer-link">Teachers</a>
+      <a href="teachers-match.html" class="footer-link">Find a teacher</a>
+      <a href="#" class="footer-link">Our story</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Visit</div>
+      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
+      <a href="tel:+61300000000" class="footer-link">+61 3 0000 0000</a>
+      <a href="mailto:hello@signaturepianos.com" class="footer-link">hello@signaturepianos.com</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Follow</div>
+      <div class="footer-socials">
+        <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
+        <a href="#" class="footer-social" aria-label="YouTube"><i class="ti ti-brand-youtube"></i></a>
+        <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
+  </div>
+</footer>
+
+<script src="teachers-data.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  /* ============================================================
+     Teacher directory — filtering + map sync
+     - Filter state is the single source of truth.
+     - Each render() rebuilds the card list and the map markers
+       in lockstep so they always match what the filters say.
+     ============================================================ */
+
+  const state = {
+    suburb: '',
+    style: '',
+    ageGroup: '',
+    format: '',
+    skillLevel: '',
+    budget: 150,
+  };
+
+  /* Populate dropdowns that depend on the data file */
+  function populateMenu(menuId, items) {
+    const menu = document.getElementById(menuId);
+    items.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-option';
+      btn.type = 'button';
+      if (typeof item === 'string') {
+        btn.dataset.value = item;
+        btn.textContent = item;
+      } else {
+        btn.dataset.value = item.id;
+        btn.textContent = item.label;
+      }
+      menu.appendChild(btn);
+    });
+  }
+  populateMenu('suburbMenu', getTeacherSuburbs());
+  populateMenu('styleMenu',  getTeacherStyles());
+  populateMenu('ageMenu',    getTeacherAgeGroups());
+  populateMenu('formatMenu', getTeacherFormats());
+  populateMenu('skillMenu',  getTeacherSkillLevels());
+
+  /* ----- dropdown wiring (hover handled in CSS, click for keyboard/touch) ----- */
+  document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+    const key = dropdown.dataset.filter;
+    const trigger = dropdown.querySelector('.filter-trigger');
+    const label = trigger.querySelector('.filter-trigger-label');
+    const defaultLabel = trigger.dataset.default;
+
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const wasOpen = dropdown.classList.contains('open');
+      document.querySelectorAll('.filter-dropdown.open').forEach(d => d.classList.remove('open'));
+      if (!wasOpen) dropdown.classList.add('open');
+    });
+
+    dropdown.querySelectorAll('.filter-option').forEach(opt => {
+      opt.addEventListener('click', e => {
+        e.stopPropagation();
+        const v = opt.dataset.value;
+        state[key] = v;
+        label.textContent = v ? opt.textContent : defaultLabel;
+        trigger.classList.toggle('has-value', !!v);
+        dropdown.querySelectorAll('.filter-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+        dropdown.classList.remove('open');
+        render();
+      });
+    });
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.filter-dropdown')) {
+      document.querySelectorAll('.filter-dropdown.open').forEach(d => d.classList.remove('open'));
+    }
+  });
+
+  /* ----- budget slider ----- */
+  const budgetSlider = document.getElementById('filterBudget');
+  const budgetValueEl = document.getElementById('budgetMaxValue');
+  function updateSliderFill() {
+    const pct = ((budgetSlider.value - budgetSlider.min) / (budgetSlider.max - budgetSlider.min)) * 100;
+    budgetSlider.style.setProperty('--fill', pct + '%');
+  }
+  budgetSlider.addEventListener('input', () => {
+    state.budget = Number(budgetSlider.value);
+    budgetValueEl.textContent = state.budget;
+    updateSliderFill();
+    render();
+  });
+  updateSliderFill();
+
+  /* ----- reset filters ----- */
+  document.getElementById('filterClear').addEventListener('click', () => {
+    Object.keys(state).forEach(k => { state[k] = (k === 'budget') ? 150 : ''; });
+    budgetSlider.value = 150;
+    budgetValueEl.textContent = 150;
+    updateSliderFill();
+    document.querySelectorAll('.filter-dropdown').forEach(d => {
+      const trigger = d.querySelector('.filter-trigger');
+      trigger.querySelector('.filter-trigger-label').textContent = trigger.dataset.default;
+      trigger.classList.remove('has-value');
+      d.querySelectorAll('.filter-option').forEach(o => o.classList.remove('active'));
+      const allOpt = d.querySelector('.filter-option[data-value=""]');
+      if (allOpt) allOpt.classList.add('active');
+    });
+    render();
+  });
+
+  function applyDropdownValue(filterKey, value) {
+    const d = document.querySelector('.filter-dropdown[data-filter="' + filterKey + '"]');
+    if (!d) return;
+    const opt = d.querySelector('.filter-option[data-value="' + value + '"]');
+    if (opt) opt.click();
+  }
+
+  /* ============================================================
+     Map — Leaflet with CARTO dark tiles so the basemap matches
+     the site's charcoal theme. Markers are gold circles with the
+     teacher's initials (no real photos yet).
+     ============================================================ */
+  const map = L.map('teacherMap', {
+    zoomControl: true,
+    scrollWheelZoom: false,   /* don't hijack page scroll */
+    attributionControl: true,
+  }).setView([-37.8136, 144.9631], 11);  /* Melbourne CBD */
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19,
+  }).addTo(map);
+
+  /* Re-enable wheel zoom only after the user clicks into the map,
+     so casual scrolling past the page doesn't zoom the map. */
+  map.on('click focus', () => map.scrollWheelZoom.enable());
+  map.getContainer().addEventListener('mouseleave', () => map.scrollWheelZoom.disable());
+
+  /* Markers are rebuilt every render — store the layer so we can clear it. */
+  let markerLayer = L.layerGroup().addTo(map);
+  /* Keep handles to each marker keyed by teacher id so card hover can
+     highlight the matching pin and vice versa. */
+  const markersById = {};
+
+  function buildMarkers(teachers) {
+    markerLayer.clearLayers();
+    Object.keys(markersById).forEach(k => delete markersById[k]);
+
+    teachers.forEach(t => {
+      const initials = t.name.split(' ').map(s => s[0]).slice(0, 2).join('');
+      const icon = L.divIcon({
+        className: '',  /* don't apply Leaflet's default styles */
+        html: `<div class="piano-pin" data-teacher-id="${t.id}">${initials}</div>`,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
+      });
+      const marker = L.marker(t.coords, { icon }).addTo(markerLayer);
+
+      const popupHtml = `
+        <div class="map-popup">
+          <p class="map-popup-suburb"><i class="ti ti-map-pin" style="font-size: 11px; vertical-align: middle;"></i> ${t.suburb}</p>
+          <h3 class="map-popup-name">${t.name}</h3>
+          <p class="map-popup-rate">${t.rateLabel} · ${t.experience} yrs teaching</p>
+          <a href="teacher.html?id=${t.id}" class="map-popup-link">View profile <i class="ti ti-arrow-right"></i></a>
+        </div>
+      `;
+      marker.bindPopup(popupHtml, { closeButton: true, autoPan: true, maxWidth: 260 });
+      markersById[t.id] = marker;
+    });
+  }
+
+  /* ============================================================
+     Card builder
+     ============================================================ */
+  function makeCard(t) {
+    const card = document.createElement('a');
+    card.className = 'teacher-card';
+    card.href = 'teacher.html?id=' + t.id;
+    card.dataset.teacherId = t.id;
+    const initials = t.name.split(' ').map(s => s[0]).slice(0, 2).join('');
+
+    /* Pick up to 3 most relevant style tags */
+    const tagsHtml = t.styles.slice(0, 3).map(s => `<span class="teacher-tag">${s}</span>`).join('');
+    const ageLabel = t.studentAges.map(a => {
+      if (a === 'kids') return 'Kids';
+      if (a === 'teens') return 'Teens';
+      return 'Adults';
+    }).join(', ');
+    const formatLabel = t.formats.length === 2
+      ? 'In-person + online'
+      : (t.formats[0] === 'online' ? 'Online' : 'In-person');
+
+    card.innerHTML = `
+      <div class="teacher-card-image">
+        <span class="teacher-card-rate-badge">${t.rateLabel}</span>
+        <span class="teacher-card-initials">${initials}</span>
+      </div>
+      <div class="teacher-card-body">
+        <p class="teacher-card-suburb"><i class="ti ti-map-pin" style="font-size: 12px;"></i> ${t.suburb}</p>
+        <h3 class="teacher-card-name">${t.name}</h3>
+        <p class="teacher-card-headline">${t.headline}</p>
+        <div class="teacher-card-meta">
+          <span><i class="ti ti-clock"></i> ${t.experience} yrs</span>
+          <span><i class="ti ti-user"></i> ${ageLabel}</span>
+          <span><i class="ti ti-device-laptop"></i> ${formatLabel}</span>
+        </div>
+        <div class="teacher-card-tags">${tagsHtml}</div>
+        <p class="teacher-card-trial">${t.trialOffer}</p>
+      </div>
+    `;
+
+    /* Hover sync: card ↔ map pin */
+    card.addEventListener('mouseenter', () => {
+      const m = markersById[t.id];
+      if (m) {
+        const el = m.getElement()?.querySelector('.piano-pin');
+        if (el) el.classList.add('active');
+      }
+    });
+    card.addEventListener('mouseleave', () => {
+      const m = markersById[t.id];
+      if (m) {
+        const el = m.getElement()?.querySelector('.piano-pin');
+        if (el) el.classList.remove('active');
+      }
+    });
+
+    return card;
+  }
+
+  /* ============================================================
+     Filtering logic
+     A teacher is included if EVERY active filter matches.
+     For multi-value fields (styles, ages, formats, skill levels),
+     the teacher needs to contain the selected value.
+     Budget is a per-hour upper bound — we approximate the teacher's
+     per-hour rate by dividing their lesson fee by lesson length,
+     but since all rates are already stored as rough hourly figures
+     we use t.rate directly.
+     ============================================================ */
+  function filterTeachers() {
+    return TEACHERS.filter(t => {
+      if (state.suburb     && t.suburb !== state.suburb) return false;
+      if (state.style      && !t.styles.includes(state.style)) return false;
+      if (state.ageGroup   && !t.studentAges.includes(state.ageGroup)) return false;
+      if (state.format     && !t.formats.includes(state.format)) return false;
+      if (state.skillLevel && !t.skillLevels.includes(state.skillLevel)) return false;
+      if (t.rate > state.budget) return false;
+      return true;
+    });
+  }
+
+  const listInner = document.getElementById('teacherListInner');
+  const resultCount = document.getElementById('resultCount');
+
+  function render() {
+    const filtered = filterTeachers();
+    resultCount.textContent = filtered.length;
+
+    listInner.innerHTML = '';
+    if (filtered.length === 0) {
+      listInner.innerHTML = `
+        <div class="directory-empty">
+          <h3>No teachers match those filters.</h3>
+          <p>Try widening your search, or <a href="teachers-match.html">take the matching quiz</a> and we'll suggest one.</p>
+        </div>
+      `;
+    } else {
+      filtered.forEach(t => listInner.appendChild(makeCard(t)));
+    }
+
+    buildMarkers(filtered);
+
+    /* If a suburb filter is active, zoom the map to the matching teachers.
+       Otherwise show the whole Melbourne view. */
+    if (filtered.length > 0 && state.suburb) {
+      const bounds = L.latLngBounds(filtered.map(t => t.coords));
+      map.fitBounds(bounds.pad(0.4), { animate: true, maxZoom: 14 });
+    } else if (filtered.length > 0) {
+      const bounds = L.latLngBounds(filtered.map(t => t.coords));
+      map.fitBounds(bounds.pad(0.15), { animate: true, maxZoom: 12 });
+    }
+  }
+
+  /* Honor URL params on load (e.g., from the quiz: ?suburb=Carlton&style=Jazz) */
+  const params = new URLSearchParams(window.location.search);
+  ['suburb','style','ageGroup','format','skillLevel'].forEach(key => {
+    if (params.get(key)) applyDropdownValue(key, params.get(key));
+  });
+  if (params.get('budget')) {
+    const b = Number(params.get('budget'));
+    if (b >= 40 && b <= 150) {
+      state.budget = b;
+      budgetSlider.value = b;
+      budgetValueEl.textContent = b;
+      updateSliderFill();
+    }
+  }
+
+  render();
+</script>
+
+</body>
+</html>

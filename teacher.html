@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title id="docTitle">Loading… — Signature Pianos</title>
+<meta name="description" id="docDesc" content="" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+<style>
+  :root {
+    --bg-1: #0e0e0d;
+    --bg-2: #1a1a18;
+    --bg-3: #242422;
+    --gold: #b8935a;
+    --gold-light: #d4b483;
+    --text-1: #f5f0e8;
+    --text-2: #9a9590;
+    --text-3: #6b6760;
+    --border: rgba(184, 147, 90, 0.15);
+    --border-hover: rgba(184, 147, 90, 0.4);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg-1);
+    color: var(--text-1);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; }
+  ::selection { background: var(--gold); color: var(--bg-1); }
+
+  /* ============ NAV ============ */
+  nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 100;
+    padding: 22px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(14, 14, 13, 0.92);
+    -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 24px;
+    color: var(--text-1);
+  }
+  .logo span { color: var(--gold); font-style: italic; font-weight: 400; }
+  .nav-links { display: flex; align-items: center; gap: 38px; }
+  .nav-links a {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    transition: color 0.25s ease;
+  }
+  .nav-links a.active { color: var(--text-1); }
+  .nav-links a:hover { color: var(--text-1); }
+  .nav-cta {
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    background: transparent;
+    padding: 11px 22px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .nav-cta:hover { background: var(--gold); color: var(--bg-1); }
+  .nav-burger { display: none; background: none; border: 0; color: var(--text-1); font-size: 24px; cursor: pointer; }
+
+  /* ============ BREADCRUMB ============ */
+  .breadcrumb {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 110px 40px 0;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .breadcrumb a { transition: color 0.2s ease; }
+  .breadcrumb a:hover { color: var(--gold); }
+  .breadcrumb i { font-size: 10px; margin: 0 8px; }
+
+  /* ============ HERO (two-column: photo + info) ============ */
+  .profile-hero {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 40px 80px;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 64px;
+  }
+  .profile-photo {
+    position: sticky;
+    top: 100px;
+    align-self: start;
+    aspect-ratio: 4 / 5;
+    background:
+      radial-gradient(ellipse at 45% 40%, rgba(184, 147, 90, 0.35), transparent 60%),
+      linear-gradient(140deg, #1f1812, #0a0807);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .profile-photo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 38%, rgba(184, 147, 90, 0.4), transparent 30%),
+      radial-gradient(circle at 50% 75%, rgba(184, 147, 90, 0.25), transparent 40%);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .profile-photo-initials {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 140px;
+    color: rgba(245, 240, 232, 0.92);
+    z-index: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .profile-info {
+    /* let the photo "stick" while this column scrolls */
+  }
+  .profile-suburb {
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 14px 0;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .profile-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(36px, 4.5vw, 64px);
+    line-height: 1.05;
+    margin: 0 0 14px 0;
+  }
+  .profile-name em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .profile-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(18px, 1.3vw, 22px);
+    line-height: 1.5;
+    color: var(--text-2);
+    margin: 0 0 32px 0;
+  }
+
+  /* Quick stats row */
+  .profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    padding: 24px 0;
+    margin: 0 0 32px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .profile-stat-label {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin: 0 0 6px 0;
+    font-weight: 500;
+  }
+  .profile-stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 22px;
+    color: var(--text-1);
+    margin: 0;
+    line-height: 1.2;
+  }
+  .profile-stat-value em { font-style: italic; color: var(--gold); }
+
+  /* Section blocks within the right column */
+  .profile-section { margin-bottom: 40px; }
+  .profile-section-title {
+    font-size: 10px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 16px 0;
+    font-weight: 500;
+  }
+  .profile-section-body {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-2);
+    margin: 0;
+  }
+  .profile-section-body p { margin: 0 0 14px 0; }
+  .profile-section-body p:last-child { margin: 0; }
+  .profile-philosophy {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(18px, 1.3vw, 22px);
+    line-height: 1.55;
+    color: var(--text-1);
+    margin: 0;
+    padding: 24px 28px;
+    background: var(--bg-2);
+    border-left: 2px solid var(--gold);
+  }
+
+  /* Specialties grid */
+  .specialties-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px 32px;
+  }
+  .specialty-block { }
+  .specialty-block-label {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin: 0 0 8px 0;
+    font-weight: 500;
+  }
+  .specialty-block-value {
+    font-size: 14px;
+    color: var(--text-1);
+    margin: 0;
+    line-height: 1.55;
+  }
+  .specialty-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .specialty-tag {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text-2);
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+  }
+
+  /* Credentials list */
+  .credentials-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .credentials-list li {
+    font-size: 14px;
+    color: var(--text-1);
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .credentials-list li:last-child { border-bottom: 0; }
+  .credentials-list li i {
+    color: var(--gold);
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ============ STICKY BOOK BAR ============ */
+  .book-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    padding: 28px 28px 26px;
+    margin: 0 0 32px 0;
+  }
+  .book-card-rate {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0 0 6px 0;
+    gap: 12px;
+  }
+  .book-card-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 30px;
+    color: var(--text-1);
+    margin: 0;
+  }
+  .book-card-price em { font-style: italic; color: var(--gold); }
+  .book-card-trial {
+    font-size: 13px;
+    color: var(--gold);
+    margin: 0 0 20px 0;
+    line-height: 1.5;
+  }
+  .book-card-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .btn-primary, .btn-secondary {
+    width: 100%;
+    text-align: center;
+    padding: 15px 22px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    border: 1px solid var(--gold);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-primary {
+    background: var(--gold);
+    color: var(--bg-1);
+  }
+  .btn-primary:hover { background: var(--gold-light); border-color: var(--gold-light); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--gold);
+  }
+  .btn-secondary:hover { background: rgba(184, 147, 90, 0.08); }
+  .book-card-note {
+    font-size: 12px;
+    color: var(--text-3);
+    text-align: center;
+    margin: 14px 0 0 0;
+    line-height: 1.5;
+  }
+
+  /* ============ RELATED TEACHERS ============ */
+  .related {
+    border-top: 1px solid var(--border);
+    padding: 80px 40px 100px;
+    background: var(--bg-1);
+  }
+  .related-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .related-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .related-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(28px, 2.6vw, 44px);
+    line-height: 1.1;
+    margin: 0;
+  }
+  .related-title em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .related-link {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: gap 0.2s ease;
+  }
+  .related-link:hover { gap: 14px; color: var(--gold-light); }
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  /* Re-use the directory's teacher card visual language */
+  .teacher-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    color: inherit;
+  }
+  .teacher-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+  }
+  .teacher-card-image {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background:
+      radial-gradient(ellipse at 40% 50%, rgba(184, 147, 90, 0.25), transparent 60%),
+      linear-gradient(140deg, #1f1812, #0a0807);
+    overflow: hidden;
+  }
+  .teacher-card-initials {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 60px;
+    color: rgba(245, 240, 232, 0.9);
+  }
+  .teacher-card-body { padding: 22px 22px 24px; }
+  .teacher-card-suburb {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 6px 0;
+    font-weight: 500;
+  }
+  .teacher-card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.2;
+    margin: 0 0 10px 0;
+  }
+  .teacher-card-headline {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-2);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ============ NOT-FOUND STATE ============ */
+  .not-found {
+    max-width: 600px;
+    margin: 180px auto;
+    padding: 0 40px;
+    text-align: center;
+  }
+  .not-found h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 48px;
+    margin: 0 0 16px 0;
+  }
+  .not-found p { color: var(--text-2); margin: 0 0 32px 0; }
+  .not-found a {
+    color: var(--gold);
+    text-decoration: underline;
+  }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    background: var(--bg-1);
+    padding: 80px 40px 0;
+    border-top: 1px solid var(--border);
+  }
+  .footer-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 64px;
+    padding-bottom: 56px;
+  }
+  .footer-brand .logo { font-size: 26px; }
+  .footer-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-2);
+    margin: 18px 0 0 0;
+    max-width: 320px;
+  }
+  .footer-col-title {
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 22px;
+    font-weight: 500;
+  }
+  .footer-link {
+    display: block;
+    font-size: 14px;
+    color: var(--text-2);
+    margin-bottom: 12px;
+    transition: color 0.2s ease;
+  }
+  .footer-link:hover { color: var(--text-1); }
+  .footer-contact {
+    font-size: 14px;
+    color: var(--text-2);
+    margin: 0 0 12px 0;
+    line-height: 1.6;
+  }
+  .footer-socials { display: flex; gap: 12px; }
+  .footer-social {
+    width: 40px; height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-size: 18px;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .footer-social:hover { border-color: var(--gold); color: var(--gold); }
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    text-align: center;
+  }
+  .footer-bottom p { font-size: 12px; color: var(--text-3); margin: 0; }
+  .footer-bottom a { color: var(--text-3); transition: color 0.2s ease; }
+  .footer-bottom a:hover { color: var(--text-1); }
+
+  /* ============ MOBILE ============ */
+  @media (max-width: 960px) {
+    nav { padding: 18px 24px; }
+    .nav-links, .nav-cta { display: none; }
+    .nav-burger { display: inline-flex; }
+
+    .breadcrumb { padding: 100px 24px 0; }
+    .profile-hero {
+      padding: 24px 24px 60px;
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+    .profile-photo { position: static; max-width: 360px; margin: 0 auto; }
+    .profile-photo-initials { font-size: 100px; }
+    .profile-stats { grid-template-columns: 1fr 1fr; }
+    .specialties-grid { grid-template-columns: 1fr; }
+
+    .related { padding: 60px 24px 80px; }
+    .related-grid { grid-template-columns: 1fr; }
+
+    .footer { padding: 60px 24px 0; }
+    .footer-inner { grid-template-columns: 1fr; gap: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav>
+  <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+  <div class="nav-links">
+    <a href="instruments.html">Instruments</a>
+    <a href="index.html#matcher">Find My Piano</a>
+    <a href="teachers.html" class="active">Teachers</a>
+    <a href="#">Our Story</a>
+  </div>
+  <button class="nav-cta">Book a visit</button>
+  <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+</nav>
+
+<div id="profileContent"><!-- rendered by JS --></div>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-col footer-brand">
+      <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+      <p class="footer-tagline">Find the piano that moves you.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Explore</div>
+      <a href="instruments.html" class="footer-link">Instruments</a>
+      <a href="index.html#matcher" class="footer-link">Find my piano</a>
+      <a href="teachers.html" class="footer-link">Teachers</a>
+      <a href="teachers-match.html" class="footer-link">Find a teacher</a>
+      <a href="#" class="footer-link">Our story</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Visit</div>
+      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
+      <a href="tel:+61300000000" class="footer-link">+61 3 0000 0000</a>
+      <a href="mailto:hello@signaturepianos.com" class="footer-link">hello@signaturepianos.com</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Follow</div>
+      <div class="footer-socials">
+        <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
+        <a href="#" class="footer-social" aria-label="YouTube"><i class="ti ti-brand-youtube"></i></a>
+        <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
+  </div>
+</footer>
+
+<script src="teachers-data.js"></script>
+<script>
+  /* ============================================================
+     Teacher profile page
+     - Reads ?id=<slug> from the URL
+     - Renders 404 if not found
+     - Otherwise: breadcrumb → hero (photo + info + book card)
+       → related teachers row
+     ============================================================ */
+
+  const container = document.getElementById('profileContent');
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const teacher = id ? getTeacherById(id) : null;
+
+  if (!teacher) {
+    container.innerHTML = `
+      <div class="not-found">
+        <h1>Teacher not found</h1>
+        <p>The teacher you're looking for isn't in our directory. <a href="teachers.html">Browse all teachers</a>.</p>
+      </div>
+    `;
+    document.getElementById('docTitle').textContent = 'Teacher not found — Signature Pianos';
+  } else {
+    document.getElementById('docTitle').textContent = `${teacher.name} · Piano teacher in ${teacher.suburb} — Signature Pianos`;
+    document.getElementById('docDesc').setAttribute('content',
+      `${teacher.headline} Book a trial lesson with ${teacher.name} in ${teacher.suburb} from ${teacher.rateLabel}.`
+    );
+
+    const initials = teacher.name.split(' ').map(s => s[0]).slice(0, 2).join('');
+    const ageLabels = teacher.studentAges.map(a => {
+      if (a === 'kids') return 'Kids (4–12)';
+      if (a === 'teens') return 'Teens (13–17)';
+      return 'Adults (18+)';
+    }).join(', ');
+    const formatLabels = teacher.formats.map(f =>
+      f === 'in-person' ? 'In-person' : 'Online'
+    ).join(' + ');
+    const availabilityLabels = teacher.availability.map(a => {
+      if (a === 'weekdays') return 'Weekday daytime';
+      if (a === 'evenings') return 'Evenings';
+      return 'Weekends';
+    }).join(' · ');
+    const skillLabels = teacher.skillLevels.map(s =>
+      s.charAt(0).toUpperCase() + s.slice(1)
+    ).join(' · ');
+    const styleTagsHtml = teacher.styles.map(s =>
+      `<span class="specialty-tag">${s}</span>`
+    ).join('');
+    const credentialsHtml = teacher.credentials.map(c =>
+      `<li><i class="ti ti-rosette"></i><span>${c}</span></li>`
+    ).join('');
+
+    container.innerHTML = `
+      <div class="breadcrumb">
+        <a href="teachers.html">Teachers</a>
+        <i class="ti ti-chevron-right"></i>
+        <a href="teachers.html?suburb=${encodeURIComponent(teacher.suburb)}">${teacher.suburb}</a>
+        <i class="ti ti-chevron-right"></i>
+        <span>${teacher.name}</span>
+      </div>
+
+      <section class="profile-hero">
+        <div class="profile-photo">
+          <span class="profile-photo-initials">${initials}</span>
+        </div>
+
+        <div class="profile-info">
+          <p class="profile-suburb">
+            <i class="ti ti-map-pin" style="font-size: 13px;"></i> ${teacher.suburb}, Melbourne
+          </p>
+          <h1 class="profile-name">${teacher.name}</h1>
+          <p class="profile-headline">${teacher.headline}</p>
+
+          <div class="profile-stats">
+            <div>
+              <p class="profile-stat-label">Experience</p>
+              <p class="profile-stat-value"><em>${teacher.experience}</em> years</p>
+            </div>
+            <div>
+              <p class="profile-stat-label">Rate</p>
+              <p class="profile-stat-value">${teacher.rateLabel}</p>
+            </div>
+            <div>
+              <p class="profile-stat-label">Format</p>
+              <p class="profile-stat-value">${formatLabels}</p>
+            </div>
+          </div>
+
+          <div class="book-card">
+            <div class="book-card-rate">
+              <p class="book-card-price">${teacher.rateLabel}</p>
+            </div>
+            <p class="book-card-trial"><i class="ti ti-gift" style="vertical-align: middle;"></i> ${teacher.trialOffer}</p>
+            <div class="book-card-actions">
+              <button class="btn-primary" type="button">
+                Book a trial lesson <i class="ti ti-arrow-right"></i>
+              </button>
+              <button class="btn-secondary" type="button">
+                <i class="ti ti-message"></i> Message ${teacher.name.split(' ')[0]}
+              </button>
+            </div>
+            <p class="book-card-note">No commitment until you've had your first lesson.</p>
+          </div>
+
+          <div class="profile-section">
+            <h2 class="profile-section-title">About</h2>
+            <div class="profile-section-body">
+              <p>${teacher.bio}</p>
+            </div>
+          </div>
+
+          <div class="profile-section">
+            <h2 class="profile-section-title">Teaching philosophy</h2>
+            <blockquote class="profile-philosophy">"${teacher.philosophy}"</blockquote>
+          </div>
+
+          <div class="profile-section">
+            <h2 class="profile-section-title">Specialties</h2>
+            <div class="specialties-grid">
+              <div class="specialty-block">
+                <p class="specialty-block-label">Styles</p>
+                <div class="specialty-tags">${styleTagsHtml}</div>
+              </div>
+              <div class="specialty-block">
+                <p class="specialty-block-label">Students</p>
+                <p class="specialty-block-value">${ageLabels}</p>
+              </div>
+              <div class="specialty-block">
+                <p class="specialty-block-label">Skill levels</p>
+                <p class="specialty-block-value">${skillLabels}</p>
+              </div>
+              <div class="specialty-block">
+                <p class="specialty-block-label">Availability</p>
+                <p class="specialty-block-value">${availabilityLabels}</p>
+              </div>
+              <div class="specialty-block">
+                <p class="specialty-block-label">Languages</p>
+                <p class="specialty-block-value">${teacher.languages.join(', ')}</p>
+              </div>
+              <div class="specialty-block">
+                <p class="specialty-block-label">Studio</p>
+                <p class="specialty-block-value">${teacher.studio}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-section">
+            <h2 class="profile-section-title">Credentials</h2>
+            <ul class="credentials-list">${credentialsHtml}</ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="related">
+        <div class="related-inner">
+          <div class="related-header">
+            <h2 class="related-title">More teachers in <em>${teacher.suburb}</em> and nearby</h2>
+            <a href="teachers.html" class="related-link">View all teachers <i class="ti ti-arrow-right"></i></a>
+          </div>
+          <div class="related-grid" id="relatedGrid"></div>
+        </div>
+      </section>
+    `;
+
+    /* ----- Related teachers -----
+       Pick 3 teachers that aren't this one, preferring teachers in
+       the same suburb, then teachers sharing at least one style.
+       Falls back to "any other teacher" if neither bucket is full. */
+    const relatedGrid = document.getElementById('relatedGrid');
+    const others = TEACHERS.filter(t => t.id !== teacher.id);
+    const scored = others.map(t => {
+      let score = 0;
+      if (t.suburb === teacher.suburb) score += 10;
+      const sharedStyles = t.styles.filter(s => teacher.styles.includes(s)).length;
+      score += sharedStyles * 2;
+      return { teacher: t, score };
+    });
+    scored.sort((a, b) => b.score - a.score);
+    const related = scored.slice(0, 3).map(s => s.teacher);
+
+    related.forEach(t => {
+      const initials = t.name.split(' ').map(s => s[0]).slice(0, 2).join('');
+      const card = document.createElement('a');
+      card.className = 'teacher-card';
+      card.href = 'teacher.html?id=' + t.id;
+      card.innerHTML = `
+        <div class="teacher-card-image">
+          <span class="teacher-card-initials">${initials}</span>
+        </div>
+        <div class="teacher-card-body">
+          <p class="teacher-card-suburb">${t.suburb} · ${t.rateLabel}</p>
+          <h3 class="teacher-card-name">${t.name}</h3>
+          <p class="teacher-card-headline">${t.headline}</p>
+        </div>
+      `;
+      relatedGrid.appendChild(card);
+    });
+  }
+</script>
+
+</body>
+</html>

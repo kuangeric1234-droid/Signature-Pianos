@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Find your piano teacher — Signature Pianos</title>
+<meta name="description" content="Answer six quick questions and we'll match you with your three best Melbourne piano teachers." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+<style>
+  :root {
+    --bg-1: #0e0e0d;
+    --bg-2: #1a1a18;
+    --bg-3: #242422;
+    --gold: #b8935a;
+    --gold-light: #d4b483;
+    --text-1: #f5f0e8;
+    --text-2: #9a9590;
+    --text-3: #6b6760;
+    --border: rgba(184, 147, 90, 0.15);
+    --border-hover: rgba(184, 147, 90, 0.4);
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg-1);
+    color: var(--text-1);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; }
+  ::selection { background: var(--gold); color: var(--bg-1); }
+
+  /* ============ NAV ============ */
+  nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 100;
+    padding: 22px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(14, 14, 13, 0.92);
+    -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 24px;
+    color: var(--text-1);
+  }
+  .logo span { color: var(--gold); font-style: italic; font-weight: 400; }
+  .nav-links { display: flex; align-items: center; gap: 38px; }
+  .nav-links a {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    transition: color 0.25s ease;
+  }
+  .nav-links a.active { color: var(--text-1); }
+  .nav-links a:hover { color: var(--text-1); }
+  .nav-cta {
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    background: transparent;
+    padding: 11px 22px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .nav-cta:hover { background: var(--gold); color: var(--bg-1); }
+  .nav-burger { display: none; background: none; border: 0; color: var(--text-1); font-size: 24px; cursor: pointer; }
+
+  /* ============ QUIZ STAGE ============ */
+  .quiz-stage {
+    min-height: 100vh;
+    padding: 130px 40px 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .quiz-card {
+    width: 100%;
+    max-width: 760px;
+  }
+
+  /* Progress */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  .progress-label {
+    font-size: 10px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+  }
+  .progress-track {
+    flex: 1;
+    height: 1px;
+    background: var(--bg-3);
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--gold);
+    width: 0%;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .progress-step {
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 0.1em;
+    font-variant-numeric: tabular-nums;
+  }
+  .progress-step strong { color: var(--text-1); font-weight: 500; }
+
+  /* Question */
+  .question { animation: fadeUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .question-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 14px 0;
+    font-weight: 500;
+  }
+  .question-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(32px, 4vw, 56px);
+    line-height: 1.1;
+    margin: 0 0 14px 0;
+  }
+  .question-title em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .question-sub {
+    font-size: 15px;
+    color: var(--text-2);
+    margin: 0 0 40px 0;
+    line-height: 1.7;
+    max-width: 540px;
+  }
+
+  /* Option list */
+  .options {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .options.options-2 { grid-template-columns: 1fr 1fr; }
+  .options.options-3 { grid-template-columns: repeat(3, 1fr); }
+  .option {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    padding: 22px 24px;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.25s ease, transform 0.25s ease, background 0.25s ease;
+    color: var(--text-1);
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .option:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+  }
+  .option.selected {
+    border-color: var(--gold);
+    background: rgba(184, 147, 90, 0.08);
+    box-shadow: inset 0 0 0 1px var(--gold);
+  }
+  .option-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    color: var(--gold);
+    font-size: 18px;
+    transition: border-color 0.25s ease;
+  }
+  .option.selected .option-icon { border-color: var(--gold); }
+  .option-text { flex: 1; }
+  .option-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 1.25;
+    margin: 0 0 4px 0;
+    color: var(--text-1);
+  }
+  .option-sub {
+    font-size: 13px;
+    color: var(--text-2);
+    margin: 0;
+    line-height: 1.55;
+  }
+
+  /* Budget slider (final question) */
+  .budget-display {
+    text-align: center;
+    margin: 40px 0 32px;
+  }
+  .budget-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(48px, 6vw, 88px);
+    line-height: 1;
+    color: var(--text-1);
+    margin: 0;
+  }
+  .budget-value em { font-style: italic; color: var(--gold); }
+  .budget-unit {
+    font-size: 14px;
+    color: var(--text-2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin: 10px 0 0 0;
+  }
+  .quiz-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, var(--gold) 0%, var(--gold) var(--fill, 50%), var(--bg-3) var(--fill, 50%));
+    outline: none;
+    border: 0;
+    cursor: pointer;
+    border-radius: 1px;
+    margin: 32px 0 8px;
+  }
+  .quiz-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    border: 3px solid var(--bg-1);
+    box-shadow: 0 0 0 1px var(--gold), 0 0 16px rgba(184, 147, 90, 0.4);
+    transition: transform 0.15s ease;
+  }
+  .quiz-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  .quiz-slider::-moz-range-thumb {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 3px solid var(--bg-1);
+    cursor: pointer;
+  }
+  .slider-range {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 0.1em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Nav buttons */
+  .quiz-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 12px;
+  }
+  .quiz-btn {
+    padding: 14px 28px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid var(--gold);
+    background: transparent;
+    color: var(--gold);
+    transition: background 0.25s ease, color 0.25s ease, opacity 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .quiz-btn:hover { background: rgba(184, 147, 90, 0.08); }
+  .quiz-btn.primary {
+    background: var(--gold);
+    color: var(--bg-1);
+  }
+  .quiz-btn.primary:hover { background: var(--gold-light); border-color: var(--gold-light); }
+  .quiz-btn.text {
+    background: transparent;
+    border: 0;
+    color: var(--text-3);
+    padding: 14px 0;
+  }
+  .quiz-btn.text:hover { color: var(--gold); background: transparent; }
+  .quiz-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* ============ RESULTS ============ */
+  .results-stage {
+    padding: 130px 40px 100px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .results-header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+  .results-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 18px 0;
+    font-weight: 500;
+  }
+  .results-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(36px, 4.5vw, 64px);
+    line-height: 1.05;
+    margin: 0 0 16px 0;
+  }
+  .results-title em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .results-sub {
+    font-size: 16px;
+    color: var(--text-2);
+    margin: 0 auto;
+    max-width: 560px;
+  }
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    margin-bottom: 64px;
+  }
+  .result-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    transition: border-color 0.3s ease, transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    color: inherit;
+    position: relative;
+  }
+  .result-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+  }
+  .result-card.top-match {
+    border-color: var(--gold);
+  }
+  .result-rank {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    background: var(--gold);
+    color: var(--bg-1);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    z-index: 2;
+  }
+  .result-card-image {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background:
+      radial-gradient(ellipse at 40% 50%, rgba(184, 147, 90, 0.28), transparent 60%),
+      linear-gradient(140deg, #1f1812, #0a0807);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .result-card-initials {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 70px;
+    color: rgba(245, 240, 232, 0.92);
+    z-index: 1;
+  }
+  .result-card-body {
+    padding: 26px 28px 28px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .result-card-suburb {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 8px 0;
+    font-weight: 500;
+  }
+  .result-card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 26px;
+    line-height: 1.2;
+    margin: 0 0 8px 0;
+  }
+  .result-card-headline {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-2);
+    margin: 0 0 18px 0;
+    flex: 1;
+  }
+  .result-why {
+    background: rgba(184, 147, 90, 0.06);
+    border-left: 2px solid var(--gold);
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--text-1);
+    margin: 0 0 18px 0;
+    line-height: 1.55;
+  }
+  .result-why strong {
+    color: var(--gold);
+    font-weight: 500;
+  }
+  .result-card-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+  }
+  .result-card-cta i { transition: transform 0.2s ease; }
+  .result-card:hover .result-card-cta i { transform: translateX(6px); }
+
+  .results-actions {
+    text-align: center;
+  }
+  .results-secondary {
+    font-size: 14px;
+    color: var(--text-2);
+    margin: 0 0 14px 0;
+  }
+  .results-actions .quiz-btn { display: inline-flex; }
+
+  /* No-match fallback */
+  .no-match {
+    text-align: center;
+    padding: 60px 40px;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    margin-bottom: 40px;
+  }
+  .no-match h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 28px;
+    margin: 0 0 14px 0;
+  }
+  .no-match p { color: var(--text-2); margin: 0 0 24px 0; }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    background: var(--bg-1);
+    padding: 80px 40px 0;
+    border-top: 1px solid var(--border);
+  }
+  .footer-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 64px;
+    padding-bottom: 56px;
+  }
+  .footer-brand .logo { font-size: 26px; }
+  .footer-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-2);
+    margin: 18px 0 0 0;
+    max-width: 320px;
+  }
+  .footer-col-title {
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 22px;
+    font-weight: 500;
+  }
+  .footer-link {
+    display: block;
+    font-size: 14px;
+    color: var(--text-2);
+    margin-bottom: 12px;
+    transition: color 0.2s ease;
+  }
+  .footer-link:hover { color: var(--text-1); }
+  .footer-contact {
+    font-size: 14px;
+    color: var(--text-2);
+    margin: 0 0 12px 0;
+    line-height: 1.6;
+  }
+  .footer-socials { display: flex; gap: 12px; }
+  .footer-social {
+    width: 40px; height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-size: 18px;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .footer-social:hover { border-color: var(--gold); color: var(--gold); }
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    text-align: center;
+  }
+  .footer-bottom p { font-size: 12px; color: var(--text-3); margin: 0; }
+
+  /* ============ MOBILE ============ */
+  @media (max-width: 960px) {
+    nav { padding: 18px 24px; }
+    .nav-links, .nav-cta { display: none; }
+    .nav-burger { display: inline-flex; }
+
+    .quiz-stage { padding: 110px 24px 60px; }
+    .options.options-2, .options.options-3 { grid-template-columns: 1fr; }
+
+    .results-stage { padding: 110px 24px 80px; }
+    .results-grid { grid-template-columns: 1fr; }
+
+    .footer { padding: 60px 24px 0; }
+    .footer-inner { grid-template-columns: 1fr; gap: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav>
+  <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+  <div class="nav-links">
+    <a href="instruments.html">Instruments</a>
+    <a href="index.html#matcher">Find My Piano</a>
+    <a href="teachers.html" class="active">Teachers</a>
+    <a href="#">Our Story</a>
+  </div>
+  <button class="nav-cta">Book a visit</button>
+  <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+</nav>
+
+<main id="quizRoot"></main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-col footer-brand">
+      <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+      <p class="footer-tagline">Find the piano that moves you.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Explore</div>
+      <a href="instruments.html" class="footer-link">Instruments</a>
+      <a href="index.html#matcher" class="footer-link">Find my piano</a>
+      <a href="teachers.html" class="footer-link">Teachers</a>
+      <a href="teachers-match.html" class="footer-link">Find a teacher</a>
+      <a href="#" class="footer-link">Our story</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Visit</div>
+      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
+      <a href="tel:+61300000000" class="footer-link">+61 3 0000 0000</a>
+      <a href="mailto:hello@signaturepianos.com" class="footer-link">hello@signaturepianos.com</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Follow</div>
+      <div class="footer-socials">
+        <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
+        <a href="#" class="footer-social" aria-label="YouTube"><i class="ti ti-brand-youtube"></i></a>
+        <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
+  </div>
+</footer>
+
+<script src="teachers-data.js"></script>
+<script>
+  /* ============================================================
+     Teacher matching quiz
+     - 6 sequential questions, each renders a fresh card.
+     - Answers stored in `answers`; we score every teacher at the
+       end and show the top 3 with a "Why we matched you" line.
+     - Match scoring favours hard constraints (suburb, level) over
+       preferences (style, format) so the top results never feel
+       wrong, just sometimes broader than expected.
+     ============================================================ */
+
+  const root = document.getElementById('quizRoot');
+
+  /* ----- question definitions -----
+     `field` matches the corresponding facet on TEACHERS rows so
+     scoring can read t[field] generically. */
+  const questions = [
+    {
+      id: 'skillLevel',
+      eyebrow: 'Question 1 of 6',
+      title: 'Where are you <em>starting</em> from?',
+      sub: 'Be honest — knowing your level helps us match teaching pace, not just credentials.',
+      cols: 3,
+      options: [
+        { value: 'beginner',     label: 'Complete beginner', sub: 'Never touched a piano, or just messing around', icon: 'ti-seedling' },
+        { value: 'intermediate', label: 'Intermediate',      sub: 'Played for a few years, reading music comfortably', icon: 'ti-music' },
+        { value: 'advanced',     label: 'Advanced',          sub: 'Diploma-grade work, competition or audition prep',  icon: 'ti-trophy' },
+      ],
+    },
+    {
+      id: 'ageGroup',
+      eyebrow: 'Question 2 of 6',
+      title: 'Who\'s the <em>lesson</em> for?',
+      sub: 'Some teachers specialise in young learners, others in adult returners. We pick the right one for the right student.',
+      cols: 3,
+      options: [
+        { value: 'kids',   label: 'A child',         sub: 'Aged 4 to 12 — first instrument or early grades',  icon: 'ti-baby-carriage' },
+        { value: 'teens',  label: 'A teen',          sub: 'Aged 13 to 17 — VCE, AMEB, or returning seriously', icon: 'ti-school' },
+        { value: 'adults', label: 'Me (or an adult)', sub: 'Adult learner — beginner, returner or improver',    icon: 'ti-user-heart' },
+      ],
+    },
+    {
+      id: 'style',
+      eyebrow: 'Question 3 of 6',
+      title: 'What kind of <em>music</em> are you drawn to?',
+      sub: 'Pick the one that excites you most. We\'ll find a teacher who lives in that world.',
+      cols: 2,
+      options: [
+        { value: 'Classical',    label: 'Classical',     sub: 'Bach to Rachmaninov, exam repertoire, recitals', icon: 'ti-music' },
+        { value: 'Jazz',         label: 'Jazz',          sub: 'Standards, improvisation, comping',              icon: 'ti-microphone-2' },
+        { value: 'Contemporary', label: 'Contemporary',  sub: 'Pop, film, indie — songs you already love',      icon: 'ti-headphones' },
+        { value: 'Songwriting',  label: 'Songwriting',   sub: 'Use piano to write and arrange your own music',  icon: 'ti-pencil' },
+      ],
+    },
+    {
+      id: 'format',
+      eyebrow: 'Question 4 of 6',
+      title: 'In-person or <em>online</em>?',
+      sub: 'Online works well for most levels and is more flexible. In-person is unbeatable for first-time students.',
+      cols: 3,
+      options: [
+        { value: 'in-person', label: 'In-person',     sub: 'At their studio or sometimes yours',  icon: 'ti-building-store' },
+        { value: 'online',    label: 'Online',        sub: 'Flexible scheduling, Zoom or similar', icon: 'ti-device-laptop' },
+        { value: '',          label: 'Either works',  sub: 'Open to whichever fits the teacher',  icon: 'ti-arrows-shuffle' },
+      ],
+    },
+    {
+      id: 'suburb',
+      eyebrow: 'Question 5 of 6',
+      title: 'Which part of <em>Melbourne</em>?',
+      sub: 'We\'ll prioritise teachers in your area for in-person, but always show online options too.',
+      cols: 3,
+      options: [
+        { value: 'inner-north', label: 'Inner north',   sub: 'Carlton, Fitzroy, Brunswick, Northcote', icon: 'ti-map-pin' },
+        { value: 'inner-east',  label: 'Inner east',    sub: 'South Yarra, Prahran, Hawthorn, Camberwell', icon: 'ti-map-pin' },
+        { value: 'inner-south', label: 'Inner south',   sub: 'St Kilda, Brighton, Elwood',           icon: 'ti-map-pin' },
+        { value: 'outer-east',  label: 'Outer east',    sub: 'Doncaster, Glen Waverley, Box Hill',   icon: 'ti-map-pin' },
+        { value: '',            label: 'Doesn\'t matter', sub: 'Show me the best teacher regardless',   icon: 'ti-arrows-shuffle' },
+      ],
+    },
+    {
+      id: 'budget',
+      eyebrow: 'Question 6 of 6',
+      title: 'What\'s your <em>budget</em> per hour?',
+      sub: 'Most lessons in Melbourne run 30–60 minutes. We\'ll only show teachers in your range.',
+      slider: true,
+    },
+  ];
+
+  /* Suburb groups — used to translate the question 5 selection into
+     the suburb names on each teacher record. */
+  const SUBURB_GROUPS = {
+    'inner-north': ['Carlton', 'Fitzroy', 'Brunswick', 'Northcote'],
+    'inner-east':  ['South Yarra', 'Prahran', 'Hawthorn', 'Camberwell'],
+    'inner-south': ['St Kilda', 'Brighton', 'Elwood'],
+    'outer-east':  ['Doncaster', 'Glen Waverley', 'Box Hill'],
+  };
+
+  const answers = {};
+  let step = 0;
+
+  function render() {
+    if (step >= questions.length) {
+      renderResults();
+      return;
+    }
+
+    const q = questions[step];
+    const pct = (step / questions.length) * 100;
+
+    root.innerHTML = `
+      <div class="quiz-stage">
+        <div class="quiz-card">
+          <div class="progress-row">
+            <span class="progress-label">Find your teacher</span>
+            <div class="progress-track"><div class="progress-fill" style="width: ${pct}%"></div></div>
+            <span class="progress-step"><strong>${step + 1}</strong> / ${questions.length}</span>
+          </div>
+
+          <div class="question">
+            <p class="question-eyebrow">${q.eyebrow}</p>
+            <h1 class="question-title">${q.title}</h1>
+            ${q.sub ? `<p class="question-sub">${q.sub}</p>` : ''}
+            ${q.slider ? renderSlider() : renderOptions(q)}
+            <div class="quiz-nav">
+              <button class="quiz-btn text" type="button" id="backBtn" ${step === 0 ? 'disabled' : ''}>
+                <i class="ti ti-arrow-left"></i> Back
+              </button>
+              <button class="quiz-btn primary" type="button" id="nextBtn">
+                ${step === questions.length - 1 ? 'See my matches' : 'Continue'}
+                <i class="ti ti-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    /* Wire option clicks (non-slider questions). Selection persists
+       across steps so going back shows the previous answer. */
+    if (!q.slider) {
+      root.querySelectorAll('.option').forEach(opt => {
+        if (opt.dataset.value === String(answers[q.id] ?? '__nope__')) {
+          opt.classList.add('selected');
+        }
+        opt.addEventListener('click', () => {
+          root.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          answers[q.id] = opt.dataset.value;
+        });
+      });
+    } else {
+      /* Slider: initialise to previous answer or sensible default */
+      const slider = root.querySelector('#budgetSlider');
+      const value = root.querySelector('#budgetValue');
+      const initial = answers.budget ?? 90;
+      slider.value = initial;
+      value.textContent = initial;
+      answers.budget = initial;
+      updateSliderFill(slider);
+      slider.addEventListener('input', () => {
+        answers.budget = Number(slider.value);
+        value.textContent = slider.value;
+        updateSliderFill(slider);
+      });
+    }
+
+    root.querySelector('#backBtn').addEventListener('click', () => {
+      if (step > 0) { step--; render(); }
+    });
+    root.querySelector('#nextBtn').addEventListener('click', () => {
+      /* Block forward navigation if the user hasn't selected an option
+         on a multiple-choice step. Sliders always have a value. */
+      if (!q.slider && answers[q.id] === undefined) {
+        const navBtn = root.querySelector('#nextBtn');
+        navBtn.animate(
+          [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }],
+          { duration: 250 }
+        );
+        return;
+      }
+      step++;
+      render();
+    });
+  }
+
+  function renderOptions(q) {
+    const cls = q.cols === 3 ? 'options-3' : (q.cols === 2 ? 'options-2' : '');
+    return `
+      <div class="options ${cls}">
+        ${q.options.map(opt => `
+          <button class="option" type="button" data-value="${opt.value}">
+            <span class="option-icon"><i class="ti ${opt.icon}"></i></span>
+            <span class="option-text">
+              <p class="option-label">${opt.label}</p>
+              ${opt.sub ? `<p class="option-sub">${opt.sub}</p>` : ''}
+            </span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function renderSlider() {
+    return `
+      <div class="budget-display">
+        <p class="budget-value">$<em id="budgetValue">90</em></p>
+        <p class="budget-unit">per hour</p>
+      </div>
+      <input type="range" id="budgetSlider" class="quiz-slider" min="40" max="150" step="5" value="90">
+      <div class="slider-range">
+        <span>$40</span>
+        <span>$150+</span>
+      </div>
+    `;
+  }
+
+  function updateSliderFill(slider) {
+    const pct = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+    slider.style.setProperty('--fill', pct + '%');
+  }
+
+  /* ============================================================
+     Scoring
+     We assign points per matching facet. A "why" string is built
+     in parallel so the result card can show the user the reasons
+     this teacher matched.
+     ============================================================ */
+  function scoreTeacher(t) {
+    let score = 0;
+    const reasons = [];
+
+    /* Skill level — hard signal. Big bonus if exact match, penalty if missing. */
+    if (answers.skillLevel) {
+      if (t.skillLevels.includes(answers.skillLevel)) {
+        score += 30;
+        if (answers.skillLevel === 'advanced') reasons.push('teaches at advanced level');
+        else if (answers.skillLevel === 'beginner') reasons.push('welcomes complete beginners');
+        else reasons.push('experienced with intermediate students');
+      } else {
+        score -= 40;  /* almost always disqualifying */
+      }
+    }
+
+    /* Age group — also fairly hard. */
+    if (answers.ageGroup) {
+      if (t.studentAges.includes(answers.ageGroup)) {
+        score += 25;
+        if (answers.ageGroup === 'kids') reasons.push('specialises in young learners');
+        else if (answers.ageGroup === 'adults') reasons.push('focuses on adult students');
+      } else {
+        score -= 30;
+      }
+    }
+
+    /* Style — strong preference, not disqualifying. */
+    if (answers.style) {
+      if (t.styles.includes(answers.style)) {
+        score += 22;
+        reasons.push(`teaches ${answers.style.toLowerCase()}`);
+      } else {
+        score -= 4;
+      }
+    }
+
+    /* Format — soft preference, only counted when the user picked a specific value. */
+    if (answers.format) {
+      if (t.formats.includes(answers.format)) {
+        score += 12;
+      } else {
+        score -= 18;
+      }
+    }
+
+    /* Suburb area — geographic preference. */
+    if (answers.suburb && SUBURB_GROUPS[answers.suburb]) {
+      if (SUBURB_GROUPS[answers.suburb].includes(t.suburb)) {
+        score += 18;
+        reasons.push(`based in ${t.suburb}`);
+      } else if (t.formats.includes('online')) {
+        /* Online teachers can serve any area — small consolation bonus. */
+        score += 2;
+      }
+    }
+
+    /* Budget — soft cap. Above budget reduces score sharply; far below adds a small bonus. */
+    if (answers.budget) {
+      if (t.rate <= answers.budget) {
+        score += 10;
+        if (t.rate <= answers.budget * 0.75) reasons.push('comfortably within your budget');
+      } else {
+        const over = t.rate - answers.budget;
+        score -= over * 0.5;  /* sliding penalty */
+      }
+    }
+
+    return { teacher: t, score, reasons };
+  }
+
+  function renderResults() {
+    const ranked = TEACHERS.map(scoreTeacher).sort((a, b) => b.score - a.score);
+    /* Keep only positively-scored matches so we don't recommend a
+       fundamentally wrong teacher just to fill 3 cards. */
+    const top = ranked.filter(r => r.score > 0).slice(0, 3);
+
+    if (top.length === 0) {
+      root.innerHTML = `
+        <div class="results-stage">
+          <div class="results-header">
+            <p class="results-eyebrow">Hmm</p>
+            <h1 class="results-title">No <em>strong</em> matches yet.</h1>
+            <p class="results-sub">Your filters were a little too specific. Try the directory directly and adjust as you go.</p>
+          </div>
+          <div class="no-match">
+            <h3>Let's keep looking.</h3>
+            <p>Browse all 12 teachers and use the filters to narrow down.</p>
+            <a href="teachers.html" class="quiz-btn primary" style="text-decoration: none;">
+              Browse all teachers <i class="ti ti-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    root.innerHTML = `
+      <div class="results-stage">
+        <div class="results-header">
+          <p class="results-eyebrow">Your matches</p>
+          <h1 class="results-title">Your <em>three best</em> teachers.</h1>
+          <p class="results-sub">Ranked by how closely they match what you told us. Book a trial lesson — most offer a free or discounted first session.</p>
+        </div>
+
+        <div class="results-grid">
+          ${top.map((r, i) => makeResultCard(r, i)).join('')}
+        </div>
+
+        <div class="results-actions">
+          <p class="results-secondary">Not quite right? You can also browse the full directory.</p>
+          <a href="teachers.html" class="quiz-btn" style="text-decoration: none;">
+            <i class="ti ti-search"></i> Browse all teachers
+          </a>
+          <button class="quiz-btn text" type="button" id="restartBtn" style="margin-left: 16px;">
+            <i class="ti ti-refresh"></i> Retake quiz
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('restartBtn').addEventListener('click', () => {
+      step = 0;
+      Object.keys(answers).forEach(k => delete answers[k]);
+      render();
+    });
+  }
+
+  function makeResultCard(result, rank) {
+    const t = result.teacher;
+    const initials = t.name.split(' ').map(s => s[0]).slice(0, 2).join('');
+    const isTop = rank === 0;
+    /* Build the "why" line from the top 2 reasons so it stays scannable */
+    const whyText = result.reasons.slice(0, 2).join(' · ') || 'Strong overall fit';
+
+    return `
+      <a href="teacher.html?id=${t.id}" class="result-card ${isTop ? 'top-match' : ''}">
+        ${isTop ? '<span class="result-rank">Best match</span>' : ''}
+        <div class="result-card-image">
+          <span class="result-card-initials">${initials}</span>
+        </div>
+        <div class="result-card-body">
+          <p class="result-card-suburb">${t.suburb} · ${t.rateLabel}</p>
+          <h3 class="result-card-name">${t.name}</h3>
+          <p class="result-card-headline">${t.headline}</p>
+          <p class="result-why"><strong>Why we matched you:</strong> ${whyText}</p>
+          <div class="result-card-cta">
+            <span>View profile</span>
+            <i class="ti ti-arrow-right"></i>
+          </div>
+        </div>
+      </a>
+    `;
+  }
+
+  render();
+</script>
+
+</body>
+</html>
