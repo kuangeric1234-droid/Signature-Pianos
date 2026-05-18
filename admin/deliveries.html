@@ -583,7 +583,70 @@ function openDelivery(id) {
       assignTuner(d.order_id, tunerBooking ? tunerBooking.id : ''))
   }
 
+  // New Session-12 manual contact-send button (only visible when a
+  // tuner is assigned and contact_sent is still false).
+  document.querySelector('[data-action="tuner-send-contact"]')?.addEventListener('click', (e) =>
+    sendTunerContactNow(e.currentTarget.dataset.bookingId, e.currentTarget))
+
   openSlidePanel('deliveryPanel')
+}
+
+/* Render the new-flow status badge inside the tuner-summary box.
+   Reads contact_sent / date_logged / completed / confirmed_date+time
+   so the admin can see exactly where the booking is in the new
+   workflow at a glance. */
+function renderTunerBookingStatus(booking) {
+  const statusMap = {
+    pending:      { label: 'Pending — contact not yet sent',           color: 'var(--admin-text-faint)' },
+    contact_sent: { label: 'Contact sent — awaiting tuner to log date', color: 'var(--admin-amber)' },
+    confirmed:    { label: 'Confirmed',                                 color: 'var(--admin-green)' },
+    completed:    { label: 'Completed',                                 color: 'var(--admin-green)' },
+  }
+  const s = statusMap[booking.status] || { label: booking.status || '—', color: 'var(--admin-text-muted)' }
+
+  const blocks = []
+  blocks.push(`<div class="meta" style="color:${s.color};font-weight:500;">${esc(s.label)}</div>`)
+
+  if (booking.confirmed_date) {
+    blocks.push(`<div class="meta">Confirmed: ${fmtDate(booking.confirmed_date)}${booking.confirmed_time ? ' · ' + esc(booking.confirmed_time) : ''}</div>`)
+  } else if (booking.proposed_date) {
+    blocks.push(`<div class="meta">Trigger: ${fmtDate(booking.trigger_date || booking.proposed_date)}</div>`)
+  }
+
+  if (booking.contact_sent_at) {
+    blocks.push(`<div class="meta" style="font-size:11px;color:var(--admin-text-faint);">Contact sent: ${fmtDate(booking.contact_sent_at)}</div>`)
+  }
+  if (booking.completed_at) {
+    blocks.push(`<div class="meta" style="font-size:11px;color:var(--admin-text-faint);">Completed: ${fmtDate(booking.completed_at)}</div>`)
+  }
+  return blocks.join('')
+}
+
+async function sendTunerContactNow(bookingId, btn) {
+  if (!bookingId) return
+  if (!window.confirm('Send tuner contact email now? This will also send the customer the heads-up email.')) return
+  const originalHTML = btn?.innerHTML
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Sending…' }
+  try {
+    const res = await fetch('/api/tuner-send-contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ booking_id: bookingId }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      showToast('Contact email sent to tuner', 'success')
+      await loadDeliveries()
+    } else {
+      console.error('[deliveries] tuner-send-contact failed', result)
+      showToast('Failed to send — check console', 'error')
+    }
+  } catch (err) {
+    console.error('[deliveries] tuner-send-contact fetch failed', err)
+    showToast('Failed to send — check console', 'error')
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = originalHTML }
+  }
 }
 
 async function copyToClipboard(text) {
@@ -747,15 +810,18 @@ function renderTunerSection(delivery, tunerBooking) {
             <span class="name">${esc(tunerBooking.tuner?.name || 'Tuner assigned')}</span>
             ${tunerStatusCell(delivery.order_id)}
           </div>
-          <div class="meta">
-            ${tunerBooking.proposed_date ? `Proposed: ${fmtDate(tunerBooking.proposed_date)}` : 'Date not set'}
-            ${tunerBooking.proposed_time ? ` · ${esc(tunerBooking.proposed_time)}` : ''}
-            ${tunerBooking.completed_at ? ` · Completed ${fmtDate(tunerBooking.completed_at)}` : ''}
-          </div>
+          ${renderTunerBookingStatus(tunerBooking)}
           ${tunerBooking.completion_notes
             ? `<div class="notes">Notes: ${esc(tunerBooking.completion_notes)}</div>`
             : ''}
         </div>
+
+        ${(!tunerBooking.contact_sent && tunerBooking.tuner) ? `
+          <button type="button" data-action="tuner-send-contact" data-booking-id="${esc(tunerBooking.id)}"
+            style="width:100%;background:none;border:1px solid var(--admin-border);border-radius:4px;padding:9px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--admin-text-muted);margin-top:8px;">
+            <i class="ti ti-mail-forward"></i> Send contact email now
+          </button>
+        ` : ''}
       ` : ''}
 
       <div id="assignTunerForm">

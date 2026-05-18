@@ -1707,6 +1707,137 @@ Run order:        1. supabase/tuner_response.sql in SQL editor
                         for tuner_proposed_date / _time
 ```
 
+### Tuner booking flow — REBUILT (Session 12)
+```
+Replaces the Session-10 accept/propose flow with a simpler workflow:
+tuner contacts the customer directly, they agree a date offline,
+tuner logs it via a single mobile-friendly link.
+
+Schema:           supabase/tuner_flow_rebuild.sql adds:
+                    trigger_date                  date
+                    contact_sent / _at
+                    log_date_token (unique)
+                    date_logged / _at
+                    confirmed_date / confirmed_time
+                    day_before_reminder_sent / _at
+                    completed / _at
+                    completion_token (no-op if already exists)
+                  Plus 'contact_sent' added to
+                  tuner_booking_status enum, and an anon SELECT
+                  policy scoped to log_date_token so
+                  /tuner/log-date.html can read the booking.
+
+End-to-end flow:
+  Day 0   Delivery confirmed → api/driver-delivery-confirm.js
+           creates a tuner_bookings row with:
+             trigger_date = today + 25 days
+             log_date_token + completion_token minted
+             contact_sent=false, date_logged=false,
+             completed=false, status='pending'
+           No emails fire yet. Admin can assign a tuner from
+           the existing delivery detail panel any time before
+           the trigger date.
+
+  Day 25  Daily cron at 22:00 UTC (~08:00 AEST):
+           api/cron-delivery-reminders.js — scans for
+           tuner_bookings where trigger_date = today AND
+           contact_sent = false AND completed = false.
+             a. If no tuner assigned → ping Eric with an
+                action-required email; row left alone so
+                tomorrow's cron retries.
+             b. Otherwise:
+                - customer heads-up email: "your piano is
+                  ready for its first tuning"
+                - tuner action email: full customer details +
+                  log-date link
+                - row flipped to contact_sent=true,
+                  status='contact_sent'
+
+  Day 25+ Tuner contacts customer offline, agrees date.
+           Opens /tuner/log-date/{log_date_token} on phone:
+             - date picker (min = tomorrow)
+             - time-window select
+             - optional notes
+           Submits → api/tuner-log-date.js writes
+           confirmed_date / _time, date_logged=true,
+           status='confirmed'.
+
+  After
+  logging Three emails fire:
+             a. Tuner: confirmation w/ calendar links
+                (Google, Outlook, Apple .ics) + complete CTA
+             b. Customer: "your tuning is confirmed for {date}"
+             c. Eric: internal note
+
+  Day-1   Same daily cron — scans confirmed_date = tomorrow
+           AND day_before_reminder_sent = false:
+             - Tuner reminder: date, address, complete link
+             - Customer reminder: date, time
+           day_before_reminder_sent flipped true.
+
+  Day 0+  Tuner clicks /api/tuner-complete?token={completion_token}
+           → marks completed=true (existing endpoint, unchanged).
+
+Manual override:  Admin "Send contact email now" button inside
+                  the delivery detail panel's tuner section. Only
+                  shown when contact_sent=false AND a tuner is
+                  assigned. Fires the same two-email pair as the
+                  cron via api/tuner-send-contact.js. Useful when
+                  the trigger_date is days away but Eric wants to
+                  push the contact email immediately.
+
+Admin status:     renderTunerBookingStatus() in admin/deliveries.html
+                  shows:
+                    - Pending — contact not yet sent
+                    - Contact sent — awaiting tuner to log date
+                    - Confirmed
+                    - Completed
+                  plus the confirmed date + contact_sent_at +
+                  completed_at timestamps when present.
+
+Shared modules:   lib/calendar.js — generateCalendarLinks(), now
+                                    shared between
+                                    api/tuner-booking.js (legacy)
+                                    and api/tuner-log-date.js.
+                  lib/tuner-emails.js — customerTuningReadyEmail
+                                    + tunerContactEmail, shared
+                                    between cron + manual send.
+
+Deprecated:       The Session-10 accept/propose flow stays in
+                  place as dead code (tuner/respond.html,
+                  api/tuner-respond.js) but the
+                  /tuner/respond/:token rewrite has been removed
+                  from vercel.json. Safe to delete the files
+                  after a week of the new flow running cleanly.
+
+Run order:        1. supabase/tuner_flow_rebuild.sql in SQL editor
+                  2. Confirm the enum value was added — open
+                     Supabase Studio → Database → Types →
+                     tuner_booking_status — expect 'contact_sent'
+                     in the list. (The DO block swallows the
+                     "already exists" error so re-runs are safe.)
+                  3. Smoke test:
+                     a. Make a delivery → driver-delivery-confirm
+                        should create a tuner_booking row with
+                        trigger_date = +25 days, log_date_token set
+                     b. Assign a tuner from admin/deliveries.html
+                     c. Click "Send contact email now" → check
+                        both inboxes for customer heads-up + tuner
+                        action email; row.status should flip to
+                        'contact_sent'
+                     d. Open the tuner email's log-date link on a
+                        phone → submit date + time → check
+                        Supabase: confirmed_date / _time / status
+                        = 'confirmed', date_logged = true
+                     e. Verify the customer + tuner + Eric
+                        confirmation emails landed
+                     f. To dry-run the reminder cron:
+                          curl https://signaturepianos.com.au/api/cron-delivery-reminders \
+                            -H "Authorization: Bearer $CRON_SECRET"
+                        (any rows with confirmed_date = tomorrow
+                         will get the day-before reminder)
+```
+
 ---
 
 *Last updated: May 2025*

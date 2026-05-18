@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Log tuning date — Signature Pianos</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0e0e0d;
+      color: #f5f0e8;
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+</head>
+<body>
+
+<div id="pageContent">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;">
+    <div style="text-align:center;">
+      <div style="font-size:20px;color:#b8935a;font-style:italic;margin-bottom:16px;">Signature Pianos</div>
+      <div style="font-size:13px;color:#6b6760;">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script>
+/* ============================================================================
+   Signature Pianos — tuner log-date page (public, token based)
+   ----------------------------------------------------------------------------
+   New Session-12 flow. Tuner has already contacted the customer offline
+   and agreed a date + time. They open this page on their phone, enter
+   the agreed values, submit. The API writes confirmed_date / _time and
+   fires the confirmation emails to customer + tuner + Eric.
+   ============================================================================ */
+
+const params = new URLSearchParams(window.location.search)
+// Token comes from /tuner/log-date/{token} via vercel.json rewrite which
+// preserves the segment as ?token=. Fall back to last path segment if
+// the rewrite is ever bypassed.
+const token = params.get('token') || window.location.pathname.split('/').pop()
+if (!token || token === 'log-date') { window.location.replace('/index.html') }
+
+let currentBooking = null
+
+;(async function loadLogDatePage() {
+  try {
+    const { data: booking, error } = await _supabase
+      .from('tuner_bookings')
+      .select(`
+        *,
+        tuner:tuner_id ( * ),
+        order:order_id (
+          *,
+          customer:customer_id ( * ),
+          piano:piano_id ( * )
+        )
+      `)
+      .eq('log_date_token', token)
+      .maybeSingle()
+
+    if (error) throw error
+    if (!booking) return showError('This link is invalid or has expired.')
+
+    if (booking.date_logged) return showAlreadyLogged(booking)
+    currentBooking = booking
+    renderLogDatePage(booking)
+  } catch (err) {
+    console.error('[log-date] load failed', err)
+    showError('We could not load this booking. Please try again or contact Signature Pianos.')
+  }
+})()
+
+function esc(s) {
+  if (s == null) return ''
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+function fmtDateLong(d) {
+  if (!d) return '—'
+  try {
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-AU', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    })
+  } catch { return d }
+}
+
+function renderLogDatePage(booking) {
+  const customer = booking.order?.customer || {}
+  const piano    = booking.order?.piano    || {}
+  const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
+  const fullAddress = [customer.address_line1, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(', ')
+
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const minDate = tomorrow.toISOString().slice(0, 10)
+
+  document.getElementById('pageContent').innerHTML = `
+
+    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(184,147,90,0.2);">
+      <div style="font-size:16px;color:#b8935a;font-style:italic;">Signature Pianos</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Log agreed tuning date</div>
+    </div>
+
+    <div style="padding:24px;max-width:480px;margin:0 auto;">
+
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 8px;">Log the agreed date</h2>
+      <p style="font-size:14px;color:#9a9590;margin:0 0 24px;line-height:1.6;">
+        Enter the date and time you agreed with the customer. Both the customer and Signature Pianos will be notified automatically.
+      </p>
+
+      <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;margin-bottom:24px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-bottom:10px;">Job details</div>
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid rgba(255,255,255,0.06);width:35%;">Customer</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid rgba(255,255,255,0.06);color:#f5f0e8;">${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid rgba(255,255,255,0.06);">Phone</td><td style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><a href="tel:${esc(customer.phone || '')}" style="color:#b8935a;">${esc(customer.phone || '—')}</a></td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid rgba(255,255,255,0.06);">Address</td><td style="padding:7px 0;font-size:12px;color:#9a9590;border-bottom:1px solid rgba(255,255,255,0.06);">${esc(fullAddress || '—')}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;">Piano</td><td style="padding:7px 0;color:#f5f0e8;">${esc(pianoLabel)}</td></tr>
+        </table>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Agreed date *</label>
+        <input type="date" id="agreedDate" min="${minDate}"
+          style="width:100%;padding:14px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;color:#f5f0e8;font-size:16px;box-sizing:border-box;">
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Agreed time *</label>
+        <select id="agreedTime"
+          style="width:100%;padding:14px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;color:#f5f0e8;font-size:16px;box-sizing:border-box;">
+          <option value="">Select time window...</option>
+          <option>Morning (9am–12pm)</option>
+          <option>Afternoon (12pm–4pm)</option>
+          <option>Late afternoon (4pm–6pm)</option>
+          <option>Flexible — I confirmed exact time with customer</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:28px;">
+        <label style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Notes (optional)</label>
+        <textarea id="tunerNotes" rows="3"
+          placeholder="Any notes about the job, access, or the piano..."
+          style="width:100%;padding:12px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;color:#f5f0e8;font-size:14px;resize:vertical;box-sizing:border-box;font-family:'DM Sans',sans-serif;"></textarea>
+      </div>
+
+      <button id="submitBtn" onclick="submitLogDate()"
+        style="width:100%;background:#b8935a;color:#000;border:none;border-radius:4px;padding:18px;font-size:15px;font-weight:500;letter-spacing:0.05em;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        CONFIRM DATE &amp; NOTIFY CUSTOMER
+      </button>
+
+      <div id="submitError" style="display:none;margin-top:12px;padding:12px;background:rgba(192,57,43,0.1);border-radius:4px;font-size:13px;color:#e74c3c;text-align:center;"></div>
+
+    </div>
+  `
+}
+
+async function submitLogDate() {
+  const agreedDate = document.getElementById('agreedDate').value
+  const agreedTime = document.getElementById('agreedTime').value
+  const notes      = document.getElementById('tunerNotes').value.trim()
+  const err        = document.getElementById('submitError')
+  const btn        = document.getElementById('submitBtn')
+
+  if (!agreedDate) { err.style.display = 'block'; err.textContent = 'Please enter the agreed date.'; return }
+  if (!agreedTime) { err.style.display = 'block'; err.textContent = 'Please select a time window.'; return }
+
+  btn.textContent = 'SUBMITTING…'
+  btn.disabled = true
+  err.style.display = 'none'
+
+  try {
+    const res = await fetch('/api/tuner-log-date', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token,
+        booking_id:  currentBooking.id,
+        agreed_date: agreedDate,
+        agreed_time: agreedTime,
+        notes:       notes || null,
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      showSuccess(agreedDate, agreedTime)
+    } else {
+      throw new Error(result.error || 'Unknown error')
+    }
+  } catch (e) {
+    console.error('[log-date] submit failed', e)
+    btn.disabled = false
+    btn.textContent = 'CONFIRM DATE & NOTIFY CUSTOMER'
+    err.style.display = 'block'
+    err.textContent = 'Something went wrong — please try again.'
+  }
+}
+
+function showSuccess(date, time) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <div style="font-size:64px;margin-bottom:20px;color:#1D9E75;">✓</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Date logged.</h2>
+        <p style="font-size:14px;color:#9a9590;line-height:1.7;margin:0 0 16px;">
+          <strong style="color:#f5f0e8;">${esc(fmtDateLong(date))} · ${esc(time)}</strong>
+        </p>
+        <p style="font-size:13px;color:#6b6760;line-height:1.6;">
+          The customer and Signature Pianos have been notified. You will receive a reminder the day before.
+        </p>
+      </div>
+    </div>
+  `
+}
+
+function showAlreadyLogged(booking) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <div style="font-size:48px;margin-bottom:16px;color:#1D9E75;">✓</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Date already logged</h2>
+        <p style="font-size:13px;color:#9a9590;line-height:1.7;">
+          ${booking.confirmed_date ? `Confirmed for ${esc(fmtDateLong(booking.confirmed_date))}.` : 'This booking already has a confirmed date.'}
+          Contact Signature Pianos if you need to make changes.
+        </p>
+      </div>
+    </div>
+  `
+}
+
+function showError(message) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <div style="font-size:48px;margin-bottom:16px;color:#b8935a;">✗</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Link not found</h2>
+        <p style="font-size:13px;color:#9a9590;line-height:1.7;">${esc(message)}</p>
+      </div>
+    </div>
+  `
+}
+</script>
+
+</body>
+</html>

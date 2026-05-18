@@ -31,6 +31,7 @@
 
 const { Resend } = require('resend')
 const { createClient } = require('@supabase/supabase-js')
+const { generateCalendarLinks } = require('../lib/calendar')
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const BUSINESS_EMAIL = process.env.BUSINESS_EMAIL
@@ -360,86 +361,6 @@ function tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, comple
   `
 }
 
-/* ============================================================================
- * Calendar link generator — Google Calendar, Outlook, and a data: ICS URL.
- * Used by the tuner booking email today; co-located here for now. TODO:
- * extract to a shared module (e.g. lib/calendar.js) when a second email
- * needs calendar links so we don't duplicate the time-window mapping.
- *
- * Args:
- *   title          — short event title
- *   description    — multi-line event details (will be %-encoded)
- *   location       — street address (text)
- *   startDate      — 'YYYY-MM-DD'
- *   startTime      — readable window text; mapped to local hour below
- *   durationHours  — integer (default 2)
- *
- * Returns: { googleUrl, outlookUrl, icsDataUrl }
- *
- * Note on time zones: Google + Outlook URL templates work with local
- * naive timestamps when no Z suffix is used. Mail clients render the
- * calendar event in the recipient's local zone. Since drivers + tuners
- * are all Melbourne-based, naive local times read as AEST/AEDT and
- * everyone gets the same wall-clock time.
- * ======================================================================== */
-function generateCalendarLinks({ title, description, location, startDate, startTime, durationHours }) {
-  // Map known time-window phrases to a sensible 24h start hour.
-  const t = String(startTime || '').toLowerCase()
-  let startHour = 9 // default — morning
-  if (t.includes('morning'))         startHour = 9
-  else if (t.includes('afternoon') && t.includes('late')) startHour = 16
-  else if (t.includes('afternoon'))  startHour = 13
-  else if (t.includes('evening'))    startHour = 18
-  else if (t.includes('flexible'))   startHour = 10
-
-  const dur = Number(durationHours) > 0 ? Number(durationHours) : 2
-  // Build local naive timestamps in the format YYYYMMDDTHHMMSS (no Z).
-  // startDate is 'YYYY-MM-DD' — strip dashes.
-  const dateDigits = String(startDate || '').replace(/-/g, '')
-  const pad = (n) => String(n).padStart(2, '0')
-  const startStamp = `${dateDigits}T${pad(startHour)}0000`
-  const endHour = startHour + dur
-  const endStamp = `${dateDigits}T${pad(endHour)}0000`
-
-  // Outlook expects ISO-ish startdt / enddt with a T separator.
-  const outlookStart = `${startDate}T${pad(startHour)}:00:00`
-  const outlookEnd   = `${startDate}T${pad(endHour)}:00:00`
-
-  const enc = (s) => encodeURIComponent(s || '')
-
-  const googleUrl =
-    `https://calendar.google.com/calendar/render?action=TEMPLATE` +
-    `&text=${enc(title)}` +
-    `&dates=${startStamp}/${endStamp}` +
-    `&details=${enc(description)}` +
-    `&location=${enc(location)}`
-
-  const outlookUrl =
-    `https://outlook.office.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent` +
-    `&subject=${enc(title)}` +
-    `&body=${enc(description)}` +
-    `&startdt=${enc(outlookStart)}` +
-    `&enddt=${enc(outlookEnd)}` +
-    `&location=${enc(location)}`
-
-  // Inline ICS as a data: URL so Apple Mail / Calendar can download it
-  // without a server round trip. Lines must be CRLF per RFC 5545.
-  const icsLines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Signature Pianos//Tuning Booking//EN',
-    'BEGIN:VEVENT',
-    `UID:${dateDigits}T${pad(startHour)}0000@signaturepianos.com.au`,
-    `DTSTAMP:${dateDigits}T${pad(startHour)}0000`,
-    `DTSTART:${startStamp}`,
-    `DTEND:${endStamp}`,
-    `SUMMARY:${(title || '').replace(/\n/g, '\\n')}`,
-    `DESCRIPTION:${(description || '').replace(/\n/g, '\\n')}`,
-    `LOCATION:${(location || '').replace(/\n/g, '\\n')}`,
-    'END:VEVENT',
-    'END:VCALENDAR',
-  ]
-  const icsDataUrl = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(icsLines.join('\r\n'))
-
-  return { googleUrl, outlookUrl, icsDataUrl }
-}
+/* generateCalendarLinks now lives in lib/calendar.js — required at the
+ * top of this file. Shared with api/tuner-log-date.js (the new
+ * agreed-date-confirmation flow). */

@@ -21,6 +21,7 @@
 
 const { createClient } = require('@supabase/supabase-js')
 const { Resend } = require('resend')
+const { customerTuningReadyEmail, tunerContactEmail } = require('../lib/tuner-emails')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -125,12 +126,278 @@ module.exports = async (req, res) => {
       }
     }
 
-    console.log(`[cron-delivery-reminders] sent3Day=${sent3Day} sentDayOf=${sentDayOf} errors=${errors.length}`)
-    return res.status(200).json({ success: true, sent3Day, sentDayOf, errors })
+    // ─────────────────────────────────────────────────────────────────
+    // TUNER BOOKINGS — day-25 contact send
+    // (Session 12 rebuild: cron pushes customer heads-up + tuner action
+    // email when trigger_date hits today, replacing the old
+    // accept/propose flow.)
+    // ─────────────────────────────────────────────────────────────────
+    let sentTunerContact = 0
+    let sentTunerReminder = 0
+
+    let settings = {}
+    try {
+      const { data: s } = await supabase.from('company_settings').select('*').limit(1).maybeSingle()
+      if (s) settings = s
+    } catch (sErr) {
+      console.warn('[cron-delivery-reminders] settings load fell back', sErr)
+    }
+
+    try {
+      const { data: tunerBookingsToSend, error: tbErr } = await supabase
+        .from('tuner_bookings')
+        .select(`
+          *,
+          order:order_id (
+            *,
+            customer:customer_id ( * ),
+            piano:piano_id ( * )
+          ),
+          tuner:tuner_id ( * )
+        `)
+        .eq('trigger_date', todayStr)
+        .eq('contact_sent', false)
+        .eq('completed', false)
+      if (tbErr) throw tbErr
+
+      for (const booking of (tunerBookingsToSend || [])) {
+        const customer = booking.order?.customer || {}
+        const piano    = booking.order?.piano    || {}
+        const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
+
+        // No tuner assigned yet → ping Eric to assign one. Don't flip
+        // contact_sent so tomorrow's cron picks it up again once a tuner
+        // is in place.
+        if (!booking.tuner) {
+          try {
+            await resend.emails.send({
+              from: FROM,
+              to: process.env.BUSINESS_EMAIL || FROM,
+              subject: `Action required: Assign tuner — ${customer.first_name || ''} ${customer.last_name || ''} · ${pianoLabel}`.trim(),
+              html: noTunerAssignedEmail({ customer, piano, pianoLabel }),
+            })
+          } catch (mailErr) {
+            console.error('[cron] no-tuner alert failed', booking.id, mailErr)
+            errors.push({ id: booking.id, kind: 'no_tuner', err: String(mailErr) })
+          }
+          continue
+        }
+
+        const logDateUrl = `${SITE_URL}/tuner/log-date/${booking.log_date_token}`
+
+        try {
+          // Customer heads-up
+          if (customer.email) {
+            await resend.emails.send({
+              from: FROM,
+              to: customer.email,
+              subject: 'Your piano is ready for its first tuning — Signature Pianos',
+              html: customerTuningReadyEmail({ customer, piano, settings }),
+            })
+          }
+          // Tuner action email
+          await resend.emails.send({
+            from: FROM,
+            to: booking.tuner.email,
+            subject: `New tuning job — ${customer.first_name || ''} ${customer.last_name || ''} · ${pianoLabel}`.trim(),
+            html: tunerContactEmail({ tuner: booking.tuner, customer, piano, logDateUrl }),
+          })
+
+          await supabase
+            .from('tuner_bookings')
+            .update({
+              contact_sent:    true,
+              contact_sent_at: new Date().toISOString(),
+              status:          'contact_sent',
+            })
+            .eq('id', booking.id)
+
+          sentTunerContact++
+        } catch (mailErr) {
+          console.error('[cron] tuner contact failed', booking.id, mailErr)
+          errors.push({ id: booking.id, kind: 'tuner_contact', err: String(mailErr) })
+        }
+      }
+    } catch (tunerOuterErr) {
+      console.error('[cron] tuner-contact section failed', tunerOuterErr)
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // TUNER BOOKINGS — day-before reminders
+    // ─────────────────────────────────────────────────────────────────
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = tomorrow.toISOString().slice(0, 10)
+
+    try {
+      const { data: tunerReminders, error: trErr } = await supabase
+        .from('tuner_bookings')
+        .select(`
+          *,
+          order:order_id (
+            *,
+            customer:customer_id ( * ),
+            piano:piano_id ( * )
+          ),
+          tuner:tuner_id ( * )
+        `)
+        .eq('confirmed_date', tomorrowStr)
+        .eq('day_before_reminder_sent', false)
+        .eq('completed', false)
+      if (trErr) throw trErr
+
+      for (const booking of (tunerReminders || [])) {
+        const customer = booking.order?.customer || {}
+        const piano    = booking.order?.piano    || {}
+        const completeUrl = `${SITE_URL}/api/tuner-complete?token=${booking.completion_token}`
+
+        try {
+          if (booking.tuner?.email) {
+            await resend.emails.send({
+              from: FROM,
+              to: booking.tuner.email,
+              subject: `Reminder: Piano tuning tomorrow — ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
+              html: tunerDayBeforeEmail({
+                tuner: booking.tuner, customer, piano,
+                confirmedDate: booking.confirmed_date,
+                confirmedTime: booking.confirmed_time,
+                completeUrl,
+              }),
+            })
+          }
+          if (customer.email) {
+            await resend.emails.send({
+              from: FROM,
+              to: customer.email,
+              subject: 'Reminder: Your piano tuning is tomorrow — Signature Pianos',
+              html: customerDayBeforeEmail({
+                customer, piano,
+                confirmedDate: booking.confirmed_date,
+                confirmedTime: booking.confirmed_time,
+                settings,
+              }),
+            })
+          }
+
+          await supabase
+            .from('tuner_bookings')
+            .update({
+              day_before_reminder_sent:    true,
+              day_before_reminder_sent_at: new Date().toISOString(),
+            })
+            .eq('id', booking.id)
+
+          sentTunerReminder++
+        } catch (mailErr) {
+          console.error('[cron] tuner reminder failed', booking.id, mailErr)
+          errors.push({ id: booking.id, kind: 'tuner_reminder', err: String(mailErr) })
+        }
+      }
+    } catch (remOuterErr) {
+      console.error('[cron] tuner-reminder section failed', remOuterErr)
+    }
+
+    console.log(`[cron-delivery-reminders] sent3Day=${sent3Day} sentDayOf=${sentDayOf} tunerContact=${sentTunerContact} tunerReminder=${sentTunerReminder} errors=${errors.length}`)
+    return res.status(200).json({ success: true, sent3Day, sentDayOf, sentTunerContact, sentTunerReminder, errors })
   } catch (err) {
     console.error('[cron-delivery-reminders] handler failed', err)
     return res.status(500).json({ error: err.message || 'Cron failed' })
   }
+}
+
+/* ============================================================================
+ * Tuner-flow templates used only by this cron handler.
+ * Customer heads-up + tuner contact email live in lib/tuner-emails.js
+ * since /api/tuner-send-contact.js also fires them.
+ * ======================================================================== */
+
+function noTunerAssignedEmail({ customer, piano, pianoLabel }) {
+  return `
+    <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;">
+      <h2 style="color:#c0392b;">Action required — No tuner assigned</h2>
+      <p>A tuning job is due today but no tuner has been assigned in the admin portal.</p>
+      <p><strong>Customer:</strong> ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))} (${esc(customer.email || '—')} · ${esc(customer.phone || '—')})</p>
+      <p><strong>Piano:</strong> ${esc(pianoLabel)}</p>
+      <p><strong>Action:</strong> Go to admin/deliveries.html, find this delivery, assign a tuner, then send the contact email manually.</p>
+      <a href="https://signaturepianos.com.au/admin/deliveries.html"
+         style="display:inline-block;background:#b8935a;color:#000;padding:10px 20px;border-radius:4px;text-decoration:none;font-size:13px;">
+        Go to admin portal →
+      </a>
+    </div>
+  `
+}
+
+function tunerDayBeforeEmail({ tuner, customer, piano, confirmedDate, confirmedTime, completeUrl }) {
+  const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
+  const fullAddress = [customer?.address_line1, customer?.suburb, customer?.state, customer?.postcode].filter(Boolean).map(esc).join(', ')
+  return `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+    <div style="background:#b8935a;padding:24px 32px;">
+      <div style="font-size:18px;color:#000;font-style:italic;">Signature Pianos</div>
+      <div style="font-size:12px;color:rgba(0,0,0,0.6);margin-top:4px;">⚡ Tuning reminder — tomorrow</div>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#1a1917;margin:0 0 8px;">Hi ${esc(tuner?.name || '')} — tuning tomorrow</h2>
+      <p style="color:#6b6760;font-size:14px;line-height:1.7;margin:0 0 20px;">This is your reminder for tomorrow's tuning job.</p>
+
+      <div style="background:#fff3cd;border-radius:4px;padding:16px;margin-bottom:20px;border:1px solid #ffc107;text-align:center;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#856404;margin-bottom:6px;">Tomorrow</div>
+        <div style="font-size:18px;font-weight:500;color:#1a1917;">${esc(fmtDateLong(confirmedDate))}</div>
+        <div style="font-size:14px;color:#6b6760;margin-top:4px;">${esc(confirmedTime || 'Flexible')}</div>
+      </div>
+
+      <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:20px;">
+        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:35%;">Customer</td><td style="padding:8px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))}</td></tr>
+        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Phone</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;"><a href="tel:${esc(customer?.phone || '')}" style="color:#b8935a;">${esc(customer?.phone || '—')}</a></td></tr>
+        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Address</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">${fullAddress}</td></tr>
+        <tr><td style="padding:8px 0;color:#9a9590;">Piano</td><td style="padding:8px 0;">${esc(pianoLabel)}</td></tr>
+      </table>
+
+      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:16px;text-align:center;">
+        <div style="font-size:13px;font-weight:500;color:#085041;margin-bottom:8px;">After you complete the tuning</div>
+        <p style="font-size:12px;color:#085041;margin:0 0 12px;">Use this link to mark the job as done. The customer will be notified automatically.</p>
+        <a href="${esc(completeUrl)}" style="display:inline-block;background:#085041;color:#fff;padding:10px 24px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:500;">
+          Mark tuning complete →
+        </a>
+      </div>
+    </div>
+    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
+      Signature Pianos Melbourne · signaturepianos.com.au
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+function customerDayBeforeEmail({ customer, piano, confirmedDate, confirmedTime, settings }) {
+  const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
+  return `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+    <div style="background:#1a1917;padding:32px;text-align:center;">
+      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#1a1917;margin:0 0 16px;">Your piano tuning is tomorrow, ${esc(customer?.first_name || 'friend')}.</h2>
+      <p style="color:#6b6760;font-size:14px;line-height:1.7;">Just a friendly reminder that your piano tuning is scheduled for tomorrow.</p>
+      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:16px;margin:20px 0;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#085041;margin-bottom:6px;">Your appointment</div>
+        <div style="font-size:18px;font-weight:500;color:#085041;">${esc(fmtDateLong(confirmedDate))}</div>
+        <div style="font-size:14px;color:#085041;margin-top:4px;">${esc(confirmedTime || 'Your tuner will confirm the time')}</div>
+      </div>
+      <p style="color:#6b6760;font-size:13px;line-height:1.7;">Please ensure someone is home during the time window. Tuning takes approximately 60–90 minutes.</p>
+      <p style="color:#6b6760;font-size:13px;line-height:1.7;">If you need to reschedule please reply to this email or contact us as soon as possible.</p>
+    </div>
+    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
+      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
+      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
+    </div>
+  </div>
+</body>
+</html>`
 }
 
 function esc(s) {

@@ -134,26 +134,35 @@ module.exports = async (req, res) => {
       // be created manually if this step fails.
     }
 
-    // 4. Auto tuner booking — 25 days from today
+    // 4. Auto tuner booking — 25 days from today.
+    //    New flow (Session 12 rebuild): just create the row with a
+    //    trigger_date. The daily cron fires the customer + tuner
+    //    contact emails when trigger_date hits today. No emails
+    //    sent immediately here.
     const tunerDate = new Date()
     tunerDate.setDate(tunerDate.getDate() + 25)
     const tunerDateIso = tunerDate.toISOString().slice(0, 10)
-    const confToken = randToken()
-    const compToken = randToken()
+    const logDateToken   = randToken()
+    const completionToken = randToken()
 
     try {
       await supabase
         .from('tuner_bookings')
         .insert({
-          order_id:           order.id,
-          customer_id:        customer.id || null,
-          warranty_id:        warranty?.id || null,
-          proposed_date:      tunerDateIso,
-          status:             'pending',
-          auto_booked:        true,
-          confirmation_sent:  false,
-          confirmation_token: confToken,
-          completion_token:   compToken,
+          order_id:         order.id,
+          customer_id:      customer.id || null,
+          warranty_id:      warranty?.id || null,
+          trigger_date:     tunerDateIso,
+          // proposed_date stays in sync for backwards-compat with the
+          // existing admin form; the cron only reads trigger_date.
+          proposed_date:    tunerDateIso,
+          status:           'pending',
+          auto_booked:      true,
+          contact_sent:     false,
+          date_logged:      false,
+          completed:        false,
+          log_date_token:   logDateToken,
+          completion_token: completionToken,
         })
     } catch (tbErr) {
       console.error('[driver-delivery-confirm] tuner_bookings insert failed', tbErr)
