@@ -278,13 +278,22 @@ async function loadCustomerSignatureImage(plan) {
 }
 
 async function viewIDDocument() {
+  // Open the tab synchronously in the click handler so popup blockers
+  // don't kill it after the async createSignedUrl returns.
+  const newWindow = window.open('about:blank', '_blank')
   try {
     const { data } = await adminSupabase.storage
       .from('id-documents')
       .createSignedUrl(currentPlan.id_document_url, 300)
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+    if (data?.signedUrl) {
+      if (newWindow) newWindow.location.href = data.signedUrl
+      else window.location.href = data.signedUrl
+    } else if (newWindow) {
+      newWindow.close()
+    }
   } catch (e) {
     console.error('[countersign] ID view failed', e)
+    if (newWindow) newWindow.close()
   }
 }
 

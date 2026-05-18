@@ -1222,8 +1222,14 @@ async function downloadSignedContract(planId) {
   }
 }
 
-/* ---------- View ID document (Step 11) ---------- */
+/* ---------- View ID document ----------
+   Opens the signed URL in a new tab. The window MUST be opened
+   synchronously inside the click handler (before any await) so popup
+   blockers don't treat it as a non-user-initiated popup and silently
+   block it. We redirect that placeholder window to the signed URL
+   once the async fetch resolves. */
 async function viewIDDocument(planId) {
+  const newWindow = window.open('about:blank', '_blank')
   try {
     const { data: plan, error: pErr } = await adminSupabase
       .from('payment_plans')
@@ -1232,6 +1238,7 @@ async function viewIDDocument(planId) {
       .single()
     if (pErr) throw pErr
     if (!plan?.id_document_url) {
+      if (newWindow) newWindow.close()
       showToast('No ID document on file.', 'error')
       return
     }
@@ -1240,9 +1247,13 @@ async function viewIDDocument(planId) {
       .from('id-documents')
       .createSignedUrl(plan.id_document_url, 60)
     if (error) throw error
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+    if (data?.signedUrl) {
+      if (newWindow) newWindow.location.href = data.signedUrl
+      else window.location.href = data.signedUrl // popup blocked — fall back to same-tab
+    }
   } catch (err) {
     console.error('[payment-plans] view ID failed', err)
+    if (newWindow) newWindow.close()
     showToast('Could not open ID document.', 'error')
   }
 }
