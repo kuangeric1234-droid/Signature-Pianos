@@ -298,7 +298,7 @@ function renderSigningPage(plan, instalments, settings) {
             Sign here
           </div>
           <div style="position:relative;">
-            <canvas id="signatureCanvas" style="width:100%;height:160px;display:block;touch-action:none;cursor:crosshair;"></canvas>
+            <canvas id="signatureCanvas" style="width:100%;height:160px;display:block;touch-action:none;cursor:crosshair;background:#fafafa;"></canvas>
             <div id="signaturePlaceholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
               <span style="font-size:13px;color:#ccc;font-style:italic;">Sign with your mouse or finger</span>
             </div>
@@ -352,9 +352,10 @@ function renderSigningPage(plan, instalments, settings) {
     document.getElementById('bankTransferContinueBtn').addEventListener('click', () => goToSection(4))
   }
 
-  // Wire section 4
-  initSignatureCanvas()
-  document.getElementById('clearSigBtn').addEventListener('click', () => window.clearSignature())
+  // Wire section 4 — canvas init is deferred to goToSection(4) because
+  // a canvas inside a display:none parent has zero dimensions and
+  // getBoundingClientRect() returns 0×0, which breaks drawing.
+  document.getElementById('clearSigBtn').addEventListener('click', () => window.clearSignature && window.clearSignature())
   document.getElementById('submitSignatureBtn').addEventListener('click', () => submitSignature(plan.id))
 
   initStripeIfNeeded(plan)
@@ -376,6 +377,15 @@ function goToSection(num) {
     }
   }
   window.scrollTo(0, 0)
+
+  // Initialise the signature canvas the first time (and on every revisit)
+  // section 4 becomes visible. A canvas inside a display:none parent has
+  // getBoundingClientRect() == 0×0, which leaves the canvas at 0px
+  // internal resolution and prevents drawing. setTimeout(…, 100) lets the
+  // browser commit the layout change before we measure.
+  if (num === 4) {
+    setTimeout(initSignatureCanvas, 100)
+  }
 }
 
 /* ============================================================================
@@ -893,29 +903,47 @@ async function saveCardAndContinue() {
 }
 
 /* ============================================================================
-   Signature canvas (ported from existing signing page)
+   Signature canvas — initialises lazily once section 4 is visible.
+   Clones the existing <canvas> first to drop any stale event listeners
+   from a previous goToSection(4) call (without cloning, navigating back
+   and forward to section 4 would accumulate duplicate listeners).
+   All draw functions then close over the fresh in-DOM node + context.
    ============================================================================ */
 function initSignatureCanvas() {
+  const oldCanvas = document.getElementById('signatureCanvas')
+  if (!oldCanvas) return
+
+  // Clone-then-replace BEFORE we capture any references in closures.
+  // If we cloned after wiring, the closures would hold the detached
+  // node and ctx, breaking drawing.
+  const cloned = oldCanvas.cloneNode(false)
+  oldCanvas.parentNode.replaceChild(cloned, oldCanvas)
   const canvas      = document.getElementById('signatureCanvas')
   const placeholder = document.getElementById('signaturePlaceholder')
-  if (!canvas) return
+
+  // HiDPI — measure the now-visible canvas and back-fill internal
+  // resolution at devicePixelRatio. rect.width can still be 0 if
+  // a layout race occurs; fall back to clientWidth in that case.
+  const rect = canvas.getBoundingClientRect()
+  const dpr  = window.devicePixelRatio || 1
+  const cssW = rect.width  || canvas.clientWidth  || 0
+  const cssH = rect.height || canvas.clientHeight || 160
+
+  canvas.width  = Math.max(1, Math.floor(cssW * dpr))
+  canvas.height = Math.max(1, Math.floor(cssH * dpr))
+  canvas.style.width  = cssW + 'px'
+  canvas.style.height = '160px'
+  if (placeholder) placeholder.style.display = 'flex'
 
   const ctx = canvas.getContext('2d')
-
-  // HiDPI — set internal resolution to match displayed CSS size.
-  const dpr  = window.devicePixelRatio || 1
-  const rect = canvas.getBoundingClientRect()
-  canvas.width  = rect.width * dpr
-  canvas.height = 160 * dpr
   ctx.scale(dpr, dpr)
-
-  let drawing = false
-  let hasSignature = false
-
   ctx.strokeStyle = '#1a1917'
-  ctx.lineWidth   = 2
+  ctx.lineWidth   = 2.5
   ctx.lineCap     = 'round'
   ctx.lineJoin    = 'round'
+
+  let drawing      = false
+  let hasSignature = false
 
   function getPos(e) {
     const r = canvas.getBoundingClientRect()
@@ -928,7 +956,10 @@ function initSignatureCanvas() {
     const p = getPos(e)
     ctx.beginPath()
     ctx.moveTo(p.x, p.y)
-    if (!hasSignature) { hasSignature = true; placeholder.style.display = 'none' }
+    if (!hasSignature) {
+      hasSignature = true
+      if (placeholder) placeholder.style.display = 'none'
+    }
   }
   function draw(e) {
     if (!drawing) return
@@ -937,23 +968,32 @@ function initSignatureCanvas() {
     ctx.lineTo(p.x, p.y)
     ctx.stroke()
   }
-  function stopDraw() { drawing = false }
+  function stopDraw() {
+    if (!drawing) return
+    drawing = false
+    ctx.beginPath()
+  }
 
-  canvas.addEventListener('mousedown',  startDraw)
-  canvas.addEventListener('mousemove',  draw)
-  canvas.addEventListener('mouseup',    stopDraw)
-  canvas.addEventListener('mouseleave', stopDraw)
-  canvas.addEventListener('touchstart', startDraw, { passive: false })
-  canvas.addEventListener('touchmove',  draw,      { passive: false })
-  canvas.addEventListener('touchend',   stopDraw)
+  canvas.addEventListener('mousedown',   startDraw)
+  canvas.addEventListener('mousemove',   draw)
+  canvas.addEventListener('mouseup',     stopDraw)
+  canvas.addEventListener('mouseleave',  stopDraw)
+  canvas.addEventListener('touchstart',  startDraw, { passive: false })
+  canvas.addEventListener('touchmove',   draw,      { passive: false })
+  canvas.addEventListener('touchend',    stopDraw)
+  canvas.addEventListener('touchcancel', stopDraw)
 
+  // Globals — getSignatureDataURL re-fetches the canvas by id at call
+  // time as a defence against the closure ever pointing at a stale node.
   window.clearSignature = function () {
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    const r = canvas.getBoundingClientRect()
+    ctx.clearRect(0, 0, r.width, r.height)
     hasSignature = false
-    placeholder.style.display = 'flex'
+    if (placeholder) placeholder.style.display = 'flex'
   }
   window.getSignatureDataURL = function () {
-    return hasSignature ? canvas.toDataURL('image/png') : null
+    const c = document.getElementById('signatureCanvas')
+    return (hasSignature && c) ? c.toDataURL('image/png') : null
   }
   window.hasSignatureDrawn = function () {
     return hasSignature
