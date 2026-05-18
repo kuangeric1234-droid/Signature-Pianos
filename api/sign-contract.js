@@ -32,10 +32,19 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { plan_id, token, signature_data, full_name, signed_at } = req.body || {}
+  const {
+    plan_id, token, signature_data, full_name, signed_at,
+    id_document_url, // Step 9 — Storage path from the signing page upload
+  } = req.body || {}
   if (!plan_id || !token || !signature_data || !full_name) {
     return res.status(400).json({ error: 'Missing required fields' })
   }
+
+  // Step 9 — request-derived audit fields
+  const signerIp = (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
+    || req.socket?.remoteAddress
+    || null
+  const signerUa = req.headers['user-agent'] || null
 
   try {
     // ---- 1. Token check ---------------------------------------------------
@@ -80,6 +89,11 @@ module.exports = async (req, res) => {
         contract_signed_at: signedAtIso,
         contract_url:       contractUrl,
         status:             'active',
+        // Step 9 — capture verified identity ref + audit
+        id_document_url:    id_document_url || null,
+        id_uploaded_at:     id_document_url ? signedAtIso : null,
+        signer_ip:          signerIp,
+        signer_user_agent:  signerUa,
       })
       .eq('id', plan_id)
     if (updErr) throw updErr

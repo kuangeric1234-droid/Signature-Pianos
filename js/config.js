@@ -17,3 +17,9 @@ const STRIPE_PUBLIC_KEY = 'YOUR_STRIPE_PUBLIC_KEY' // TODO: replace
 
 const { createClient } = supabase
 const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+// Exposed on window so pages loaded after this script (e.g. the
+// payment-plan-sign Stripe Elements mount) can read it without
+// importing this file as a module. Top-level `const` does NOT attach
+// to window automatically for classic scripts.
+window.STRIPE_PUBLIC_KEY = STRIPE_PUBLIC_KEY

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>Sign your payment plan — Signature Pianos</title>
 <meta name="robots" content="noindex, nofollow" />
 
@@ -18,6 +18,7 @@
     --text-1: #f5f0e8; --text-2: #9a9590; --text-3: #6b6760;
     --border: rgba(184, 147, 90, 0.15);
     --border-strong: rgba(184, 147, 90, 0.4);
+    --green: #1D9E75;
   }
   *, *::before, *::after { box-sizing: border-box; }
   html, body {
@@ -26,166 +27,10 @@
     font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7;
     -webkit-font-smoothing: antialiased;
   }
-
-  .header {
-    text-align: center;
-    padding: 56px 24px 24px;
-  }
-  .header .icon {
-    font-size: 36px; color: var(--gold); display: block; margin-bottom: 14px;
-  }
-  .header h1 {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300; font-style: italic;
-    font-size: 36px; line-height: 1.2;
-    margin: 0 0 8px;
-  }
-  .header .plan-no {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 13px; color: var(--gold);
-    letter-spacing: 0.06em;
-  }
-  .header .subline {
-    font-size: 13px; color: var(--text-2);
-    margin-top: 6px;
-  }
-
-  .contract-wrap { padding: 0 24px 80px; }
-
-  .loading, .error-box {
+  .loading {
     text-align: center; color: var(--text-2);
     font-size: 14px; padding: 80px 24px;
   }
-
-  /* Document card — white inside the dark page so it reads as a real contract */
-  .doc {
-    background: #fff; color: #1a1917;
-    border-radius: 4px; padding: 40px;
-    max-width: 680px; margin: 0 auto;
-    border: 1px solid rgba(184, 147, 90, 0.2);
-  }
-  .doc-header {
-    text-align: center;
-    border-bottom: 2px solid #1a1917;
-    padding-bottom: 24px;
-    margin-bottom: 24px;
-  }
-  .doc-header .brand {
-    font-size: 24px; font-style: italic; color: #b8935a;
-    margin-bottom: 4px;
-    font-family: 'Cormorant Garamond', serif;
-  }
-  .doc-header .title {
-    font-size: 18px; font-weight: 500; color: #1a1917;
-    text-transform: uppercase; letter-spacing: 0.1em;
-    margin-bottom: 4px;
-  }
-  .doc-header .meta {
-    font-size: 13px; color: #6b6760;
-  }
-
-  .section-h {
-    font-size: 14px; font-weight: 500; color: #1a1917;
-    margin: 24px 0 12px;
-    border-bottom: 1px solid #e8e4dd; padding-bottom: 8px;
-  }
-  .doc p { font-size: 13px; line-height: 1.8; color: #1a1917; }
-  .doc table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .doc table td.l { color: #6b6760; padding: 8px 0; border-bottom: 1px solid #e8e4dd; }
-  .doc table td.v { font-weight: 500; padding: 8px 0; border-bottom: 1px solid #e8e4dd; text-align: right; }
-
-  .panel-instrument {
-    background: #f8f7f5; border-radius: 4px;
-    padding: 16px; margin-bottom: 24px;
-  }
-  .panel-instrument .lbl {
-    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
-    color: #9a9590; margin-bottom: 8px;
-  }
-
-  .schedule {
-    width: 100%; border-collapse: collapse; font-size: 12px;
-  }
-  .schedule thead th {
-    background: #f8f7f5; color: #6b6760; font-weight: 500;
-    padding: 7px 10px; text-align: left; border-bottom: 1px solid #e8e4dd;
-  }
-  .schedule thead th.r { text-align: right; }
-  .schedule tbody td {
-    padding: 7px 10px; color: #1a1917; border-bottom: 1px solid #e8e4dd;
-  }
-  .schedule tbody td.r { text-align: right; }
-  .schedule tbody td.muted { color: #6b6760; }
-
-  .terms p { font-size: 12px; color: #6b6760; margin: 0 0 10px; }
-
-  /* Signature section */
-  .sig-wrap {
-    border-top: 2px solid #1a1917;
-    padding-top: 24px; margin-top: 24px;
-  }
-  .sig-wrap h3 {
-    font-size: 14px; font-weight: 500; color: #1a1917; margin: 0 0 8px;
-  }
-  .canvas-wrap {
-    position: relative;
-    border: 1px solid #e8e4dd; border-radius: 4px;
-    background: #fafafa; margin-bottom: 12px;
-    touch-action: none;
-  }
-  #signatureCanvas {
-    width: 100%; height: 150px; display: block;
-    touch-action: none; cursor: crosshair;
-  }
-  #signaturePlaceholder {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    pointer-events: none;
-    font-size: 13px; color: #ccc; font-style: italic;
-  }
-  .sig-controls {
-    display: flex; gap: 8px; margin-bottom: 16px; align-items: center;
-    flex-wrap: wrap;
-  }
-  .sig-controls .clear-btn {
-    background: none; border: 1px solid #e8e4dd;
-    border-radius: 4px; padding: 7px 14px;
-    font-family: inherit; font-size: 12px; cursor: pointer; color: #6b6760;
-  }
-  .sig-controls .date-stamp {
-    font-size: 12px; color: #9a9590;
-  }
-  .sig-field { margin-bottom: 16px; }
-  .sig-field label.lbl {
-    display: block; font-size: 12px; color: #6b6760; margin-bottom: 6px;
-  }
-  .sig-field input[type="text"] {
-    width: 100%; padding: 10px 12px;
-    border: 1px solid #e8e4dd; border-radius: 4px;
-    font-size: 13px; box-sizing: border-box;
-    font-family: inherit;
-  }
-  .agree {
-    display: flex; align-items: flex-start; gap: 10px;
-    cursor: pointer; margin-bottom: 20px;
-    font-size: 13px; color: #6b6760;
-  }
-  .agree input { margin-top: 2px; accent-color: var(--gold); }
-  .submit-btn {
-    width: 100%; background: var(--gold); color: #000;
-    border: none; border-radius: 4px; padding: 16px;
-    font-family: inherit; font-size: 14px; font-weight: 500;
-    letter-spacing: 0.05em; cursor: pointer; text-transform: uppercase;
-  }
-  .submit-btn:disabled { opacity: 0.6; cursor: progress; }
-  #signError {
-    display: none; margin-top: 10px; padding: 10px;
-    background: #fdecea; border-radius: 4px;
-    font-size: 12px; color: #c0392b;
-  }
-  #signError.is-shown { display: block; }
-
-  /* Success state */
   .success-wrap {
     text-align: center; padding: 80px 24px;
   }
@@ -196,55 +41,72 @@
   .success-wrap h2 {
     font-family: 'Cormorant Garamond', serif;
     font-size: 36px; font-weight: 300; color: var(--text-1);
-    font-style: italic;
-    margin: 0 0 16px;
+    font-style: italic; margin: 0 0 16px;
   }
   .success-wrap p {
     font-size: 14px; color: var(--text-2);
     line-height: 1.7; max-width: 400px; margin: 0 auto;
   }
-
-  @media (max-width: 640px) {
-    .doc { padding: 24px; }
-    .header { padding: 36px 24px 16px; }
-    .header h1 { font-size: 28px; }
-  }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <i class="ti ti-writing-sign icon"></i>
-  <h1>Payment plan contract</h1>
-  <div class="plan-no" id="planNoLabel">—</div>
-  <div class="subline" id="custNameLabel"></div>
-</div>
-
-<div class="contract-wrap" id="contractWrap">
-  <div class="loading"><i class="ti ti-loader"></i><p>Loading your contract…</p></div>
+<div id="pageContent">
+  <div class="loading">
+    <i class="ti ti-loader"></i>
+    <p>Loading your payment plan…</p>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://js.stripe.com/v3/"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.min.js"></script>
 <script src="/js/config.js"></script>
 <script>
 /* ============================================================================
-   Signature Pianos — public payment-plan signing page
+   Signature Pianos — public payment-plan signing page (4-section flow)
    ----------------------------------------------------------------------------
-   No auth. Loads the plan via signature_token (anon RLS allows SELECT).
-   Submits the signature via /api/sign-contract which uses the service role
-   to upload the PNG and flip the row to signed.
+   Steps:
+     1. Review agreement     — HTML preview + PDF download
+     2. Upload government ID — uploads to id-documents/{planId}/
+     3. Payment method       — Stripe Elements (credit_card) OR bank details
+     4. Sign                 — signature canvas + full name + checkbox
+
+   Public — token-gated via signature_token on payment_plans. Anon RLS lets
+   us SELECT the plan and INSERT into the id-documents bucket. Every writing
+   action routes through /api/save-payment-method or /api/sign-contract under
+   the service role.
    ============================================================================ */
 
 const params = new URLSearchParams(window.location.search)
-const token = params.get('token')
+const token  = params.get('token')
 if (!token) { window.location.replace('index.html') }
 
+// Module-level state — referenced across renderAgreementHTML, PDF generation,
+// Stripe setup, ID upload, and signature submission.
+let currentPlan        = null
+let currentInstalments = []
+let currentSettings    = {}
+let idFileSelected     = null
+let idDocumentUrl      = null
+let stripe             = null
+let cardElement        = null
+
+// Exposed for the user-spec snippets that reference window.planToken.
+window.planToken = token
+
+/* ---------- Helpers ---------- */
 function esc(s) {
   if (s == null) return ''
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
 function fmtCur(v) {
-  return '$' + Math.abs(Number(v || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return '$' + Math.abs(Number(v || 0)).toLocaleString('en-AU', {
+    minimumFractionDigits: 2, maximumFractionDigits: 2,
+  })
 }
 function fmtDateAU(d) {
   if (!d) return '—'
@@ -253,193 +115,807 @@ function fmtDateAU(d) {
   return `${day}/${m}/${y}`
 }
 
-;(async function loadContract() {
-  let plan, instalments, settings
+/* ---------- Load plan ---------- */
+;(async function loadPlan() {
   try {
-    const { data, error } = await _supabase
+    const { data: plan, error } = await _supabase
       .from('payment_plans')
       .select(`*, customer:customer_id(*), piano:piano_id(*)`)
       .eq('signature_token', token)
       .maybeSingle()
     if (error) throw error
-    if (!data) return showError("We couldn't find this contract. The link may have expired.")
-    plan = data
-  } catch (err) {
-    console.error('[sign] plan load failed', err)
-    return showError("We couldn't load this contract. Please try again or contact us.")
-  }
+    if (!plan)  return showError("We couldn't find this contract. The link may have expired.")
+    if (plan.contract_signed) return showAlreadySigned(plan)
 
-  if (plan.contract_signed) return showAlreadySigned(plan)
-
-  try {
-    const [{ data: ins, error: insErr }, { data: cs }] = await Promise.all([
-      _supabase.from('payment_instalments').select('*').eq('payment_plan_id', plan.id).order('instalment_number'),
+    const [{ data: ins }, { data: cs }] = await Promise.all([
+      _supabase.from('payment_instalments')
+        .select('*')
+        .eq('payment_plan_id', plan.id)
+        .order('instalment_number'),
       _supabase.from('company_settings').select('*').limit(1).maybeSingle(),
     ])
-    if (insErr) throw insErr
-    instalments = ins || []
-    settings = cs || {}
-  } catch (err) {
-    console.error('[sign] instalments / settings load failed', err)
-    instalments = []
-    settings = {}
-  }
 
-  renderContract(plan, instalments, settings)
+    currentPlan        = plan
+    currentInstalments = ins || []
+    currentSettings    = cs || {}
+
+    renderSigningPage(plan, currentInstalments, currentSettings)
+  } catch (err) {
+    console.error('[sign] load failed', err)
+    showError("We couldn't load this contract. Please try again or contact us.")
+  }
 })()
 
-function showError(msg) {
-  document.getElementById('contractWrap').innerHTML = `
-    <div class="error-box">
-      <i class="ti ti-alert-circle" style="font-size:36px;color:var(--gold);display:block;margin-bottom:12px;"></i>
-      <p>${esc(msg)}</p>
+/* ============================================================================
+   Page shell — 4 sections + progress indicator
+   ============================================================================ */
+function renderSigningPage(plan, instalments, settings) {
+  document.getElementById('pageContent').innerHTML = `
+
+    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(184,147,90,0.2);position:sticky;top:0;z-index:10;">
+      <div style="font-size:16px;color:#b8935a;font-style:italic;">Signature Pianos</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">
+        Payment Plan Agreement · ${esc(plan.plan_number || '')}
+      </div>
     </div>
-  `
-}
 
-function showAlreadySigned(plan) {
-  document.getElementById('contractWrap').innerHTML = `
-    <div class="success-wrap">
-      <i class="ti ti-circle-check icon"></i>
-      <h2>Contract already signed.</h2>
-      <p>This contract was signed on ${fmtDateAU(plan.contract_signed_at)}. Please contact us if you have any questions.</p>
-    </div>
-  `
-}
+    <div style="max-width:640px;margin:0 auto;padding:24px;">
 
-function renderContract(plan, instalments, settings) {
-  const cust  = plan.customer || {}
-  const piano = plan.piano    || {}
-  const dated = fmtDateAU(plan.start_date)
-  const fullName = `${cust.first_name || ''} ${cust.last_name || ''}`.trim()
-
-  document.getElementById('planNoLabel').textContent  = plan.plan_number || '—'
-  document.getElementById('custNameLabel').textContent = fullName ? `For ${fullName}` : ''
-
-  document.getElementById('contractWrap').innerHTML = `
-    <div class="doc">
-
-      <div class="doc-header">
-        <div class="brand">${esc(settings.business_name || 'Signature Pianos')}</div>
-        <div class="title">Payment Plan Agreement</div>
-        <div class="meta">${esc(plan.plan_number || '')} · Dated ${esc(dated)}</div>
+      <!-- Progress -->
+      <div style="display:flex;gap:0;margin-bottom:32px;">
+        ${['Agreement','ID Upload','Payment','Sign'].map((step, i) => `
+          <div style="flex:1;text-align:center;">
+            <div id="step${i+1}indicator" style="width:32px;height:32px;border-radius:50%;background:${i === 0 ? '#b8935a' : 'rgba(255,255,255,0.1)'};color:${i === 0 ? '#000' : 'rgba(255,255,255,0.3)'};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;margin:0 auto 6px;">
+              ${i + 1}
+            </div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;">
+              ${step}
+            </div>
+          </div>
+        `).join('')}
       </div>
 
-      <p>
-        This Payment Plan Agreement is entered into between
-        <strong>${esc(settings.business_name || 'Signature Pianos')}</strong>
-        ${settings.abn ? `(ABN: ${esc(settings.abn)})` : ''}
-        ("the Seller") and
-        <strong>${esc(fullName || 'the Buyer')}</strong>
-        ${cust.email ? `(${esc(cust.email)})` : ''}
-        ("the Buyer").
-      </p>
-
-      <div class="panel-instrument">
-        <div class="lbl">Instrument</div>
-        <div style="font-size:14px;font-weight:500;color:#1a1917;">
-          ${esc((piano.brand || 'Yamaha') + ' ' + (piano.model || ''))}
-          ${piano.type ? esc(piano.type.replace(/_/g, ' ')) : ''}
-        </div>
-        <div style="font-size:13px;color:#6b6760;margin-top:4px;">
-          ${piano.year ? 'Year: ' + esc(piano.year) + ' · ' : ''}
-          ${piano.serial_number ? 'Serial: ' + esc(piano.serial_number) + ' · ' : ''}
-          ${piano.condition ? 'Condition: ' + esc(piano.condition) : ''}
-        </div>
-      </div>
-
-      <div class="section-h">Payment terms</div>
-      <table>
-        <tr><td class="l">Total purchase price</td><td class="v" style="color:#b8935a;">${fmtCur(plan.total_amount)}</td></tr>
-        <tr><td class="l">Deposit</td><td class="v">${fmtCur(plan.deposit_amount)}${plan.deposit_paid ? ' <span style="color:#1a7f4b;font-size:12px;">✓ Received</span>' : ''}</td></tr>
-        <tr><td class="l">Balance payable</td><td class="v">${fmtCur(plan.remaining_amount ?? (Number(plan.total_amount) - Number(plan.deposit_amount || 0)))}</td></tr>
-        <tr><td class="l">Instalment amount</td><td class="v">${fmtCur(plan.instalment_amount)} ${esc(plan.instalment_frequency || '')}</td></tr>
-        <tr><td class="l" style="border-bottom:0;">Number of instalments</td><td class="v" style="border-bottom:0;">${esc(plan.number_of_instalments || 0)}</td></tr>
-      </table>
-
-      <div class="section-h">Payment schedule</div>
-      <table class="schedule">
-        <thead>
-          <tr><th style="width:40px;">#</th><th>Due date</th><th class="r">Amount</th></tr>
-        </thead>
-        <tbody>
-          ${instalments.map(i => `
-            <tr>
-              <td class="muted">${esc(i.instalment_number)}</td>
-              <td>${fmtDateAU(i.due_date)}</td>
-              <td class="r">${fmtCur(i.amount)}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-
-      <div class="section-h">Terms and conditions</div>
-      <div class="terms">
-        <p>1. <strong>Title.</strong> The instrument remains the property of Signature Pianos until all payments have been received in full.</p>
-        <p>2. <strong>Payments.</strong> Instalments are due on the dates specified in the payment schedule above. Late payments may incur a $50 administration fee.</p>
-        <p>3. <strong>Default.</strong> If the Buyer fails to make two consecutive payments, Signature Pianos reserves the right to reclaim the instrument and retain all payments received as compensation.</p>
-        <p>4. <strong>Warranty.</strong> The instrument is covered by the Signature Pianos 10-year warranty from the date of delivery, subject to the full purchase price being paid.</p>
-        <p>5. <strong>Delivery.</strong> Delivery will be arranged once the deposit has been received. The instrument will be delivered to the address provided by the Buyer.</p>
-        <p>6. <strong>Governing law.</strong> This agreement is governed by the laws of Victoria, Australia.</p>
-      </div>
-
-      <div class="sig-wrap">
-        <h3>Buyer signature</h3>
-        <p style="font-size:13px;color:#6b6760;margin:0 0 16px;">
-          By signing below I, <strong>${esc(fullName)}</strong>, confirm I have read and agree to the terms of this payment plan agreement.
+      <!-- Section 1 — Agreement review -->
+      <div id="section1">
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 8px;">
+          Review your agreement
+        </h2>
+        <p style="font-size:14px;color:#9a9590;margin:0 0 20px;line-height:1.6;">
+          Please read through your payment plan agreement carefully before proceeding.
         </p>
 
-        <div class="canvas-wrap">
-          <canvas id="signatureCanvas" width="600" height="150"></canvas>
-          <div id="signaturePlaceholder">Sign here with your mouse or finger</div>
+        <div style="background:#fff;border-radius:4px;padding:28px;margin-bottom:20px;border:1px solid rgba(184,147,90,0.3);">
+          ${renderAgreementHTML(plan, instalments, settings)}
         </div>
 
-        <div class="sig-controls">
-          <button type="button" class="clear-btn" id="clearSigBtn">Clear signature</button>
-          <span class="date-stamp">Date: ${new Date().toLocaleDateString('en-AU')}</span>
+        <button id="downloadPdfBtn" style="width:100%;background:transparent;border:1px solid rgba(184,147,90,0.4);color:#b8935a;border-radius:4px;padding:12px;font-size:13px;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px;font-family:'DM Sans',sans-serif;">
+          <i class="ti ti-download"></i> Download agreement PDF
+        </button>
+
+        <button id="section1ContinueBtn" style="width:100%;background:#b8935a;color:#000;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          I have read the agreement — continue →
+        </button>
+      </div>
+
+      <!-- Section 2 — ID upload -->
+      <div id="section2" style="display:none;">
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 8px;">
+          Verify your identity
+        </h2>
+        <p style="font-size:14px;color:#9a9590;margin:0 0 20px;line-height:1.6;">
+          Please upload a photo of your government-issued ID. Accepted: passport, driver's licence, or any government ID card.
+        </p>
+
+        <div id="idUploadArea" style="border:2px dashed rgba(184,147,90,0.3);border-radius:4px;padding:32px 20px;text-align:center;cursor:pointer;margin-bottom:16px;transition:all 0.2s ease;">
+          <div style="font-size:36px;margin-bottom:8px;">🪪</div>
+          <div style="font-size:14px;color:#9a9590;">Tap to take a photo or choose from camera roll</div>
+          <div style="font-size:12px;color:#6b6760;margin-top:4px;">Passport · Driver's licence · Government ID</div>
         </div>
 
-        <div class="sig-field">
-          <label class="lbl" for="signatureFullName">Type your full name to confirm</label>
-          <input type="text" id="signatureFullName" placeholder="${esc(fullName)}">
+        <input type="file" id="idFileInput" accept="image/*,application/pdf" capture="environment" style="display:none">
+
+        <div id="idPreview" style="display:none;margin-bottom:16px;text-align:center;">
+          <img id="idPreviewImg" style="max-width:100%;max-height:200px;border-radius:4px;border:1px solid rgba(184,147,90,0.3);">
+          <div style="font-size:12px;color:#1D9E75;margin-top:8px;">
+            <i class="ti ti-check"></i> ID document selected
+          </div>
         </div>
 
-        <label class="agree">
-          <input type="checkbox" id="agreeCheckbox">
-          I confirm I have read and agree to the payment plan terms and conditions above.
+        <div style="background:rgba(184,147,90,0.05);border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:12px;margin-bottom:16px;">
+          <div style="font-size:12px;color:#9a9590;line-height:1.6;">
+            <i class="ti ti-lock" style="color:#b8935a;"></i>
+            Your ID is encrypted and stored securely. It is only used for identity verification purposes and will not be shared with third parties.
+          </div>
+        </div>
+
+        <button id="idContinueBtn" disabled style="width:100%;background:#444;color:#888;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:not-allowed;font-family:'DM Sans',sans-serif;">
+          SELECT YOUR ID TO CONTINUE
+        </button>
+      </div>
+
+      <!-- Section 3 — Payment method -->
+      <div id="section3" style="display:none;">
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 8px;">
+          Payment method
+        </h2>
+        <p style="font-size:14px;color:#9a9590;margin:0 0 20px;line-height:1.6;">
+          ${plan.payment_method === 'credit_card'
+            ? `Your plan uses credit card. A ${esc(plan.surcharge_percentage || '1.5')}% surcharge has been applied.`
+            : 'Your plan uses bank transfer. Payment details will be provided in your confirmation email.'}
+        </p>
+
+        ${plan.payment_method === 'credit_card' ? `
+          <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:20px;margin-bottom:20px;">
+            <div style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Card details</div>
+            <div id="cardElement" style="background:#0e0e0d;padding:14px;border-radius:4px;border:1px solid rgba(184,147,90,0.2);"></div>
+            <div id="cardError" style="color:#e74c3c;font-size:12px;margin-top:8px;display:none;"></div>
+          </div>
+
+          <div style="background:rgba(184,147,90,0.05);border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:12px;margin-bottom:16px;">
+            <div style="font-size:12px;color:#9a9590;line-height:1.6;">
+              <i class="ti ti-lock" style="color:#b8935a;"></i>
+              Your card is saved securely via Stripe. If an instalment becomes overdue it will be automatically charged to this card after a 3-day grace period.
+            </div>
+          </div>
+
+          <button id="saveCardBtn" style="width:100%;background:#b8935a;color:#000;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">
+            SAVE CARD & CONTINUE
+          </button>
+        ` : `
+          <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:20px;margin-bottom:20px;">
+            <div style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Bank transfer details</div>
+            <div style="font-size:13px;color:#f5f0e8;line-height:1.8;">
+              BSB: ${esc(settings?.bank_bsb || 'See confirmation email')}<br>
+              Account: ${esc(settings?.bank_account || 'See confirmation email')}<br>
+              Account name: ${esc(settings?.bank_account_name || 'Signature Pianos')}<br>
+              Reference: ${esc(plan.plan_number || '')}
+            </div>
+          </div>
+
+          <div style="background:rgba(26,127,75,0.1);border:1px solid rgba(26,127,75,0.3);border-radius:4px;padding:12px;margin-bottom:16px;">
+            <div style="font-size:12px;color:#1D9E75;line-height:1.6;">
+              Please use your plan number <strong>${esc(plan.plan_number || '')}</strong> as the payment reference for all transfers.
+            </div>
+          </div>
+
+          <button id="bankTransferContinueBtn" style="width:100%;background:#b8935a;color:#000;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">
+            CONTINUE TO SIGN →
+          </button>
+        `}
+      </div>
+
+      <!-- Section 4 — Sign -->
+      <div id="section4" style="display:none;">
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 8px;">
+          Sign your agreement
+        </h2>
+        <p style="font-size:14px;color:#9a9590;margin:0 0 20px;line-height:1.6;">
+          Please sign below to confirm your agreement to the payment plan terms and conditions.
+        </p>
+
+        <div style="background:#fff;border-radius:4px;margin-bottom:12px;overflow:hidden;border:1px solid rgba(184,147,90,0.3);">
+          <div style="background:#f8f7f5;padding:8px 14px;font-size:11px;color:#9a9590;border-bottom:1px solid #e8e4dd;">
+            Sign here
+          </div>
+          <div style="position:relative;">
+            <canvas id="signatureCanvas" style="width:100%;height:160px;display:block;touch-action:none;cursor:crosshair;"></canvas>
+            <div id="signaturePlaceholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+              <span style="font-size:13px;color:#ccc;font-style:italic;">Sign with your mouse or finger</span>
+            </div>
+          </div>
+        </div>
+
+        <button id="clearSigBtn" style="background:none;border:1px solid #e8e4dd;border-radius:4px;padding:7px 14px;font-size:12px;cursor:pointer;color:#6b6760;margin-bottom:16px;">
+          Clear signature
+        </button>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">
+            Type your full name to confirm *
+          </label>
+          <input type="text" id="signatureFullName" placeholder="Your full legal name" style="width:100%;padding:12px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;color:#f5f0e8;font-size:14px;box-sizing:border-box;">
+        </div>
+
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:24px;">
+          <input type="checkbox" id="agreeCheckbox" style="margin-top:3px;accent-color:#b8935a;flex-shrink:0;">
+          <span style="font-size:13px;color:#9a9590;line-height:1.6;">
+            I confirm I have read and agree to the Signature Pianos payment plan terms and conditions.
+            ${plan.payment_method === 'credit_card'
+              ? ' I authorise Signature Pianos to charge my saved card for overdue instalments after a 3-day grace period.'
+              : ''}
+          </span>
         </label>
 
-        <button type="button" class="submit-btn" id="submitSignatureBtn">Sign and submit contract</button>
-        <div id="signError"></div>
+        <button id="submitSignatureBtn" style="width:100%;background:#b8935a;color:#000;border:none;border-radius:4px;padding:18px;font-size:15px;font-weight:500;cursor:pointer;letter-spacing:0.05em;font-family:'DM Sans',sans-serif;">
+          SIGN AND SUBMIT CONTRACT
+        </button>
+
+        <div id="signError" style="display:none;margin-top:12px;padding:12px;background:rgba(192,57,43,0.1);border-radius:4px;font-size:13px;color:#e74c3c;text-align:center;"></div>
       </div>
+
     </div>
   `
 
+  // Wire section 1
+  document.getElementById('downloadPdfBtn').addEventListener('click', downloadAgreementPDF)
+  document.getElementById('section1ContinueBtn').addEventListener('click', () => goToSection(2))
+
+  // Wire section 2
+  document.getElementById('idUploadArea').addEventListener('click', () => document.getElementById('idFileInput').click())
+  document.getElementById('idFileInput').addEventListener('change', handleIDUpload)
+  document.getElementById('idContinueBtn').addEventListener('click', uploadIDAndContinue)
+
+  // Wire section 3
+  if (plan.payment_method === 'credit_card') {
+    document.getElementById('saveCardBtn').addEventListener('click', saveCardAndContinue)
+  } else {
+    document.getElementById('bankTransferContinueBtn').addEventListener('click', () => goToSection(4))
+  }
+
+  // Wire section 4
   initSignatureCanvas()
   document.getElementById('clearSigBtn').addEventListener('click', () => window.clearSignature())
   document.getElementById('submitSignatureBtn').addEventListener('click', () => submitSignature(plan.id))
+
+  initStripeIfNeeded(plan)
 }
 
-/* ---------- Canvas signature ---------- */
-function initSignatureCanvas() {
-  const canvas = document.getElementById('signatureCanvas')
-  const ctx = canvas.getContext('2d')
-  const placeholder = document.getElementById('signaturePlaceholder')
+function goToSection(num) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById(`section${i}`)
+    if (el) el.style.display = i === num ? 'block' : 'none'
 
-  // Set actual resolution to match CSS width — HiDPI screens otherwise draw thin/jaggy.
-  const dpr = window.devicePixelRatio || 1
+    const indicator = document.getElementById(`step${i}indicator`)
+    if (indicator) {
+      indicator.style.background =
+        i < num  ? '#1D9E75' :
+        i === num ? '#b8935a' :
+                    'rgba(255,255,255,0.1)'
+      indicator.style.color = i <= num ? '#000' : 'rgba(255,255,255,0.3)'
+      indicator.textContent = i < num ? '✓' : String(i)
+    }
+  }
+  window.scrollTo(0, 0)
+}
+
+/* ============================================================================
+   Agreement HTML (Step 5) — rendered inside the white doc card
+   ============================================================================ */
+function renderAgreementHTML(plan, instalments, settings) {
+  const formatCurrency = (v) =>
+    '$' + Math.abs(v || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const formatDate = (d) => {
+    if (!d) return '—'
+    const [y, m, day] = (String(d).split('T')[0]).split('-')
+    return `${day}/${m}/${y}`
+  }
+
+  return `
+    <div style="font-family:Georgia,serif;color:#1a1917;">
+
+      <div style="text-align:center;padding-bottom:20px;border-bottom:2px solid #1a1917;margin-bottom:20px;">
+        <div style="font-size:22px;color:#b8935a;font-style:italic;margin-bottom:4px;">
+          ${esc(settings?.business_name || 'Signature Pianos')}
+        </div>
+        ${settings?.abn ? `<div style="font-size:11px;color:#9a9590;">ABN: ${esc(settings.abn)}</div>` : ''}
+        <div style="font-size:16px;font-weight:bold;text-transform:uppercase;letter-spacing:0.12em;margin-top:12px;color:#1a1917;">
+          Payment Plan Agreement
+        </div>
+        <div style="font-size:12px;color:#9a9590;margin-top:4px;">
+          ${esc(plan.plan_number || '')} · Dated ${formatDate(plan.start_date)}
+        </div>
+      </div>
+
+      <div style="font-size:13px;line-height:1.8;margin-bottom:16px;color:#1a1917;">
+        This Payment Plan Agreement (<strong>"Agreement"</strong>) is entered into between
+        <strong>${esc(settings?.business_name || 'Signature Pianos')}</strong>
+        ${settings?.abn ? `(ABN ${esc(settings.abn)})` : ''}
+        of ${esc([settings?.address_line1, settings?.suburb, settings?.state, settings?.postcode].filter(Boolean).join(', ') || 'Melbourne, Victoria')}
+        (<strong>"Seller"</strong>) and
+        <strong>${esc(plan.customer?.first_name || '')} ${esc(plan.customer?.last_name || '')}</strong>
+        ${plan.customer?.email ? `(${esc(plan.customer.email)})` : ''}
+        (<strong>"Buyer"</strong>).
+      </div>
+
+      <div style="background:#f8f7f5;padding:14px;border-radius:4px;margin-bottom:16px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#9a9590;margin-bottom:8px;">Instrument</div>
+        <div style="font-size:14px;font-weight:bold;">
+          ${esc(plan.piano?.brand || 'Yamaha')} ${esc(plan.piano?.model || '')} ${plan.piano?.type ? esc(String(plan.piano.type).replace(/_/g, ' ')) : ''}
+        </div>
+        <div style="font-size:12px;color:#6b6760;margin-top:2px;">
+          Year: ${esc(plan.piano?.year || '—')} ·
+          Serial: ${esc(plan.piano?.serial_number || '—')} ·
+          Condition: ${esc(plan.piano?.condition || '—')}
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;color:#1a1917;border-bottom:1px solid #e8e4dd;padding-bottom:6px;margin-bottom:10px;">
+          Payment Terms
+        </div>
+        <table style="width:100%;font-size:12px;border-collapse:collapse;">
+          <tr>
+            <td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;width:50%;">Total purchase price</td>
+            <td style="padding:6px 0;font-weight:bold;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(plan.total_amount)}</td>
+          </tr>
+          ${Number(plan.surcharge_amount) > 0 ? `
+            <tr>
+              <td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Credit card surcharge (${esc(plan.surcharge_percentage || '1.5')}%)</td>
+              <td style="padding:6px 0;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(plan.surcharge_amount)}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Total payable</td>
+              <td style="padding:6px 0;font-weight:bold;border-bottom:1px solid #f0f0f0;text-align:right;color:#b8935a;">${formatCurrency(plan.total_with_surcharge)}</td>
+            </tr>
+          ` : ''}
+          <tr>
+            <td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Deposit</td>
+            <td style="padding:6px 0;border-bottom:1px solid #f0f0f0;text-align:right;">
+              ${formatCurrency(plan.deposit_amount)}
+              ${plan.deposit_paid ? ' <span style="color:#1D9E75;">✓ Paid</span>' : ''}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Balance payable</td>
+            <td style="padding:6px 0;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(plan.remaining_amount)}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Instalments</td>
+            <td style="padding:6px 0;border-bottom:1px solid #f0f0f0;text-align:right;">${esc(plan.number_of_instalments || 0)} × ${formatCurrency(plan.instalment_amount)} ${esc(plan.instalment_frequency || '')}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#6b6760;">Payment method</td>
+            <td style="padding:6px 0;text-align:right;">${plan.payment_method === 'credit_card' ? 'Credit card' : 'Bank transfer'}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;color:#1a1917;border-bottom:1px solid #e8e4dd;padding-bottom:6px;margin-bottom:10px;">
+          Payment Schedule
+        </div>
+        <table style="width:100%;font-size:11px;border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f8f7f5;">
+              <th style="padding:6px 8px;text-align:left;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">#</th>
+              <th style="padding:6px 8px;text-align:left;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">Due date</th>
+              <th style="padding:6px 8px;text-align:right;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(instalments || []).map(ins => `
+              <tr>
+                <td style="padding:5px 8px;color:#6b6760;border-bottom:1px solid #f0f0f0;">${esc(ins.instalment_number)}</td>
+                <td style="padding:5px 8px;color:#1a1917;border-bottom:1px solid #f0f0f0;">${formatDate(ins.due_date)}</td>
+                <td style="padding:5px 8px;color:#1a1917;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(ins.amount)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;color:#1a1917;border-bottom:1px solid #e8e4dd;padding-bottom:6px;margin-bottom:10px;">
+          Terms and Conditions
+        </div>
+        <div style="font-size:11px;color:#6b6760;line-height:1.9;">
+          <p style="margin:0 0 8px;"><strong>1. Title.</strong> The instrument remains the property of ${esc(settings?.business_name || 'Signature Pianos')} until all payments have been received in full.</p>
+          <p style="margin:0 0 8px;"><strong>2. Payments.</strong> Instalments are due on the dates specified in the payment schedule above. A grace period of 3 days applies before a late fee is incurred.</p>
+          <p style="margin:0 0 8px;"><strong>3. Late payments.</strong> Payments overdue by more than 3 days will incur a $50 administration fee.${plan.payment_method === 'credit_card' ? ' Where a credit card has been provided, overdue amounts will be automatically charged to the saved card.' : ''}</p>
+          <p style="margin:0 0 8px;"><strong>4. Default.</strong> If the Buyer fails to make two consecutive payments, ${esc(settings?.business_name || 'Signature Pianos')} reserves the right to reclaim the instrument and retain all payments received as compensation for losses incurred.</p>
+          <p style="margin:0 0 8px;"><strong>5. Warranty.</strong> The instrument is covered by the ${esc(settings?.business_name || 'Signature Pianos')} 10-year warranty from the date of delivery, subject to the full purchase price being paid.</p>
+          <p style="margin:0 0 8px;"><strong>6. Delivery.</strong> Delivery will be arranged once the deposit has been received and this agreement has been signed. The instrument will be delivered to the address provided.</p>
+          <p style="margin:0 0 0;"><strong>7. Governing law.</strong> This agreement is governed by the laws of Victoria, Australia.</p>
+        </div>
+      </div>
+
+    </div>
+  `
+}
+
+/* ============================================================================
+   PDF generation (Step 6) — pdfmake client-side
+   ============================================================================ */
+async function downloadAgreementPDF() {
+  const plan        = currentPlan
+  const instalments = currentInstalments
+  const settings    = currentSettings
+
+  const formatCurrency = (v) =>
+    '$' + Math.abs(v || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const formatDate = (d) => {
+    if (!d) return '—'
+    const parts = (String(d).split('T')[0]).split('-')
+    return `${parts[2]}/${parts[1]}/${parts[0]}`
+  }
+
+  const docDefinition = {
+    pageSize: 'A4',
+    pageMargins: [50, 60, 50, 60],
+    defaultStyle: { font: 'Roboto', fontSize: 10, color: '#1a1917' },
+    content: [
+      {
+        columns: [
+          { text: settings?.business_name || 'Signature Pianos', style: 'businessName' },
+          {
+            text: [
+              { text: 'PAYMENT PLAN AGREEMENT\n', style: 'docTitle' },
+              { text: `${plan.plan_number || ''}\n`, style: 'planNumber' },
+              { text: `Dated ${formatDate(plan.start_date)}`, style: 'planDate' },
+            ],
+            alignment: 'right',
+          },
+        ],
+        margin: [0, 0, 0, 16],
+      },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 495, y2: 0, lineWidth: 1.5, lineColor: '#1a1917' }], margin: [0, 0, 0, 16] },
+      {
+        text: [
+          settings?.abn ? `ABN: ${settings.abn}   ` : '',
+          settings?.address_line1 || '',
+          settings?.suburb ? `   ${settings.suburb} ${settings.state || ''} ${settings.postcode || ''}` : '',
+        ].filter(Boolean).join(''),
+        style: 'subText',
+        margin: [0, 0, 0, 16],
+      },
+
+      {
+        text: [
+          'This Payment Plan Agreement ',
+          { text: '("Agreement") ', bold: true },
+          'is entered into between ',
+          { text: settings?.business_name || 'Signature Pianos', bold: true },
+          settings?.abn ? ` (ABN ${settings.abn}) ` : ' ',
+          '("Seller") and ',
+          { text: `${plan.customer?.first_name || ''} ${plan.customer?.last_name || ''}`, bold: true },
+          plan.customer?.email ? ` (${plan.customer.email}) ` : ' ',
+          '("Buyer").',
+        ],
+        style: 'body',
+        margin: [0, 0, 0, 16],
+      },
+
+      { text: 'INSTRUMENT', style: 'sectionHeader' },
+      {
+        table: {
+          widths: ['*'],
+          body: [[{
+            stack: [
+              { text: `${plan.piano?.brand || 'Yamaha'} ${plan.piano?.model || ''} ${plan.piano?.type ? String(plan.piano.type).replace(/_/g, ' ') : ''}`, style: 'instrumentName' },
+              { text: `Year: ${plan.piano?.year || '—'}   Serial: ${plan.piano?.serial_number || '—'}   Condition: ${plan.piano?.condition || '—'}`, style: 'subText', margin: [0, 4, 0, 0] },
+            ],
+            fillColor: '#f8f7f5',
+            border: [false, false, false, false],
+            margin: [12, 10, 12, 10],
+          }]],
+        },
+        margin: [0, 0, 0, 16],
+      },
+
+      { text: 'PAYMENT TERMS', style: 'sectionHeader' },
+      {
+        table: {
+          widths: ['*', 'auto'],
+          body: [
+            [{ text: 'Total purchase price', style: 'tableLabel' }, { text: formatCurrency(plan.total_amount), style: 'tableValue' }],
+            ...(Number(plan.surcharge_amount) > 0 ? [
+              [
+                { text: `Credit card surcharge (${plan.surcharge_percentage || '1.5'}%)`, style: 'tableLabel' },
+                { text: formatCurrency(plan.surcharge_amount), style: 'tableValue' },
+              ],
+              [
+                { text: 'Total payable', style: 'tableLabelBold' },
+                { text: formatCurrency(plan.total_with_surcharge), style: 'tableValueGold' },
+              ],
+            ] : []),
+            [
+              { text: 'Deposit', style: 'tableLabel' },
+              { text: formatCurrency(plan.deposit_amount) + (plan.deposit_paid ? ' ✓ Paid' : ''), style: 'tableValue' },
+            ],
+            [{ text: 'Balance payable', style: 'tableLabel' }, { text: formatCurrency(plan.remaining_amount), style: 'tableValue' }],
+            [
+              { text: 'Instalments', style: 'tableLabel' },
+              { text: `${plan.number_of_instalments} × ${formatCurrency(plan.instalment_amount)} ${plan.instalment_frequency || ''}`, style: 'tableValue' },
+            ],
+            [
+              { text: 'Payment method', style: 'tableLabel' },
+              { text: plan.payment_method === 'credit_card' ? 'Credit card' : 'Bank transfer', style: 'tableValue' },
+            ],
+          ],
+        },
+        layout: {
+          hLineWidth: () => 0.5, vLineWidth: () => 0,
+          hLineColor: () => '#e8e4dd',
+          paddingLeft: () => 0, paddingRight: () => 0,
+          paddingTop: () => 6, paddingBottom: () => 6,
+        },
+        margin: [0, 0, 0, 16],
+      },
+
+      { text: 'PAYMENT SCHEDULE', style: 'sectionHeader' },
+      {
+        table: {
+          widths: [30, '*', 'auto'],
+          headerRows: 1,
+          body: [
+            [{ text: '#', style: 'tableHeader' }, { text: 'Due date', style: 'tableHeader' }, { text: 'Amount', style: 'tableHeader', alignment: 'right' }],
+            ...(instalments || []).map(ins => [
+              { text: String(ins.instalment_number), style: 'tableCell' },
+              { text: formatDate(ins.due_date), style: 'tableCell' },
+              { text: formatCurrency(ins.amount), style: 'tableCell', alignment: 'right' },
+            ]),
+          ],
+        },
+        layout: {
+          hLineWidth: (i) => i === 0 || i === 1 ? 0.5 : 0.3,
+          vLineWidth: () => 0,
+          hLineColor: () => '#e8e4dd',
+          fillColor: (i) => i === 0 ? '#f8f7f5' : null,
+          paddingLeft: () => 4, paddingRight: () => 4,
+          paddingTop: () => 5, paddingBottom: () => 5,
+        },
+        margin: [0, 0, 0, 16],
+      },
+
+      { text: 'TERMS AND CONDITIONS', style: 'sectionHeader' },
+      {
+        ol: [
+          { text: [{ text: 'Title. ', bold: true }, `The instrument remains the property of ${settings?.business_name || 'Signature Pianos'} until all payments have been received in full.`], style: 'body', margin: [0, 0, 0, 6] },
+          { text: [{ text: 'Payments. ', bold: true }, 'Instalments are due on the dates specified in the payment schedule above. A grace period of 3 days applies before a late fee is incurred.'], style: 'body', margin: [0, 0, 0, 6] },
+          { text: [{ text: 'Late payments. ', bold: true }, 'Payments overdue by more than 3 days will incur a $50 administration fee.' + (plan.payment_method === 'credit_card' ? ' Where a credit card has been provided, overdue amounts will be automatically charged to the saved card.' : '')], style: 'body', margin: [0, 0, 0, 6] },
+          { text: [{ text: 'Default. ', bold: true }, `If the Buyer fails to make two consecutive payments, ${settings?.business_name || 'Signature Pianos'} reserves the right to reclaim the instrument and retain all payments received as compensation.`], style: 'body', margin: [0, 0, 0, 6] },
+          { text: [{ text: 'Warranty. ', bold: true }, `The instrument is covered by the ${settings?.business_name || 'Signature Pianos'} 10-year warranty from the date of delivery, subject to the full purchase price being paid.`], style: 'body', margin: [0, 0, 0, 6] },
+          { text: [{ text: 'Governing law. ', bold: true }, 'This agreement is governed by the laws of Victoria, Australia.'], style: 'body', margin: [0, 0, 0, 0] },
+        ],
+        margin: [0, 0, 0, 20],
+      },
+
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 495, y2: 0, lineWidth: 0.5, lineColor: '#e8e4dd' }], margin: [0, 0, 0, 16] },
+      {
+        columns: [
+          {
+            stack: [
+              { text: 'Buyer signature', style: 'signatureLabel' },
+              { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 200, y2: 0, lineWidth: 0.5, lineColor: '#1a1917' }], margin: [0, 30, 0, 4] },
+              { text: `${plan.customer?.first_name || ''} ${plan.customer?.last_name || ''}`, style: 'signatureName' },
+              { text: `Date: _______________`, style: 'subText' },
+            ],
+          },
+          {
+            stack: [
+              { text: settings?.business_name || 'Signature Pianos', style: 'signatureLabel' },
+              { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 200, y2: 0, lineWidth: 0.5, lineColor: '#1a1917' }], margin: [0, 30, 0, 4] },
+              { text: 'Authorised signatory', style: 'subText' },
+              { text: `Date: _______________`, style: 'subText' },
+            ],
+          },
+        ],
+      },
+    ],
+    styles: {
+      businessName:   { fontSize: 18, color: '#b8935a', italics: true, bold: false },
+      docTitle:       { fontSize: 14, bold: true, color: '#1a1917', characterSpacing: 1 },
+      planNumber:     { fontSize: 11, color: '#9a9590' },
+      planDate:       { fontSize: 10, color: '#9a9590' },
+      sectionHeader:  { fontSize: 9,  bold: true, characterSpacing: 1.5, color: '#1a1917', margin: [0, 0, 0, 8] },
+      body:           { fontSize: 10, color: '#1a1917', lineHeight: 1.5 },
+      subText:        { fontSize: 9,  color: '#9a9590' },
+      tableLabel:     { fontSize: 10, color: '#6b6760' },
+      tableLabelBold: { fontSize: 10, color: '#1a1917', bold: true },
+      tableValue:     { fontSize: 10, color: '#1a1917', alignment: 'right' },
+      tableValueGold: { fontSize: 11, color: '#b8935a', bold: true, alignment: 'right' },
+      tableHeader:    { fontSize: 9,  bold: true, color: '#6b6760', characterSpacing: 0.5 },
+      tableCell:      { fontSize: 10, color: '#1a1917' },
+      instrumentName: { fontSize: 13, bold: true, color: '#1a1917' },
+      signatureLabel: { fontSize: 9,  bold: true, characterSpacing: 0.5, color: '#1a1917' },
+      signatureName:  { fontSize: 10, color: '#6b6760' },
+    },
+  }
+
+  pdfMake.createPdf(docDefinition).download(
+    `Signature-Pianos-Payment-Plan-${plan.plan_number || 'agreement'}.pdf`
+  )
+}
+
+/* ============================================================================
+   ID upload (Step 10)
+   ============================================================================ */
+function handleIDUpload(e) {
+  const file = e.target.files && e.target.files[0]
+  if (!file) return
+
+  idFileSelected = file
+
+  const preview = document.getElementById('idPreview')
+  const previewImg = document.getElementById('idPreviewImg')
+
+  if (file.type && file.type.startsWith('image/')) {
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      previewImg.src = ev.target.result
+      previewImg.style.display = ''
+      preview.style.display = 'block'
+      document.getElementById('idUploadArea').style.borderColor = 'rgba(29,158,117,0.5)'
+    }
+    reader.readAsDataURL(file)
+  } else {
+    // PDF or other — show filename instead of image preview
+    preview.style.display = 'block'
+    preview.innerHTML = `
+      <div style="padding:16px;background:#1a1a18;border-radius:4px;font-size:13px;color:#1D9E75;">
+        <i class="ti ti-file-check"></i> ${esc(file.name)} selected
+      </div>
+    `
+  }
+
+  const btn = document.getElementById('idContinueBtn')
+  btn.disabled = false
+  btn.style.background = '#b8935a'
+  btn.style.color = '#000'
+  btn.style.cursor = 'pointer'
+  btn.textContent = 'UPLOAD ID & CONTINUE'
+}
+
+async function uploadIDAndContinue() {
+  if (!idFileSelected) return
+
+  const btn = document.getElementById('idContinueBtn')
+  btn.textContent = 'UPLOADING…'
+  btn.disabled = true
+
+  try {
+    const planId = currentPlan.id
+    const ext = (idFileSelected.name.split('.').pop() || 'jpg').toLowerCase()
+    const filename = `${planId}/id-${Date.now()}.${ext}`
+
+    const { data, error } = await _supabase.storage
+      .from('id-documents')
+      .upload(filename, idFileSelected, {
+        contentType: idFileSelected.type || 'application/octet-stream',
+        upsert: false,
+      })
+    if (error) throw error
+
+    // Save the Storage path. /api/sign-contract converts it to a signed URL
+    // or fetches it as service role — we never publicly expose it.
+    idDocumentUrl = data.path
+    goToSection(3)
+  } catch (err) {
+    console.error('[sign] ID upload failed', err)
+    btn.disabled = false
+    btn.style.background = '#c0392b'
+    btn.style.color = '#fff'
+    btn.textContent = 'UPLOAD FAILED — TRY AGAIN'
+  }
+}
+
+/* ============================================================================
+   Stripe Elements (Step 7)
+   ============================================================================ */
+function initStripeIfNeeded(plan) {
+  if (plan.payment_method !== 'credit_card') return
+  if (!window.Stripe || !window.STRIPE_PUBLIC_KEY) {
+    console.warn('[sign] Stripe.js or STRIPE_PUBLIC_KEY not available')
+    return
+  }
+
+  stripe = Stripe(window.STRIPE_PUBLIC_KEY)
+  const elements = stripe.elements({
+    appearance: {
+      theme: 'night',
+      variables: {
+        colorPrimary:    '#b8935a',
+        colorBackground: '#0e0e0d',
+        colorText:       '#f5f0e8',
+        colorDanger:     '#e74c3c',
+        borderRadius:    '4px',
+      },
+    },
+  })
+
+  cardElement = elements.create('card', {
+    style: {
+      base: {
+        color: '#f5f0e8',
+        fontFamily: 'DM Sans, sans-serif',
+        fontSize: '15px',
+        '::placeholder': { color: '#6b6760' },
+      },
+    },
+  })
+
+  cardElement.mount('#cardElement')
+
+  cardElement.on('change', (event) => {
+    const errorEl = document.getElementById('cardError')
+    if (event.error) {
+      errorEl.style.display = 'block'
+      errorEl.textContent = event.error.message
+    } else {
+      errorEl.style.display = 'none'
+    }
+  })
+}
+
+async function saveCardAndContinue() {
+  if (!stripe || !cardElement) {
+    document.getElementById('cardError').style.display = 'block'
+    document.getElementById('cardError').textContent = 'Card form not ready — please refresh.'
+    return
+  }
+
+  const btn = document.getElementById('saveCardBtn')
+  btn.textContent = 'SAVING CARD…'
+  btn.disabled = true
+
+  try {
+    const { paymentMethod, error } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: cardElement,
+      billing_details: {
+        name:  `${currentPlan.customer?.first_name || ''} ${currentPlan.customer?.last_name || ''}`.trim(),
+        email: currentPlan.customer?.email || '',
+      },
+    })
+
+    if (error) {
+      document.getElementById('cardError').style.display = 'block'
+      document.getElementById('cardError').textContent = error.message
+      btn.textContent = 'SAVE CARD & CONTINUE'
+      btn.disabled = false
+      return
+    }
+
+    const res = await fetch('/api/save-payment-method', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token:             window.planToken,
+        plan_id:           currentPlan.id,
+        payment_method_id: paymentMethod.id,
+        card_last_four:    paymentMethod.card.last4,
+        card_brand:        paymentMethod.card.brand,
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      goToSection(4)
+    } else {
+      throw new Error(result.error || 'Could not save card')
+    }
+  } catch (err) {
+    console.error('[sign] card save failed', err)
+    btn.textContent = 'SAVE CARD & CONTINUE'
+    btn.disabled = false
+    document.getElementById('cardError').style.display = 'block'
+    document.getElementById('cardError').textContent = 'Failed to save card — please try again.'
+  }
+}
+
+/* ============================================================================
+   Signature canvas (ported from existing signing page)
+   ============================================================================ */
+function initSignatureCanvas() {
+  const canvas      = document.getElementById('signatureCanvas')
+  const placeholder = document.getElementById('signaturePlaceholder')
+  if (!canvas) return
+
+  const ctx = canvas.getContext('2d')
+
+  // HiDPI — set internal resolution to match displayed CSS size.
+  const dpr  = window.devicePixelRatio || 1
   const rect = canvas.getBoundingClientRect()
   canvas.width  = rect.width * dpr
-  canvas.height = 150 * dpr
+  canvas.height = 160 * dpr
   ctx.scale(dpr, dpr)
 
   let drawing = false
   let hasSignature = false
 
   ctx.strokeStyle = '#1a1917'
-  ctx.lineWidth = 2
-  ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
+  ctx.lineWidth   = 2
+  ctx.lineCap     = 'round'
+  ctx.lineJoin    = 'round'
 
   function getPos(e) {
     const r = canvas.getBoundingClientRect()
@@ -484,23 +960,29 @@ function initSignatureCanvas() {
   }
 }
 
-/* ---------- Submit ---------- */
+/* ============================================================================
+   Submit signature (Step 10) — bundles ID document path
+   ============================================================================ */
 async function submitSignature(planId) {
   const fullName = document.getElementById('signatureFullName').value.trim()
   const agreed   = document.getElementById('agreeCheckbox').checked
-  const hasDrawn = window.hasSignatureDrawn()
-  const sigData  = window.getSignatureDataURL()
+  const hasDrawn = window.hasSignatureDrawn && window.hasSignatureDrawn()
+  const sigData  = window.getSignatureDataURL && window.getSignatureDataURL()
   const err      = document.getElementById('signError')
 
-  if (!hasDrawn) { err.textContent = 'Please draw your signature above.'; err.classList.add('is-shown'); return }
-  if (!fullName) { err.textContent = 'Please type your full name to confirm.'; err.classList.add('is-shown'); return }
-  if (!agreed)   { err.textContent = 'Please check the box to confirm you agree to the terms.'; err.classList.add('is-shown'); return }
+  function showErr(msg) {
+    err.textContent = msg
+    err.style.display = 'block'
+  }
+  err.style.display = 'none'
 
-  err.classList.remove('is-shown')
+  if (!hasDrawn) return showErr('Please draw your signature above.')
+  if (!fullName) return showErr('Please type your full name to confirm.')
+  if (!agreed)   return showErr('Please check the box to confirm you agree to the terms.')
 
-  const btn = document.getElementById('submitSignatureBtn')
+  const btn      = document.getElementById('submitSignatureBtn')
   const original = btn.textContent
-  btn.textContent = 'Submitting…'
+  btn.textContent = 'SUBMITTING…'
   btn.disabled = true
 
   try {
@@ -508,11 +990,12 @@ async function submitSignature(planId) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        plan_id:        planId,
+        plan_id:         planId,
         token,
-        signature_data: sigData,
-        full_name:      fullName,
-        signed_at:      new Date().toISOString(),
+        signature_data:  sigData,
+        full_name:       fullName,
+        signed_at:       new Date().toISOString(),
+        id_document_url: idDocumentUrl,
       }),
     })
     const result = await res.json().catch(() => ({}))
@@ -520,26 +1003,46 @@ async function submitSignature(planId) {
       showSignedSuccess()
     } else {
       console.error('[sign] submit failed', result)
-      err.textContent = result.error || 'Something went wrong — please try again.'
-      err.classList.add('is-shown')
+      showErr(result.error || 'Something went wrong — please try again.')
       btn.textContent = original
       btn.disabled = false
     }
   } catch (e) {
     console.error('[sign] submit fetch failed', e)
-    err.textContent = 'Something went wrong — please try again.'
-    err.classList.add('is-shown')
+    showErr('Something went wrong — please try again.')
     btn.textContent = original
     btn.disabled = false
   }
 }
 
+/* ============================================================================
+   End states
+   ============================================================================ */
 function showSignedSuccess() {
-  document.getElementById('contractWrap').innerHTML = `
+  document.getElementById('pageContent').innerHTML = `
     <div class="success-wrap">
       <i class="ti ti-circle-check icon"></i>
       <h2>Contract signed.</h2>
       <p>Thank you. Your signed contract has been saved. A copy will be emailed to you shortly.</p>
+    </div>
+  `
+}
+
+function showAlreadySigned(plan) {
+  document.getElementById('pageContent').innerHTML = `
+    <div class="success-wrap">
+      <i class="ti ti-circle-check icon"></i>
+      <h2>Contract already signed.</h2>
+      <p>This contract was signed on ${fmtDateAU(plan.contract_signed_at)}. Please contact us if you have any questions.</p>
+    </div>
+  `
+}
+
+function showError(msg) {
+  document.getElementById('pageContent').innerHTML = `
+    <div class="loading">
+      <i class="ti ti-alert-circle" style="font-size:36px;color:var(--gold);display:block;margin-bottom:12px;"></i>
+      <p>${esc(msg)}</p>
     </div>
   `
 }

@@ -1838,6 +1838,111 @@ Run order:        1. supabase/tuner_flow_rebuild.sql in SQL editor
                          will get the day-before reminder)
 ```
 
+### Payment plan upgrades (Session 13)
+```
+Fixes the generate_plan_number RPC error, adds ID upload, adds a Stripe
+credit-card payment option with surcharge, and rebuilds the signing page
+as a four-section flow with a downloadable PDF agreement.
+
+Plan number generation:
+  Now generated client-side in admin/payment-plans.html (read max
+  plan_number for the current year + increment). The Postgres function
+  public.generate_plan_number() is still kept (supabase/fix_plan_number.sql
+  drops + recreates it clean and grants execute to anon/auth/service_role)
+  so backfills and manual SQL inserts continue to work, but the admin
+  UI no longer depends on the PostgREST schema cache.
+
+Payment methods:
+  bank_transfer — no surcharge (default)
+  credit_card   — 1.5% surcharge on the REMAINING balance (never the
+                  deposit). Stripe PaymentMethod attached at signing.
+                  Overdue amounts intended to be auto-charged after a
+                  3-day grace period (cron job is out of scope for this
+                  session — currently saves card only).
+
+Schema:
+  supabase/payment_plans_upgrade.sql adds to payment_plans:
+    payment_method ('bank_transfer' | 'credit_card')
+    surcharge_percentage / surcharge_amount / total_with_surcharge
+    stripe_customer_id / stripe_payment_method_id
+    card_last_four / card_brand
+    id_document_url / id_document_type / id_verified / id_uploaded_at
+    agreement_pdf_url / agreement_generated_at
+    signer_ip / signer_user_agent
+  Storage buckets (both private):
+    id-documents — anon INSERT (token-gated upload from signing page);
+                   admin SELECT via signed URL; service role full access
+    agreements   — service role full; admin SELECT only
+
+Signing flow (payment-plan-sign.html):
+  1. Review agreement — HTML preview rendered inside a white doc card
+                        with the same content as the PDF. Download PDF
+                        button generates the PDF client-side via pdfmake.
+  2. Upload ID        — capture="environment" file input. Accepts images
+                        + PDF. Uploaded to id-documents/{planId}/id-{ts}.{ext}.
+                        Path stored in idDocumentUrl module state.
+  3. Payment method   — credit_card → Stripe Elements card field on a
+                        dark theme; saveCardAndContinue() creates a
+                        PaymentMethod and POSTs to /api/save-payment-method.
+                        bank_transfer → shows BSB/account/reference from
+                        company_settings.
+  4. Sign             — signature canvas (HiDPI-correct, mouse + touch),
+                        typed full name, agreement checkbox.
+                        submitSignature() POSTs to /api/sign-contract with
+                        signature_data + full_name + signed_at +
+                        id_document_url.
+  Progress indicator updates per step — completed steps show ✓ in green.
+
+PDF agreement:
+  Generated client-side via pdfmake (loaded from cdnjs). A4, professional
+  layout. Pulls business_name, ABN, address, BSB/account from
+  company_settings. Saved to disk as
+  Signature-Pianos-Payment-Plan-PP-YYYY-NNNNN.pdf. Same content + numbers
+  as the HTML preview.
+
+APIs:
+  api/save-payment-method.js — new. Verifies signature_token, creates a
+                                Stripe Customer if missing, attaches the
+                                client-side PaymentMethod, sets it as the
+                                default, persists stripe_customer_id /
+                                payment_method_id / card brand + last4.
+  api/sign-contract.js       — now accepts id_document_url and captures
+                                signer_ip (from x-forwarded-for) +
+                                signer_user_agent into the row.
+
+Admin (admin/payment-plans.html):
+  - Payment method radio buttons in the new-plan panel, after the deposit
+    fields. Live surcharge banner + schedule preview updates when the
+    user picks credit_card.
+  - createPaymentPlan() no longer calls the generate_plan_number RPC;
+    persists payment_method, surcharge_percentage, surcharge_amount,
+    total_with_surcharge alongside the existing fields.
+  - Detail panel: new Payment method + ID document blocks (between the
+    instalment schedule and the Contract section). "View ID document"
+    button mints a 60-second signed URL via createSignedUrl().
+
+Config:
+  js/config.js now exposes window.STRIPE_PUBLIC_KEY so the signing page
+  can read it after script load (top-level const does NOT attach to
+  window for classic scripts).
+
+Run order:
+  1. supabase/fix_plan_number.sql       (drops + recreates RPC)
+  2. supabase/payment_plans_upgrade.sql (adds columns + buckets + RLS)
+  3. Set STRIPE_PUBLIC_KEY in js/config.js to the real pk_live_/pk_test_
+  4. Confirm STRIPE_SECRET_KEY is set in Vercel env for the new API
+  5. Smoke test:
+     a. Create a credit_card plan in admin → confirm surcharge math +
+        total_with_surcharge persists
+     b. Open the sign link → all four sections progress correctly
+     c. Upload ID → confirm file lands in id-documents/{planId}/
+     d. Enter test card 4242 4242 4242 4242 → /api/save-payment-method
+        creates a Stripe Customer + attaches the PM
+     e. Sign → /api/sign-contract flips status to active, captures
+        signer_ip + signer_user_agent + id_document_url
+     f. Admin detail panel shows ···· 4242 (Visa) + View ID button
+```
+
 ---
 
 *Last updated: May 2025*

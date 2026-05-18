@@ -320,6 +320,29 @@
         </label>
       </div>
     </div>
+
+    <!-- Payment method -->
+    <div class="admin-form-row" style="margin-bottom:16px;">
+      <label class="admin-label" style="text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:8px;">Payment method</label>
+      <div style="display:flex;gap:8px;">
+        <label id="bankTransferOption" style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--admin-gold);border-radius:4px;cursor:pointer;transition:border-color 0.2s ease;">
+          <input type="radio" name="paymentMethod" value="bank_transfer" checked onchange="updatePaymentMethod('bank_transfer')" style="accent-color:var(--admin-gold);">
+          <div>
+            <div style="font-size:13px;font-weight:500;">Bank transfer</div>
+            <div style="font-size:11px;color:var(--admin-text-faint);">No surcharge</div>
+          </div>
+        </label>
+        <label id="creditCardOption" style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--admin-border);border-radius:4px;cursor:pointer;transition:border-color 0.2s ease;">
+          <input type="radio" name="paymentMethod" value="credit_card" onchange="updatePaymentMethod('credit_card')" style="accent-color:var(--admin-gold);">
+          <div>
+            <div style="font-size:13px;font-weight:500;">Credit card</div>
+            <div style="font-size:11px;color:var(--admin-text-faint);">1.5% surcharge applies</div>
+          </div>
+        </label>
+      </div>
+      <div id="surchargeDisplay" style="display:none;margin-top:8px;padding:10px 14px;background:var(--admin-amber-light);border-radius:4px;font-size:12px;color:var(--admin-amber);"></div>
+    </div>
+
     <div class="admin-form-row">
       <label class="admin-label" for="pp_notes">Notes (optional)</label>
       <textarea id="pp_notes" class="admin-textarea" rows="2" placeholder="Anything to record on this plan"></textarea>
@@ -552,6 +575,11 @@ async function openNewPlanPanel() {
   document.getElementById('pp_piano_meta').textContent = ''
   document.getElementById('schedulePreview').innerHTML = ''
 
+  // Reset payment method to default (bank_transfer, no surcharge banner).
+  const bankRadio = document.querySelector('input[name="paymentMethod"][value="bank_transfer"]')
+  if (bankRadio) bankRadio.checked = true
+  updatePaymentMethod('bank_transfer')
+
   // Load available pianos
   try {
     const { data, error } = await adminSupabase
@@ -706,6 +734,30 @@ function onPianoChange() {
   generateSchedule()
 }
 
+/* ---------- Payment method (Step 3) ---------- */
+const SURCHARGE_RATE = 0.015 // 1.5% credit card surcharge
+
+function updatePaymentMethod(method) {
+  const bankOption  = document.getElementById('bankTransferOption')
+  const cardOption  = document.getElementById('creditCardOption')
+  const surchargeEl = document.getElementById('surchargeDisplay')
+
+  if (method === 'credit_card') {
+    cardOption.style.borderColor = 'var(--admin-gold)'
+    bankOption.style.borderColor = 'var(--admin-border)'
+    surchargeEl.style.display = 'block'
+  } else {
+    bankOption.style.borderColor = 'var(--admin-gold)'
+    cardOption.style.borderColor = 'var(--admin-border)'
+    surchargeEl.style.display = 'none'
+  }
+  generateSchedule()
+}
+
+function getSelectedPaymentMethod() {
+  return document.querySelector('input[name="paymentMethod"]:checked')?.value || 'bank_transfer'
+}
+
 /* ---------- Live schedule preview ---------- */
 function generateSchedule() {
   const total = parseFloat(document.getElementById('pp_total').value) || 0
@@ -713,14 +765,30 @@ function generateSchedule() {
   const num = parseInt(document.getElementById('pp_instalments').value, 10) || 1
   const freq = document.getElementById('pp_frequency').value
   const startDate = document.getElementById('pp_start').value
+  const method = getSelectedPaymentMethod()
 
   if (!total || !startDate || total < deposit) {
     document.getElementById('schedulePreview').innerHTML = ''
     return
   }
 
+  // Surcharge applies only to the remaining balance, not the deposit.
   const remaining = total - deposit
-  const instalmentAmt = remaining / num
+  const surchargeAmt = method === 'credit_card' ? remaining * SURCHARGE_RATE : 0
+  const remainingWithSurcharge = remaining + surchargeAmt
+  const instalmentAmt = remainingWithSurcharge / num
+
+  // Surcharge banner copy
+  const surchargeEl = document.getElementById('surchargeDisplay')
+  if (method === 'credit_card' && surchargeAmt > 0) {
+    surchargeEl.innerHTML = `
+      <i class="ti ti-info-circle"></i>
+      1.5% credit card surcharge applied:
+      +${fmtCur(surchargeAmt)} · Total becomes ${fmtCur(total + surchargeAmt)}
+    `
+  } else if (surchargeEl) {
+    surchargeEl.innerHTML = ''
+  }
 
   const schedule = []
   let date = new Date(startDate + 'T00:00:00')
@@ -743,13 +811,19 @@ function generateSchedule() {
       <div style="font-size:12px;font-weight:500;margin-bottom:12px;color:var(--admin-text);">Payment schedule preview</div>
 
       <div class="row"><span>Deposit ${document.getElementById('pp_deposit_paid').checked ? '· paid' : ''}</span><span class="v">${fmtCur(deposit)}</span></div>
-      <div class="row" style="border-bottom:2px solid var(--admin-border-dark);"><span>Remaining (${num} instalments)</span><span class="v">${fmtCur(remaining)}</span></div>
+      ${surchargeAmt > 0 ? `
+        <div class="row"><span>Remaining balance</span><span class="v">${fmtCur(remaining)}</span></div>
+        <div class="row"><span>1.5% credit card surcharge</span><span class="v">${fmtCur(surchargeAmt)}</span></div>
+        <div class="row" style="border-bottom:2px solid var(--admin-border-dark);"><span>Remaining payable (${num} instalments)</span><span class="v">${fmtCur(remainingWithSurcharge)}</span></div>
+      ` : `
+        <div class="row" style="border-bottom:2px solid var(--admin-border-dark);"><span>Remaining (${num} instalments)</span><span class="v">${fmtCur(remaining)}</span></div>
+      `}
 
       ${schedule.map(s => `
         <div class="row"><span>Instalment ${s.number} · ${fmtDateAU(s.date)}</span><span>${fmtCur(s.amount)}</span></div>
       `).join('')}
 
-      <div class="row is-total"><span>Total</span><span>${fmtCur(total)}</span></div>
+      <div class="row is-total"><span>Total payable</span><span>${fmtCur(total + surchargeAmt)}</span></div>
       ${endDate ? `<div style="font-size:11px;color:var(--admin-text-faint);margin-top:8px;">Final payment: ${fmtDateAU(endDate)}</div>` : ''}
     </div>
   `
@@ -791,17 +865,33 @@ async function createPaymentPlan() {
     errEl.classList.add('is-shown'); return
   }
 
+  const method = getSelectedPaymentMethod()
   const remaining = total - deposit
-  const instalmentAmt = remaining / num
+  const surchargeAmt = method === 'credit_card' ? remaining * SURCHARGE_RATE : 0
+  const remainingWithSurcharge = remaining + surchargeAmt
+  const instalmentAmt = remainingWithSurcharge / num
 
   const btn = document.getElementById('createPlanBtn')
   btn.disabled = true
   btn.innerHTML = '<i class="ti ti-loader"></i> Creating…'
 
   try {
-    // Plan number via RPC
-    const { data: planNumber, error: rpcErr } = await adminSupabase.rpc('generate_plan_number')
-    if (rpcErr) throw rpcErr
+    // Plan number generated client-side (Step 1). Avoids the PostgREST
+    // schema cache issue that surfaced as "Could not find the function
+    // public.generate_plan_number without parameters". Read the highest
+    // existing PP-YYYY-NNNNN for the current year and increment.
+    const year = new Date().getFullYear()
+    const { data: existingPlans, error: existingErr } = await adminSupabase
+      .from('payment_plans')
+      .select('plan_number')
+      .ilike('plan_number', `PP-${year}-%`)
+      .order('plan_number', { ascending: false })
+      .limit(1)
+    if (existingErr) throw existingErr
+    const lastNum = existingPlans?.[0]?.plan_number
+      ? parseInt(existingPlans[0].plan_number.split('-')[2], 10) || 0
+      : 0
+    const planNumber = `PP-${year}-${String(lastNum + 1).padStart(5, '0')}`
 
     // signature_token has a column default (generate_token()), but we set
     // one client-side too so it's deterministic for unit tests.
@@ -840,7 +930,7 @@ async function createPaymentPlan() {
         deposit_amount:        deposit,
         deposit_paid:          depositPaid,
         deposit_paid_at:       depositPaid ? new Date().toISOString() : null,
-        remaining_amount:      remaining,
+        remaining_amount:      remainingWithSurcharge,
         instalment_amount:     instalmentAmt,
         instalment_frequency:  freq,
         number_of_instalments: num,
@@ -849,6 +939,11 @@ async function createPaymentPlan() {
         status:                'pending',
         signature_token:       signatureToken,
         notes,
+        // Step 3 — payment method + surcharge
+        payment_method:        method,
+        surcharge_percentage:  method === 'credit_card' ? SURCHARGE_RATE * 100 : 0,
+        surcharge_amount:      surchargeAmt,
+        total_with_surcharge:  total + surchargeAmt,
       })
       .select()
       .single()
@@ -968,6 +1063,44 @@ function renderPlanDetail(plan, instalments) {
       </div>
     </div>
 
+    <!-- Payment method block (Step 11) -->
+    <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--admin-border);">
+      <h4 style="font-size:13px;font-weight:500;margin:0 0 8px;display:flex;align-items:center;gap:8px;">
+        <i class="ti ti-credit-card" style="color:var(--admin-gold);"></i>
+        Payment method
+      </h4>
+      <div style="font-size:12px;color:var(--admin-text-muted);">
+        ${plan.payment_method === 'credit_card'
+          ? `Credit card ···· ${esc(plan.card_last_four || '????')} (${esc(plan.card_brand || 'Card')})`
+          : 'Bank transfer'}
+      </div>
+      ${Number(plan.surcharge_amount) > 0 ? `
+        <div style="font-size:11px;color:var(--admin-text-faint);margin-top:2px;">
+          Surcharge ${esc(plan.surcharge_percentage || '1.5')}% — ${fmtCur(plan.surcharge_amount)} · Total payable ${fmtCur(plan.total_with_surcharge)}
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- ID document block (Step 11) -->
+    ${plan.id_document_url ? `
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--admin-border);">
+        <h4 style="font-size:13px;font-weight:500;margin:0 0 8px;display:flex;align-items:center;gap:8px;">
+          <i class="ti ti-id" style="color:var(--admin-green);"></i>
+          ID verified
+        </h4>
+        <button class="btn-ghost" data-action="view-id" style="padding:6px 14px;font-size:12px;">
+          <i class="ti ti-eye"></i> View ID document
+        </button>
+        ${plan.id_uploaded_at ? `<div style="font-size:11px;color:var(--admin-text-faint);margin-top:4px;">Uploaded ${fmtDateAU(plan.id_uploaded_at)}</div>` : ''}
+      </div>
+    ` : `
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--admin-border);">
+        <div style="font-size:12px;color:var(--admin-amber);display:flex;align-items:center;gap:6px;">
+          <i class="ti ti-alert-triangle"></i> ID not yet uploaded
+        </div>
+      </div>
+    `}
+
     <!-- D — Contract section -->
     <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--admin-border);">
       <h4 style="font-size:13px;font-weight:500;margin:0 0 12px;display:flex;align-items:center;gap:8px;">
@@ -999,12 +1132,38 @@ function renderPlanDetail(plan, instalments) {
   })
   document.querySelector('[data-action="send-contract"]')?.addEventListener('click', (e) => sendContract(plan.id, e.currentTarget))
   document.querySelector('[data-action="download-contract"]')?.addEventListener('click', () => downloadContract(plan))
+  document.querySelector('[data-action="view-id"]')?.addEventListener('click', () => viewIDDocument(plan.id))
   document.querySelector('[data-action="copy-sign-link"]')?.addEventListener('click', () => {
     const url = `${window.location.origin}/payment-plan-sign.html?token=${encodeURIComponent(plan.signature_token)}`
     navigator.clipboard?.writeText(url)
       .then(() => showToast('Sign link copied.'))
       .catch(() => prompt('Copy this link:', url))
   })
+}
+
+/* ---------- View ID document (Step 11) ---------- */
+async function viewIDDocument(planId) {
+  try {
+    const { data: plan, error: pErr } = await adminSupabase
+      .from('payment_plans')
+      .select('id_document_url')
+      .eq('id', planId)
+      .single()
+    if (pErr) throw pErr
+    if (!plan?.id_document_url) {
+      showToast('No ID document on file.', 'error')
+      return
+    }
+
+    const { data, error } = await adminSupabase.storage
+      .from('id-documents')
+      .createSignedUrl(plan.id_document_url, 60)
+    if (error) throw error
+    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+  } catch (err) {
+    console.error('[payment-plans] view ID failed', err)
+    showToast('Could not open ID document.', 'error')
+  }
 }
 
 function renderContractStatus(plan) {
