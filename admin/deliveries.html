@@ -88,6 +88,7 @@
       <div class="tab-bar">
         <button class="tab is-active" data-tab="deliveries" type="button">Deliveries</button>
         <button class="tab" data-tab="tuners" type="button">Tuners</button>
+        <button class="tab" data-tab="partners" type="button">Partners</button>
       </div>
 
       <!-- ============ DELIVERIES TAB ============ -->
@@ -107,14 +108,40 @@
                 <th>Customer</th>
                 <th>Piano</th>
                 <th>Scheduled</th>
-                <th>Driver</th>
+                <th>Partner</th>
+                <th>Preferences</th>
                 <th>Delivery status</th>
                 <th>Tuner status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody id="deliveriesTableBody">
-              <tr><td colspan="7"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
+              <tr><td colspan="8"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ PARTNERS TAB ============ -->
+      <div id="partnersTab" style="display:none;">
+        <div class="tab-actions">
+          <button class="btn-gold" id="addPartnerBtn"><i class="ti ti-plus"></i> Add partner</button>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Contact</th>
+                <th>Phone</th>
+                <th>Service area</th>
+                <th>Active</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="partnersTableBody">
+              <tr><td colspan="6"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -160,6 +187,55 @@
   <div class="slide-panel-footer">
     <button class="btn-ghost" onclick="closeSlidePanel('deliveryPanel')">Close</button>
     <button class="btn-gold" id="saveDeliveryBtn"><i class="ti ti-device-floppy"></i> Save</button>
+  </div>
+</aside>
+
+<!-- Partner add/edit slide-in panel -->
+<div class="slide-panel-overlay" id="partnerPanelOverlay" onclick="closeSlidePanel('partnerPanel')"></div>
+<aside class="slide-panel" id="partnerPanel" aria-hidden="true">
+  <div class="slide-panel-header">
+    <h2 class="slide-panel-title" id="partnerPanelTitle">Add delivery partner</h2>
+    <button class="slide-panel-close" onclick="closeSlidePanel('partnerPanel')" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body">
+    <input type="hidden" id="partner-id">
+    <div class="admin-form-row">
+      <label class="admin-label" for="p-name">Company name</label>
+      <input type="text" id="p-name" class="admin-input" required>
+    </div>
+    <div class="admin-form-row--split">
+      <div>
+        <label class="admin-label" for="p-contact">Contact name</label>
+        <input type="text" id="p-contact" class="admin-input">
+      </div>
+      <div>
+        <label class="admin-label" for="p-phone">Phone</label>
+        <input type="tel" id="p-phone" class="admin-input">
+      </div>
+    </div>
+    <div class="admin-form-row">
+      <label class="admin-label" for="p-email">Email</label>
+      <input type="email" id="p-email" class="admin-input">
+    </div>
+    <div class="admin-form-row">
+      <label class="admin-label" for="p-area">Service area</label>
+      <input type="text" id="p-area" class="admin-input" placeholder="e.g. Metro Melbourne / Regional VIC">
+    </div>
+    <div class="admin-form-row">
+      <label class="admin-label" for="p-notes">Notes</label>
+      <textarea id="p-notes" class="admin-textarea" rows="3" placeholder="Pricing, specialties, anything internal."></textarea>
+    </div>
+    <div class="admin-form-row">
+      <label class="admin-checkbox-row">
+        <input type="checkbox" id="p-active" checked>
+        <span>Active (available for new deliveries)</span>
+      </label>
+    </div>
+    <div class="banner banner--error" id="partnerFormError"></div>
+  </div>
+  <div class="slide-panel-footer">
+    <button class="btn-ghost" onclick="closeSlidePanel('partnerPanel')">Cancel</button>
+    <button class="btn-gold" id="savePartnerBtn"><i class="ti ti-device-floppy"></i> Save partner</button>
   </div>
 </aside>
 
@@ -217,9 +293,11 @@
 <script>
 let allDeliveries = []
 let allTuners = []
+let allPartners = []
 let bookingsByOrder = {}    // { order_id: tuner_booking (with .tuner joined) }
 let editingDeliveryId = null
 let editingTunerId = null
+let editingPartnerId = null
 
 ;(async function init() {
   const admin = await checkAdminAuth()
@@ -233,14 +311,17 @@ let editingTunerId = null
       const which = btn.dataset.tab
       document.getElementById('deliveriesTab').style.display = which === 'deliveries' ? '' : 'none'
       document.getElementById('tunersTab').style.display     = which === 'tuners'     ? '' : 'none'
+      document.getElementById('partnersTab').style.display   = which === 'partners'   ? '' : 'none'
     })
   })
 
   document.getElementById('saveDeliveryBtn').addEventListener('click', saveDelivery)
   document.getElementById('addTunerBtn').addEventListener('click', () => openTunerPanel(null))
   document.getElementById('saveTunerBtn').addEventListener('click', saveTuner)
+  document.getElementById('addPartnerBtn').addEventListener('click', () => openPartnerPanel(null))
+  document.getElementById('savePartnerBtn').addEventListener('click', savePartner)
 
-  await Promise.all([loadDeliveries(), loadTuners()])
+  await Promise.all([loadDeliveries(), loadTuners(), loadPartners()])
 })()
 
 /* ============================================================================
@@ -251,7 +332,7 @@ async function loadDeliveries() {
   try {
     const { data, error } = await adminSupabase
       .from('deliveries')
-      .select(`*, orders(order_number, customers(first_name, last_name, email, phone), pianos(brand, model, year))`)
+      .select(`*, delivery_partner:delivery_partner_id(*), orders(order_number, customers(first_name, last_name, email, phone, address_line1, address_line2, suburb, state, postcode), pianos(brand, model, year))`)
       .order('scheduled_date', { ascending: true, nullsLast: true })
     if (error) throw error
     allDeliveries = data || []
@@ -307,7 +388,7 @@ function tunerStatusCell(orderId) {
 function renderDeliveries() {
   const body = document.getElementById('deliveriesTableBody')
   if (!allDeliveries.length) {
-    body.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="ti ti-truck-off"></i><p>No deliveries yet.</p></div></td></tr>`
+    body.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-truck-off"></i><p>No deliveries yet.</p></div></td></tr>`
     return
   }
   body.innerHTML = allDeliveries.map(d => {
@@ -317,12 +398,19 @@ function renderDeliveries() {
     const piano = d.orders?.pianos
       ? `${esc(d.orders.pianos.brand || '')} ${esc(d.orders.pianos.model || '')}`.trim()
       : '—'
+    const partner = d.delivery_partner
+      ? `<span style="font-size:12px;">${esc(d.delivery_partner.name)}</span>`
+      : `<span class="pill pill--grey">Unassigned</span>`
+    const prefs = d.customer_preferences_submitted
+      ? `<span class="pill pill--green" title="Submitted ${fmtDate(d.customer_preferences_submitted)}"><i class="ti ti-check" style="font-size:11px;"></i> Submitted</span>`
+      : `<span class="pill pill--amber" title="Customer hasn't filled in their preferences yet">Awaiting</span>`
     return `
       <tr class="clickable" data-id="${esc(d.id)}">
         <td class="name-cell">${cust}</td>
         <td>${piano}</td>
         <td>${fmtDate(d.scheduled_date)}<br><span style="font-size:11px;color:var(--admin-text-faint);">${esc(d.scheduled_time_window || '')}</span></td>
-        <td>${esc(d.driver_name || '—')}</td>
+        <td>${partner}</td>
+        <td>${prefs}</td>
         <td><span class="${statusPillClass(d.status)}">${esc((d.status || '').replace(/_/g,' '))}</span></td>
         <td>${tunerStatusCell(d.order_id)}</td>
         <td>
@@ -386,6 +474,16 @@ function openDelivery(id) {
         ).join('')}
       </select>
     </div>
+    <div class="admin-form-row">
+      <label class="admin-label" for="dlv-partner">Delivery partner</label>
+      <select id="dlv-partner" class="admin-select">
+        <option value="">— Unassigned —</option>
+        ${allPartners.filter(p => p.active || p.id === d.delivery_partner_id).map(p =>
+          `<option value="${esc(p.id)}"${d.delivery_partner_id === p.id ? ' selected' : ''}>${esc(p.name)}${p.service_area ? ' · ' + esc(p.service_area) : ''}</option>`
+        ).join('')}
+      </select>
+    </div>
+    ${renderCustomerPreferencesBlock(d)}
     <div class="admin-form-row" style="border-top:1px solid var(--admin-border);padding-top:14px;">
       <div class="admin-label">Driver links</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
@@ -440,6 +538,7 @@ async function saveDelivery() {
     scheduled_date:        document.getElementById('dlv-date').value || null,
     scheduled_time_window: document.getElementById('dlv-window').value.trim() || null,
     status:                document.getElementById('dlv-status').value,
+    delivery_partner_id:   document.getElementById('dlv-partner').value || null,
     updated_at:            new Date().toISOString(),
   }
   const btn = document.getElementById('saveDeliveryBtn')
@@ -761,6 +860,211 @@ async function updateTunerActive(id, active) {
   } catch (err) {
     console.error('[tuners] toggle active failed', err)
     alert("Couldn't update tuner — please try again.")
+  }
+}
+
+/* ============================================================================
+   CUSTOMER PREFERENCES BLOCK — shown inside the delivery detail panel
+   ========================================================================= */
+
+function renderCustomerPreferencesBlock(d) {
+  const prefUrl = `${window.location.origin}/delivery-preferences.html?token=${encodeURIComponent(d.preference_token || '')}`
+  const submitted = d.customer_preferences_submitted
+  const fmtPref = (p) => {
+    if (!p) return null
+    try { p = typeof p === 'string' ? JSON.parse(p) : p } catch { return null }
+    return `${p.date || '—'} · ${p.time || '—'}`
+  }
+  const p1 = fmtPref(d.customer_preference_1)
+  const p2 = fmtPref(d.customer_preference_2)
+  const p3 = fmtPref(d.customer_preference_3)
+
+  return `
+    <div style="margin-top:24px;padding-top:24px;border-top:1px solid var(--admin-border);">
+      <h3 style="font-size:14px;font-weight:500;color:var(--admin-text);margin:0 0 12px;display:flex;align-items:center;gap:8px;">
+        <i class="ti ti-calendar-event" style="color:var(--admin-gold);"></i>
+        Customer preferences
+      </h3>
+
+      ${submitted ? `
+        <div style="background:var(--admin-bg);border-radius:4px;padding:14px;font-size:12px;line-height:1.7;">
+          <div><strong>1.</strong> ${esc(p1 || '—')}</div>
+          <div><strong>2.</strong> ${esc(p2 || '—')}</div>
+          <div><strong>3.</strong> ${esc(p3 || '—')}</div>
+          ${d.customer_address_confirmed
+            ? `<div style="margin-top:8px;color:var(--admin-text-muted);">Address: ${esc(d.customer_address_confirmed)}</div>`
+            : ''}
+          ${d.customer_special_instructions
+            ? `<div style="margin-top:4px;color:var(--admin-text-muted);font-style:italic;">"${esc(d.customer_special_instructions)}"</div>`
+            : ''}
+          <div style="margin-top:8px;font-size:11px;color:var(--admin-text-faint);">Submitted ${fmtDate(submitted)}</div>
+        </div>
+      ` : `
+        <div style="background:var(--admin-amber-light);border-radius:4px;padding:12px 14px;font-size:12px;color:var(--admin-amber);">
+          Customer hasn't submitted their preferred delivery windows yet.
+        </div>
+        <button class="btn-ghost" type="button" id="copyPrefLinkBtn" style="margin-top:10px;">
+          <i class="ti ti-link"></i> Copy preferences link
+        </button>
+        <div id="copyPrefConfirm" style="font-size:11px;color:var(--admin-green);margin-top:6px;display:none;">Copied to clipboard.</div>
+      `}
+    </div>
+  `
+}
+
+/* Wire the "Copy preferences link" button after the delivery panel renders. */
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#copyPrefLinkBtn')) {
+    const d = allDeliveries.find(x => x.id === editingDeliveryId)
+    if (!d) return
+    const url = `${window.location.origin}/delivery-preferences.html?token=${encodeURIComponent(d.preference_token || '')}`
+    navigator.clipboard.writeText(url).then(() => {
+      const c = document.getElementById('copyPrefConfirm')
+      if (c) { c.style.display = 'block'; setTimeout(() => c.style.display = 'none', 1500) }
+    }).catch(() => prompt('Copy this link:', url))
+  }
+})
+
+/* ============================================================================
+   DELIVERY PARTNERS TAB
+   ========================================================================= */
+
+async function loadPartners() {
+  try {
+    const { data, error } = await adminSupabase
+      .from('delivery_partners')
+      .select('*')
+      .order('name', { ascending: true })
+    if (error) throw error
+    allPartners = data || []
+    renderPartners()
+  } catch (err) {
+    console.error('[partners] load failed', err)
+    document.getElementById('partnersTableBody').innerHTML =
+      `<tr><td colspan="6"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load partners.</p></div></td></tr>`
+  }
+}
+
+function renderPartners() {
+  const body = document.getElementById('partnersTableBody')
+  if (!allPartners.length) {
+    body.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="ti ti-user-off"></i><p>No partners yet — add your first one.</p></div></td></tr>`
+    return
+  }
+  body.innerHTML = allPartners.map(p => `
+    <tr data-id="${esc(p.id)}">
+      <td class="name-cell">${esc(p.name)}${p.notes ? `<div style="font-size:11px;color:var(--admin-text-muted);font-weight:400;margin-top:2px;">${esc(p.notes)}</div>` : ''}</td>
+      <td>${esc(p.contact_name || '—')}${p.email ? `<div style="font-size:11px;"><a href="mailto:${esc(p.email)}" style="color:var(--admin-gold);text-decoration:none;">${esc(p.email)}</a></div>` : ''}</td>
+      <td>${p.phone ? `<a href="tel:${esc(p.phone)}" style="color:var(--admin-text);text-decoration:none;">${esc(p.phone)}</a>` : '—'}</td>
+      <td>${esc(p.service_area || '—')}</td>
+      <td>${p.active
+        ? `<span class="pill pill--green">Active</span>`
+        : `<span class="pill pill--grey">Inactive</span>`}</td>
+      <td>
+        <div class="actions-cell">
+          <button class="icon-btn" data-action="edit-partner" title="Edit"><i class="ti ti-edit"></i></button>
+          <button class="icon-btn ${p.active ? 'is-red' : 'is-green'}" data-action="toggle-partner" title="${p.active ? 'Deactivate' : 'Reactivate'}">
+            <i class="ti ${p.active ? 'ti-x' : 'ti-rotate'}"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('')
+
+  body.querySelectorAll('[data-action="edit-partner"]').forEach(btn => {
+    btn.addEventListener('click', () => openPartnerPanel(btn.closest('tr').dataset.id))
+  })
+  body.querySelectorAll('[data-action="toggle-partner"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.closest('tr').dataset.id
+      const p = allPartners.find(x => x.id === id)
+      if (p) updatePartnerActive(id, !p.active)
+    })
+  })
+}
+
+function openPartnerPanel(id) {
+  editingPartnerId = id || null
+  const titleEl = document.getElementById('partnerPanelTitle')
+  document.getElementById('partnerFormError').classList.remove('is-shown')
+  if (!id) {
+    titleEl.textContent = 'Add delivery partner'
+    document.getElementById('partner-id').value = ''
+    document.getElementById('p-name').value = ''
+    document.getElementById('p-contact').value = ''
+    document.getElementById('p-phone').value = ''
+    document.getElementById('p-email').value = ''
+    document.getElementById('p-area').value = ''
+    document.getElementById('p-notes').value = ''
+    document.getElementById('p-active').checked = true
+  } else {
+    const p = allPartners.find(x => x.id === id)
+    if (!p) return
+    titleEl.textContent = `Edit ${p.name}`
+    document.getElementById('partner-id').value = p.id
+    document.getElementById('p-name').value    = p.name || ''
+    document.getElementById('p-contact').value = p.contact_name || ''
+    document.getElementById('p-phone').value   = p.phone || ''
+    document.getElementById('p-email').value   = p.email || ''
+    document.getElementById('p-area').value    = p.service_area || ''
+    document.getElementById('p-notes').value   = p.notes || ''
+    document.getElementById('p-active').checked = !!p.active
+  }
+  openSlidePanel('partnerPanel')
+}
+
+async function savePartner() {
+  const errEl = document.getElementById('partnerFormError')
+  errEl.classList.remove('is-shown')
+
+  const payload = {
+    name:         document.getElementById('p-name').value.trim(),
+    contact_name: document.getElementById('p-contact').value.trim() || null,
+    phone:        document.getElementById('p-phone').value.trim() || null,
+    email:        document.getElementById('p-email').value.trim() || null,
+    service_area: document.getElementById('p-area').value.trim() || null,
+    notes:        document.getElementById('p-notes').value.trim() || null,
+    active:       document.getElementById('p-active').checked,
+  }
+  if (!payload.name) {
+    errEl.textContent = 'Company name is required.'
+    errEl.classList.add('is-shown')
+    return
+  }
+
+  const btn = document.getElementById('savePartnerBtn')
+  btn.disabled = true; btn.textContent = 'Saving…'
+  try {
+    let result
+    if (editingPartnerId) {
+      result = await adminSupabase.from('delivery_partners').update(payload).eq('id', editingPartnerId)
+    } else {
+      result = await adminSupabase.from('delivery_partners').insert(payload)
+    }
+    if (result.error) throw result.error
+    closeSlidePanel('partnerPanel')
+    await loadPartners()
+  } catch (err) {
+    console.error('[partners] save failed', err)
+    errEl.textContent = err.message || "Couldn't save — please try again."
+    errEl.classList.add('is-shown')
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save partner'
+  }
+}
+
+async function updatePartnerActive(id, active) {
+  try {
+    const { error } = await adminSupabase
+      .from('delivery_partners')
+      .update({ active, updated_at: new Date().toISOString() })
+      .eq('id', id)
+    if (error) throw error
+    await loadPartners()
+  } catch (err) {
+    console.error('[partners] toggle active failed', err)
+    alert("Couldn't update partner — please try again.")
   }
 }
 </script>

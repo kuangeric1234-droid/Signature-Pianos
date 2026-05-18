@@ -69,6 +69,36 @@ module.exports = async (req, res) => {
       })
     }
 
+    if (type === 'purchase_confirmation') {
+      // Customer confirmation + delivery-preferences link, fired by the Stripe webhook.
+      await resend.emails.send({
+        from: FROM,
+        to: data.email,
+        subject: `Your Signature Pianos purchase — order ${data.order_number || ''}`.trim(),
+        html: purchaseConfirmationEmail(data)
+      })
+    }
+
+    if (type === 'internal_sale_notification') {
+      // Eric-facing notification for every Stripe sale.
+      await resend.emails.send({
+        from: FROM,
+        to: data.email || BUSINESS_EMAIL,
+        subject: `New ${data.payment_type === 'deposit' ? 'deposit' : 'sale'} — ${data.piano_label || 'piano'} (${data.order_number || ''})`,
+        html: internalSaleEmail(data)
+      })
+    }
+
+    if (type === 'delivery_preferences_submitted') {
+      // Internal-only — the customer already sees their confirmation page.
+      await resend.emails.send({
+        from: FROM,
+        to: BUSINESS_EMAIL,
+        subject: `Delivery preferences received — ${data.customer_name || 'customer'} (${data.order_number || ''})`,
+        html: deliveryPreferencesEmail(data)
+      })
+    }
+
     return res.status(200).json({ success: true })
   } catch (err) {
     console.error('Email error:', err)
@@ -320,6 +350,99 @@ function overdueReminderEmail(data) {
   `
   return shell({
     preview: `Payment reminder — invoice ${data.invoice_number || ''} for ${aud(data.total)}`,
+    body
+  })
+}
+
+/* ---------- PURCHASE CONFIRMATION — customer ---------- */
+function purchaseConfirmationEmail(data) {
+  const aud = (n) => '$' + Number(n || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const isDeposit = data.payment_type === 'deposit'
+
+  const body = `
+    ${h1(`Thank you, ${esc(data.first_name) || 'friend'}.`)}
+    ${p(isDeposit
+        ? `Your reservation deposit has been received. We've taken your piano off the public catalogue and will hold it for you while we arrange the rest of the purchase.`
+        : `Your purchase has been confirmed. We're packing up your piano now and will have everything ready for delivery to your home.`)}
+
+    <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:20px;color:#b8935a;margin:32px 0 8px;">Your order</h2>
+    ${detailTable([
+      ['Piano',  esc(data.piano_label || '—'), true],
+      ['Order #', esc(data.order_number || '—')],
+      [isDeposit ? 'Deposit paid' : 'Total paid', aud(data.total), true],
+    ])}
+
+    <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:20px;color:#b8935a;margin:32px 0 8px;">Next step — choose your delivery window</h2>
+    ${p(`Use the link below to share your three preferred delivery windows. We'll confirm one of them by email or phone within 48 hours.`, { muted: true })}
+
+    <p style="margin:18px 0 24px;">
+      <a href="${esc(data.preferences_url || '#')}"
+         style="display:inline-block;background:#b8935a;color:#0e0e0d;padding:14px 28px;font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:12px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;text-decoration:none;border-radius:3px;">
+        Pick your delivery window →
+      </a>
+    </p>
+
+    ${p(`If the button doesn't work, copy and paste this link into your browser:`, { muted: true })}
+    ${p(`<span style="word-break:break-all;color:#9a9590;font-size:12px;">${esc(data.preferences_url || '')}</span>`, { muted: true })}
+
+    ${signOff('Eric Kuang')}
+  `
+  return shell({
+    preview: isDeposit
+      ? `Deposit received — choose your delivery window`
+      : `Purchase confirmed — choose your delivery window`,
+    body
+  })
+}
+
+/* ---------- INTERNAL SALE NOTIFICATION — Eric ---------- */
+function internalSaleEmail(data) {
+  const aud = (n) => '$' + Number(n || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const isDeposit = data.payment_type === 'deposit'
+  const body = `
+    ${h1(isDeposit ? 'New deposit paid' : 'New sale completed')}
+    ${p(`A customer has just paid via Stripe Checkout.`, { muted: true })}
+
+    ${detailTable([
+      ['Piano', esc(data.piano_label || '—'), true],
+      ['Customer', esc(data.customer || '—')],
+      ['Email', data.customer_email ? `<a href="mailto:${esc(data.customer_email)}" style="color:#b8935a;text-decoration:none;">${esc(data.customer_email)}</a>` : '—'],
+      ['Order #', esc(data.order_number || '—')],
+      [isDeposit ? 'Deposit' : 'Total', aud(data.total), true],
+      ['Type', isDeposit ? 'Reservation deposit' : 'Full purchase'],
+    ])}
+
+    ${p(`The order, customer and delivery rows have been created automatically. Open the admin dashboard to assign a delivery partner and confirm timing once the customer submits their preferences.`, { muted: true })}
+  `
+  return shell({
+    preview: `New ${isDeposit ? 'deposit' : 'sale'} — ${data.piano_label || ''}`,
+    body
+  })
+}
+
+/* ---------- DELIVERY PREFERENCES SUBMITTED — internal ---------- */
+function deliveryPreferencesEmail(data) {
+  const formatPref = (p, n) => {
+    if (!p) return ['Preference ' + n, '—']
+    return ['Preference ' + n, `${esc(p.date || '—')} · ${esc(p.time || '—')}`, n === 1]
+  }
+  const rows = [
+    ['Customer', esc(data.customer_name || '—'), true],
+    ['Order #', esc(data.order_number || '—')],
+    formatPref(data.preferences?.[0], 1),
+    formatPref(data.preferences?.[1], 2),
+    formatPref(data.preferences?.[2], 3),
+  ]
+  if (data.address)      rows.push(['Address', esc(data.address)])
+  if (data.instructions) rows.push(['Notes', esc(data.instructions)])
+
+  const body = `
+    ${h1('Customer delivery preferences')}
+    ${p(`A customer has submitted their three preferred delivery windows. Confirm one of them and assign a delivery partner from the admin dashboard.`, { muted: true })}
+    ${detailTable(rows)}
+  `
+  return shell({
+    preview: `${data.customer_name || 'Customer'} sent delivery preferences for order ${data.order_number || ''}`,
     body
   })
 }

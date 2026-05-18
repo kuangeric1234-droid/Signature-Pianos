@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Piano detail — Signature Pianos Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="admin.css">
+<style>
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 900px) { .detail-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 540px) { .detail-grid { grid-template-columns: 1fr; } }
+
+  .detail-section {
+    margin-bottom: 28px;
+  }
+  .detail-section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--admin-gold);
+    margin: 0 0 12px;
+    font-weight: 500;
+  }
+
+  .specs-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--admin-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .specs-table td {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--admin-border);
+  }
+  .specs-table tr:last-child td { border-bottom: 0; }
+  .specs-table td.label {
+    color: var(--admin-text-muted);
+    width: 200px;
+    background: #faf8f5;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+
+  .service-log-form {
+    background: #faf8f5;
+    border: 1px solid var(--admin-border);
+    border-radius: 4px;
+    padding: 18px;
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: 130px 1fr 130px 100px auto;
+    gap: 10px;
+    align-items: end;
+  }
+  @media (max-width: 900px) {
+    .service-log-form { grid-template-columns: 1fr 1fr; }
+  }
+  .service-log-form .admin-label { margin-bottom: 4px; }
+
+  .cost-card {
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    border-radius: 4px;
+    padding: 18px;
+  }
+  .cost-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px dashed var(--admin-border);
+  }
+  .cost-row:last-child { border-bottom: 0; }
+  .cost-row.is-total {
+    border-top: 1px solid var(--admin-border-dark);
+    border-bottom: 0;
+    margin-top: 6px;
+    padding-top: 14px;
+    font-weight: 500;
+    color: var(--admin-gold);
+    font-size: 16px;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--admin-text-muted);
+    margin-bottom: 16px;
+  }
+  .breadcrumb a {
+    color: var(--admin-gold);
+    text-decoration: none;
+  }
+  .breadcrumb a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <span style="font-family:'DM Sans';font-size:13px;font-weight:500;color:#b8935a;letter-spacing:0.1em;">SIGNATURE</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.15em;display:block;margin-top:2px;">ADMIN</span>
+    </div>
+    <nav class="admin-nav">
+      <a href="dashboard.html"  class="admin-nav-item" data-page="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="enquiries.html"  class="admin-nav-item" data-page="enquiries"><i class="ti ti-mail"></i> Enquiries <span class="nav-badge" id="enquiriesBadge"></span></a>
+      <a href="inventory.html"  class="admin-nav-item is-active" data-page="inventory"><i class="ti ti-piano"></i> Inventory</a>
+      <a href="orders.html"     class="admin-nav-item" data-page="orders"><i class="ti ti-receipt"></i> Orders &amp; POS</a>
+      <a href="customers.html"  class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
+      <a href="deliveries.html" class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
+      <a href="teachers.html"   class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+      <a href="settings.html"   class="admin-nav-item" data-page="settings"><i class="ti ti-settings"></i> Settings</a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="https://signaturepianos.com.au/" target="_blank" style="font-size:12px;color:rgba(255,255,255,0.4);text-decoration:none;display:flex;align-items:center;gap:6px;">
+        <i class="ti ti-external-link" style="font-size:13px;"></i> View live site
+      </a>
+      <button onclick="adminSignOut()" style="font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;margin-top:8px;">
+        <i class="ti ti-logout" style="font-size:13px;"></i> Sign out
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;">
+        <button class="admin-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+        <h1 class="admin-page-title" id="pageTitle">Piano detail</h1>
+      </div>
+      <div class="admin-topbar-right">
+        <a class="btn-ghost" id="viewLiveLink" href="#" target="_blank" rel="noopener" style="display:none;"><i class="ti ti-external-link"></i> View on site</a>
+        <span style="font-size:13px;color:var(--admin-text-muted);" data-admin-name>—</span>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <div class="breadcrumb">
+        <a href="inventory.html"><i class="ti ti-arrow-left" style="vertical-align:-2px;"></i> Inventory</a>
+        <span>·</span>
+        <span id="bcLabel">—</span>
+      </div>
+
+      <div id="pageBody">
+        <div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Service log entry slide-panel -->
+<div class="slide-panel-overlay" id="logPanelOverlay" onclick="closeSlidePanel('logPanel')"></div>
+<aside class="slide-panel" id="logPanel" aria-hidden="true">
+  <div class="slide-panel-header">
+    <h2 class="slide-panel-title" id="logPanelTitle">Add service entry</h2>
+    <button class="slide-panel-close" onclick="closeSlidePanel('logPanel')" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body">
+    <input type="hidden" id="log-id">
+
+    <div class="admin-form-row--split">
+      <div>
+        <label class="admin-label" for="log-date">Service date</label>
+        <input type="date" id="log-date" class="admin-input">
+      </div>
+      <div>
+        <label class="admin-label" for="log-cost">Cost ($)</label>
+        <input type="number" id="log-cost" class="admin-input" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+
+    <div class="admin-form-row">
+      <label class="admin-label" for="log-type">Service type</label>
+      <select id="log-type" class="admin-select">
+        <option value="quarantine">Quarantine / shipping</option>
+        <option value="tuning">Tuning</option>
+        <option value="regulation">Regulation</option>
+        <option value="voicing">Voicing</option>
+        <option value="hammer_work">Hammer work</option>
+        <option value="cabinet">Cabinet / case</option>
+        <option value="action">Action work</option>
+        <option value="repair">Repair</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <div class="admin-form-row">
+      <label class="admin-label" for="log-desc">Description</label>
+      <input type="text" id="log-desc" class="admin-input" placeholder="What was done">
+    </div>
+
+    <div class="admin-form-row">
+      <label class="admin-label" for="log-by">Performed by</label>
+      <input type="text" id="log-by" class="admin-input" placeholder="Technician / supplier">
+    </div>
+
+    <div class="admin-form-row">
+      <label class="admin-label" for="log-notes">Internal notes</label>
+      <textarea id="log-notes" class="admin-textarea" rows="3"></textarea>
+    </div>
+
+    <div class="banner banner--error" id="logError"></div>
+  </div>
+  <div class="slide-panel-footer">
+    <button class="btn-ghost" onclick="closeSlidePanel('logPanel')">Cancel</button>
+    <button class="btn-gold" id="saveLogBtn"><i class="ti ti-check"></i> Save entry</button>
+  </div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-nav.js"></script>
+<script>
+let piano = null
+let serviceLog = []
+let salesHistory = []
+
+;(async function init() {
+  const admin = await checkAdminAuth()
+  if (!admin) return
+
+  const id = new URLSearchParams(window.location.search).get('id')
+  if (!id) {
+    document.getElementById('pageBody').innerHTML =
+      `<div class="empty-state"><i class="ti ti-alert-circle"></i><p>Missing piano id. <a href="inventory.html">Back to inventory →</a></p></div>`
+    return
+  }
+
+  document.getElementById('saveLogBtn').addEventListener('click', () => saveServiceEntry(id))
+
+  await loadPiano(id)
+})()
+
+async function loadPiano(id) {
+  try {
+    const [pianoRes, logRes, orderRes] = await Promise.all([
+      adminSupabase.from('pianos').select('*').eq('id', id).single(),
+      adminSupabase.from('piano_service_log').select('*').eq('piano_id', id).order('service_date', { ascending: false }),
+      adminSupabase.from('orders').select('id, order_number, invoice_number, total, status, voided, created_at, customers(first_name, last_name, email)').eq('piano_id', id).order('created_at', { ascending: false }),
+    ])
+    if (pianoRes.error) throw pianoRes.error
+    piano = pianoRes.data
+    serviceLog = logRes.data || []
+    salesHistory = orderRes.data || []
+    render()
+  } catch (err) {
+    console.error('[piano-detail] load failed', err)
+    document.getElementById('pageBody').innerHTML =
+      `<div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load piano. <a href="inventory.html">Back to inventory →</a></p></div>`
+  }
+}
+
+function fmtAUD(n) {
+  return '$' + Number(n || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function render() {
+  if (!piano) return
+  const title = `${esc(piano.brand || '')} ${esc(piano.model || '')}${piano.year ? ' · ' + piano.year : ''}`.trim()
+  document.getElementById('pageTitle').textContent = title || 'Piano detail'
+  document.getElementById('bcLabel').textContent = title || piano.serial_number || '—'
+
+  const link = document.getElementById('viewLiveLink')
+  link.href = `../piano.html?id=${encodeURIComponent(piano.id)}`
+  link.style.display = 'inline-flex'
+
+  const baseCost  = Number(piano.base_cost  || 0)
+  const totalServiceCost = serviceLog.reduce((s, r) => s + Number(r.cost || 0), 0)
+  const costPrice = Number(piano.cost_price || (baseCost + totalServiceCost))
+  const salePrice = Number(piano.sale_price || 0)
+  const profit    = salePrice - costPrice
+  const marginPct = salePrice > 0 ? (profit / salePrice) * 100 : 0
+  const marginColor = marginPct >= 30 ? 'var(--admin-green)' : 'var(--admin-amber)'
+
+  document.getElementById('pageBody').innerHTML = `
+
+    <div class="detail-grid">
+      <div class="metric-card">
+        <div class="icon-row" style="color:var(--admin-text-muted);"><i class="ti ti-currency-dollar"></i> Cost price</div>
+        <div class="number">${fmtAUD(costPrice)}</div>
+        <div class="sub">Base + service log</div>
+      </div>
+      <div class="metric-card">
+        <div class="icon-row" style="color:var(--admin-text-muted);"><i class="ti ti-tag"></i> Sale price</div>
+        <div class="number">${fmtAUD(salePrice)}</div>
+        <div class="sub">Listed price (inc GST)</div>
+      </div>
+      <div class="metric-card">
+        <div class="icon-row" style="color:${marginColor};"><i class="ti ti-chart-bar"></i> Margin</div>
+        <div class="number" style="color:${marginColor};">${marginPct.toFixed(1)}%</div>
+        <div class="sub">${salePrice > 0 ? (marginPct >= 30 ? 'Healthy' : 'Below 30% target') : '—'}</div>
+      </div>
+      <div class="metric-card">
+        <div class="icon-row" style="color:${marginColor};"><i class="ti ti-cash"></i> Profit</div>
+        <div class="number" style="color:${marginColor};">${fmtAUD(profit)}</div>
+        <div class="sub">If sold at list</div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h3 class="detail-section-title">Specifications</h3>
+      <table class="specs-table">
+        <tr><td class="label">Brand</td><td>${esc(piano.brand || '—')}</td></tr>
+        <tr><td class="label">Model</td><td>${esc(piano.model || '—')}</td></tr>
+        <tr><td class="label">Year</td><td>${esc(piano.year ?? '—')}</td></tr>
+        <tr><td class="label">Serial</td><td class="mono">${esc(piano.serial_number || '—')}</td></tr>
+        <tr><td class="label">Condition</td><td>${esc(piano.condition || '—')}</td></tr>
+        <tr><td class="label">Type</td><td>${esc((piano.type || 'acoustic_upright').replace(/_/g, ' '))}</td></tr>
+        <tr><td class="label">Weight</td><td>${piano.weight_kg ? esc(piano.weight_kg) + ' kg' : '—'}</td></tr>
+        <tr><td class="label">Stock status</td><td><span class="${statusPillClass(piano.stock_status)}">${esc(piano.stock_status || '—')}</span></td></tr>
+        <tr><td class="label">Featured</td><td>${piano.featured ? 'Yes' : 'No'}</td></tr>
+        <tr><td class="label">Purchase date</td><td>${piano.purchase_date ? fmtDate(piano.purchase_date) : '—'}</td></tr>
+        <tr><td class="label">Purchase notes</td><td>${esc(piano.purchase_notes || '—')}</td></tr>
+      </table>
+    </div>
+
+    <div class="detail-section">
+      <h3 class="detail-section-title">Cost breakdown</h3>
+      <div class="cost-card">
+        <div class="cost-row"><span>Base cost</span><span>${fmtAUD(baseCost)}</span></div>
+        <div class="cost-row"><span>Service log total (${serviceLog.length} ${serviceLog.length === 1 ? 'entry' : 'entries'})</span><span>${fmtAUD(totalServiceCost)}</span></div>
+        <div class="cost-row is-total"><span>Total cost</span><span>${fmtAUD(costPrice)}</span></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <h3 class="detail-section-title" style="margin:0;">Service log</h3>
+        <button class="btn-gold" id="addLogBtn" style="font-size:12px;padding:6px 12px;"><i class="ti ti-plus"></i> Add entry</button>
+      </div>
+
+      ${serviceLog.length === 0 ? `
+        <div class="empty-state" style="padding:24px;">
+          <i class="ti ti-tools"></i>
+          <p>No service entries yet. Click "Add entry" to record quarantine, tuning, repairs, etc.</p>
+        </div>
+      ` : `
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Type</th><th>Description</th><th>By</th><th style="text-align:right;">Cost</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${serviceLog.map(r => `
+                <tr data-log-id="${esc(r.id)}">
+                  <td>${fmtDate(r.service_date)}</td>
+                  <td><span class="pill pill--grey">${esc((r.service_type || '').replace(/_/g, ' '))}</span></td>
+                  <td>${esc(r.description || '—')}</td>
+                  <td>${esc(r.performed_by || '—')}</td>
+                  <td style="text-align:right;">${fmtAUD(r.cost)}</td>
+                  <td>
+                    <div class="actions-cell">
+                      <button class="icon-btn" data-action="edit-log" title="Edit"><i class="ti ti-edit"></i></button>
+                      <button class="icon-btn is-red" data-action="delete-log" title="Delete"><i class="ti ti-trash"></i></button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `}
+    </div>
+
+    <div class="detail-section">
+      <h3 class="detail-section-title">Sales history</h3>
+      ${salesHistory.length === 0 ? `
+        <div class="empty-state" style="padding:24px;">
+          <i class="ti ti-receipt"></i>
+          <p>No orders against this piano yet.</p>
+        </div>
+      ` : `
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Order</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              ${salesHistory.map(o => `
+                <tr${o.voided ? ' style="opacity:0.6;"' : ''}>
+                  <td class="mono">${esc(o.order_number || '—')}${o.voided ? ' <span class="pill pill--red" style="margin-left:6px;">VOID</span>' : ''}</td>
+                  <td class="name-cell">${esc((o.customers?.first_name || '') + ' ' + (o.customers?.last_name || '')).trim() || '—'}</td>
+                  <td>${fmtDate(o.created_at)}</td>
+                  <td>${fmtMoney(o.total)}</td>
+                  <td><span class="${statusPillClass(o.status)}">${esc(o.status || '')}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `}
+    </div>
+
+  `
+
+  // Wire up the actions
+  document.getElementById('addLogBtn').addEventListener('click', () => openLogPanel(null))
+  document.querySelectorAll('[data-action="edit-log"]').forEach(btn => {
+    btn.addEventListener('click', () => openLogPanel(btn.closest('tr').dataset.logId))
+  })
+  document.querySelectorAll('[data-action="delete-log"]').forEach(btn => {
+    btn.addEventListener('click', () => deleteServiceEntry(btn.closest('tr').dataset.logId))
+  })
+}
+
+function openLogPanel(logId) {
+  document.getElementById('logError').classList.remove('is-shown')
+  if (!logId) {
+    document.getElementById('logPanelTitle').textContent = 'Add service entry'
+    document.getElementById('log-id').value = ''
+    document.getElementById('log-date').value = new Date().toISOString().slice(0, 10)
+    document.getElementById('log-type').value = 'tuning'
+    document.getElementById('log-desc').value = ''
+    document.getElementById('log-cost').value = ''
+    document.getElementById('log-by').value = ''
+    document.getElementById('log-notes').value = ''
+  } else {
+    const r = serviceLog.find(x => x.id === logId)
+    if (!r) return
+    document.getElementById('logPanelTitle').textContent = 'Edit service entry'
+    document.getElementById('log-id').value    = r.id
+    document.getElementById('log-date').value  = r.service_date || ''
+    document.getElementById('log-type').value  = r.service_type || 'tuning'
+    document.getElementById('log-desc').value  = r.description || ''
+    document.getElementById('log-cost').value  = r.cost ?? ''
+    document.getElementById('log-by').value    = r.performed_by || ''
+    document.getElementById('log-notes').value = r.notes || ''
+  }
+  openSlidePanel('logPanel')
+}
+
+async function saveServiceEntry(pianoId) {
+  const errEl = document.getElementById('logError')
+  errEl.classList.remove('is-shown')
+  const id = document.getElementById('log-id').value
+  const cost = parseFloat(document.getElementById('log-cost').value)
+  if (!Number.isFinite(cost) || cost < 0) {
+    errEl.textContent = 'Cost must be a non-negative number.'
+    errEl.classList.add('is-shown')
+    return
+  }
+  const payload = {
+    piano_id:     pianoId,
+    service_date: document.getElementById('log-date').value || new Date().toISOString().slice(0, 10),
+    service_type: document.getElementById('log-type').value,
+    description:  document.getElementById('log-desc').value.trim() || null,
+    cost,
+    performed_by: document.getElementById('log-by').value.trim() || null,
+    notes:        document.getElementById('log-notes').value.trim() || null,
+  }
+  const btn = document.getElementById('saveLogBtn')
+  btn.disabled = true
+  btn.textContent = 'Saving…'
+  try {
+    if (id) {
+      const { error } = await adminSupabase.from('piano_service_log').update(payload).eq('id', id)
+      if (error) throw error
+    } else {
+      const { error } = await adminSupabase.from('piano_service_log').insert(payload)
+      if (error) throw error
+    }
+    closeSlidePanel('logPanel')
+    showToast(id ? 'Entry updated.' : 'Entry added.', 'success')
+    await loadPiano(pianoId)
+  } catch (err) {
+    console.error('[piano-detail] save log failed', err)
+    errEl.textContent = err.message || "Couldn't save entry."
+    errEl.classList.add('is-shown')
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = '<i class="ti ti-check"></i> Save entry'
+  }
+}
+
+async function deleteServiceEntry(logId) {
+  if (!window.confirm('Delete this service entry? Cost will be removed from the piano total.')) return
+  try {
+    const { error } = await adminSupabase.from('piano_service_log').delete().eq('id', logId)
+    if (error) throw error
+    showToast('Entry deleted.', 'warning')
+    await loadPiano(piano.id)
+  } catch (err) {
+    console.error('[piano-detail] delete log failed', err)
+    showToast("Couldn't delete entry.", 'error')
+  }
+}
+</script>
+
+</body>
+</html>

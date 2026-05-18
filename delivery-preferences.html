@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Delivery preferences — Signature Pianos</title>
+<meta name="robots" content="noindex, nofollow" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+<style>
+  :root {
+    --bg-1: #0e0e0d; --bg-2: #1a1a18; --bg-3: #242422;
+    --gold: #b8935a; --gold-light: #d4b483;
+    --text-1: #f5f0e8; --text-2: #9a9590; --text-3: #6b6760;
+    --border: rgba(184, 147, 90, 0.15);
+    --border-strong: rgba(184, 147, 90, 0.4);
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg-1); color: var(--text-1);
+    font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 64px 24px 80px;
+  }
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px; font-weight: 300; letter-spacing: 0.01em;
+    text-align: center; margin: 0 0 8px;
+  }
+  .logo em { color: var(--gold); font-style: italic; font-weight: 400; }
+  .tagline {
+    text-align: center; font-size: 10px;
+    letter-spacing: 0.24em; text-transform: uppercase;
+    color: var(--text-3); margin: 0 0 48px;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300; font-size: 36px; line-height: 1.2;
+    margin: 0 0 12px;
+  }
+  .intro {
+    color: var(--text-2); font-size: 14px; line-height: 1.7; margin: 0 0 32px;
+  }
+  .order-meta {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin-bottom: 32px;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .order-meta strong { color: var(--text-1); }
+
+  .pref-block {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+  }
+  .pref-block-title {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin: 0 0 12px;
+  }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 540px) { .field-row { grid-template-columns: 1fr; } }
+  .field-row label { display: block; }
+
+  label .lbl {
+    display: block;
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    background: var(--bg-1);
+    color: var(--text-1);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px 14px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 300;
+    transition: border-color 0.2s ease;
+  }
+  textarea { min-height: 90px; line-height: 1.5; resize: vertical; }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--border-strong);
+  }
+
+  .btn {
+    width: 100%;
+    background: var(--gold);
+    color: var(--bg-1);
+    border: 0;
+    padding: 16px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-top: 16px;
+    transition: background 0.2s ease;
+  }
+  .btn:hover { background: var(--gold-light); }
+  .btn:disabled { opacity: 0.5; cursor: progress; }
+
+  .banner {
+    padding: 14px 18px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 24px;
+    display: none;
+  }
+  .banner.is-shown { display: block; }
+  .banner--error {
+    background: rgba(192, 57, 43, 0.12);
+    border: 1px solid rgba(192, 57, 43, 0.4);
+    color: #e8a497;
+  }
+  .banner--success {
+    background: rgba(26, 127, 75, 0.14);
+    border: 1px solid rgba(26, 127, 75, 0.4);
+    color: #9bd6b3;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--text-2);
+  }
+  .empty-state i { font-size: 40px; color: var(--gold); display: block; margin-bottom: 14px; }
+
+  .submitted-summary {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    margin-top: 24px;
+  }
+  .submitted-summary .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 13px;
+  }
+  .submitted-summary .row:last-child { border-bottom: 0; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <p class="logo">Signature <em>Pianos</em></p>
+  <p class="tagline">Melbourne</p>
+
+  <div id="pageBody">
+    <div class="empty-state">
+      <i class="ti ti-loader"></i>
+      <p>Loading your booking…</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script>
+let delivery = null
+let orderSummary = null
+
+;(async function init() {
+  const token = new URLSearchParams(window.location.search).get('token')
+  if (!token) {
+    showError("This link is missing its access token. Please use the link from your confirmation email.")
+    return
+  }
+  await loadDelivery(token)
+})()
+
+async function loadDelivery(token) {
+  try {
+    // anon SELECT policy allows reading by preference_token. We join order/customer/piano
+    // for the meta strip, but Supabase only joins one level here so we make two requests.
+    const { data: dlv, error } = await _supabase
+      .from('deliveries')
+      .select('id, status, preference_token, customer_preferences_submitted, customer_preference_1, customer_preference_2, customer_preference_3, customer_special_instructions, customer_address_confirmed, order_id')
+      .eq('preference_token', token)
+      .maybeSingle()
+    if (error) throw error
+    if (!dlv) {
+      showError("We couldn't find this delivery. The link may be expired or incorrect.")
+      return
+    }
+    delivery = dlv
+
+    // Pull order + customer + piano in a second call.
+    if (dlv.order_id) {
+      const { data: ord } = await _supabase
+        .from('orders')
+        .select('order_number, total, customers(first_name, last_name, address_line1, address_line2, suburb, state, postcode), pianos(brand, model, year)')
+        .eq('id', dlv.order_id)
+        .maybeSingle()
+      orderSummary = ord || null
+    }
+
+    if (delivery.customer_preferences_submitted) {
+      renderSubmitted()
+    } else {
+      renderForm()
+    }
+  } catch (err) {
+    console.error('[delivery-prefs] load failed', err)
+    showError("We hit a problem loading your booking. Please try again later or reply to your confirmation email.")
+  }
+}
+
+function fmtAUD(n) {
+  return '$' + Number(n || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+function esc(value) {
+  if (value === null || value === undefined) return ''
+  return String(value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+
+function orderMetaHTML() {
+  if (!orderSummary) return ''
+  const cust = orderSummary.customers || {}
+  const piano = orderSummary.pianos || {}
+  const addr = [cust.address_line1, cust.address_line2, [cust.suburb, cust.state, cust.postcode].filter(Boolean).join(' ')]
+    .filter(Boolean).join(', ')
+  return `
+    <div class="order-meta">
+      <div><strong>${esc(piano.brand || 'Piano')} ${esc(piano.model || '')} ${esc(piano.year || '')}</strong></div>
+      <div>Order ${esc(orderSummary.order_number || '—')} · ${fmtAUD(orderSummary.total)}</div>
+      ${addr ? `<div style="margin-top:6px;">Delivery to: ${esc(addr)}</div>` : ''}
+    </div>
+  `
+}
+
+function renderForm() {
+  const today = new Date()
+  // Earliest delivery is 7 days out (lets the warehouse prep), latest 8 weeks.
+  const minDate = new Date(today); minDate.setDate(today.getDate() + 7)
+  const maxDate = new Date(today); maxDate.setDate(today.getDate() + 56)
+  const fmt = (d) => d.toISOString().slice(0, 10)
+  const minStr = fmt(minDate), maxStr = fmt(maxDate)
+
+  const windows = ['Morning (9am–12pm)', 'Afternoon (12pm–4pm)', 'Late afternoon (4pm–6pm)']
+
+  const prefBlock = (n) => `
+    <div class="pref-block">
+      <p class="pref-block-title">Preference ${n}${n === 1 ? ' · most preferred' : ''}</p>
+      <div class="field-row">
+        <label>
+          <span class="lbl">Date</span>
+          <input type="date" id="pref-date-${n}" min="${minStr}" max="${maxStr}" required>
+        </label>
+        <label>
+          <span class="lbl">Time window</span>
+          <select id="pref-time-${n}" required>
+            <option value="">Select a window…</option>
+            ${windows.map(w => `<option value="${esc(w)}">${esc(w)}</option>`).join('')}
+          </select>
+        </label>
+      </div>
+    </div>
+  `
+
+  document.getElementById('pageBody').innerHTML = `
+    <h1>Pick your delivery window</h1>
+    <p class="intro">
+      Thanks for your purchase. To get your piano to you smoothly, please share your three preferred
+      delivery windows in order of preference. We'll confirm one of them by email or phone within
+      48 hours.
+    </p>
+
+    ${orderMetaHTML()}
+
+    <div class="banner banner--error" id="formError"></div>
+
+    <form id="prefsForm" novalidate>
+      ${prefBlock(1)}
+      ${prefBlock(2)}
+      ${prefBlock(3)}
+
+      <div class="pref-block">
+        <p class="pref-block-title">Delivery details</p>
+        <label style="display:block;margin-bottom:14px;">
+          <span class="lbl">Confirm delivery address</span>
+          <input type="text" id="pref-address" placeholder="Where should we deliver?" value="${esc(
+            orderSummary?.customers
+              ? [orderSummary.customers.address_line1, orderSummary.customers.address_line2,
+                 [orderSummary.customers.suburb, orderSummary.customers.state, orderSummary.customers.postcode].filter(Boolean).join(' ')]
+                .filter(Boolean).join(', ')
+              : ''
+          )}" required>
+        </label>
+        <label style="display:block;">
+          <span class="lbl">Special instructions (stairs, parking, access)</span>
+          <textarea id="pref-instructions" placeholder="Anything our team should know before arriving"></textarea>
+        </label>
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn">
+        Submit my preferences
+      </button>
+    </form>
+  `
+
+  document.getElementById('prefsForm').addEventListener('submit', onSubmit)
+}
+
+function renderSubmitted() {
+  const fmtPref = (p) => {
+    if (!p) return '—'
+    try {
+      const o = typeof p === 'string' ? JSON.parse(p) : p
+      return `${o.date || '—'} · ${o.time || '—'}`
+    } catch { return '—' }
+  }
+  document.getElementById('pageBody').innerHTML = `
+    <h1>Preferences received</h1>
+    <p class="intro">
+      Thanks — we've got your three preferred windows and will be in touch within 48 hours
+      to confirm the booking. If anything changes, just reply to your confirmation email.
+    </p>
+
+    ${orderMetaHTML()}
+
+    <div class="submitted-summary">
+      <div class="row"><span>Preference 1</span><span>${esc(fmtPref(delivery.customer_preference_1))}</span></div>
+      <div class="row"><span>Preference 2</span><span>${esc(fmtPref(delivery.customer_preference_2))}</span></div>
+      <div class="row"><span>Preference 3</span><span>${esc(fmtPref(delivery.customer_preference_3))}</span></div>
+      ${delivery.customer_address_confirmed ? `<div class="row"><span>Address</span><span style="text-align:right;">${esc(delivery.customer_address_confirmed)}</span></div>` : ''}
+      ${delivery.customer_special_instructions ? `<div class="row"><span>Notes</span><span style="text-align:right;">${esc(delivery.customer_special_instructions)}</span></div>` : ''}
+    </div>
+  `
+}
+
+async function onSubmit(e) {
+  e.preventDefault()
+  const errEl = document.getElementById('formError')
+  errEl.classList.remove('is-shown')
+
+  const prefs = []
+  for (let i = 1; i <= 3; i++) {
+    const date = document.getElementById(`pref-date-${i}`).value
+    const time = document.getElementById(`pref-time-${i}`).value
+    if (!date || !time) {
+      errEl.textContent = `Preference ${i} — please pick both a date and a time window.`
+      errEl.classList.add('is-shown')
+      return
+    }
+    prefs.push({ date, time })
+  }
+  const address = document.getElementById('pref-address').value.trim()
+  if (!address) {
+    errEl.textContent = 'Please confirm your delivery address.'
+    errEl.classList.add('is-shown')
+    return
+  }
+
+  const btn = document.getElementById('submitBtn')
+  btn.disabled = true
+  btn.textContent = 'Submitting…'
+
+  try {
+    const { error } = await _supabase
+      .from('deliveries')
+      .update({
+        customer_preference_1: prefs[0],
+        customer_preference_2: prefs[1],
+        customer_preference_3: prefs[2],
+        customer_address_confirmed: address,
+        customer_special_instructions: document.getElementById('pref-instructions').value.trim() || null,
+        customer_preferences_submitted: new Date().toISOString(),
+      })
+      .eq('preference_token', delivery.preference_token)
+    if (error) throw error
+
+    // Fire-and-forget notification to the business inbox
+    fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'delivery_preferences_submitted',
+        order_number: orderSummary?.order_number || null,
+        customer_name: orderSummary?.customers
+          ? `${orderSummary.customers.first_name || ''} ${orderSummary.customers.last_name || ''}`.trim()
+          : '',
+        preferences: prefs,
+        address,
+        instructions: document.getElementById('pref-instructions').value.trim() || '',
+      }),
+    }).catch(() => { /* non-blocking */ })
+
+    delivery.customer_preference_1 = prefs[0]
+    delivery.customer_preference_2 = prefs[1]
+    delivery.customer_preference_3 = prefs[2]
+    delivery.customer_address_confirmed = address
+    delivery.customer_special_instructions = document.getElementById('pref-instructions').value.trim() || ''
+    delivery.customer_preferences_submitted = new Date().toISOString()
+    renderSubmitted()
+  } catch (err) {
+    console.error('[delivery-prefs] submit failed', err)
+    errEl.textContent = "We couldn't save your preferences. Please try again, or reply to your confirmation email."
+    errEl.classList.add('is-shown')
+    btn.disabled = false
+    btn.textContent = 'Submit my preferences'
+  }
+}
+
+function showError(msg) {
+  document.getElementById('pageBody').innerHTML = `
+    <h1>Hmm, something's not right</h1>
+    <p class="intro">${esc(msg)}</p>
+  `
+}
+</script>
+
+</body>
+</html>

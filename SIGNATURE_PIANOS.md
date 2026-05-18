@@ -924,10 +924,16 @@ STRIPE_SECRET_KEY
 ◯ Teacher dashboard           portal/teacher.html
 ◯ Driver flow                 delivery/[token].html
 ✓ Admin back office           admin/  — login, dashboard, enquiries,
-                                       inventory, orders (+ PDF invoices +
-                                       inline HTML preview + edit/void/
-                                       overdue-reminder), customers,
-                                       deliveries, teachers, settings
+                                       inventory (+ XLS import + service
+                                       log badge), piano-detail (cost
+                                       breakdown + service log CRUD +
+                                       sales history), orders (+ PDF
+                                       invoices + inline HTML preview +
+                                       edit/void/overdue-reminder),
+                                       customers, deliveries (+ partners
+                                       tab + customer preferences),
+                                       teachers, settings
+✓ Customer delivery prefs    delivery-preferences.html (public, token)
 ```
 
 ---
@@ -980,7 +986,10 @@ GST:                10% — always show ex and inc GST on invoices
 
 ### Environment variables needed in Vercel dashboard
 SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
-RESEND_API_KEY, BUSINESS_EMAIL
+RESEND_API_KEY, BUSINESS_EMAIL,
+STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+SITE_URL (e.g. https://signaturepianos.com.au),
+TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE (optional — tuner SMS)
 
 ### Supabase schema notes
 ```
@@ -1022,6 +1031,68 @@ Complete:         Tuner clicks the completion link after the visit.
 Visibility:       admin/deliveries.html shows a tuner column with the
                   current status on every delivery row. The Tuners tab
                   is a simple CRUD view of the tuners table.
+```
+
+### Piano cost tracking & service log
+```
+Schema:        supabase/inventory_updates.sql adds:
+                 pianos.base_cost / cost_price / purchase_date / purchase_notes
+                 piano_service_log table (date / type / description / cost /
+                 performed_by / notes)
+               A Postgres trigger recalcs pianos.cost_price as
+                 base_cost + SUM(service_log.cost)
+               on every insert/update/delete in piano_service_log.
+
+XLS import:    admin/inventory.html → "Import XLS" button opens a panel
+               with a downloadable template, drop zone, parsed preview
+               (errors highlighted in red), and a "confirm" insert.
+               SheetJS via CDN — entirely client-side. 200 row cap.
+               Required columns: brand, model. Optional: year / serial /
+               condition / price / status / description_short /
+               description / weight_kg / featured / base_cost /
+               purchase_date / purchase_notes.
+
+Detail view:   admin/piano-detail.html?id=X shows 4 metric cards
+               (cost / sale / margin / profit), specs table, cost
+               breakdown, full service-log CRUD via slide panel,
+               and sales history for the piano.
+
+Inventory row: each row now shows a service log count badge (◉ N) next
+               to the piano name + a detail-view button in the actions
+               column.
+```
+
+### Stripe webhook + delivery flow
+```
+Webhook:       api/stripe-webhook.js receives checkout.session.completed,
+               verifies signature with STRIPE_WEBHOOK_SECRET (raw body —
+               bodyParser is disabled), then:
+                 1. Upserts customers by email
+                 2. Inserts orders (idempotent on stripe_session_id)
+                 3. Marks piano sold (full) or reserved (deposit)
+                 4. Creates a deliveries row with auto_created=true and
+                    a fresh preference_token
+                 5. Emails the customer with their preferences link
+                 6. Emails Eric the internal sale notification
+
+Preferences:   delivery-preferences.html (public, dark/gold theme,
+               token-based — no auth). Customer picks 3 preferred
+               windows + confirms address + adds special instructions.
+               Submit writes back to deliveries; anon RLS policy is
+               scoped by preference_token and a guard trigger locks
+               anon writes to the preference columns only.
+
+Partners:      delivery_partners table (name / contact / phone / email /
+               service_area / notes / active). Managed from a new
+               "Partners" tab in admin/deliveries.html. Each delivery
+               can be assigned a partner from the detail panel.
+               Two placeholder partners are seeded by the SQL migration.
+
+Emails:        api/send-email.js gained four types this round:
+                 overdue_reminder         — admin → customer
+                 purchase_confirmation    — webhook → customer (w/ pref link)
+                 internal_sale_notification — webhook → Eric
+                 delivery_preferences_submitted — public form → Eric
 ```
 
 ### Invoice management flow

@@ -44,6 +44,73 @@
   .photo-upload-placeholder i { font-size: 32px; margin-bottom: 8px; display: block; }
   .photo-upload-placeholder p { margin: 0; font-size: 13px; }
   .photo-upload-placeholder p + p { margin: 4px 0 0; font-size: 11px; }
+
+  /* Service-log count badge on the table row */
+  .svc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--admin-bg);
+    color: var(--admin-text-muted);
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid var(--admin-border);
+  }
+  .svc-badge i { font-size: 12px; }
+
+  /* XLS import drop zone */
+  #importDrop {
+    border: 2px dashed var(--admin-border-dark);
+    border-radius: 6px;
+    padding: 32px 18px;
+    text-align: center;
+    color: var(--admin-text-muted);
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+  #importDrop:hover, #importDrop.is-dragover {
+    border-color: var(--admin-gold);
+    background: rgba(184, 147, 90, 0.06);
+    color: var(--admin-text);
+  }
+  #importDrop i { font-size: 28px; display: block; margin-bottom: 6px; }
+  #importPreviewWrap {
+    max-height: 420px;
+    overflow: auto;
+    border: 1px solid var(--admin-border);
+    border-radius: 4px;
+    margin-top: 12px;
+  }
+  #importPreviewWrap table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  #importPreviewWrap th, #importPreviewWrap td {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--admin-border);
+    text-align: left;
+    vertical-align: top;
+  }
+  #importPreviewWrap th {
+    background: #faf8f5;
+    color: var(--admin-text-muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    position: sticky;
+    top: 0;
+  }
+  #importPreviewWrap tr.has-error {
+    background: rgba(192, 57, 43, 0.05);
+  }
+  #importPreviewWrap td.error {
+    color: var(--admin-red);
+    font-weight: 500;
+  }
+
+  @media (min-width: 769px) {
+    #importPanel { width: 720px; }
+  }
 </style>
 </head>
 <body>
@@ -81,6 +148,7 @@
         <h1 class="admin-page-title">Inventory</h1>
       </div>
       <div class="admin-topbar-right">
+        <button class="btn-ghost" id="importBtn"><i class="ti ti-file-spreadsheet"></i> Import XLS</button>
         <button class="btn-gold" id="addPianoBtn"><i class="ti ti-plus"></i> Add piano</button>
         <span style="font-size:13px;color:var(--admin-text-muted);" data-admin-name>—</span>
       </div>
@@ -208,6 +276,30 @@
         </div>
       </div>
 
+      <div style="margin-top:6px;padding:14px;border:1px dashed var(--admin-border-dark);border-radius:4px;background:#faf8f5;">
+        <p style="font-size:11px;color:var(--admin-text-faint);margin:0 0 12px;text-transform:uppercase;letter-spacing:0.06em;font-weight:500;">
+          Internal — cost tracking (not shown to customers)
+        </p>
+        <div class="admin-form-row--split">
+          <div>
+            <label class="admin-label" for="f-base-cost">Base cost ($)</label>
+            <input type="number" id="f-base-cost" class="admin-input" step="0.01" placeholder="0.00">
+          </div>
+          <div>
+            <label class="admin-label" for="f-purchase-date">Purchase date</label>
+            <input type="date" id="f-purchase-date" class="admin-input">
+          </div>
+        </div>
+        <div class="admin-form-row">
+          <label class="admin-label" for="f-purchase-notes">Purchase notes</label>
+          <textarea id="f-purchase-notes" class="admin-textarea" rows="2" placeholder="Source, lot, anything to remember"></textarea>
+        </div>
+        <p style="font-size:11px;color:var(--admin-text-faint);margin:6px 0 0;line-height:1.5;">
+          Total cost price (base + service log entries) is recalculated automatically by the database.
+          Add tuning / repair / quarantine costs from the piano's detail view.
+        </p>
+      </div>
+
       <div class="banner banner--error" id="formError"></div>
 
       <div class="photo-upload-placeholder">
@@ -223,13 +315,52 @@
   </div>
 </aside>
 
+<!-- XLS import slide-in panel -->
+<div class="slide-panel-overlay" id="importPanelOverlay" onclick="closeSlidePanel('importPanel')"></div>
+<aside class="slide-panel" id="importPanel" aria-hidden="true">
+  <div class="slide-panel-header">
+    <h2 class="slide-panel-title">Bulk import from spreadsheet</h2>
+    <button class="slide-panel-close" onclick="closeSlidePanel('importPanel')" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body">
+    <p style="font-size:13px;color:var(--admin-text-muted);margin:0 0 16px;line-height:1.6;">
+      Upload a <strong>.xlsx</strong> or <strong>.csv</strong> with one row per piano. Required columns:
+      <code style="font-size:12px;background:var(--admin-bg);padding:1px 6px;border-radius:3px;">brand, model</code>.
+      Other columns are optional — see the template for the full layout.
+    </p>
+
+    <button class="btn-ghost" id="downloadTemplateBtn" style="margin-bottom:12px;">
+      <i class="ti ti-download"></i> Download template (.xlsx)
+    </button>
+
+    <div id="importDrop" tabindex="0">
+      <i class="ti ti-cloud-upload"></i>
+      <p style="margin:0;font-size:13px;"><strong>Drop your file here</strong> or click to choose</p>
+      <p style="margin:4px 0 0;font-size:11px;color:var(--admin-text-faint);">Max 200 rows per import.</p>
+      <input type="file" id="importFile" accept=".xlsx,.xls,.csv" style="display:none;">
+    </div>
+
+    <div id="importSummary" style="margin-top:14px;display:none;font-size:13px;"></div>
+    <div id="importPreviewWrap" style="display:none;"></div>
+
+    <div class="banner banner--error" id="importError" style="margin-top:12px;"></div>
+  </div>
+  <div class="slide-panel-footer">
+    <button class="btn-ghost" onclick="closeSlidePanel('importPanel')">Cancel</button>
+    <button class="btn-gold" id="confirmImportBtn" disabled><i class="ti ti-check"></i> Import 0 pianos</button>
+  </div>
+</aside>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="/js/config.js"></script>
 <script src="js/admin-auth.js"></script>
 <script src="js/admin-nav.js"></script>
 <script>
 let allPianos = []
+let serviceCounts = {}     // piano_id -> count of service log entries
 let currentFilter = 'all'
+let importedRows = []      // parsed rows from XLS, with validity flags
 
 ;(async function init() {
   const admin = await checkAdminAuth()
@@ -247,6 +378,12 @@ let currentFilter = 'all'
   document.getElementById('addPianoBtn').addEventListener('click', () => openPanel(null))
   document.getElementById('savePianoBtn').addEventListener('click', savePiano)
 
+  // XLS import wiring
+  document.getElementById('importBtn').addEventListener('click', openImportPanel)
+  document.getElementById('downloadTemplateBtn').addEventListener('click', downloadImportTemplate)
+  document.getElementById('confirmImportBtn').addEventListener('click', confirmImport)
+  setupImportDrop()
+
   await loadPianos()
 
   // ?action=add deep link from dashboard quick-action
@@ -257,12 +394,20 @@ let currentFilter = 'all'
 
 async function loadPianos() {
   try {
-    const { data, error } = await adminSupabase
-      .from('pianos')
-      .select('*')
-      .order('created_at', { ascending: false })
-    if (error) throw error
-    allPianos = data || []
+    const [pianoRes, logRes] = await Promise.all([
+      adminSupabase.from('pianos').select('*').order('created_at', { ascending: false }),
+      adminSupabase.from('piano_service_log').select('piano_id'),
+    ])
+    if (pianoRes.error) throw pianoRes.error
+    allPianos = pianoRes.data || []
+    // Build a piano_id -> count map. Tolerates the service log table not
+    // existing yet (logRes.error is non-fatal — just shows zero badges).
+    serviceCounts = {}
+    if (!logRes.error && Array.isArray(logRes.data)) {
+      logRes.data.forEach(r => {
+        serviceCounts[r.piano_id] = (serviceCounts[r.piano_id] || 0) + 1
+      })
+    }
     renderStats()
     renderTable()
   } catch (err) {
@@ -295,9 +440,13 @@ function renderTable() {
 
   body.innerHTML = rows.map(p => {
     const condClass = p.condition === 'A+' ? 'pill pill--cond-aplus' : 'pill pill--cond-bplus'
+    const svcCount = serviceCounts[p.id] || 0
+    const svcBadge = svcCount > 0
+      ? `<span class="svc-badge" title="${svcCount} service log ${svcCount === 1 ? 'entry' : 'entries'}"><i class="ti ti-tools"></i>${svcCount}</span>`
+      : ''
     return `
       <tr data-id="${esc(p.id)}">
-        <td class="name-cell">${esc(p.brand || '')} ${esc(p.model || '')}</td>
+        <td class="name-cell">${esc(p.brand || '')} ${esc(p.model || '')}${svcBadge}</td>
         <td class="mono">${esc(p.serial_number || '—')}</td>
         <td>${esc(p.year ?? '—')}</td>
         <td><span class="${condClass}">${esc(p.condition || '—')}</span></td>
@@ -311,10 +460,9 @@ function renderTable() {
         </td>
         <td>
           <div class="actions-cell">
+            <a class="icon-btn" href="piano-detail.html?id=${esc(p.id)}" title="Detail view"><i class="ti ti-list-details"></i></a>
             <button class="icon-btn" data-action="edit" title="Edit"><i class="ti ti-edit"></i></button>
-            ${p.slug
-              ? `<a class="icon-btn" href="../piano.html?id=${esc(p.id)}" target="_blank" title="View on site"><i class="ti ti-eye"></i></a>`
-              : `<a class="icon-btn" href="../piano.html?id=${esc(p.id)}" target="_blank" title="View on site"><i class="ti ti-eye"></i></a>`}
+            <a class="icon-btn" href="../piano.html?id=${esc(p.id)}" target="_blank" title="View on site"><i class="ti ti-eye"></i></a>
           </div>
         </td>
       </tr>
@@ -371,6 +519,9 @@ function openPanel(id) {
     document.getElementById('f-desc').value      = p.description || ''
     document.getElementById('f-weight').value    = p.weight_kg ?? ''
     document.getElementById('f-featured').checked = !!p.featured
+    document.getElementById('f-base-cost').value      = p.base_cost ?? ''
+    document.getElementById('f-purchase-date').value  = p.purchase_date || ''
+    document.getElementById('f-purchase-notes').value = p.purchase_notes || ''
   }
   openSlidePanel('pianoPanel')
 }
@@ -380,6 +531,7 @@ async function savePiano() {
   const errEl = document.getElementById('formError')
   errEl.classList.remove('is-shown')
 
+  const baseCostRaw = document.getElementById('f-base-cost').value
   const payload = {
     brand:             document.getElementById('f-brand').value.trim() || 'Yamaha',
     model:             document.getElementById('f-model').value.trim(),
@@ -393,6 +545,9 @@ async function savePiano() {
     weight_kg:         document.getElementById('f-weight').value ? Number(document.getElementById('f-weight').value) : null,
     featured:          document.getElementById('f-featured').checked,
     type:              'acoustic_upright',
+    base_cost:         baseCostRaw === '' ? 0 : Number(baseCostRaw),
+    purchase_date:     document.getElementById('f-purchase-date').value || null,
+    purchase_notes:    document.getElementById('f-purchase-notes').value.trim() || null,
   }
 
   if (!payload.model) {
@@ -425,6 +580,222 @@ async function savePiano() {
   } finally {
     btn.disabled = false
     btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save piano'
+  }
+}
+
+/* ============================================================================
+   XLS / CSV import
+   Columns recognised (header row, case-insensitive):
+     brand* model* year serial condition price status description_short
+     description weight_kg featured base_cost purchase_date purchase_notes
+   * = required.
+   ========================================================================= */
+
+const IMPORT_COLUMNS = [
+  'brand','model','year','serial','condition','price','status',
+  'description_short','description','weight_kg','featured',
+  'base_cost','purchase_date','purchase_notes',
+]
+
+function openImportPanel() {
+  importedRows = []
+  document.getElementById('importSummary').style.display = 'none'
+  document.getElementById('importPreviewWrap').style.display = 'none'
+  document.getElementById('importPreviewWrap').innerHTML = ''
+  document.getElementById('importError').classList.remove('is-shown')
+  document.getElementById('importFile').value = ''
+  updateConfirmButton()
+  openSlidePanel('importPanel')
+}
+
+function downloadImportTemplate() {
+  const sample = [
+    {
+      brand: 'Yamaha', model: 'U1', year: 1985, serial: 'A1234567',
+      condition: 'A+', price: 7900, status: 'available',
+      description_short: '88-key upright in walnut',
+      description: 'Refurbished by our workshop — new hammers, fully regulated.',
+      weight_kg: 228, featured: 'no',
+      base_cost: 3500, purchase_date: '2026-02-14',
+      purchase_notes: 'Auction lot 12 — Yamaha trade-in',
+    },
+  ]
+  const ws = XLSX.utils.json_to_sheet(sample, { header: IMPORT_COLUMNS })
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Pianos')
+  XLSX.writeFile(wb, 'signature-pianos-import-template.xlsx')
+}
+
+function setupImportDrop() {
+  const drop = document.getElementById('importDrop')
+  const input = document.getElementById('importFile')
+
+  drop.addEventListener('click', () => input.click())
+  drop.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click() }
+  })
+  drop.addEventListener('dragover', (e) => {
+    e.preventDefault(); drop.classList.add('is-dragover')
+  })
+  drop.addEventListener('dragleave', () => drop.classList.remove('is-dragover'))
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault()
+    drop.classList.remove('is-dragover')
+    if (e.dataTransfer?.files?.[0]) handleImportFile(e.dataTransfer.files[0])
+  })
+  input.addEventListener('change', (e) => {
+    if (e.target.files?.[0]) handleImportFile(e.target.files[0])
+  })
+}
+
+async function handleImportFile(file) {
+  const errEl = document.getElementById('importError')
+  errEl.classList.remove('is-shown')
+
+  try {
+    const buf = await file.arrayBuffer()
+    const wb = XLSX.read(buf, { type: 'array' })
+    const ws = wb.Sheets[wb.SheetNames[0]]
+    if (!ws) throw new Error('No sheet found in the file.')
+    const json = XLSX.utils.sheet_to_json(ws, { defval: null, raw: false })
+    if (!json.length) throw new Error('Sheet is empty.')
+    if (json.length > 200) throw new Error(`Too many rows (${json.length}). Max 200 per import.`)
+
+    // Normalise headers to lower_snake and validate each row.
+    importedRows = json.map((rawRow, i) => {
+      const row = {}
+      Object.keys(rawRow).forEach(k => {
+        const norm = String(k || '').trim().toLowerCase().replace(/\s+/g, '_')
+        row[norm] = rawRow[k]
+      })
+      const errors = []
+      const brand = String(row.brand || '').trim()
+      const model = String(row.model || '').trim()
+      if (!brand) errors.push('brand required')
+      if (!model) errors.push('model required')
+
+      const condition = String(row.condition || 'A+').trim()
+      if (!['A+','B+'].includes(condition)) errors.push('condition must be A+ or B+')
+
+      const status = String(row.status || 'available').trim().toLowerCase()
+      if (!['available','reserved','sold'].includes(status)) errors.push('status invalid')
+
+      const year = row.year == null || row.year === '' ? null : parseInt(row.year, 10)
+      const price = row.price == null || row.price === '' ? 0 : parseFloat(row.price)
+      const weight = row.weight_kg == null || row.weight_kg === '' ? null : parseFloat(row.weight_kg)
+      const baseCost = row.base_cost == null || row.base_cost === '' ? 0 : parseFloat(row.base_cost)
+      const featured = ['yes','y','true','1'].includes(String(row.featured || '').trim().toLowerCase())
+
+      return {
+        index: i + 2, // header is row 1
+        valid: errors.length === 0,
+        errors,
+        payload: {
+          brand, model,
+          year: Number.isFinite(year) ? year : null,
+          serial_number: row.serial ? String(row.serial).trim() : null,
+          condition,
+          sale_price: Number.isFinite(price) ? price : 0,
+          stock_status: status,
+          description_short: row.description_short ? String(row.description_short).trim() : null,
+          description: row.description ? String(row.description).trim() : null,
+          weight_kg: Number.isFinite(weight) ? weight : null,
+          featured,
+          type: 'acoustic_upright',
+          base_cost: Number.isFinite(baseCost) ? baseCost : 0,
+          purchase_date: row.purchase_date ? String(row.purchase_date).trim() : null,
+          purchase_notes: row.purchase_notes ? String(row.purchase_notes).trim() : null,
+        },
+      }
+    })
+
+    renderImportPreview()
+  } catch (err) {
+    console.error('[inventory] import parse failed', err)
+    errEl.textContent = err.message || 'Could not parse the file.'
+    errEl.classList.add('is-shown')
+    importedRows = []
+    updateConfirmButton()
+  }
+}
+
+function renderImportPreview() {
+  const validCount = importedRows.filter(r => r.valid).length
+  const invalidCount = importedRows.length - validCount
+
+  const summary = document.getElementById('importSummary')
+  summary.style.display = 'block'
+  summary.innerHTML = `
+    <strong>${importedRows.length}</strong> ${importedRows.length === 1 ? 'row' : 'rows'} parsed
+    — <span style="color:var(--admin-green);">${validCount} valid</span>
+    ${invalidCount > 0 ? ` · <span style="color:var(--admin-red);">${invalidCount} with errors (skipped)</span>` : ''}
+  `
+
+  const wrap = document.getElementById('importPreviewWrap')
+  wrap.style.display = 'block'
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Row</th><th>Brand</th><th>Model</th><th>Year</th><th>Serial</th>
+          <th>Cond.</th><th>Price</th><th>Status</th><th>Cost</th><th>Errors</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${importedRows.map(r => `
+          <tr class="${r.valid ? '' : 'has-error'}">
+            <td>${r.index}</td>
+            <td>${esc(r.payload.brand || '—')}</td>
+            <td>${esc(r.payload.model || '—')}</td>
+            <td>${esc(r.payload.year ?? '—')}</td>
+            <td class="mono" style="font-size:11px;">${esc(r.payload.serial_number || '—')}</td>
+            <td>${esc(r.payload.condition)}</td>
+            <td>${fmtMoney(r.payload.sale_price)}</td>
+            <td>${esc(r.payload.stock_status)}</td>
+            <td>${fmtMoney(r.payload.base_cost)}</td>
+            <td class="${r.valid ? '' : 'error'}">${r.valid ? '<span style="color:var(--admin-green);">OK</span>' : esc(r.errors.join('; '))}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `
+  updateConfirmButton()
+}
+
+function updateConfirmButton() {
+  const validCount = importedRows.filter(r => r.valid).length
+  const btn = document.getElementById('confirmImportBtn')
+  btn.disabled = validCount === 0
+  btn.innerHTML = `<i class="ti ti-check"></i> Import ${validCount} ${validCount === 1 ? 'piano' : 'pianos'}`
+}
+
+async function confirmImport() {
+  const valid = importedRows.filter(r => r.valid).map(r => {
+    const p = { ...r.payload }
+    // Slug for the public catalogue route. Same logic savePiano uses.
+    p.slug = `${p.brand}-${p.model}-${p.serial_number || Date.now()}`
+      .toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-|-$/g, '')
+    return p
+  })
+  if (!valid.length) return
+
+  const btn = document.getElementById('confirmImportBtn')
+  btn.disabled = true
+  btn.textContent = 'Importing…'
+  try {
+    const { error } = await adminSupabase.from('pianos').insert(valid)
+    if (error) throw error
+    closeSlidePanel('importPanel')
+    showToast(`Imported ${valid.length} ${valid.length === 1 ? 'piano' : 'pianos'}.`, 'success')
+    await loadPianos()
+  } catch (err) {
+    console.error('[inventory] import failed', err)
+    const errEl = document.getElementById('importError')
+    errEl.textContent = err.message || 'Import failed — please try again.'
+    errEl.classList.add('is-shown')
+  } finally {
+    btn.disabled = false
+    updateConfirmButton()
   }
 }
 </script>

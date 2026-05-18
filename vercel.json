@@ -13,6 +13,11 @@
       "destination": "/admin/$1"
     }
   ],
+  "functions": {
+    "api/stripe-webhook.js": {
+      "maxDuration": 20
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",
