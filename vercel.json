@@ -9,7 +9,9 @@
     { "source": "/delivery/drop/:token",   "destination": "/delivery/dropoff.html?token=:token" },
     { "source": "/delivery/:token",        "destination": "/delivery/pickup.html?token=:token"  },
 
+    { "source": "/tuner/respond/:token",   "destination": "/tuner/respond.html?token=:token"   },
     { "source": "/tuner/log-date/:token",  "destination": "/tuner/log-date.html?token=:token"  },
+    { "source": "/tuner/complete/:token",  "destination": "/tuner/complete.html?token=:token"  },
 
     {
       "source": "/js/(.*)",
