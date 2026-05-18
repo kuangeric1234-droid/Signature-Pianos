@@ -23,17 +23,6 @@
     margin: 0 0 12px;
     font-weight: 500;
   }
-  .customer-search-result {
-    padding: 10px 12px;
-    border: 1px solid var(--admin-border);
-    border-radius: 4px;
-    margin-top: 8px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: background 0.15s ease;
-  }
-  .customer-search-result:hover { background: var(--admin-bg); }
-  .customer-search-result.is-selected { background: var(--admin-gold-light); border-color: var(--admin-gold); }
   .totals-row {
     display: flex;
     justify-content: space-between;
@@ -46,6 +35,88 @@
     padding-top: 12px;
     font-weight: 500;
     font-size: 15px;
+  }
+
+  /* Cost price input — visually marked as internal-only */
+  .cost-price-wrap {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 1px dashed var(--admin-border-dark);
+    border-radius: 4px;
+    background: #faf8f5;
+  }
+  .cost-price-wrap .hint {
+    font-size: 11px;
+    color: var(--admin-text-faint);
+    margin: 6px 0 0;
+    line-height: 1.5;
+  }
+
+  /* Business-fields section — animated reveal */
+  #businessFields {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+    opacity: 0;
+    margin-top: 0;
+  }
+  #businessFields.is-open {
+    max-height: 320px;
+    opacity: 1;
+    margin-top: 14px;
+  }
+
+  /* Piano-selection meta strip */
+  .piano-meta {
+    display: none;
+    margin-top: 10px;
+    background: var(--admin-bg);
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--admin-text-muted);
+  }
+
+  /* Line item rows in the additional-items section */
+  #lineItemsTable .line-item-row {
+    display: grid;
+    grid-template-columns: 1fr 50px 86px 80px 26px;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  #lineItemsTable .line-item-row .admin-input {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  #lineItemsTable .li-amount {
+    font-size: 13px;
+    text-align: right;
+    color: var(--admin-text-muted);
+    padding-right: 4px;
+  }
+  #lineItemsTable .li-remove {
+    background: transparent;
+    border: 0;
+    color: var(--admin-text-faint);
+    cursor: pointer;
+    padding: 6px;
+    font-size: 16px;
+    line-height: 1;
+    border-radius: 4px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  #lineItemsTable .li-remove:hover { color: var(--admin-red); background: var(--admin-red-light); }
+  #addLineItemBtn {
+    background: transparent;
+    color: var(--admin-gold);
+    border: 1px dashed var(--admin-gold);
+    margin-top: 8px;
+  }
+
+  /* Tightened slide-panel for the long form */
+  @media (min-width: 769px) {
+    #orderPanel { width: 560px; }
   }
 </style>
 </head>
@@ -130,61 +201,174 @@
     <button class="slide-panel-close" onclick="closeSlidePanel('orderPanel')" aria-label="Close">&times;</button>
   </div>
   <div class="slide-panel-body">
-    <!-- Step 1 — Piano -->
-    <div class="step-block">
-      <div class="step-title">01 · Select piano</div>
-      <select id="o-piano" class="admin-select">
-        <option value="">— Loading available pianos —</option>
-      </select>
-    </div>
 
-    <!-- Step 2 — Customer -->
+    <!-- Section A — Customer details -->
     <div class="step-block">
-      <div class="step-title">02 · Customer</div>
-      <input type="text" id="o-customer-search" class="admin-input" placeholder="Search existing customers by name or email">
-      <div id="o-customer-results"></div>
-      <div style="margin:14px 0 6px;font-size:11px;color:var(--admin-text-faint);text-transform:uppercase;letter-spacing:0.08em;">
-        Or enter new customer
-      </div>
+      <div class="step-title">A · Customer details</div>
+
       <div class="admin-form-row--split">
         <div>
           <label class="admin-label" for="o-first">First name</label>
-          <input type="text" id="o-first" class="admin-input">
+          <input type="text" id="o-first" class="admin-input" autocomplete="given-name">
         </div>
         <div>
           <label class="admin-label" for="o-last">Last name</label>
-          <input type="text" id="o-last" class="admin-input">
+          <input type="text" id="o-last" class="admin-input" autocomplete="family-name">
         </div>
       </div>
+
       <div class="admin-form-row--split">
         <div>
           <label class="admin-label" for="o-email">Email</label>
-          <input type="email" id="o-email" class="admin-input">
+          <input type="email" id="o-email" class="admin-input" autocomplete="email">
         </div>
         <div>
           <label class="admin-label" for="o-phone">Phone</label>
-          <input type="tel" id="o-phone" class="admin-input">
+          <input type="tel" id="o-phone" class="admin-input" autocomplete="tel">
         </div>
       </div>
+
       <div class="admin-form-row">
-        <label class="admin-label" for="o-suburb">Suburb</label>
-        <input type="text" id="o-suburb" class="admin-input">
+        <label class="admin-label" for="o-addr1">Address line 1</label>
+        <input type="text" id="o-addr1" class="admin-input" autocomplete="address-line1">
+      </div>
+
+      <div class="admin-form-row">
+        <label class="admin-label" for="o-addr2">
+          Address line 2
+          <span style="color:var(--admin-text-faint);text-transform:none;letter-spacing:0;font-weight:400;"> (optional)</span>
+        </label>
+        <input type="text" id="o-addr2" class="admin-input" autocomplete="address-line2">
+      </div>
+
+      <div class="admin-form-row--split">
+        <div>
+          <label class="admin-label" for="o-suburb">Suburb</label>
+          <input type="text" id="o-suburb" class="admin-input" autocomplete="address-level2">
+        </div>
+        <div>
+          <label class="admin-label" for="o-state">State</label>
+          <select id="o-state" class="admin-select">
+            <option value="VIC" selected>VIC</option>
+            <option value="NSW">NSW</option>
+            <option value="QLD">QLD</option>
+            <option value="SA">SA</option>
+            <option value="WA">WA</option>
+            <option value="TAS">TAS</option>
+            <option value="ACT">ACT</option>
+            <option value="NT">NT</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="admin-form-row" style="max-width:160px;">
+        <label class="admin-label" for="o-postcode">Postcode</label>
+        <input type="text" id="o-postcode" class="admin-input"
+               inputmode="numeric" pattern="\d{4}" maxlength="4"
+               autocomplete="postal-code">
+      </div>
+
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--admin-text-muted);margin-top:8px;">
+        <input type="checkbox" id="isBusinessCustomer">
+        Business customer
+      </label>
+
+      <div id="businessFields">
+        <div class="admin-form-row">
+          <label class="admin-label" for="o-business-name">Business name</label>
+          <input type="text" id="o-business-name" class="admin-input" autocomplete="organization">
+        </div>
+        <div class="admin-form-row">
+          <label class="admin-label" for="o-abn">ABN</label>
+          <input type="text" id="o-abn" class="admin-input" placeholder="XX XXX XXX XXX">
+        </div>
       </div>
     </div>
 
-    <!-- Step 3 — Order details -->
+    <!-- Section B — Piano + Section C — Margin -->
     <div class="step-block">
-      <div class="step-title">03 · Order details</div>
-      <div class="admin-form-row--split">
-        <div>
-          <label class="admin-label" for="o-subtotal">Subtotal</label>
-          <input type="number" id="o-subtotal" class="admin-input" step="0.01" readonly>
-        </div>
-        <div>
-          <label class="admin-label" for="o-discount">Discount</label>
-          <input type="number" id="o-discount" class="admin-input" step="0.01" value="0">
+      <div class="step-title">B · Piano</div>
+      <select id="o-piano" class="admin-select">
+        <option value="">— Loading available pianos —</option>
+      </select>
+      <div id="pianoMeta" class="piano-meta"></div>
+
+      <div class="cost-price-wrap">
+        <label class="admin-label" for="costPrice" style="margin-bottom:4px;">
+          Cost price
+          <span style="color:var(--admin-text-faint);text-transform:none;letter-spacing:0;font-weight:400;">
+            (internal — not shown on invoice)
+          </span>
+        </label>
+        <input type="number" id="costPrice" class="admin-input" placeholder="e.g. 3873" step="0.01">
+        <p class="hint">
+          Enter your total cost price (inc. GST quarantine + shipping + repairs) to see your margin.
+          Never shown to the customer.
+        </p>
+      </div>
+
+      <div id="marginDisplay"
+        style="display:none;margin-top:8px;padding:10px 14px;border-radius:4px;border:1px solid;transition:all 0.2s ease;">
+      </div>
+    </div>
+
+    <!-- Section D — Sale price -->
+    <div class="step-block">
+      <div class="step-title">D · Sale price</div>
+      <div class="admin-form-row">
+        <label class="admin-label" for="salePrice">Sale price (inc GST)</label>
+        <input type="number" id="salePrice" class="admin-input" step="0.01" placeholder="0.00">
+        <div id="salePriceExGst" style="margin-top:6px;font-size:11px;color:var(--admin-text-faint);">
+          Ex GST: —
         </div>
       </div>
+    </div>
+
+    <!-- Section E — Additional line items -->
+    <div class="step-block">
+      <div class="step-title">E · Additional line items</div>
+      <div id="lineItemsTable"></div>
+      <button type="button" id="addLineItemBtn" class="btn-ghost" style="font-size:12px;padding:6px 12px;">
+        <i class="ti ti-plus"></i> Add line item
+      </button>
+    </div>
+
+    <!-- Section F — Discount -->
+    <div class="step-block">
+      <div class="step-title">F · Discount</div>
+      <div class="admin-form-row--split">
+        <div>
+          <label class="admin-label" for="discountAmount">Discount</label>
+          <input type="number" id="discountAmount" class="admin-input" step="0.01" value="0">
+        </div>
+        <div>
+          <label class="admin-label" for="discountType">Type</label>
+          <select id="discountType" class="admin-select">
+            <option value="fixed">Fixed amount ($)</option>
+            <option value="percentage">Percentage (%)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section G — Totals -->
+    <div class="step-block">
+      <div class="step-title">G · Order totals</div>
+      <div style="background:var(--admin-bg);padding:14px;border-radius:4px;">
+        <div class="totals-row"><span>Subtotal (inc GST)</span><span id="totalSubtotal">$0.00</span></div>
+        <div class="totals-row"><span>Discount</span><span id="totalDiscount">—</span></div>
+        <div style="border-top:1px solid var(--admin-border-dark);margin:8px 0;"></div>
+        <div class="totals-row"><span>Total (ex GST)</span><span id="totalExGST">$0.00</span></div>
+        <div class="totals-row"><span>GST (10%)</span><span id="totalGST">$0.00</span></div>
+        <div class="totals-row is-total" style="color:var(--admin-gold);">
+          <span>Total (inc GST)</span><span id="totalIncGST">$0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section H — Payment -->
+    <div class="step-block">
+      <div class="step-title">H · Payment</div>
       <div class="admin-form-row">
         <label class="admin-label" for="o-payment">Payment method</label>
         <select id="o-payment" class="admin-select">
@@ -192,20 +376,19 @@
           <option value="bank_transfer">Bank transfer</option>
           <option value="stripe">Stripe</option>
           <option value="card_in_person">Card in person</option>
+          <option value="deposit_paid_online">Deposit paid online</option>
         </select>
+      </div>
+      <div class="admin-form-row">
+        <label class="admin-label" for="o-payment-ref">
+          Payment reference
+          <span style="color:var(--admin-text-faint);text-transform:none;letter-spacing:0;font-weight:400;"> (optional)</span>
+        </label>
+        <input type="text" id="o-payment-ref" class="admin-input" placeholder="Receipt #, transfer ref, etc.">
       </div>
       <div class="admin-form-row">
         <label class="admin-label" for="o-notes">Notes</label>
         <textarea id="o-notes" class="admin-textarea" rows="3"></textarea>
-      </div>
-
-      <div style="background:var(--admin-bg);padding:14px;border-radius:4px;">
-        <div class="totals-row"><span>Subtotal</span><span id="t-subtotal">$0</span></div>
-        <div class="totals-row"><span>Discount</span><span id="t-discount">–$0</span></div>
-        <div class="totals-row is-total"><span>Total (inc GST)</span><span id="t-total">$0</span></div>
-        <div class="totals-row" style="color:var(--admin-text-faint);font-size:11px;">
-          <span>Includes GST (10%)</span><span id="t-gst">$0</span>
-        </div>
       </div>
     </div>
 
@@ -214,7 +397,7 @@
 
   <div class="slide-panel-footer">
     <button class="btn-ghost" onclick="closeSlidePanel('orderPanel')">Cancel</button>
-    <button class="btn-gold" id="createOrderBtn"><i class="ti ti-check"></i> Create order</button>
+    <button class="btn-gold" id="createOrderBtn"><i class="ti ti-check"></i> Create order &amp; generate invoice</button>
   </div>
 </aside>
 
@@ -228,8 +411,16 @@
 <script>
 let allOrders = []
 let availablePianos = []
-let selectedCustomer = null      // existing-customer row, or null
-let selectedPianoId  = null
+let selectedPianoId = null
+
+/* Default line items for new orders — first three are typical Signature
+   Pianos add-ons, last row is a spare for ad-hoc items. */
+const DEFAULT_LINE_ITEMS = [
+  { description: 'Delivery',     qty: 1, unit_price_inc_gst: 200.00 },
+  { description: 'Piano tuning', qty: 1, unit_price_inc_gst: 200.00 },
+  { description: 'Piano stool',  qty: 1, unit_price_inc_gst: 150.00 },
+  { description: '',             qty: 1, unit_price_inc_gst: 0      },
+]
 
 ;(async function init() {
   const admin = await checkAdminAuth()
@@ -237,10 +428,14 @@ let selectedPianoId  = null
 
   document.getElementById('newOrderBtn').addEventListener('click', openOrderPanel)
   document.getElementById('createOrderBtn').addEventListener('click', createOrder)
+  document.getElementById('addLineItemBtn').addEventListener('click', addLineItem)
 
   document.getElementById('o-piano').addEventListener('change', onPianoChange)
-  document.getElementById('o-discount').addEventListener('input', recalcTotals)
-  document.getElementById('o-customer-search').addEventListener('input', debounce(searchCustomers, 220))
+  document.getElementById('costPrice').addEventListener('input', updateMargin)
+  document.getElementById('salePrice').addEventListener('input', updateTotals)
+  document.getElementById('discountAmount').addEventListener('input', updateTotals)
+  document.getElementById('discountType').addEventListener('change', updateTotals)
+  document.getElementById('isBusinessCustomer').addEventListener('change', toggleBusinessFields)
 
   await loadOrders()
 
@@ -250,9 +445,8 @@ let selectedPianoId  = null
   }
 })()
 
-function debounce(fn, ms) {
-  let t
-  return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms) }
+function fmtAUD2(n) {
+  return '$' + Number(n || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 /* ---------- ORDERS TABLE ---------- */
@@ -325,18 +519,36 @@ function renderOrders() {
   })
 }
 
-/* ---------- NEW ORDER PANEL ---------- */
+/* ============================================================================
+   NEW ORDER PANEL — sections A–H
+   ========================================================================= */
+
 async function openOrderPanel() {
-  // Reset
-  selectedCustomer = null
+  // Reset state
   selectedPianoId = null
-  document.getElementById('o-customer-search').value = ''
-  document.getElementById('o-customer-results').innerHTML = ''
-  ;['o-first','o-last','o-email','o-phone','o-suburb','o-notes'].forEach(id => document.getElementById(id).value = '')
-  document.getElementById('o-discount').value = '0'
-  document.getElementById('o-subtotal').value = ''
+
+  // Clear customer + payment fields
+  ;[
+    'o-first','o-last','o-email','o-phone',
+    'o-addr1','o-addr2','o-suburb','o-postcode',
+    'o-business-name','o-abn',
+    'o-payment-ref','o-notes',
+    'costPrice','salePrice','discountAmount',
+  ].forEach(id => { const el = document.getElementById(id); if (el) el.value = '' })
+
+  document.getElementById('o-state').value = 'VIC'
+  document.getElementById('o-payment').value = 'cash'
+  document.getElementById('discountType').value = 'fixed'
+  document.getElementById('discountAmount').value = '0'
+  document.getElementById('isBusinessCustomer').checked = false
+  document.getElementById('businessFields').classList.remove('is-open')
+  document.getElementById('pianoMeta').style.display = 'none'
+  document.getElementById('marginDisplay').style.display = 'none'
   document.getElementById('orderError').classList.remove('is-shown')
-  recalcTotals()
+  document.getElementById('salePriceExGst').textContent = 'Ex GST: —'
+
+  renderLineItems(DEFAULT_LINE_ITEMS.map(it => ({ ...it })))
+  updateTotals()
 
   openSlidePanel('orderPanel')
 
@@ -344,7 +556,7 @@ async function openOrderPanel() {
   try {
     const { data, error } = await adminSupabase
       .from('pianos')
-      .select('id, brand, model, year, condition, sale_price')
+      .select('id, brand, model, year, serial_number, condition, sale_price')
       .eq('stock_status', 'available')
       .order('brand', { ascending: true })
     if (error) throw error
@@ -358,82 +570,209 @@ async function openOrderPanel() {
   }
 }
 
+function toggleBusinessFields() {
+  const on = document.getElementById('isBusinessCustomer').checked
+  document.getElementById('businessFields').classList.toggle('is-open', on)
+}
+
 function onPianoChange(e) {
   selectedPianoId = e.target.value || null
   const p = availablePianos.find(x => x.id === selectedPianoId)
-  document.getElementById('o-subtotal').value = p ? Number(p.sale_price).toFixed(2) : ''
-  recalcTotals()
-}
-
-function recalcTotals() {
-  const subtotal = Number(document.getElementById('o-subtotal').value) || 0
-  const discount = Number(document.getElementById('o-discount').value) || 0
-  const total = Math.max(0, subtotal - discount)
-  const gst = total / 11
-  document.getElementById('t-subtotal').textContent = fmtMoney(subtotal)
-  document.getElementById('t-discount').textContent = '–' + fmtMoney(discount)
-  document.getElementById('t-total').textContent    = fmtMoney(total)
-  document.getElementById('t-gst').textContent      = fmtMoney(gst.toFixed(2))
-}
-
-async function searchCustomers() {
-  const q = document.getElementById('o-customer-search').value.trim()
-  const results = document.getElementById('o-customer-results')
-  if (q.length < 2) { results.innerHTML = ''; return }
-  try {
-    const { data, error } = await adminSupabase
-      .from('customers')
-      .select('id, first_name, last_name, email, phone, suburb')
-      .or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,email.ilike.%${q}%`)
-      .limit(6)
-    if (error) throw error
-    if (!data || !data.length) {
-      results.innerHTML = `<div style="font-size:12px;color:var(--admin-text-faint);margin-top:8px;">No matches — fill in the form below to create a new customer.</div>`
-      return
-    }
-    results.innerHTML = data.map(c => `
-      <div class="customer-search-result" data-id="${esc(c.id)}">
-        <strong>${esc(c.first_name || '')} ${esc(c.last_name || '')}</strong>
-        <span style="color:var(--admin-text-faint);margin-left:6px;">${esc(c.email || '')}</span>
-      </div>
-    `).join('')
-    results.querySelectorAll('.customer-search-result').forEach(el => {
-      el.addEventListener('click', () => {
-        results.querySelectorAll('.customer-search-result').forEach(r => r.classList.remove('is-selected'))
-        el.classList.add('is-selected')
-        const c = data.find(x => x.id === el.dataset.id)
-        selectedCustomer = c
-        // Pre-fill the form for clarity
-        document.getElementById('o-first').value  = c.first_name || ''
-        document.getElementById('o-last').value   = c.last_name  || ''
-        document.getElementById('o-email').value  = c.email      || ''
-        document.getElementById('o-phone').value  = c.phone      || ''
-        document.getElementById('o-suburb').value = c.suburb     || ''
-      })
-    })
-  } catch (err) {
-    console.error('[orders] customer search failed', err)
+  const meta = document.getElementById('pianoMeta')
+  if (p) {
+    document.getElementById('salePrice').value = Number(p.sale_price).toFixed(2)
+    meta.innerHTML = `
+      <strong style="color:var(--admin-text);">Yamaha ${esc(p.model || '')} ${esc(p.year || '')}</strong>
+      &middot; Serial <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">${esc(p.serial_number || '—')}</span>
+      &middot; ${esc(p.condition || '—')} condition
+    `
+    meta.style.display = 'block'
+  } else {
+    document.getElementById('salePrice').value = ''
+    meta.style.display = 'none'
   }
+  updateTotals()
 }
 
+/* ---------- Margin calculator ---------- */
+function updateMargin() {
+  const cost = parseFloat(document.getElementById('costPrice').value) || 0
+  const sale = parseFloat(document.getElementById('salePrice').value) || 0
+  const el = document.getElementById('marginDisplay')
+  if (!cost || !sale) { el.style.display = 'none'; return }
+
+  const marginPct = ((sale - cost) / sale) * 100
+  const profit = sale - cost
+  const healthy = marginPct >= 30
+
+  el.style.display = 'block'
+  el.style.background = healthy ? 'var(--admin-green-light)' : 'var(--admin-amber-light)'
+  el.style.borderColor = healthy ? 'var(--admin-green)' : 'var(--admin-amber)'
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <i class="ti ti-chart-bar" style="font-size:16px;color:${healthy ? 'var(--admin-green)' : 'var(--admin-amber)'};"></i>
+        <span style="font-size:13px;font-weight:500;color:${healthy ? 'var(--admin-green)' : 'var(--admin-amber)'};">
+          ${marginPct.toFixed(1)}% margin
+        </span>
+      </div>
+      <span style="font-size:12px;color:${healthy ? 'var(--admin-green)' : 'var(--admin-amber)'};">
+        ${fmtAUD2(profit)} profit
+      </span>
+    </div>
+    ${!healthy ? `<p style="font-size:11px;margin:6px 0 0;color:var(--admin-amber);">Below your 30% target margin — consider adjusting the sale price</p>` : ''}
+  `
+}
+
+/* ---------- Line items ---------- */
+function getCurrentLineItems() {
+  return Array.from(document.querySelectorAll('.line-item-row')).map(row => ({
+    description:        row.querySelector('.li-desc').value,
+    qty:                parseFloat(row.querySelector('.li-qty').value) || 0,
+    unit_price_inc_gst: parseFloat(row.querySelector('.li-price').value) || 0,
+  }))
+}
+
+function renderLineItems(items) {
+  const wrap = document.getElementById('lineItemsTable')
+  wrap.innerHTML = items.map((it, i) => `
+    <div class="line-item-row" data-index="${i}">
+      <input class="li-desc admin-input"  type="text"   placeholder="Description" value="${esc(it.description)}">
+      <input class="li-qty  admin-input"  type="number" min="0" step="1"    value="${esc(it.qty)}">
+      <input class="li-price admin-input" type="number" min="0" step="0.01" value="${esc(it.unit_price_inc_gst)}" placeholder="Unit $">
+      <div class="li-amount">$0.00</div>
+      <button type="button" class="li-remove" title="Remove">&times;</button>
+    </div>
+  `).join('')
+
+  wrap.querySelectorAll('.line-item-row').forEach((row) => {
+    row.querySelectorAll('input').forEach(input => input.addEventListener('input', updateTotals))
+    row.querySelector('.li-remove').addEventListener('click', () => {
+      const live = getCurrentLineItems()
+      const idx = parseInt(row.dataset.index, 10)
+      live.splice(idx, 1)
+      renderLineItems(live)
+    })
+  })
+  updateTotals()
+}
+
+function addLineItem() {
+  const items = getCurrentLineItems()
+  items.push({ description: '', qty: 1, unit_price_inc_gst: 0 })
+  renderLineItems(items)
+}
+
+/* ---------- Totals ---------- */
+function calculateDiscount(subtotal, amount, type) {
+  if (type === 'percentage') return subtotal * (amount / 100)
+  return amount
+}
+
+function updateTotals() {
+  const pianoPrice = parseFloat(document.getElementById('salePrice').value) || 0
+  const lineItems = getCurrentLineItems()
+
+  // Per-row amount displays
+  document.querySelectorAll('.line-item-row').forEach((row, i) => {
+    const it = lineItems[i]
+    if (!it) return
+    row.querySelector('.li-amount').textContent = fmtAUD2(it.qty * it.unit_price_inc_gst)
+  })
+
+  const lineItemsTotal = lineItems.reduce((s, it) => s + (it.qty * it.unit_price_inc_gst), 0)
+  const subtotalIncGST = pianoPrice + lineItemsTotal
+
+  const discountAmt = parseFloat(document.getElementById('discountAmount').value) || 0
+  const discountType = document.getElementById('discountType').value
+  const discountValue = calculateDiscount(subtotalIncGST, discountAmt, discountType)
+
+  const totalIncGST = Math.max(0, subtotalIncGST - discountValue)
+  const gst = totalIncGST / 11
+  const totalExGST = totalIncGST - gst
+
+  document.getElementById('totalSubtotal').textContent = fmtAUD2(subtotalIncGST)
+  document.getElementById('totalDiscount').textContent = discountValue > 0 ? '-' + fmtAUD2(discountValue) : '—'
+  document.getElementById('totalExGST').textContent    = fmtAUD2(totalExGST)
+  document.getElementById('totalGST').textContent      = fmtAUD2(gst)
+  document.getElementById('totalIncGST').textContent   = fmtAUD2(totalIncGST)
+
+  document.getElementById('salePriceExGst').textContent =
+    pianoPrice > 0 ? `Ex GST: ${fmtAUD2(pianoPrice / 1.1)}` : 'Ex GST: —'
+
+  updateMargin()
+}
+
+/* ---------- Create order (Section I) ---------- */
 async function createOrder() {
   const errEl = document.getElementById('orderError')
   errEl.classList.remove('is-shown')
 
-  if (!selectedPianoId) { errEl.textContent = 'Select a piano first.'; errEl.classList.add('is-shown'); return }
-  const subtotal = Number(document.getElementById('o-subtotal').value) || 0
-  const discount = Number(document.getElementById('o-discount').value) || 0
-  const total = Math.max(0, subtotal - discount)
+  // Required fields (in display order, so the first missing one focuses)
+  const required = [
+    ['o-first',    'First name'],
+    ['o-last',     'Last name'],
+    ['o-email',    'Email'],
+    ['o-phone',    'Phone'],
+    ['o-addr1',    'Address line 1'],
+    ['o-suburb',   'Suburb'],
+    ['o-postcode', 'Postcode'],
+  ]
+  for (const [id, label] of required) {
+    const el = document.getElementById(id)
+    if (!el.value.trim()) {
+      errEl.textContent = `${label} is required.`
+      errEl.classList.add('is-shown')
+      el.focus()
+      return
+    }
+  }
+  if (!selectedPianoId) {
+    errEl.textContent = 'Select a piano first.'
+    errEl.classList.add('is-shown')
+    return
+  }
+  const postcode = document.getElementById('o-postcode').value.trim()
+  if (!/^\d{4}$/.test(postcode)) {
+    errEl.textContent = 'Postcode must be 4 digits.'
+    errEl.classList.add('is-shown')
+    document.getElementById('o-postcode').focus()
+    return
+  }
 
-  const first = document.getElementById('o-first').value.trim()
-  const last  = document.getElementById('o-last').value.trim()
-  const email = document.getElementById('o-email').value.trim()
-  const phone = document.getElementById('o-phone').value.trim()
-  const suburb = document.getElementById('o-suburb').value.trim()
+  const piano = availablePianos.find(p => p.id === selectedPianoId)
+  if (!piano) {
+    errEl.textContent = 'Selected piano not found — please reselect.'
+    errEl.classList.add('is-shown')
+    return
+  }
 
-  if (!first || !last || !email) {
-    errEl.textContent = 'Customer first name, last name and email are required.'
-    errEl.classList.add('is-shown'); return
+  // Recompute totals (don't trust the DOM state alone)
+  const pianoPrice = parseFloat(document.getElementById('salePrice').value) || 0
+  const lineItems = getCurrentLineItems()
+  const lineItemsTotal = lineItems.reduce((s, it) => s + (it.qty * it.unit_price_inc_gst), 0)
+  const subtotalIncGST = pianoPrice + lineItemsTotal
+  const discountAmt = parseFloat(document.getElementById('discountAmount').value) || 0
+  const discountType = document.getElementById('discountType').value
+  const discountValue = calculateDiscount(subtotalIncGST, discountAmt, discountType)
+  const totalIncGST = Math.max(0, subtotalIncGST - discountValue)
+  const gst = totalIncGST / 11
+  const totalExGST = totalIncGST - gst
+
+  const customerPayload = {
+    first_name:    document.getElementById('o-first').value.trim(),
+    last_name:     document.getElementById('o-last').value.trim(),
+    email:         document.getElementById('o-email').value.trim(),
+    phone:         document.getElementById('o-phone').value.trim(),
+    address_line1: document.getElementById('o-addr1').value.trim(),
+    address_line2: document.getElementById('o-addr2').value.trim() || null,
+    suburb:        document.getElementById('o-suburb').value.trim(),
+    state:         document.getElementById('o-state').value,
+    postcode:      postcode,
+    is_business:   document.getElementById('isBusinessCustomer').checked,
+    business_name: document.getElementById('o-business-name').value.trim() || null,
+    abn:           document.getElementById('o-abn').value.trim() || null,
   }
 
   const btn = document.getElementById('createOrderBtn')
@@ -441,50 +780,74 @@ async function createOrder() {
   btn.textContent = 'Creating…'
 
   try {
-    // 1. Resolve customer — selected from search OR upsert by email.
-    let customerId = selectedCustomer?.id
-    if (!customerId) {
-      const { data: existing } = await adminSupabase
-        .from('customers')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle()
-      if (existing?.id) {
-        customerId = existing.id
-        await adminSupabase.from('customers').update({
-          first_name: first, last_name: last, phone: phone || null, suburb: suburb || null
-        }).eq('id', customerId)
-      } else {
-        const { data: newCust, error: custErr } = await adminSupabase
-          .from('customers')
-          .insert({ first_name: first, last_name: last, email, phone: phone || null, suburb: suburb || null })
-          .select('id')
-          .single()
-        if (custErr) throw custErr
-        customerId = newCust.id
-      }
+    // Upsert customer by email
+    const { data: existing } = await adminSupabase
+      .from('customers')
+      .select('id')
+      .eq('email', customerPayload.email)
+      .maybeSingle()
+
+    let customerId
+    if (existing?.id) {
+      customerId = existing.id
+      const { error: updErr } = await adminSupabase
+        .from('customers').update(customerPayload).eq('id', customerId)
+      if (updErr) throw updErr
+    } else {
+      const { data: newCust, error: custErr } = await adminSupabase
+        .from('customers').insert(customerPayload).select('id').single()
+      if (custErr) throw custErr
+      customerId = newCust.id
     }
 
-    // 2. Create the order. order_number + invoice_number auto-generate.
+    // Build line_items array. Piano row first, then any non-empty extras.
+    const pianoLine = {
+      description:        `Yamaha ${piano.model || ''} ${piano.year || ''}`.trim(),
+      qty:                1,
+      unit_price_inc_gst: pianoPrice,
+      amount_inc_gst:     pianoPrice,
+    }
+    const extraLines = lineItems
+      .filter(it => it.description.trim() && it.qty > 0 && it.unit_price_inc_gst > 0)
+      .map(it => ({
+        description:        it.description.trim(),
+        qty:                it.qty,
+        unit_price_inc_gst: it.unit_price_inc_gst,
+        amount_inc_gst:     it.qty * it.unit_price_inc_gst,
+      }))
+    const allLineItems = [pianoLine, ...extraLines]
+
+    // Insert the order. order_number + invoice_number auto-generate.
+    // - subtotal:        kept as inc-GST pre-discount (matches schema intent)
+    // - subtotal_ex_gst: ex-GST post-discount (new column)
+    // - gst_amount:      GST portion of the final total (new column)
+    // - total:           final inc-GST payable
     const { data: order, error: orderErr } = await adminSupabase
       .from('orders')
       .insert({
-        customer_id: customerId,
-        piano_id: selectedPianoId,
-        subtotal,
-        discount,
-        total,
-        currency: 'AUD',
-        payment_method: document.getElementById('o-payment').value,
-        notes: document.getElementById('o-notes').value.trim() || null,
-        status: 'confirmed',
+        customer_id:       customerId,
+        piano_id:          selectedPianoId,
+        status:            'confirmed',
+        subtotal:          subtotalIncGST,
+        subtotal_ex_gst:   totalExGST,
+        gst_amount:        gst,
+        discount:          discountValue,
+        total:             totalIncGST,
+        currency:          'AUD',
+        payment_method:    document.getElementById('o-payment').value,
+        payment_reference: document.getElementById('o-payment-ref').value.trim() || null,
+        notes:             document.getElementById('o-notes').value.trim() || null,
+        line_items:        allLineItems,
       })
-      .select('id')
+      .select(`*, customers(*), pianos(*)`)
       .single()
     if (orderErr) throw orderErr
 
-    // 3. Mark the piano sold so it leaves the catalogue.
+    // Mark piano sold so it leaves the public catalogue
     await adminSupabase.from('pianos').update({ stock_status: 'sold' }).eq('id', selectedPianoId)
+
+    // Auto-generate + download the PDF invoice
+    buildInvoicePdf(order)
 
     closeSlidePanel('orderPanel')
     await loadOrders()
@@ -494,147 +857,209 @@ async function createOrder() {
     errEl.classList.add('is-shown')
   } finally {
     btn.disabled = false
-    btn.innerHTML = '<i class="ti ti-check"></i> Create order'
+    btn.innerHTML = '<i class="ti ti-check"></i> Create order &amp; generate invoice'
   }
 }
 
-/* ---------- INVOICE PDF ---------- */
+/* ============================================================================
+   INVOICE PDF
+   ========================================================================= */
+
 async function generateInvoice(orderId) {
   try {
-    const { data: o, error } = await adminSupabase
+    const { data: order, error } = await adminSupabase
       .from('orders')
       .select(`*, customers(*), pianos(*)`)
       .eq('id', orderId)
       .single()
-    if (error || !o) throw error || new Error('Order not found')
-
-    const cust = o.customers || {}
-    const piano = o.pianos || {}
-    const issued = new Date(o.created_at || Date.now())
-    const issuedStr = issued.toLocaleDateString('en-AU', { day: '2-digit', month: 'long', year: 'numeric' })
-    const subtotal = Number(o.subtotal || 0)
-    const discount = Number(o.discount || 0)
-    const total    = Number(o.total    || 0)
-    const gst      = total / 11
-    const subEx    = total - gst
-
-    const lineItems = [
-      [
-        `Yamaha ${piano.model || ''} ${piano.year || ''}`.trim() + (piano.serial_number ? `\nSerial ${piano.serial_number}` : ''),
-        '1',
-        `$${subtotal.toLocaleString('en-AU')}`,
-        `$${subtotal.toLocaleString('en-AU')}`
-      ],
-      ['White-glove delivery (Melbourne &amp; regional VIC)', '1', 'Included', '—'],
-      ['First tuning (3–4 weeks after delivery)',             '1', 'Included', '—'],
-    ]
-    if (discount > 0) {
-      lineItems.push([
-        'Discount',
-        '–1',
-        `–$${discount.toLocaleString('en-AU')}`,
-        `–$${discount.toLocaleString('en-AU')}`,
-      ])
-    }
-
-    const dd = {
-      pageSize: 'A4',
-      pageMargins: [50, 50, 50, 60],
-      defaultStyle: { font: 'Roboto', fontSize: 10, color: '#1a1917', lineHeight: 1.4 },
-      content: [
-        // Header
-        {
-          columns: [
-            {
-              stack: [
-                { text: 'SIGNATURE PIANOS', fontSize: 18, bold: true, color: '#b8935a', characterSpacing: 1 },
-                { text: 'Melbourne, Victoria, Australia', margin: [0, 4, 0, 0], color: '#6b6760' },
-                { text: 'signaturepianos.com.au · info@signaturepianos.com.au', color: '#6b6760' },
-                { text: 'ABN: [TODO: ADD ABN]', color: '#6b6760' },
-              ]
-            },
-            {
-              width: 160,
-              alignment: 'right',
-              stack: [
-                { text: 'TAX INVOICE', fontSize: 14, bold: true, color: '#1a1917' },
-                { text: `Invoice ${o.invoice_number || '—'}`, margin: [0, 8, 0, 0] },
-                { text: `Order ${o.order_number || '—'}` },
-                { text: `Issued ${issuedStr}` },
-                { text: `Due ${issuedStr}` },
-              ]
-            }
-          ]
-        },
-        { text: '', margin: [0, 24, 0, 0] },
-
-        // Bill to
-        { text: 'BILL TO', color: '#9a9590', fontSize: 9, characterSpacing: 1, bold: true },
-        { text: `${cust.first_name || ''} ${cust.last_name || ''}`.trim() || '—', margin: [0, 4, 0, 0], bold: true },
-        { text: cust.email || '', color: '#6b6760' },
-        { text: cust.phone || '', color: '#6b6760' },
-        { text: '', margin: [0, 18, 0, 0] },
-
-        // Line items
-        {
-          table: {
-            widths: ['*', 30, 70, 70],
-            headerRows: 1,
-            body: [
-              [
-                { text: 'Description', fillColor: '#faf8f5', color: '#9a9590', bold: true, fontSize: 9, characterSpacing: 1 },
-                { text: 'Qty',         fillColor: '#faf8f5', color: '#9a9590', bold: true, fontSize: 9, alignment: 'right' },
-                { text: 'Unit price',  fillColor: '#faf8f5', color: '#9a9590', bold: true, fontSize: 9, alignment: 'right' },
-                { text: 'Amount',      fillColor: '#faf8f5', color: '#9a9590', bold: true, fontSize: 9, alignment: 'right' },
-              ],
-              ...lineItems.map(row => [
-                { text: row[0] },
-                { text: row[1], alignment: 'right' },
-                { text: row[2], alignment: 'right' },
-                { text: row[3], alignment: 'right' },
-              ])
-            ]
-          },
-          layout: {
-            hLineColor: () => '#e8e4dd',
-            vLineColor: () => '#e8e4dd',
-            paddingTop: () => 8, paddingBottom: () => 8,
-          }
-        },
-        { text: '', margin: [0, 16, 0, 0] },
-
-        // Totals
-        {
-          columns: [
-            { text: '' },
-            {
-              width: 220,
-              table: {
-                widths: ['*', 'auto'],
-                body: [
-                  [ { text: 'Subtotal (ex GST)', color: '#6b6760' }, { text: `$${subEx.toLocaleString('en-AU', { maximumFractionDigits: 2 })}`, alignment: 'right' } ],
-                  [ { text: 'GST (10%)',          color: '#6b6760' }, { text: `$${gst.toLocaleString('en-AU', { maximumFractionDigits: 2 })}`,    alignment: 'right' } ],
-                  [ { text: 'Total (inc GST)',    bold: true },       { text: `$${total.toLocaleString('en-AU')}`, alignment: 'right', bold: true } ],
-                ]
-              },
-              layout: 'noBorders'
-            }
-          ]
-        },
-        { text: '', margin: [0, 30, 0, 0] },
-
-        // Footer block
-        { text: 'Thank you for choosing Signature Pianos.', color: '#1a1917', italics: true },
-        { text: 'A 10-year warranty applies to this instrument from the date of delivery.', color: '#6b6760', margin: [0, 4, 0, 0] },
-        { text: '[TODO: ADD BANK DETAILS FOR TRANSFER PAYMENTS]', color: '#9a9590', margin: [0, 14, 0, 0], fontSize: 9 },
-      ],
-    }
-
-    pdfMake.createPdf(dd).download(`Invoice-${o.invoice_number || o.order_number || 'order'}.pdf`)
+    if (error || !order) throw error || new Error('Order not found')
+    buildInvoicePdf(order)
   } catch (err) {
-    console.error('[orders] invoice gen failed', err)
+    console.error('[orders] invoice load failed', err)
     alert("Couldn't generate the invoice — please try again.")
   }
+}
+
+function buildInvoicePdf(order) {
+  const cust = order.customers || {}
+  const piano = order.pianos || {}
+  const issued = new Date(order.created_at || Date.now())
+  const issuedStr = issued.toLocaleDateString('en-AU', { day: '2-digit', month: 'long', year: 'numeric' })
+
+  // Prefer stored line_items; fall back to a single piano line for legacy orders.
+  let lineItems = Array.isArray(order.line_items) && order.line_items.length ? order.line_items : null
+  if (!lineItems) {
+    lineItems = [{
+      description:        `Yamaha ${piano.model || ''} ${piano.year || ''}`.trim(),
+      qty:                1,
+      unit_price_inc_gst: Number(order.subtotal || order.total || 0),
+      amount_inc_gst:     Number(order.subtotal || order.total || 0),
+    }]
+  }
+
+  const total    = Number(order.total || 0)
+  const discount = Number(order.discount || 0)
+  const gstAmt   = order.gst_amount != null ? Number(order.gst_amount) : total / 11
+  const exGst    = order.subtotal_ex_gst != null ? Number(order.subtotal_ex_gst) : total - gstAmt
+
+  const aud = (n) => '$' + Number(n).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+  // Build the line items table body
+  const itemRows = lineItems.map(it => {
+    const inc = Number(it.amount_inc_gst != null
+      ? it.amount_inc_gst
+      : (it.qty || 1) * (it.unit_price_inc_gst || 0))
+    const ex = inc / 1.1
+    return [
+      { text: it.description || '—', fontSize: 10 },
+      { text: String(it.qty ?? 1),   fontSize: 10, alignment: 'right' },
+      { text: aud(ex),               fontSize: 10, alignment: 'right' },
+      { text: aud(inc),              fontSize: 10, alignment: 'right' },
+    ]
+  })
+  if (discount > 0) {
+    itemRows.push([
+      { text: 'Discount',          fontSize: 10, color: '#6b6760' },
+      { text: '',                  fontSize: 10, alignment: 'right' },
+      { text: '',                  fontSize: 10, alignment: 'right' },
+      { text: '-' + aud(discount), fontSize: 10, alignment: 'right', color: '#6b6760' },
+    ])
+  }
+
+  // Bill-to block — includes business info when flagged
+  const billLines = []
+  billLines.push({ text: `${cust.first_name || ''} ${cust.last_name || ''}`.trim() || '—', bold: true })
+  if (cust.is_business && cust.business_name) billLines.push({ text: cust.business_name })
+  if (cust.is_business && cust.abn)           billLines.push({ text: `ABN: ${cust.abn}` })
+  if (cust.address_line1) billLines.push({ text: cust.address_line1 })
+  if (cust.address_line2) billLines.push({ text: cust.address_line2 })
+  const cityLine = [cust.suburb, cust.state, cust.postcode].filter(Boolean).join(' ')
+  if (cityLine) billLines.push({ text: cityLine })
+  if (cust.email) billLines.push({ text: cust.email, color: '#6b6760' })
+  if (cust.phone) billLines.push({ text: cust.phone, color: '#6b6760' })
+
+  const paymentLabels = {
+    cash: 'Cash',
+    bank_transfer: 'Bank transfer',
+    stripe: 'Stripe',
+    card_in_person: 'Card in person',
+    deposit_paid_online: 'Deposit paid online',
+  }
+
+  const dd = {
+    pageSize: 'A4',
+    pageMargins: [50, 0, 50, 60],
+    defaultStyle: { font: 'Roboto', fontSize: 10, color: '#1a1917', lineHeight: 1.4 },
+    content: [
+      // Dark header strip
+      {
+        table: {
+          widths: ['*'],
+          body: [[{
+            stack: [
+              { text: 'SIGNATURE PIANOS', fontSize: 20, bold: true, color: '#b8935a', characterSpacing: 2 },
+              { text: 'Melbourne, Victoria, Australia', color: '#9a9590', margin: [0, 6, 0, 0] },
+              { text: 'signaturepianos.com.au', color: '#9a9590' },
+              { text: 'ABN: [TODO: ADD YOUR ABN]', color: '#9a9590' },
+              { text: 'info@signaturepianos.com.au', color: '#9a9590' },
+            ],
+            fillColor: '#1a1917',
+            margin: [40, 28, 40, 28],
+          }]]
+        },
+        layout: 'noBorders',
+      },
+
+      // Invoice meta row
+      {
+        margin: [0, 24, 0, 0],
+        columns: [
+          { stack: [
+              { text: 'TAX INVOICE', fontSize: 16, bold: true, color: '#1a1917', characterSpacing: 1 },
+            ] },
+          {
+            width: 200,
+            alignment: 'right',
+            stack: [
+              { text: `Invoice #: ${order.invoice_number || '—'}`, fontSize: 10 },
+              { text: `Order #: ${order.order_number || '—'}`,     fontSize: 10, color: '#6b6760' },
+              { text: `Date: ${issuedStr}`,                        fontSize: 10, color: '#6b6760' },
+            ],
+          },
+        ],
+      },
+
+      // Bill to
+      { text: 'BILL TO', fontSize: 9, bold: true, color: '#9a9590', characterSpacing: 1, margin: [0, 24, 0, 8] },
+      { stack: billLines, fontSize: 10 },
+
+      // Line items
+      {
+        margin: [0, 24, 0, 0],
+        table: {
+          widths: ['*', 40, 80, 80],
+          headerRows: 1,
+          body: [
+            [
+              { text: 'Description', fillColor: '#f5f0e8', color: '#6b6760', bold: true, fontSize: 9, characterSpacing: 1 },
+              { text: 'Qty',         fillColor: '#f5f0e8', color: '#6b6760', bold: true, fontSize: 9, alignment: 'right' },
+              { text: 'Ex GST',      fillColor: '#f5f0e8', color: '#6b6760', bold: true, fontSize: 9, alignment: 'right' },
+              { text: 'Inc GST',     fillColor: '#f5f0e8', color: '#6b6760', bold: true, fontSize: 9, alignment: 'right' },
+            ],
+            ...itemRows,
+          ],
+        },
+        layout: {
+          hLineColor: () => '#e8e4dd',
+          vLineColor: () => '#e8e4dd',
+          paddingTop: () => 8, paddingBottom: () => 8,
+        },
+      },
+
+      // Totals
+      {
+        margin: [0, 16, 0, 0],
+        columns: [
+          { text: '' },
+          {
+            width: 220,
+            table: {
+              widths: ['*', 'auto'],
+              body: [
+                [ { text: 'Subtotal (ex GST)', color: '#6b6760', fontSize: 10 },
+                  { text: aud(exGst),          alignment: 'right', fontSize: 10 } ],
+                [ { text: 'GST (10%)',         color: '#6b6760', fontSize: 10 },
+                  { text: aud(gstAmt),         alignment: 'right', fontSize: 10 } ],
+                [ { text: 'TOTAL (inc GST)',   bold: true, color: '#b8935a', fontSize: 12 },
+                  { text: aud(total),          alignment: 'right', bold: true, color: '#b8935a', fontSize: 14 } ],
+              ],
+            },
+            layout: 'noBorders',
+          },
+        ],
+      },
+
+      // Payment block
+      { text: '', margin: [0, 30, 0, 0] },
+      { text: `Payment method: ${paymentLabels[order.payment_method] || order.payment_method || '—'}`, fontSize: 10 },
+      ...(order.payment_reference
+        ? [{ text: `Reference: ${order.payment_reference}`, fontSize: 10, color: '#6b6760' }]
+        : []),
+
+      // Footer
+      { text: 'Thank you for choosing Signature Pianos.', italics: true, color: '#1a1917', margin: [0, 24, 0, 0] },
+      { text: 'This piano is covered by a 10-year warranty from the date of delivery.', color: '#6b6760', margin: [0, 4, 0, 16] },
+
+      // Bank details TODO
+      { text: '[TODO: ADD BANK DETAILS]',  color: '#9a9590', fontSize: 9, bold: true },
+      { text: 'BSB: XXX-XXX',              color: '#9a9590', fontSize: 9 },
+      { text: 'Account: XXXXXXXXX',        color: '#9a9590', fontSize: 9 },
+      { text: 'Account name: Signature Pianos', color: '#9a9590', fontSize: 9 },
+    ],
+  }
+
+  const lastName = (cust.last_name || 'Customer').replace(/\s+/g, '_')
+  pdfMake.createPdf(dd).download(`Invoice-${order.invoice_number || 'order'}-${lastName}.pdf`)
 }
 </script>
 

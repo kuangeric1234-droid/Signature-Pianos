@@ -989,6 +989,80 @@ Piano condition:  A+ = near mint or fully refurbished
 Inventory:        16 Yamaha acoustic uprights loaded May 2026
 ```
 
+### Tuner flow
+```
+Tuners table:     stores partner tuner details (name, email, phone,
+                  suburb, active flag, internal notes). Seeded via
+                  supabase/tuners_table.sql with three placeholders.
+
+Assign flow:      Eric opens a delivery in admin/deliveries.html, picks
+                  a tuner from the dropdown + proposes a date/time,
+                  clicks "Assign tuner & send".
+                  → tuner_bookings row inserted or updated
+                  → /api/tuner-booking mints confirmation + completion
+                    tokens, emails the tuner (branded Signature template),
+                    and fires a Twilio SMS if env vars are set.
+                  → Internal notification email to Eric.
+
+Confirm:          Tuner clicks the confirmation link in the email.
+                  → /api/tuner-confirm flips status to 'confirmed',
+                    emails the customer their booking summary,
+                    pings Eric, and redirects the tuner to
+                    /tuner/confirmed.html.
+
+Complete:         Tuner clicks the completion link after the visit.
+                  → /api/tuner-complete (GET) renders a mobile form
+                    for optional completion notes.
+                  → POST flips status to 'completed', emails the
+                    customer (with a CTA to book another tuning),
+                    and notifies Eric.
+
+Visibility:       admin/deliveries.html shows a tuner column with the
+                  current status on every delivery row. The Tuners tab
+                  is a simple CRUD view of the tuners table.
+```
+
+### Tuner-flow env vars (Vercel dashboard)
+```
+TWILIO_ACCOUNT_SID    — twilio.com → Console → Account SID
+TWILIO_AUTH_TOKEN     — twilio.com → Console → Auth Token
+TWILIO_PHONE          — your Twilio phone (e.g. +61400000000)
+SITE_URL              — https://signaturepianos.com.au
+```
+SMS is optional — if Twilio env vars aren't set, the email still goes
+out and the SMS step is skipped (logged as a warning).
+
+### POS / invoice flow (admin/orders.html)
+```
+New order panel:    9 sections (A–I) — Customer details (incl. full
+                    address + optional business name & ABN), Piano +
+                    cost price, Margin calculator (30% target — green
+                    if hit, amber otherwise, never shown on invoice),
+                    Sale price (live ex-GST hint), Additional line
+                    items (Delivery / Piano tuning / Piano stool with
+                    editable defaults + spare row + Add line item),
+                    Discount (fixed $ or %), Live totals, Payment
+                    details, Create & generate invoice button.
+Customer schema:    address_line1 / address_line2 / suburb / state /
+                    postcode columns plus is_business / business_name /
+                    abn. Added by supabase/update_orders.sql.
+Orders schema:      line_items jsonb (per-line breakdown stored with
+                    the order), subtotal_ex_gst, gst_amount. Legacy
+                    `subtotal` column kept as inc-GST pre-discount.
+Invoice PDF:        Full Australian tax invoice via pdfmake —
+                    dark/gold header strip, business name + ABN block
+                    when applicable, full address, line items table
+                    with Ex/Inc GST columns, discount as a negative
+                    line, totals (ex GST / GST 10% / TOTAL inc GST
+                    in gold), payment method + reference, TODO
+                    bank-detail placeholder. Filename:
+                    Invoice-INV-YYYY-XXXXX-<LastName>.pdf.
+Run order:          1. supabase/update_orders.sql in the SQL editor
+                    2. Refresh admin/orders.html
+                    3. Test a full sale — PDF should download
+                       automatically on Create order.
+```
+
 ---
 
 *Last updated: May 2025*
