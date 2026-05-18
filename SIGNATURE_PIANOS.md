@@ -918,8 +918,8 @@ STRIPE_SECRET_KEY
 ◯ Book a viewing              services/book-a-viewing.html
 ◯ Tuning & servicing          services/tuning-servicing.html
 ◯ About                       about.html
-◯ Individual piano listing    instruments/[slug].html
-◯ Checkout                    checkout.html
+✓ Individual piano listing    piano.html (root) — Supabase + Stripe
+✓ Checkout success            checkout-success.html
 ◯ Customer portal             portal/index.html
 ◯ Teacher dashboard           portal/teacher.html
 ◯ Driver flow                 delivery/[token].html

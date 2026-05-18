@@ -741,19 +741,19 @@
         Pianos <i class="ti ti-chevron-down nav-chevron"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--pianos" role="menu">
-        <a href="instruments.html?cat=upright" class="nav-dd-item">
+        <a href="instruments/index.html?cat=upright" class="nav-dd-item">
           <i class="ti ti-bookmark nav-dd-icon"></i>
           <div class="nav-dd-text"><h4>Used Japanese uprights</h4><p>Hand-selected, imported direct from Japan</p></div>
         </a>
-        <a href="instruments.html?cat=grand" class="nav-dd-item">
+        <a href="instruments/index.html?cat=grand" class="nav-dd-item">
           <i class="ti ti-crown nav-dd-icon"></i>
           <div class="nav-dd-text"><h4>Used Japanese grands</h4><p>Concert &amp; baby grands, fully restored</p></div>
         </a>
-        <a href="instruments.html?cat=digital" class="nav-dd-item">
+        <a href="instruments/index.html?cat=digital" class="nav-dd-item">
           <i class="ti ti-music nav-dd-icon"></i>
           <div class="nav-dd-text"><h4>Digital pianos</h4><p>Modern instruments for any space</p></div>
         </a>
-        <a href="instruments.html?cat=books" class="nav-dd-item">
+        <a href="instruments/index.html?cat=books" class="nav-dd-item">
           <i class="ti ti-book nav-dd-icon"></i>
           <div class="nav-dd-text"><h4>Sheet music &amp; books</h4><p>For students and teachers alike</p></div>
         </a>
@@ -851,7 +851,7 @@
         <i id="productImageIcon" class="ti ti-music"></i>
         <span class="placeholder-label">Photo coming · gradient placeholder</span>
       </div>
-      <div class="product-thumbs">
+      <div class="product-thumbs" id="productImageThumbs">
         <div class="product-thumb"><i class="ti ti-photo"></i></div>
         <div class="product-thumb"><i class="ti ti-photo"></i></div>
         <div class="product-thumb"><i class="ti ti-photo"></i></div>
@@ -886,7 +886,7 @@
 
       <p class="product-summary" id="productSummary"></p>
 
-      <div class="product-actions">
+      <div class="product-actions" id="productActions">
         <button class="btn-primary" id="inquireBtn">Inquire about this piano</button>
         <button class="btn-link">Book a viewing <i class="ti ti-arrow-right"></i></button>
       </div>
@@ -919,8 +919,56 @@
   </div>
 </section>
 
+<!-- ============ WHAT'S INCLUDED ============ -->
+<section class="whats-included reveal" style="background:#1a1a18;padding:60px 0;border-top:1px solid rgba(184,147,90,0.15);">
+  <div style="max-width:1200px;margin:0 auto;padding:0 24px;">
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;
+               text-align:center;color:#f5f0e8;margin:0 0 40px;font-style:italic;">
+      What's included
+    </h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;">
+      <!-- Certificate -->
+      <div style="text-align:center;padding:24px 16px;">
+        <i class="ti ti-certificate" style="font-size:32px;color:#b8935a;margin-bottom:12px;display:block;"></i>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
+                   color:#f5f0e8;margin:0 0 8px;">10-year warranty</h3>
+        <p style="font-size:13px;color:#9a9590;line-height:1.6;margin:0;">
+          Every Signature Piano is backed by our decade-long guarantee — unmatched in Melbourne.
+        </p>
+      </div>
+      <!-- Delivery -->
+      <div style="text-align:center;padding:24px 16px;">
+        <i class="ti ti-truck-delivery" style="font-size:32px;color:#b8935a;margin-bottom:12px;display:block;"></i>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
+                   color:#f5f0e8;margin:0 0 8px;">White-glove delivery</h3>
+        <p style="font-size:13px;color:#9a9590;line-height:1.6;margin:0;">
+          Professional delivery and in-home placement across Melbourne and regional Victoria.
+        </p>
+      </div>
+      <!-- Tuning -->
+      <div style="text-align:center;padding:24px 16px;">
+        <i class="ti ti-music" style="font-size:32px;color:#b8935a;margin-bottom:12px;display:block;"></i>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
+                   color:#f5f0e8;margin:0 0 8px;">First tuning included</h3>
+        <p style="font-size:13px;color:#9a9590;line-height:1.6;margin:0;">
+          A certified tuner visits 3–4 weeks after delivery, automatically booked for you.
+        </p>
+      </div>
+      <!-- Tracking -->
+      <div style="text-align:center;padding:24px 16px;">
+        <i class="ti ti-device-mobile" style="font-size:32px;color:#b8935a;margin-bottom:12px;display:block;"></i>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
+                   color:#f5f0e8;margin:0 0 8px;">Live tracking</h3>
+        <p style="font-size:13px;color:#9a9590;line-height:1.6;margin:0;">
+          Know exactly where your piano is from warehouse to your home, every step of the way.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ============ RELATED ============ -->
-<section class="related-section">
+<section class="related-section" id="relatedSection">
   <div class="related-inner">
     <div class="related-header">
       <h2 class="related-title">Other <em id="relatedCategory">pianos</em> you might like</h2>
@@ -965,7 +1013,12 @@
   </div>
 </footer>
 
-<script src="pianos-data.js"></script>
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Shared config — always load after Supabase JS -->
+<script src="/js/config.js"></script>
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
 <script>
   /* -------- NAV: scrolled-state + dropdowns -------- */
   (function setupNav() {
@@ -1001,74 +1054,328 @@
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(null); });
   })();
 
-  /* Load piano data based on ?id= URL param. If missing or unknown,
-     redirect to the catalogue page. */
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
-  const piano = id ? getPianoById(id) : null;
+  /* -------- Load a single piano by ?id= URL param. -------- */
+  const params = new URLSearchParams(window.location.search)
+  const pianoId = params.get('id')
 
-  if (!piano) {
-    window.location.replace('instruments.html');
-  } else {
-    document.title = piano.name + ' — Signature Pianos Melbourne';
-    document.getElementById('docDesc').setAttribute('content', piano.summary);
-
-    document.getElementById('breadcrumbCat').textContent = piano.categoryLabel + 's';
-    document.getElementById('breadcrumbCat').href = 'instruments.html?category=' + piano.category;
-    document.getElementById('breadcrumbName').textContent = piano.name;
-
-    document.getElementById('productCategory').textContent = piano.categoryLabel;
-    document.getElementById('productName').textContent = piano.name;
-    document.getElementById('productBrand').textContent = piano.brand + ' · Model ' + piano.model;
-
-    document.getElementById('productCondition').textContent = piano.condition === 'new' ? 'New' : 'Pre-loved';
-    document.getElementById('productYear').textContent = piano.year;
-    document.getElementById('productOrigin').textContent = piano.specs.country || '—';
-    document.getElementById('productPrice').textContent = piano.priceLabel;
-
-    document.getElementById('productSummary').textContent = piano.summary;
-    document.getElementById('productDescription').textContent = piano.description;
-
-    // Image category gradient
-    const main = document.getElementById('productImageMain');
-    main.classList.add(piano.category);
-    const iconMap = { grand: 'ti-music', upright: 'ti-piano', digital: 'ti-device-speaker' };
-    document.getElementById('productImageIcon').className = 'ti ' + (iconMap[piano.category] || 'ti-music');
-
-    // Specs table
-    const specsTable = document.getElementById('specsTable');
-    Object.entries(piano.specs).forEach(([k, v]) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = '<th>' + k.charAt(0).toUpperCase() + k.slice(1) + '</th><td>' + v + '</td>';
-      specsTable.appendChild(tr);
-    });
-
-    // Related: 3 other pianos in the same category
-    document.getElementById('relatedCategory').textContent = piano.categoryLabel.toLowerCase() + 's';
-    const related = PIANOS.filter(p => p.category === piano.category && p.id !== piano.id).slice(0, 3);
-    const relatedGrid = document.getElementById('relatedGrid');
-    related.forEach(p => {
-      const card = document.createElement('a');
-      card.className = 'catalogue-card';
-      card.href = 'piano.html?id=' + p.id;
-      card.innerHTML = `
-        <div class="catalogue-card-image catalogue-card-image--${p.category}">
-          <span class="catalogue-card-tag">${p.categoryLabel}</span>
-          <i class="ti ${iconMap[p.category] || 'ti-music'}"></i>
-        </div>
-        <div class="catalogue-card-body">
-          <h3 class="catalogue-card-name">${p.name}</h3>
-          <p class="catalogue-card-price">${p.priceLabel}</p>
-        </div>
-      `;
-      relatedGrid.appendChild(card);
-    });
-
-    // Inquire button — placeholder; can wire to a form modal later
-    document.getElementById('inquireBtn').addEventListener('click', () => {
-      alert('Inquiry form coming soon. For now, email info@signaturepianos.com.au about the ' + piano.name + '.');
-    });
+  if (!pianoId) {
+    window.location.replace('instruments/index.html')
   }
+
+  async function loadPiano() {
+    const { data: piano, error } = await _supabase
+      .from('pianos')
+      .select('*')
+      .eq('id', pianoId)
+      .eq('stock_status', 'available')
+      .single()
+
+    if (error || !piano) {
+      console.error('[piano] supabase load failed', error)
+      window.location.replace('instruments/index.html')
+      return
+    }
+
+    renderPiano(piano)
+    loadRelated(piano)
+  }
+
+  function formatType(type) {
+    const map = {
+      acoustic_upright: 'Upright Piano',
+      acoustic_grand: 'Grand Piano',
+      digital: 'Digital Piano'
+    }
+    return map[type] || 'Piano'
+  }
+
+  function renderPiano(piano) {
+    // Page meta
+    document.title = `Yamaha ${piano.model} ${piano.year} — Signature Pianos Melbourne`
+    document.getElementById('docDesc')?.setAttribute('content', piano.description_short || piano.description || '')
+
+    // Breadcrumb
+    document.getElementById('breadcrumbCat').textContent = 'Upright Pianos'
+    document.getElementById('breadcrumbCat').href = 'instruments/index.html'
+    document.getElementById('breadcrumbName').textContent = `Yamaha ${piano.model} ${piano.year}`
+
+    // Product header
+    document.getElementById('productCategory').textContent = formatType(piano.type)
+    document.getElementById('productName').textContent = `${piano.model} Upright Piano`
+    document.getElementById('productBrand').textContent = `Yamaha · Model ${piano.model}`
+
+    // Condition — new A+/B+ grading, styled as a pill
+    const condEl = document.getElementById('productCondition')
+    condEl.textContent = piano.condition
+    condEl.style.cssText = `
+      display: inline-block;
+      background: rgba(184,147,90,${piano.condition === 'A+' ? '0.2' : '0.1'});
+      border: 1px solid rgba(184,147,90,${piano.condition === 'A+' ? '0.5' : '0.3'});
+      color: #b8935a;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+    `
+
+    document.getElementById('productYear').textContent = piano.year
+    document.getElementById('productOrigin').textContent = 'Japan'
+    document.getElementById('productPrice').textContent = `$${Number(piano.sale_price).toLocaleString()}`
+
+    // Description
+    document.getElementById('productSummary').textContent = piano.description_short || ''
+    document.getElementById('productDescription').textContent = piano.description || ''
+
+    renderGallery(piano)
+    renderSpecs(piano)
+    renderActions(piano)
+  }
+
+  function renderGallery(piano) {
+    const main = document.getElementById('productImageMain')
+    const thumbs = document.getElementById('productImageThumbs')
+
+    if (!piano.images || piano.images.length === 0) {
+      // Styled placeholder — gold camera icon, "Photos coming soon"
+      main.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;">
+          <i class="ti ti-camera" style="font-size:48px;color:rgba(184,147,90,0.3);"></i>
+          <p style="font-size:12px;color:#6b6760;font-style:italic;margin:0;">Photos coming soon</p>
+        </div>
+      `
+      if (thumbs) thumbs.style.display = 'none'
+      return
+    }
+
+    function setMainImage(index) {
+      main.innerHTML = `<img src="${piano.images[index]}"
+        alt="Yamaha ${piano.model} ${piano.year}"
+        style="width:100%;height:100%;object-fit:cover;border-radius:4px;"
+        onerror="this.parentNode.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;\\'><i class=\\'ti ti-camera\\' style=\\'font-size:48px;color:rgba(184,147,90,0.3);\\'></i></div>'">`
+      document.querySelectorAll('.thumb-item').forEach((t, i) => {
+        t.style.borderColor = i === index
+          ? 'rgba(184,147,90,0.8)'
+          : 'rgba(184,147,90,0.15)'
+      })
+    }
+    // Expose so inline onclick on each thumb can reach it.
+    window.setMainImage = setMainImage
+
+    setMainImage(0)
+
+    if (thumbs && piano.images.length > 1) {
+      thumbs.innerHTML = piano.images.map((img, i) => `
+        <div class="thumb-item" onclick="setMainImage(${i})"
+          style="width:72px;height:56px;border-radius:4px;overflow:hidden;cursor:pointer;
+                 border:1px solid rgba(184,147,90,${i === 0 ? '0.8' : '0.15'});
+                 transition:border-color 0.2s ease;">
+          <img src="${img}" style="width:100%;height:100%;object-fit:cover;"
+            alt="View ${i + 1}">
+        </div>
+      `).join('')
+    }
+  }
+
+  function renderSpecs(piano) {
+    const specsTable = document.getElementById('specsTable')
+    if (!specsTable) return
+
+    const dims = piano.dimensions_cm || {}
+
+    const specs = [
+      ['Brand', 'Yamaha'],
+      ['Model', piano.model],
+      ['Type', formatType(piano.type)],
+      ['Year made', piano.year],
+      ['Serial number', piano.serial_number],
+      ['Condition', piano.condition],
+      ['Origin', 'Japan'],
+      ['Weight', piano.weight_kg ? `${piano.weight_kg} kg` : '—'],
+      ['Height', dims.height ? `${dims.height} cm` : '—'],
+      ['Width', dims.width ? `${dims.width} cm` : '—'],
+      ['Depth', dims.depth ? `${dims.depth} cm` : '—'],
+      ['Warranty', '10 years'],
+      ['First tuning', 'Complimentary — auto-booked'],
+    ]
+
+    specsTable.innerHTML = specs.map(([label, value]) => `
+      <tr>
+        <th style="color:#6b6760;font-weight:400;font-size:12px;padding:8px 12px;
+                   text-align:left;border-bottom:1px solid rgba(184,147,90,0.08);
+                   white-space:nowrap;">${label}</th>
+        <td style="color:#f5f0e8;font-size:13px;padding:8px 12px;
+                   border-bottom:1px solid rgba(184,147,90,0.08);">${value}</td>
+      </tr>
+    `).join('')
+  }
+
+  function renderActions(piano) {
+    const actionsEl = document.getElementById('productActions')
+    if (!actionsEl) return
+
+    actionsEl.innerHTML = `
+      <button id="buyNowBtn"
+        style="width:100%;background:#b8935a;color:#000;border:none;border-radius:0;
+               padding:16px;font-family:'DM Sans',sans-serif;font-size:13px;
+               font-weight:500;letter-spacing:0.1em;text-transform:uppercase;
+               cursor:pointer;margin-bottom:10px;transition:opacity 0.2s ease;">
+        BUY NOW — $${Number(piano.sale_price).toLocaleString()}
+      </button>
+
+      <button id="depositBtn"
+        style="width:100%;background:transparent;color:#b8935a;
+               border:1px solid rgba(184,147,90,0.5);border-radius:0;
+               padding:16px;font-family:'DM Sans',sans-serif;font-size:13px;
+               font-weight:500;letter-spacing:0.1em;text-transform:uppercase;
+               cursor:pointer;margin-bottom:12px;transition:all 0.2s ease;">
+        RESERVE WITH $500 DEPOSIT
+      </button>
+
+      <p style="font-size:11px;color:#6b6760;text-align:center;margin:0 0 20px;line-height:1.6;">
+        Secure payment via Stripe · 10-year warranty included · Complimentary first tuning
+      </p>
+
+      <div style="border-top:1px solid rgba(184,147,90,0.1);padding-top:16px;margin-top:4px;">
+        <p style="font-size:13px;color:#9a9590;margin:0 0 10px;">
+          Not ready to commit? We understand.
+        </p>
+        <a href="services/book-a-viewing.html"
+          style="color:#b8935a;font-size:13px;text-decoration:none;
+                 display:flex;align-items:center;gap:6px;">
+          <i class="ti ti-calendar" style="font-size:15px;"></i>
+          Book a showroom visit to try this piano
+        </a>
+      </div>
+
+      <div id="paymentError"
+        style="display:none;margin-top:12px;padding:10px 14px;
+               background:rgba(220,80,80,0.1);border:1px solid rgba(220,80,80,0.3);
+               border-radius:4px;font-size:12px;color:rgba(220,80,80,0.9);">
+        Payment failed — please try again or contact us directly.
+      </div>
+    `
+
+    // Stripe initialisation
+    // TODO: replace 'YOUR_STRIPE_PUBLIC_KEY' with the real STRIPE_PUBLIC_KEY
+    // (or move it onto window.SP_CONFIG in /js/config.js once we add it).
+    const stripe = Stripe('YOUR_STRIPE_PUBLIC_KEY')
+
+    async function initiateCheckout(type) {
+      const btn = type === 'full_purchase'
+        ? document.getElementById('buyNowBtn')
+        : document.getElementById('depositBtn')
+
+      const originalText = btn.textContent
+      btn.disabled = true
+      btn.textContent = 'Redirecting to payment...'
+      btn.style.opacity = '0.6'
+      document.getElementById('paymentError').style.display = 'none'
+
+      try {
+        const res = await fetch('/api/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type,
+            piano_id: piano.id,
+            piano_name: `Yamaha ${piano.model} ${piano.year}`,
+            amount: type === 'full_purchase' ? Number(piano.sale_price) * 100 : 50000,
+            currency: 'aud',
+            success_url: `${window.location.origin}/checkout-success.html?type=${type}`,
+            cancel_url: window.location.href
+          })
+        })
+
+        const { url, error } = await res.json()
+
+        if (error || !url) throw new Error(error || 'No URL returned')
+
+        window.location.href = url
+
+      } catch (err) {
+        console.error('Stripe checkout error:', err)
+        btn.disabled = false
+        btn.textContent = originalText
+        btn.style.opacity = '1'
+        document.getElementById('paymentError').style.display = 'block'
+      }
+    }
+
+    document.getElementById('buyNowBtn').addEventListener('click', () => initiateCheckout('full_purchase'))
+    document.getElementById('depositBtn').addEventListener('click', () => initiateCheckout('deposit'))
+  }
+
+  async function loadRelated(piano) {
+    const relatedGrid = document.getElementById('relatedGrid')
+    if (!relatedGrid) return
+
+    let { data: related, error } = await _supabase
+      .from('pianos')
+      .select('id, model, year, condition, sale_price, description_short, images, type')
+      .eq('stock_status', 'available')
+      .eq('condition', piano.condition)
+      .neq('id', piano.id)
+      .limit(3)
+
+    if (error) console.error('[piano] related load failed', error)
+
+    // Fall back to any other available piano if we didn't get 3 same-grade.
+    if (!related || related.length < 3) {
+      const { data: extra, error: extraErr } = await _supabase
+        .from('pianos')
+        .select('id, model, year, condition, sale_price, description_short, images, type')
+        .eq('stock_status', 'available')
+        .neq('id', piano.id)
+        .limit(3)
+      if (extraErr) console.error('[piano] related fallback failed', extraErr)
+      related = extra || []
+    }
+
+    if (!related.length) {
+      const section = document.getElementById('relatedSection')
+      if (section) section.style.display = 'none'
+      return
+    }
+
+    // Update the section heading to match the piano's condition grade.
+    const relatedCategoryEl = document.getElementById('relatedCategory')
+    if (relatedCategoryEl) relatedCategoryEl.textContent = 'pianos'
+
+    relatedGrid.innerHTML = related.map(p => `
+      <a href="piano.html?id=${p.id}"
+        style="display:block;background:#1a1a18;border:1px solid rgba(184,147,90,0.15);
+               border-radius:4px;overflow:hidden;text-decoration:none;
+               transition:border-color 0.3s ease;"
+        onmouseover="this.style.borderColor='rgba(184,147,90,0.4)'"
+        onmouseout="this.style.borderColor='rgba(184,147,90,0.15)'">
+        <div style="height:160px;background:#111;display:flex;align-items:center;
+                    justify-content:center;position:relative;overflow:hidden;">
+          ${p.images && p.images.length
+            ? `<img src="${p.images[0]}" style="width:100%;height:100%;object-fit:cover;"
+                 alt="Yamaha ${p.model}">`
+            : `<i class="ti ti-piano" style="font-size:36px;color:rgba(184,147,90,0.3);"></i>`
+          }
+          <span style="position:absolute;top:10px;left:10px;font-size:10px;
+                       background:rgba(184,147,90,0.15);border:1px solid rgba(184,147,90,0.3);
+                       color:#b8935a;padding:2px 8px;border-radius:20px;
+                       letter-spacing:0.06em;">${p.condition}</span>
+        </div>
+        <div style="padding:16px;">
+          <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
+                     color:#f5f0e8;margin:0 0 4px;font-style:italic;">
+            Yamaha ${p.model}
+          </h3>
+          <p style="font-size:12px;color:#6b6760;margin:0 0 10px;">${p.year}</p>
+          <p style="font-size:18px;color:#b8935a;font-family:'Cormorant Garamond',serif;margin:0;">
+            $${Number(p.sale_price).toLocaleString()}
+          </p>
+        </div>
+      </a>
+    `).join('')
+  }
+
+  loadPiano()
 </script>
 
 </body>
