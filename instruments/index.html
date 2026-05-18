@@ -334,6 +334,37 @@
   #piano-grid {
     max-width: 1280px;
     margin: 0 auto;
+  }
+
+  /* Category sections — header + grid per type (Grand / Upright / Digital). */
+  .cat-section { margin-bottom: 88px; }
+  .cat-section:last-child { margin-bottom: 0; }
+  .cat-section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cat-section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(28px, 2.6vw, 44px);
+    line-height: 1.1;
+    margin: 0;
+    color: var(--text-1);
+  }
+  .cat-section-title em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .cat-section-count {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+  .cat-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 28px;
@@ -470,13 +501,15 @@
     .ins-hero { padding: 140px 22px 56px; }
     .ins-filters-wrap { padding: 24px 22px; top: 64px; }
     .ins-grid-section { padding: 48px 22px 80px; }
-    #piano-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .cat-section { margin-bottom: 64px; }
+    .cat-section-header { margin-bottom: 24px; padding-bottom: 14px; }
     .footer { padding: 60px 22px 0; }
     .footer-inner { grid-template-columns: 1fr 1fr; gap: 36px; }
     .footer-brand { grid-column: span 2; }
   }
   @media (max-width: 560px) {
-    #piano-grid { grid-template-columns: 1fr; }
+    .cat-grid { grid-template-columns: 1fr; }
     .ins-filters { gap: 8px; }
     .ins-filter-btn { padding: 9px 16px; font-size: 11px; letter-spacing: 0.12em; }
   }
@@ -604,11 +637,9 @@
 <div class="ins-filters-wrap">
   <div class="ins-filters" role="tablist" aria-label="Filter pianos">
     <button class="ins-filter-btn is-active" data-filter="all" type="button">All</button>
-    <button class="ins-filter-btn" data-filter-condition="A+" type="button">A+ Grade</button>
-    <button class="ins-filter-btn" data-filter-condition="B+" type="button">B+ Grade</button>
-    <button class="ins-filter-btn" data-filter-type="acoustic_upright" type="button">Upright</button>
-    <button class="ins-filter-btn" data-filter-type="acoustic_grand" type="button">Grand</button>
-    <button class="ins-filter-btn" data-filter-type="digital" type="button">Digital</button>
+    <button class="ins-filter-btn" data-filter-type="acoustic_grand" type="button">Grands</button>
+    <button class="ins-filter-btn" data-filter-type="acoustic_upright" type="button">Uprights</button>
+    <button class="ins-filter-btn" data-filter-type="digital" type="button">Digitals</button>
   </div>
 </div>
 
@@ -696,7 +727,15 @@
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(null); });
   })();
 
-  /* -------- PIANO GRID: load from Supabase + filter by type -------- */
+  /* -------- PIANO GRID: load from Supabase, render by category -------- */
+  // Section order (matches the filter pill order). Each section heading
+  // shows above its own card grid when no type filter is active.
+  const CATEGORY_SECTIONS = [
+    { key: 'acoustic_grand',   title: 'Grand pianos' },
+    { key: 'acoustic_upright', title: 'Upright pianos' },
+    { key: 'digital',          title: 'Digital pianos' },
+  ]
+
   async function loadPianos(filters = {}) {
     const grid = document.querySelector('#piano-grid')
     grid.innerHTML = '<p style="color:#9a9590;text-align:center;padding:40px 0;">Loading pianos...</p>'
@@ -709,56 +748,88 @@
         .order('created_at', { ascending: false })
 
       if (filters.type) query = query.eq('type', filters.type)
-      if (filters.condition) query = query.eq('condition', filters.condition)
       if (filters.maxPrice) query = query.lte('sale_price', filters.maxPrice)
 
       const { data, error } = await query
 
       if (error) {
         console.error('[instruments] supabase query failed', error)
-        grid.innerHTML = '<p style="color:#9a9590;text-align:center;padding:40px 0;">No pianos available right now — check back soon.</p>'
+        grid.innerHTML = emptyMessage()
         return
       }
-
       if (!data.length) {
-        grid.innerHTML = '<p style="color:#9a9590;text-align:center;padding:40px 0;">No pianos available right now — check back soon.</p>'
+        grid.innerHTML = emptyMessage()
         return
       }
 
-      grid.innerHTML = data.map(piano => {
-        const badgeClass = piano.condition === 'A+' ? 'card-badge--aplus' : ''
-        const subtitle = piano.description_short
-          || (piano.year ? `${piano.year}${piano.condition ? ' · ' + piano.condition + ' condition' : ''}` : '')
-        return `
-        <div class="piano-card" onclick="window.location='../piano.html?id=${piano.id}'">
-          <div class="card-image">
-            <img src="${piano.images?.[0] || '/assets/piano-placeholder.jpg'}"
-                 alt="${piano.brand} ${piano.model || ''}"
-                 style="width:100%;height:100%;object-fit:cover;"
-                 onerror="this.src='/assets/piano-placeholder.jpg'">
-            ${piano.condition ? `<div class="card-badge ${badgeClass}">${piano.condition}</div>` : ''}
-          </div>
-          <div class="card-body">
-            <span class="card-tag">${formatType(piano.type)}</span>
-            <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;margin:8px 0 6px;">
-              ${piano.brand} ${piano.model || ''}
-            </h3>
-            <p style="color:#9a9590;font-size:13px;line-height:1.55;margin:0 0 18px;">
-              ${subtitle}
-            </p>
-            <div style="color:#b8935a;font-size:22px;font-family:'Cormorant Garamond',serif;line-height:1;">
-              $${Number(piano.sale_price).toLocaleString()}
-            </div>
-            <div style="margin-top:6px;font-size:11px;color:#6b6760;letter-spacing:0.12em;text-transform:uppercase;">
-              10 YR WARRANTY${piano.condition ? ` · CONDITION ${piano.condition}` : ''}
-            </div>
-          </div>
-        </div>`
-      }).join('')
+      if (filters.type) {
+        // Single-category view — one section with that category's title.
+        const cat = CATEGORY_SECTIONS.find(c => c.key === filters.type)
+        grid.innerHTML = renderSection(cat ? cat.title : 'Available pianos', data)
+      } else {
+        // All categories — one section per type in spec order, hiding any
+        // type that currently has zero stock.
+        grid.innerHTML = CATEGORY_SECTIONS
+          .map(cat => {
+            const matching = data.filter(p => p.type === cat.key)
+            return matching.length ? renderSection(cat.title, matching) : ''
+          })
+          .join('')
+      }
     } catch (err) {
       console.error('[instruments] loadPianos threw', err)
-      grid.innerHTML = '<p style="color:#9a9590;text-align:center;padding:40px 0;">No pianos available right now — check back soon.</p>'
+      grid.innerHTML = emptyMessage()
     }
+  }
+
+  function renderSection(title, pianos) {
+    const noun = pianos.length === 1 ? 'instrument' : 'instruments'
+    return `
+      <section class="cat-section">
+        <header class="cat-section-header">
+          <h2 class="cat-section-title">${title}</h2>
+          <span class="cat-section-count">${pianos.length} ${noun}</span>
+        </header>
+        <div class="cat-grid">
+          ${pianos.map(renderPianoCard).join('')}
+        </div>
+      </section>
+    `
+  }
+
+  function renderPianoCard(piano) {
+    const badgeClass = piano.condition === 'A+' ? 'card-badge--aplus' : ''
+    const subtitle = piano.description_short
+      || (piano.year ? `${piano.year}${piano.condition ? ' · ' + piano.condition + ' condition' : ''}` : '')
+    return `
+      <div class="piano-card" onclick="window.location='../piano.html?id=${piano.id}'">
+        <div class="card-image">
+          <img src="${piano.images?.[0] || '/assets/piano-placeholder.jpg'}"
+               alt="${piano.brand} ${piano.model || ''}"
+               style="width:100%;height:100%;object-fit:cover;"
+               onerror="this.src='/assets/piano-placeholder.jpg'">
+          ${piano.condition ? `<div class="card-badge ${badgeClass}">${piano.condition}</div>` : ''}
+        </div>
+        <div class="card-body">
+          <span class="card-tag">${formatType(piano.type)}</span>
+          <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;margin:8px 0 6px;">
+            ${piano.brand} ${piano.model || ''}
+          </h3>
+          <p style="color:#9a9590;font-size:13px;line-height:1.55;margin:0 0 18px;">
+            ${subtitle}
+          </p>
+          <div style="color:#b8935a;font-size:22px;font-family:'Cormorant Garamond',serif;line-height:1;">
+            $${Number(piano.sale_price).toLocaleString()}
+          </div>
+          <div style="margin-top:6px;font-size:11px;color:#6b6760;letter-spacing:0.12em;text-transform:uppercase;">
+            10 YR WARRANTY${piano.condition ? ` · CONDITION ${piano.condition}` : ''}
+          </div>
+        </div>
+      </div>`
+  }
+
+  function emptyMessage() {
+    return '<p style="color:#9a9590;text-align:center;padding:40px 0;">No pianos available right now — check back soon.</p>'
   }
 
   function formatType(type) {
