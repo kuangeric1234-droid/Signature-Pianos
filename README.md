@@ -52,8 +52,8 @@ Visit `?debug` in the URL to open a live tuner panel with sliders for all 6 knob
 
 - Inner pages — instruments catalogue, individual piano product, teacher directory, buyer's guide
 - CMS for inventory + teacher profiles (Sanity or simple JSON)
-- Teacher portal at `portal.signaturepianos.com`
-- Admin portal at `app.signaturepianos.com`
+- Teacher portal at `portal.signaturepianos.com.au`
+- Admin portal at `app.signaturepianos.com.au`
 - Cart/checkout for digital pianos
 
 ---

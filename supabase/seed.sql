@@ -117,10 +117,10 @@ INSERT INTO deliveries (
   ('00010001-0000-0000-0000-000000000001',
    'Marcus Vale', '0411 990 002',
    '2026-04-15', '9:00 AM – 11:00 AM', 'delivered',
-   ARRAY['https://storage.signaturepianos.com/pickup/sp-2026-00001-01.jpg',
-         'https://storage.signaturepianos.com/pickup/sp-2026-00001-02.jpg'],
-   ARRAY['https://storage.signaturepianos.com/delivery/sp-2026-00001-01.jpg',
-         'https://storage.signaturepianos.com/delivery/sp-2026-00001-02.jpg'],
+   ARRAY['https://storage.signaturepianos.com.au/pickup/sp-2026-00001-01.jpg',
+         'https://storage.signaturepianos.com.au/pickup/sp-2026-00001-02.jpg'],
+   ARRAY['https://storage.signaturepianos.com.au/delivery/sp-2026-00001-01.jpg',
+         'https://storage.signaturepianos.com.au/delivery/sp-2026-00001-02.jpg'],
    '2026-04-15 09:12:00+10', '2026-04-15 10:48:00+10',
    true, true,
    'Smooth delivery. Customer extremely happy with placement.'),
@@ -146,7 +146,7 @@ INSERT INTO warranties (
    '11111111-1111-1111-1111-111111111111',
    '0a000000-0000-0000-0000-000000000003',
    '2026-04-15', 10, true, '2026-04-15 11:02:00+10',
-   'https://storage.signaturepianos.com/warranties/wrt-2026-00001.pdf',
+   'https://storage.signaturepianos.com.au/warranties/wrt-2026-00001.pdf',
    'active',
    'Generated automatically on delivery confirmation.'),
 
@@ -229,7 +229,7 @@ INSERT INTO teachers (
   ('70000000-0000-0000-0000-000000000001',
    'Mei', 'Lin', 'mei.lin@example.com', '0411 552 991',
    'Concert pianist and AMEB examiner with 12 years of teaching experience. Specialises in classical repertoire from beginner Grade 1 through to AMusA preparation.',
-   'https://storage.signaturepianos.com/teachers/mei-lin.jpg',
+   'https://storage.signaturepianos.com.au/teachers/mei-lin.jpg',
    'Carlton', 'VIC', '3053', 12,
    ARRAY['BMus (Performance) — Melbourne Conservatorium', 'AMEB Grade 8 Theory', 'AMusA Performance'],
    ARRAY['classical', 'AMEB exam prep', 'sight-reading'],
@@ -240,7 +240,7 @@ INSERT INTO teachers (
   ('70000000-0000-0000-0000-000000000002',
    'Daniel', 'Reeves', 'daniel.reeves@example.com', '0432 008 124',
    'Jazz pianist and improvisation specialist. Plays regularly at Bird''s Basement and Paris Cat. Teaches the language of jazz from blues fundamentals to advanced harmony.',
-   'https://storage.signaturepianos.com/teachers/daniel-reeves.jpg',
+   'https://storage.signaturepianos.com.au/teachers/daniel-reeves.jpg',
    'St Kilda', 'VIC', '3182', 8,
    ARRAY['BMus (Jazz Studies) — Monash University'],
    ARRAY['jazz', 'improvisation', 'contemporary'],
@@ -274,8 +274,8 @@ INSERT INTO teacher_listings (
    'My students range from absolute beginners to AMusA candidates. I follow the AMEB Piano for Leisure and Classical syllabuses, with strong emphasis on technique, musicality and sight-reading from day one. Lessons available in-studio in Carlton or online via Zoom with a high-quality audio interface.',
    95.00, true, 45.00,
    ARRAY[30, 45, 60], ARRAY['English', 'Mandarin'],
-   ARRAY['https://storage.signaturepianos.com/listings/mei-lin-1.jpg',
-         'https://storage.signaturepianos.com/listings/mei-lin-2.jpg'],
+   ARRAY['https://storage.signaturepianos.com.au/listings/mei-lin-1.jpg',
+         'https://storage.signaturepianos.com.au/listings/mei-lin-2.jpg'],
    'mei-lin-classical-carlton', 'active'),
 
   ('71000000-0000-0000-0000-000000000002',
@@ -284,7 +284,7 @@ INSERT INTO teacher_listings (
    'Whether you''re a classical pianist looking to break into jazz or a complete beginner who wants to play the music you actually love, I''ll teach you the language: blues, ii-V-I, voicings, comping, soloing. Adult learners only.',
    110.00, true, 55.00,
    ARRAY[60, 90], ARRAY['English'],
-   ARRAY['https://storage.signaturepianos.com/listings/daniel-reeves-1.jpg'],
+   ARRAY['https://storage.signaturepianos.com.au/listings/daniel-reeves-1.jpg'],
    'daniel-reeves-jazz-st-kilda', 'active'),
 
   ('71000000-0000-0000-0000-000000000003',
@@ -305,7 +305,7 @@ INSERT INTO teacher_listings (
 -- seeded row is a placeholder for the row structure, not a functioning admin.
 INSERT INTO admin_users (id, first_name, last_name, email, role, active) VALUES
   ('90000000-0000-0000-0000-000000000001',
-   'Eric', 'Kuang', 'eric@signaturepianos.com', 'super_admin', true);
+   'Eric', 'Kuang', 'info@signaturepianos.com.au', 'super_admin', true);
 
 
 -- =============================================================================

@@ -84,7 +84,7 @@ SUPABASE_ANON_KEY=eyJhbGciOiJI...   # anon key from Project Settings → API
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJI...   # service role key from same screen
 
 # Business email for transactional notifications
-BUSINESS_EMAIL=hello@signaturepianos.com
+BUSINESS_EMAIL=info@signaturepianos.com.au
 ```
 
 | Variable | Where to use it |
@@ -186,7 +186,7 @@ The seed creates a placeholder `admin_users` row with `user_id` NULL — it does
    ```sql
    UPDATE admin_users
    SET user_id = '<their auth.users.id>'
-   WHERE email = 'eric@signaturepianos.com';
+   WHERE email = 'info@signaturepianos.com.au';
    ```
 
 4. From now on, `is_admin()` and `is_super_admin()` will recognise them in any SQL that runs in their session.

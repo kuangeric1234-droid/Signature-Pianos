@@ -7,7 +7,7 @@
  *
  * Required env (configured in the Vercel dashboard):
  *   RESEND_API_KEY  — Resend API key
- *   BUSINESS_EMAIL  — Internal address (e.g. eric@signaturepianos.com)
+ *   BUSINESS_EMAIL  — Internal address (e.g. info@signaturepianos.com.au)
  *
  * The forms call this in fire-and-forget mode AFTER the row is safely
  * in Supabase, so any email failure is logged but never blocks the UX.
@@ -17,7 +17,7 @@ const { Resend } = require('resend')
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const BUSINESS_EMAIL = process.env.BUSINESS_EMAIL
-const FROM = 'Signature Pianos <hello@signaturepianos.com>'
+const FROM = 'Signature Pianos <info@signaturepianos.com.au>'
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -129,7 +129,7 @@ function shell({ preview, body }) {
           </tr>
           <tr>
             <td style="padding:24px 40px;border-top:1px solid rgba(184,147,90,0.15);text-align:center;font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:11px;color:#6b6760;letter-spacing:0.08em;">
-              Signature Pianos · Melbourne, VIC · hello@signaturepianos.com
+              Signature Pianos · Melbourne, VIC · info@signaturepianos.com.au
             </td>
           </tr>
         </table>
@@ -214,7 +214,7 @@ function viewingConfirmationEmail(data) {
 
     <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:20px;color:#b8935a;margin:0 0 8px;">Where to find us</h2>
     ${p('<!-- TODO: ADD SHOWROOM ADDRESS -->Showroom address — Melbourne, VIC<br>Monday to Saturday 9am–5pm', { muted: true })}
-    ${p('<!-- TODO: ADD PHONE / EMAIL -->Phone coming soon · hello@signaturepianos.com', { muted: true })}
+    ${p('<!-- TODO: ADD PHONE / EMAIL -->Phone coming soon · info@signaturepianos.com.au', { muted: true })}
 
     ${signOff('Eric Kuang')}
   `
@@ -229,7 +229,7 @@ function viewingInternalEmail(data) {
   const submittedAt = new Date().toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })
   const body = `
     ${h1('New viewing request')}
-    ${p(`A new viewing has just been booked through signaturepianos.com.`, { muted: true })}
+    ${p(`A new viewing has just been booked through signaturepianos.com.au.`, { muted: true })}
 
     ${detailTable([
       ['Customer', `${esc(data.first_name)} ${esc(data.last_name)}`],
@@ -269,7 +269,7 @@ function serviceConfirmationEmail(data) {
     ${p(`We aim to respond to every service request within 24 hours. If you need to reach us sooner, give us a call directly.`, { muted: true })}
 
     ${divider()}
-    ${p('<!-- TODO: ADD PHONE / EMAIL -->Phone coming soon · hello@signaturepianos.com', { muted: true })}
+    ${p('<!-- TODO: ADD PHONE / EMAIL -->Phone coming soon · info@signaturepianos.com.au', { muted: true })}
 
     ${signOff('Eric Kuang')}
   `

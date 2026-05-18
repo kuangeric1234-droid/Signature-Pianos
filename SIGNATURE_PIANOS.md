@@ -7,7 +7,7 @@
 
 **Business name:** Signature Pianos
 **Location:** Melbourne, Victoria, Australia
-**Website:** signaturepianos.com
+**Website:** signaturepianos.com.au
 **Tagline:** *Find the piano that moves you.*
 
 Signature Pianos is Melbourne's most modern piano business. It sells new and pre-loved acoustic and digital pianos, connects buyers with piano teachers, and provides ongoing post-sale support — all through a beautifully designed digital experience that no competitor in Melbourne currently offers.
@@ -601,7 +601,7 @@ Each teacher gets:
 
 ## 8. POST-SALE CUSTOMER PORTAL
 
-### URL: /my-piano or app.signaturepianos.com
+### URL: /my-piano or app.signaturepianos.com.au
 
 ### What it contains
 ```
@@ -660,7 +660,7 @@ Booking:      Appointo
 Auth:         Clerk or Supabase Auth
 Database:     Supabase (Postgres)
 Hosting:      Vercel (frontend) + Railway or Render (backend)
-Domain:       signaturepianos.com + app.signaturepianos.com
+Domain:       signaturepianos.com.au + app.signaturepianos.com.au
 ```
 
 ---
@@ -702,7 +702,7 @@ verified teachers, and post-sale care — all in one place.">
   "@type": "MusicStore",
   "name": "Signature Pianos",
   "address": { "@type": "PostalAddress", "addressLocality": "Melbourne", "addressRegion": "VIC" },
-  "url": "https://signaturepianos.com",
+  "url": "https://signaturepianos.com.au",
   "telephone": "+61-X-XXXX-XXXX",
   "openingHours": "Mo-Sa 09:00-17:00"
 }
