@@ -1,0 +1,182 @@
+<!--
+  ADMIN SETUP — run once in Supabase SQL editor:
+
+  1. Create your admin auth account:
+     Go to Supabase → Authentication → Users → Add user
+     Email: eric@signaturepianos.com.au
+     Password: [your secure password]
+     Copy the user UUID
+
+  2. Insert into admin_users table:
+     insert into admin_users (user_id, first_name, last_name, email, role, active)
+     values ('[YOUR USER UUID]', 'Eric', 'Kuang', 'eric@signaturepianos.com.au', 'super_admin', true);
+
+  3. Enable email auth in Supabase:
+     Authentication → Providers → Email → Enable
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — Signature Pianos Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="admin.css">
+<style>
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .login-card {
+    width: 100%;
+    max-width: 380px;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 40px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .login-brand { text-align: center; margin-bottom: 32px; }
+  .login-brand .name {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--admin-gold);
+    font-size: 28px;
+    letter-spacing: 0.01em;
+  }
+  .login-brand .name strong { font-style: normal; font-weight: 500; color: var(--admin-text); }
+  .login-brand .label {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--admin-text-faint);
+    margin-top: 8px;
+  }
+  .login-footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 11px;
+    color: var(--admin-text-faint);
+  }
+  .login-error {
+    display: none;
+    color: var(--admin-red);
+    background: var(--admin-red-light);
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-top: 14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="login-brand">
+    <div class="name"><strong>Signature</strong> Pianos</div>
+    <div class="label">Admin Portal</div>
+  </div>
+
+  <form id="loginForm" novalidate>
+    <div class="admin-form-row">
+      <label class="admin-label" for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" name="email" class="admin-input" autocomplete="email" required>
+    </div>
+    <div class="admin-form-row">
+      <label class="admin-label" for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" name="password" class="admin-input" autocomplete="current-password" required>
+    </div>
+    <button type="submit" class="btn-gold" style="width:100%;justify-content:center;padding:12px;margin-top:4px;">
+      Sign in
+    </button>
+    <div class="login-error" id="loginError">Invalid email or password</div>
+  </form>
+
+  <div class="login-footer">
+    Access restricted to authorised personnel only.
+  </div>
+</div>
+
+<!-- Supabase + shared config -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="js/admin-auth.js"></script>
+
+<script>
+  // If we're already signed in AND a row exists in admin_users, jump
+  // straight to the dashboard.
+  (async function autoForward() {
+    try {
+      const { data: { session } } = await adminSupabase.auth.getSession()
+      if (!session) return
+      const { data: row } = await adminSupabase
+        .from('admin_users')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .eq('active', true)
+        .single()
+      if (row) window.location.replace('dashboard.html')
+    } catch (err) {
+      // Stay on login if anything's off — checkAdminAuth handles signed-out state.
+    }
+  })()
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const btn = e.target.querySelector('button[type="submit"]')
+    const errorEl = document.getElementById('loginError')
+    errorEl.style.display = 'none'
+    btn.textContent = 'Signing in...'
+    btn.disabled = true
+
+    try {
+      const { error } = await adminSupabase.auth.signInWithPassword({
+        email: e.target.email.value.trim(),
+        password: e.target.password.value
+      })
+
+      if (error) {
+        console.error('[admin] signin failed', error)
+        errorEl.textContent = 'Invalid email or password'
+        errorEl.style.display = 'block'
+        btn.textContent = 'Sign in'
+        btn.disabled = false
+        return
+      }
+
+      // Verify the user is in admin_users before sending to the dashboard.
+      const { data: { session } } = await adminSupabase.auth.getSession()
+      const { data: adminRow, error: rowErr } = await adminSupabase
+        .from('admin_users')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .eq('active', true)
+        .single()
+
+      if (rowErr || !adminRow) {
+        await adminSupabase.auth.signOut()
+        errorEl.textContent = 'This account is not authorised for admin access.'
+        errorEl.style.display = 'block'
+        btn.textContent = 'Sign in'
+        btn.disabled = false
+        return
+      }
+
+      window.location.replace('dashboard.html')
+    } catch (err) {
+      console.error('[admin] signin threw', err)
+      errorEl.textContent = 'Something went wrong — please try again.'
+      errorEl.style.display = 'block'
+      btn.textContent = 'Sign in'
+      btn.disabled = false
+    }
+  })
+</script>
+
+</body>
+</html>

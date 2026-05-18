@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enquiries — Signature Pianos Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <span style="font-family:'DM Sans';font-size:13px;font-weight:500;color:#b8935a;letter-spacing:0.1em;">SIGNATURE</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.15em;display:block;margin-top:2px;">ADMIN</span>
+    </div>
+    <nav class="admin-nav">
+      <a href="dashboard.html"  class="admin-nav-item" data-page="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="enquiries.html"  class="admin-nav-item" data-page="enquiries"><i class="ti ti-mail"></i> Enquiries <span class="nav-badge" id="enquiriesBadge"></span></a>
+      <a href="inventory.html"  class="admin-nav-item" data-page="inventory"><i class="ti ti-piano"></i> Inventory</a>
+      <a href="orders.html"     class="admin-nav-item" data-page="orders"><i class="ti ti-receipt"></i> Orders &amp; POS</a>
+      <a href="customers.html"  class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
+      <a href="deliveries.html" class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
+      <a href="teachers.html"   class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="https://signaturepianos.com.au/" target="_blank" style="font-size:12px;color:rgba(255,255,255,0.4);text-decoration:none;display:flex;align-items:center;gap:6px;">
+        <i class="ti ti-external-link" style="font-size:13px;"></i> View live site
+      </a>
+      <button onclick="adminSignOut()" style="font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;margin-top:8px;">
+        <i class="ti ti-logout" style="font-size:13px;"></i> Sign out
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;">
+        <button class="admin-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+        <h1 class="admin-page-title">Enquiries</h1>
+      </div>
+      <div class="admin-topbar-right">
+        <span style="font-size:13px;color:var(--admin-text-muted);" data-admin-name>—</span>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- Tabs -->
+      <div class="tab-bar">
+        <button class="tab is-active" data-tab="viewing" type="button">Viewing requests</button>
+        <button class="tab" data-tab="service" type="button">Service requests</button>
+      </div>
+
+      <!-- Filter bar (shared across tabs) -->
+      <div class="filter-bar" id="filterBar">
+        <button class="filter-pill is-active" data-filter="all" type="button">All</button>
+        <button class="filter-pill" data-filter="pending" type="button">Pending</button>
+        <button class="filter-pill" data-filter="confirmed" type="button">Confirmed</button>
+        <button class="filter-pill" data-filter="completed" type="button">Completed</button>
+        <button class="filter-pill" data-filter="cancelled" type="button">Cancelled</button>
+      </div>
+
+      <!-- Viewing table -->
+      <div id="viewingTableWrap" class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Pianos</th>
+              <th>How heard</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="viewingTableBody">
+            <tr><td colspan="8"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Service table -->
+      <div id="serviceTableWrap" class="admin-table-wrap" style="display:none;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Suburb</th>
+              <th>Piano brand</th>
+              <th>Service</th>
+              <th>Last tuned</th>
+              <th>Signature</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="serviceTableBody">
+            <tr><td colspan="9"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Detail slide-in panel (re-used for both tabs) -->
+<div class="slide-panel-overlay" id="detailPanelOverlay" onclick="closeSlidePanel('detailPanel')"></div>
+<aside class="slide-panel" id="detailPanel" aria-hidden="true">
+  <div class="slide-panel-header">
+    <h2 class="slide-panel-title" id="detailTitle">Enquiry</h2>
+    <button class="slide-panel-close" onclick="closeSlidePanel('detailPanel')" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body" id="detailBody">
+    <!-- Populated when a row opens -->
+  </div>
+  <div class="slide-panel-footer">
+    <button class="btn-ghost" onclick="closeSlidePanel('detailPanel')">Close</button>
+    <button class="btn-gold" id="detailReplyBtn"><i class="ti ti-mail"></i> Reply by email</button>
+  </div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-nav.js"></script>
+<script>
+let currentTab = 'viewing'      // viewing | service
+let currentFilter = 'all'       // all | pending | confirmed | completed | cancelled
+let viewingRows = []
+let serviceRows = []
+
+;(async function init() {
+  const admin = await checkAdminAuth()
+  if (!admin) return
+
+  // Tab clicks
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('is-active'))
+      btn.classList.add('is-active')
+      currentTab = btn.dataset.tab
+      document.getElementById('viewingTableWrap').style.display = currentTab === 'viewing' ? '' : 'none'
+      document.getElementById('serviceTableWrap').style.display = currentTab === 'service' ? '' : 'none'
+      renderCurrent()
+    })
+  })
+
+  // Filter pill clicks
+  document.querySelectorAll('#filterBar .filter-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#filterBar .filter-pill').forEach(b => b.classList.remove('is-active'))
+      btn.classList.add('is-active')
+      currentFilter = btn.dataset.filter
+      renderCurrent()
+    })
+  })
+
+  await Promise.all([loadViewings(), loadServices()])
+})()
+
+async function loadViewings() {
+  try {
+    const { data, error } = await adminSupabase
+      .from('viewing_bookings')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    viewingRows = data || []
+  } catch (err) {
+    console.error('[enquiries] load viewings failed', err)
+    viewingRows = []
+  }
+  if (currentTab === 'viewing') renderViewings()
+}
+
+async function loadServices() {
+  try {
+    const { data, error } = await adminSupabase
+      .from('service_requests')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    serviceRows = data || []
+  } catch (err) {
+    console.error('[enquiries] load services failed', err)
+    serviceRows = []
+  }
+  if (currentTab === 'service') renderServices()
+}
+
+function applyFilter(rows) {
+  if (currentFilter === 'all') return rows
+  return rows.filter(r => r.status === currentFilter)
+}
+
+function renderCurrent() {
+  if (currentTab === 'viewing') renderViewings()
+  else renderServices()
+}
+
+function renderViewings() {
+  const body = document.getElementById('viewingTableBody')
+  const rows = applyFilter(viewingRows)
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-mail-off"></i><p>No viewing requests match this filter.</p></div></td></tr>`
+    return
+  }
+  body.innerHTML = rows.map(r => {
+    const fullName = `${esc(r.first_name || '')} ${esc(r.last_name || '')}`.trim() || '—'
+    const tags = (r.pianos_interested || []).map(p => `<span class="tag">${esc(p)}</span>`).join('')
+    return `
+      <tr class="clickable" data-id="${esc(r.id)}" data-table="viewing_bookings">
+        <td class="name-cell">${fullName}</td>
+        <td>${fmtDate(r.preferred_date)}</td>
+        <td>${esc(readablePreferredTime(r.preferred_time))}</td>
+        <td><div class="tags">${tags || '—'}</div></td>
+        <td>${esc(readableHowHeard(r.how_heard))}</td>
+        <td>${timeAgo(r.created_at)}</td>
+        <td><span class="${statusPillClass(r.status)}">${esc(r.status || '')}</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="icon-btn is-green" data-action="confirm" title="Mark confirmed"><i class="ti ti-check"></i></button>
+            <button class="icon-btn is-red"   data-action="cancel"  title="Mark cancelled"><i class="ti ti-x"></i></button>
+          </div>
+        </td>
+      </tr>
+    `
+  }).join('')
+  bindRowActions(body, 'viewing_bookings')
+}
+
+function renderServices() {
+  const body = document.getElementById('serviceTableBody')
+  const rows = applyFilter(serviceRows)
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="ti ti-mail-off"></i><p>No service requests match this filter.</p></div></td></tr>`
+    return
+  }
+  body.innerHTML = rows.map(r => {
+    const fullName = `${esc(r.first_name || '')} ${esc(r.last_name || '')}`.trim() || '—'
+    const sig = r.is_signature_piano
+      ? `<i class="ti ti-star-filled" style="color:var(--admin-gold);font-size:16px;" title="Signature Piano"></i>`
+      : `<span style="color:var(--admin-text-faint);">—</span>`
+    return `
+      <tr class="clickable" data-id="${esc(r.id)}" data-table="service_requests">
+        <td class="name-cell">${fullName}</td>
+        <td>${esc(r.suburb || '—')}</td>
+        <td>${esc(r.piano_brand || '—')}</td>
+        <td>${esc(readableEnum(r.service_required))}</td>
+        <td>${esc(readableEnum(r.last_tuned))}</td>
+        <td style="text-align:center;">${sig}</td>
+        <td>${timeAgo(r.created_at)}</td>
+        <td><span class="${statusPillClass(r.status)}">${esc(r.status || '')}</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="icon-btn is-green" data-action="confirm" title="Mark confirmed"><i class="ti ti-check"></i></button>
+            <button class="icon-btn is-red"   data-action="cancel"  title="Mark cancelled"><i class="ti ti-x"></i></button>
+          </div>
+        </td>
+      </tr>
+    `
+  }).join('')
+  bindRowActions(body, 'service_requests')
+}
+
+function bindRowActions(body, table) {
+  body.querySelectorAll('tr.clickable').forEach(tr => {
+    tr.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]')
+      const id = tr.dataset.id
+      if (btn) {
+        e.stopPropagation()
+        const newStatus = btn.dataset.action === 'confirm' ? 'confirmed' : 'cancelled'
+        updateEnquiryStatus(id, newStatus, table)
+        return
+      }
+      openDetail(id, table)
+    })
+  })
+}
+
+async function updateEnquiryStatus(id, status, table) {
+  try {
+    const { error } = await adminSupabase
+      .from(table)
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+    if (error) throw error
+    if (table === 'viewing_bookings') {
+      await loadViewings()
+    } else {
+      await loadServices()
+    }
+    loadEnquiriesBadge()
+  } catch (err) {
+    console.error('[enquiries] status update failed', err)
+    alert("Couldn't update — please try again.")
+  }
+}
+
+function openDetail(id, table) {
+  const row = table === 'viewing_bookings'
+    ? viewingRows.find(r => r.id === id)
+    : serviceRows.find(r => r.id === id)
+  if (!row) return
+
+  const fullName = `${row.first_name || ''} ${row.last_name || ''}`.trim() || 'Enquiry'
+  document.getElementById('detailTitle').textContent = fullName
+
+  // Reply button = mailto with a pre-filled subject.
+  const subj = table === 'viewing_bookings'
+    ? `Your viewing at Signature Pianos`
+    : `Your service request at Signature Pianos`
+  const replyBtn = document.getElementById('detailReplyBtn')
+  replyBtn.onclick = () => {
+    window.location.href = `mailto:${encodeURIComponent(row.email || '')}?subject=${encodeURIComponent(subj)}`
+  }
+
+  const body = document.getElementById('detailBody')
+  const sharedFields = `
+    <div class="admin-form-row--split">
+      <div>
+        <div class="admin-label">Email</div>
+        <div>${esc(row.email || '—')}</div>
+      </div>
+      <div>
+        <div class="admin-label">Phone</div>
+        <div>${esc(row.phone || '—')}</div>
+      </div>
+    </div>
+  `
+  let typed = ''
+  if (table === 'viewing_bookings') {
+    const tags = (row.pianos_interested || []).map(p => `<span class="tag">${esc(p)}</span>`).join('')
+    typed = `
+      <div class="admin-form-row--split">
+        <div>
+          <div class="admin-label">Preferred date</div>
+          <div>${fmtDate(row.preferred_date)}</div>
+        </div>
+        <div>
+          <div class="admin-label">Preferred time</div>
+          <div>${esc(readablePreferredTime(row.preferred_time))}</div>
+        </div>
+      </div>
+      <div class="admin-form-row">
+        <div class="admin-label">Pianos of interest</div>
+        <div class="tags">${tags || '—'}</div>
+      </div>
+      <div class="admin-form-row">
+        <div class="admin-label">How they heard</div>
+        <div>${esc(readableHowHeard(row.how_heard))}</div>
+      </div>
+    `
+  } else {
+    typed = `
+      <div class="admin-form-row--split">
+        <div>
+          <div class="admin-label">Suburb</div>
+          <div>${esc(row.suburb || '—')}</div>
+        </div>
+        <div>
+          <div class="admin-label">Piano brand</div>
+          <div>${esc(row.piano_brand || '—')}</div>
+        </div>
+      </div>
+      <div class="admin-form-row--split">
+        <div>
+          <div class="admin-label">Piano age</div>
+          <div>${esc(readableEnum(row.piano_age))}</div>
+        </div>
+        <div>
+          <div class="admin-label">Last tuned</div>
+          <div>${esc(readableEnum(row.last_tuned))}</div>
+        </div>
+      </div>
+      <div class="admin-form-row--split">
+        <div>
+          <div class="admin-label">Service required</div>
+          <div>${esc(readableEnum(row.service_required))}</div>
+        </div>
+        <div>
+          <div class="admin-label">Preferred timeframe</div>
+          <div>${esc(readableEnum(row.preferred_timeframe))}</div>
+        </div>
+      </div>
+      <div class="admin-form-row">
+        <div class="admin-label">Signature Pianos customer</div>
+        <div>${row.is_signature_piano ? '<span class="pill pill--gold">Yes</span>' : 'No'}</div>
+      </div>
+    `
+  }
+
+  body.innerHTML = `
+    ${sharedFields}
+    ${typed}
+    <div class="admin-form-row">
+      <div class="admin-label">Customer message</div>
+      <div style="background:var(--admin-bg);padding:12px;border-radius:4px;font-size:13px;white-space:pre-wrap;">${esc(row.message || '(no message)')}</div>
+    </div>
+    <div class="admin-form-row">
+      <label class="admin-label" for="detailStatus">Status</label>
+      <select id="detailStatus" class="admin-select">
+        ${['pending','confirmed','completed','cancelled'].map(s =>
+          `<option value="${s}"${row.status === s ? ' selected' : ''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="admin-form-row">
+      <label class="admin-label" for="detailNotes">Internal notes</label>
+      <textarea id="detailNotes" class="admin-textarea" rows="4" placeholder="Notes are saved on blur">${esc(row.message ? '' : '')}${row.notes ? esc(row.notes) : ''}</textarea>
+      <div id="detailNotesSaved" style="font-size:11px;color:var(--admin-green);margin-top:6px;display:none;">Saved.</div>
+    </div>
+    <div style="font-size:11px;color:var(--admin-text-faint);">
+      Submitted ${timeAgo(row.created_at)} · ID ${esc(row.id)}
+    </div>
+  `
+
+  // Status dropdown writes back to Supabase.
+  document.getElementById('detailStatus').addEventListener('change', async (e) => {
+    await updateEnquiryStatus(id, e.target.value, table)
+  })
+
+  // Notes textarea saves on blur. Note: only viewing_bookings has a `notes`
+  // column in the schema today — service_requests doesn't, so we no-op
+  // there to avoid Supabase errors.
+  const notesEl = document.getElementById('detailNotes')
+  const savedEl = document.getElementById('detailNotesSaved')
+  notesEl.addEventListener('blur', async () => {
+    if (table !== 'viewing_bookings') return
+    try {
+      const { error } = await adminSupabase
+        .from(table)
+        .update({ notes: notesEl.value, updated_at: new Date().toISOString() })
+        .eq('id', id)
+      if (error) throw error
+      savedEl.style.display = 'block'
+      setTimeout(() => savedEl.style.display = 'none', 1800)
+    } catch (err) {
+      console.error('[enquiries] notes save failed', err)
+    }
+  })
+
+  openSlidePanel('detailPanel')
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory — Signature Pianos Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="admin.css">
+<style>
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px; height: 20px;
+  }
+  .toggle-switch input { display: none; }
+  .toggle-switch .slider {
+    position: absolute; inset: 0;
+    background: var(--admin-border-dark);
+    border-radius: 20px;
+    transition: background 0.2s ease;
+    cursor: pointer;
+  }
+  .toggle-switch .slider::before {
+    content: '';
+    position: absolute;
+    height: 14px; width: 14px;
+    left: 3px; top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+  }
+  .toggle-switch input:checked + .slider { background: var(--admin-gold); }
+  .toggle-switch input:checked + .slider::before { transform: translateX(16px); }
+  .photo-upload-placeholder {
+    border: 2px dashed var(--admin-border-dark);
+    border-radius: 4px;
+    padding: 24px;
+    text-align: center;
+    color: var(--admin-text-faint);
+    margin-top: 12px;
+  }
+  .photo-upload-placeholder i { font-size: 32px; margin-bottom: 8px; display: block; }
+  .photo-upload-placeholder p { margin: 0; font-size: 13px; }
+  .photo-upload-placeholder p + p { margin: 4px 0 0; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <span style="font-family:'DM Sans';font-size:13px;font-weight:500;color:#b8935a;letter-spacing:0.1em;">SIGNATURE</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.15em;display:block;margin-top:2px;">ADMIN</span>
+    </div>
+    <nav class="admin-nav">
+      <a href="dashboard.html"  class="admin-nav-item" data-page="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="enquiries.html"  class="admin-nav-item" data-page="enquiries"><i class="ti ti-mail"></i> Enquiries <span class="nav-badge" id="enquiriesBadge"></span></a>
+      <a href="inventory.html"  class="admin-nav-item" data-page="inventory"><i class="ti ti-piano"></i> Inventory</a>
+      <a href="orders.html"     class="admin-nav-item" data-page="orders"><i class="ti ti-receipt"></i> Orders &amp; POS</a>
+      <a href="customers.html"  class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
+      <a href="deliveries.html" class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
+      <a href="teachers.html"   class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="https://signaturepianos.com.au/" target="_blank" style="font-size:12px;color:rgba(255,255,255,0.4);text-decoration:none;display:flex;align-items:center;gap:6px;">
+        <i class="ti ti-external-link" style="font-size:13px;"></i> View live site
+      </a>
+      <button onclick="adminSignOut()" style="font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;margin-top:8px;">
+        <i class="ti ti-logout" style="font-size:13px;"></i> Sign out
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;">
+        <button class="admin-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+        <h1 class="admin-page-title">Inventory</h1>
+      </div>
+      <div class="admin-topbar-right">
+        <button class="btn-gold" id="addPianoBtn"><i class="ti ti-plus"></i> Add piano</button>
+        <span style="font-size:13px;color:var(--admin-text-muted);" data-admin-name>—</span>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <div class="stats-strip" id="statsStrip">
+        <div class="stat"><span class="stat-label">Available</span><span class="stat-value" id="statAvail">—</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-label">Reserved</span><span class="stat-value" id="statReserved">—</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-label">Sold</span><span class="stat-value" id="statSold">—</span></div>
+      </div>
+
+      <div class="filter-bar" id="filterBar">
+        <button class="filter-pill is-active" data-filter="all" type="button">All</button>
+        <button class="filter-pill" data-filter="available" type="button">Available</button>
+        <button class="filter-pill" data-filter="reserved" type="button">Reserved</button>
+        <button class="filter-pill" data-filter="sold" type="button">Sold</button>
+        <button class="filter-pill" data-filter="A+" type="button">A+ Grade</button>
+        <button class="filter-pill" data-filter="B+" type="button">B+ Grade</button>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Piano</th>
+              <th>Serial</th>
+              <th>Year</th>
+              <th>Condition</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Featured</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="pianoTableBody">
+            <tr><td colspan="8"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Add / Edit piano slide-in panel -->
+<div class="slide-panel-overlay" id="pianoPanelOverlay" onclick="closeSlidePanel('pianoPanel')"></div>
+<aside class="slide-panel" id="pianoPanel" aria-hidden="true">
+  <div class="slide-panel-header">
+    <h2 class="slide-panel-title" id="pianoPanelTitle">Add piano</h2>
+    <button class="slide-panel-close" onclick="closeSlidePanel('pianoPanel')" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body">
+    <form id="pianoForm" novalidate>
+      <input type="hidden" id="pianoId">
+
+      <div class="admin-form-row--split">
+        <div>
+          <label class="admin-label" for="f-brand">Brand</label>
+          <input type="text" id="f-brand" class="admin-input" value="Yamaha">
+        </div>
+        <div>
+          <label class="admin-label" for="f-model">Model</label>
+          <input type="text" id="f-model" class="admin-input" placeholder="e.g. YU11">
+        </div>
+      </div>
+
+      <div class="admin-form-row--split">
+        <div>
+          <label class="admin-label" for="f-year">Year</label>
+          <input type="number" id="f-year" class="admin-input">
+        </div>
+        <div>
+          <label class="admin-label" for="f-serial">Serial number</label>
+          <input type="text" id="f-serial" class="admin-input">
+        </div>
+      </div>
+
+      <div class="admin-form-row--split">
+        <div>
+          <label class="admin-label" for="f-condition">Condition</label>
+          <select id="f-condition" class="admin-select">
+            <option value="A+">A+</option>
+            <option value="B+">B+</option>
+          </select>
+        </div>
+        <div>
+          <label class="admin-label" for="f-price">Sale price</label>
+          <input type="number" id="f-price" class="admin-input" step="0.01">
+        </div>
+      </div>
+
+      <div class="admin-form-row">
+        <label class="admin-label" for="f-status">Stock status</label>
+        <select id="f-status" class="admin-select">
+          <option value="available">Available</option>
+          <option value="reserved">Reserved</option>
+          <option value="sold">Sold</option>
+        </select>
+      </div>
+
+      <div class="admin-form-row">
+        <label class="admin-label" for="f-desc-short">Description (short)</label>
+        <input type="text" id="f-desc-short" class="admin-input" maxlength="160">
+      </div>
+
+      <div class="admin-form-row">
+        <label class="admin-label" for="f-desc">Description</label>
+        <textarea id="f-desc" class="admin-textarea" rows="4"></textarea>
+      </div>
+
+      <div class="admin-form-row--split">
+        <div>
+          <label class="admin-label" for="f-weight">Weight (kg)</label>
+          <input type="number" id="f-weight" class="admin-input" step="0.1">
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+          <label class="admin-checkbox-row">
+            <input type="checkbox" id="f-featured">
+            <span>Featured on homepage</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="banner banner--error" id="formError"></div>
+
+      <div class="photo-upload-placeholder">
+        <i class="ti ti-photo"></i>
+        <p>Photo upload coming soon</p>
+        <p>Will connect to Supabase Storage</p>
+      </div>
+    </form>
+  </div>
+  <div class="slide-panel-footer">
+    <button class="btn-ghost" onclick="closeSlidePanel('pianoPanel')">Cancel</button>
+    <button class="btn-gold" id="savePianoBtn"><i class="ti ti-device-floppy"></i> Save piano</button>
+  </div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-nav.js"></script>
+<script>
+let allPianos = []
+let currentFilter = 'all'
+
+;(async function init() {
+  const admin = await checkAdminAuth()
+  if (!admin) return
+
+  document.querySelectorAll('#filterBar .filter-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#filterBar .filter-pill').forEach(b => b.classList.remove('is-active'))
+      btn.classList.add('is-active')
+      currentFilter = btn.dataset.filter
+      renderTable()
+    })
+  })
+
+  document.getElementById('addPianoBtn').addEventListener('click', () => openPanel(null))
+  document.getElementById('savePianoBtn').addEventListener('click', savePiano)
+
+  await loadPianos()
+
+  // ?action=add deep link from dashboard quick-action
+  if (new URLSearchParams(window.location.search).get('action') === 'add') {
+    openPanel(null)
+  }
+})()
+
+async function loadPianos() {
+  try {
+    const { data, error } = await adminSupabase
+      .from('pianos')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    allPianos = data || []
+    renderStats()
+    renderTable()
+  } catch (err) {
+    console.error('[inventory] load failed', err)
+    document.getElementById('pianoTableBody').innerHTML =
+      `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load pianos.</p></div></td></tr>`
+  }
+}
+
+function renderStats() {
+  const c = (s) => allPianos.filter(p => p.stock_status === s).length
+  document.getElementById('statAvail').textContent     = c('available')
+  document.getElementById('statReserved').textContent  = c('reserved')
+  document.getElementById('statSold').textContent      = c('sold')
+}
+
+function renderTable() {
+  const body = document.getElementById('pianoTableBody')
+  let rows = allPianos
+  if (currentFilter === 'A+' || currentFilter === 'B+') {
+    rows = rows.filter(p => p.condition === currentFilter)
+  } else if (currentFilter !== 'all') {
+    rows = rows.filter(p => p.stock_status === currentFilter)
+  }
+
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-package-off"></i><p>No pianos match this filter.</p></div></td></tr>`
+    return
+  }
+
+  body.innerHTML = rows.map(p => {
+    const condClass = p.condition === 'A+' ? 'pill pill--cond-aplus' : 'pill pill--cond-bplus'
+    return `
+      <tr data-id="${esc(p.id)}">
+        <td class="name-cell">${esc(p.brand || '')} ${esc(p.model || '')}</td>
+        <td class="mono">${esc(p.serial_number || '—')}</td>
+        <td>${esc(p.year ?? '—')}</td>
+        <td><span class="${condClass}">${esc(p.condition || '—')}</span></td>
+        <td>${fmtMoney(p.sale_price)}</td>
+        <td><span class="${statusPillClass(p.stock_status)}">${esc(p.stock_status || '')}</span></td>
+        <td>
+          <label class="toggle-switch">
+            <input type="checkbox" data-id="${esc(p.id)}" data-action="toggle-featured" ${p.featured ? 'checked' : ''}>
+            <span class="slider"></span>
+          </label>
+        </td>
+        <td>
+          <div class="actions-cell">
+            <button class="icon-btn" data-action="edit" title="Edit"><i class="ti ti-edit"></i></button>
+            ${p.slug
+              ? `<a class="icon-btn" href="../piano.html?id=${esc(p.id)}" target="_blank" title="View on site"><i class="ti ti-eye"></i></a>`
+              : `<a class="icon-btn" href="../piano.html?id=${esc(p.id)}" target="_blank" title="View on site"><i class="ti ti-eye"></i></a>`}
+          </div>
+        </td>
+      </tr>
+    `
+  }).join('')
+
+  body.querySelectorAll('[data-action="toggle-featured"]').forEach(cb => {
+    cb.addEventListener('change', () => toggleFeatured(cb.dataset.id, cb.checked))
+  })
+  body.querySelectorAll('[data-action="edit"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.closest('tr').dataset.id
+      openPanel(id)
+    })
+  })
+}
+
+async function toggleFeatured(id, value) {
+  try {
+    const { error } = await adminSupabase.from('pianos').update({ featured: value }).eq('id', id)
+    if (error) throw error
+    const row = allPianos.find(p => p.id === id)
+    if (row) row.featured = value
+  } catch (err) {
+    console.error('[inventory] toggle featured failed', err)
+    alert("Couldn't toggle featured — please try again.")
+    loadPianos()
+  }
+}
+
+function openPanel(id) {
+  const titleEl = document.getElementById('pianoPanelTitle')
+  document.getElementById('formError').classList.remove('is-shown')
+  if (!id) {
+    titleEl.textContent = 'Add piano'
+    document.getElementById('pianoId').value = ''
+    document.getElementById('pianoForm').reset()
+    document.getElementById('f-brand').value = 'Yamaha'
+    document.getElementById('f-condition').value = 'A+'
+    document.getElementById('f-status').value = 'available'
+  } else {
+    const p = allPianos.find(x => x.id === id)
+    if (!p) return
+    titleEl.textContent = `Edit ${p.brand || ''} ${p.model || ''}`.trim()
+    document.getElementById('pianoId').value     = p.id
+    document.getElementById('f-brand').value     = p.brand || 'Yamaha'
+    document.getElementById('f-model').value     = p.model || ''
+    document.getElementById('f-year').value      = p.year ?? ''
+    document.getElementById('f-serial').value    = p.serial_number || ''
+    document.getElementById('f-condition').value = p.condition || 'A+'
+    document.getElementById('f-price').value     = p.sale_price ?? ''
+    document.getElementById('f-status').value    = p.stock_status || 'available'
+    document.getElementById('f-desc-short').value= p.description_short || ''
+    document.getElementById('f-desc').value      = p.description || ''
+    document.getElementById('f-weight').value    = p.weight_kg ?? ''
+    document.getElementById('f-featured').checked = !!p.featured
+  }
+  openSlidePanel('pianoPanel')
+}
+
+async function savePiano() {
+  const id = document.getElementById('pianoId').value
+  const errEl = document.getElementById('formError')
+  errEl.classList.remove('is-shown')
+
+  const payload = {
+    brand:             document.getElementById('f-brand').value.trim() || 'Yamaha',
+    model:             document.getElementById('f-model').value.trim(),
+    year:              document.getElementById('f-year').value ? Number(document.getElementById('f-year').value) : null,
+    serial_number:     document.getElementById('f-serial').value.trim() || null,
+    condition:         document.getElementById('f-condition').value,
+    sale_price:        Number(document.getElementById('f-price').value) || 0,
+    stock_status:      document.getElementById('f-status').value,
+    description_short: document.getElementById('f-desc-short').value.trim() || null,
+    description:       document.getElementById('f-desc').value.trim() || null,
+    weight_kg:         document.getElementById('f-weight').value ? Number(document.getElementById('f-weight').value) : null,
+    featured:          document.getElementById('f-featured').checked,
+    type:              'acoustic_upright',
+  }
+
+  if (!payload.model) {
+    errEl.textContent = 'Model is required.'
+    errEl.classList.add('is-shown')
+    return
+  }
+
+  const btn = document.getElementById('savePianoBtn')
+  btn.disabled = true
+  btn.textContent = 'Saving…'
+
+  try {
+    let result
+    if (id) {
+      result = await adminSupabase.from('pianos').update(payload).eq('id', id)
+    } else {
+      // Generate a slug for new rows so the public catalogue link works.
+      payload.slug = `${payload.brand}-${payload.model}-${payload.serial_number || Date.now()}`
+        .toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-|-$/g, '')
+      result = await adminSupabase.from('pianos').insert(payload)
+    }
+    if (result.error) throw result.error
+    closeSlidePanel('pianoPanel')
+    await loadPianos()
+  } catch (err) {
+    console.error('[inventory] save failed', err)
+    errEl.textContent = err.message || "Couldn't save — please try again."
+    errEl.classList.add('is-shown')
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save piano'
+  }
+}
+</script>
+
+</body>
+</html>

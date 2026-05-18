@@ -1,6 +1,17 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+
+    {
+      "source": "/js/(.*)",
+      "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }],
+      "destination": "/js/$1"
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }],
+      "destination": "/admin/$1"
+    }
   ],
   "headers": [
     {

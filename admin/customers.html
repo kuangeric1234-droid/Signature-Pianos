@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customers — Signature Pianos Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="admin.css">
+<style>
+  .search-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .search-row .admin-input { max-width: 420px; }
+  .timeline {
+    border-left: 2px solid var(--admin-border);
+    margin-left: 6px;
+    padding-left: 16px;
+    margin-top: 12px;
+  }
+  .timeline-item {
+    position: relative;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--admin-border);
+  }
+  .timeline-item:last-child { border-bottom: 0; }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -22px; top: 18px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--admin-gold);
+  }
+  .timeline-item .label { font-size: 11px; color: var(--admin-text-faint); letter-spacing: 0.08em; text-transform: uppercase; }
+  .timeline-item .title { font-size: 13px; font-weight: 500; color: var(--admin-text); margin-top: 2px; }
+  .timeline-item .meta { font-size: 12px; color: var(--admin-text-muted); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <span style="font-family:'DM Sans';font-size:13px;font-weight:500;color:#b8935a;letter-spacing:0.1em;">SIGNATURE</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.15em;display:block;margin-top:2px;">ADMIN</span>
+    </div>
+    <nav class="admin-nav">
+      <a href="dashboard.html"  class="admin-nav-item" data-page="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="enquiries.html"  class="admin-nav-item" data-page="enquiries"><i class="ti ti-mail"></i> Enquiries <span class="nav-badge" id="enquiriesBadge"></span></a>
+      <a href="inventory.html"  class="admin-nav-item" data-page="inventory"><i class="ti ti-piano"></i> Inventory</a>
+      <a href="orders.html"     class="admin-nav-item" data-page="orders"><i class="ti ti-receipt"></i> Orders &amp; POS</a>
+      <a href="customers.html"  class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
+      <a href="deliveries.html" class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
+      <a href="teachers.html"   class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="https://signaturepianos.com.au/" target="_blank" style="font-size:12px;color:rgba(255,255,255,0.4);text-decoration:none;display:flex;align-items:center;gap:6px;">
+        <i class="ti ti-external-link" style="font-size:13px;"></i> View live site
+      </a>
+      <button onclick="adminSignOut()" style="font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;margin-top:8px;">
+        <i class="ti ti-logout" style="font-size:13px;"></i> Sign out
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;">
+        <button class="admin-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+        <h1 class="admin-page-title">Customers</h1>
+      </div>
+      <div class="admin-topbar-right">
+        <button class="btn-outline" id="exportCsvBtn"><i class="ti ti-download"></i> Export CSV</button>
+        <span style="font-size:13px;color:var(--admin-text-muted);" data-admin-name>—</span>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <div class="search-row">
+        <input type="text" id="customerSearch" class="admin-input"
+          placeholder="Search by name or email…" autocomplete="off">
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Suburb</th>
+              <th>Source</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="customersTableBody">
+            <tr><td colspan="7"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Detail slide-in panel -->
+<div class="slide-panel-overlay" id="customerPanelOverlay" onclick="closeSlidePanel('customerPanel')"></div>
+<aside class="slide-panel" id="customerPanel" aria-hidden="true">
+  <div class="slide-panel-header">
+    <h2 class="slide-panel-title" id="customerPanelTitle">Customer</h2>
+    <button class="slide-panel-close" onclick="closeSlidePanel('customerPanel')" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body" id="customerPanelBody">
+    <!-- populated on open -->
+  </div>
+  <div class="slide-panel-footer">
+    <button class="btn-ghost" onclick="closeSlidePanel('customerPanel')">Close</button>
+  </div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-nav.js"></script>
+<script>
+let allCustomers = []   // most recent fetch; "source" attached
+let currentSearch = ''
+
+;(async function init() {
+  const admin = await checkAdminAuth()
+  if (!admin) return
+
+  document.getElementById('customerSearch').addEventListener('input', debounce(async (e) => {
+    currentSearch = e.target.value.trim()
+    await loadCustomers()
+  }, 220))
+
+  document.getElementById('exportCsvBtn').addEventListener('click', exportCsv)
+
+  await loadCustomers()
+})()
+
+function debounce(fn, ms) {
+  let t
+  return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms) }
+}
+
+async function loadCustomers() {
+  try {
+    let query = adminSupabase
+      .from('customers')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200)
+    if (currentSearch && currentSearch.length >= 1) {
+      query = query.or(
+        `first_name.ilike.%${currentSearch}%,last_name.ilike.%${currentSearch}%,email.ilike.%${currentSearch}%`
+      )
+    }
+    const { data, error } = await query
+    if (error) throw error
+
+    // Stamp a best-guess `source` per customer by checking each set of tables
+    // for a matching email. Cheap because we already paginate to 200.
+    const emails = (data || []).map(c => c.email).filter(Boolean)
+    const sourceByEmail = {}
+    if (emails.length) {
+      const [{ data: orders }, { data: viewings }, { data: services }] = await Promise.all([
+        adminSupabase.from('orders').select('customer_id, customers(email)').in('customer_id', (data || []).map(c => c.id)),
+        adminSupabase.from('viewing_bookings').select('email').in('email', emails),
+        adminSupabase.from('service_requests').select('email').in('email', emails),
+      ])
+      ;(orders || []).forEach(o => { const c = (data || []).find(x => x.id === o.customer_id); if (c) sourceByEmail[c.email] = 'order' })
+      ;(viewings || []).forEach(v => { if (v.email && !sourceByEmail[v.email]) sourceByEmail[v.email] = 'viewing_booking' })
+      ;(services || []).forEach(s => { if (s.email && !sourceByEmail[s.email]) sourceByEmail[s.email] = 'service_request' })
+    }
+    allCustomers = (data || []).map(c => ({ ...c, _source: sourceByEmail[c.email] || 'manual' }))
+    renderTable()
+  } catch (err) {
+    console.error('[customers] load failed', err)
+    document.getElementById('customersTableBody').innerHTML =
+      `<tr><td colspan="7"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load customers.</p></div></td></tr>`
+  }
+}
+
+function renderTable() {
+  const body = document.getElementById('customersTableBody')
+  if (!allCustomers.length) {
+    body.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="ti ti-user-off"></i><p>No customers match this search.</p></div></td></tr>`
+    return
+  }
+  const sourceLabel = { viewing_booking: 'Viewing', service_request: 'Service', order: 'Order', manual: 'Manual' }
+  body.innerHTML = allCustomers.map(c => {
+    const fullName = `${esc(c.first_name || '')} ${esc(c.last_name || '')}`.trim() || '—'
+    return `
+      <tr class="clickable" data-id="${esc(c.id)}">
+        <td class="name-cell">${fullName}</td>
+        <td>${esc(c.email || '—')}</td>
+        <td>${esc(c.phone || '—')}</td>
+        <td>${esc(c.suburb || '—')}</td>
+        <td><span class="pill pill--grey">${esc(sourceLabel[c._source] || c._source)}</span></td>
+        <td>${fmtDate(c.created_at)}</td>
+        <td>
+          <button class="icon-btn" data-action="view"><i class="ti ti-eye"></i></button>
+        </td>
+      </tr>
+    `
+  }).join('')
+
+  body.querySelectorAll('tr.clickable').forEach(tr => {
+    tr.addEventListener('click', () => openCustomer(tr.dataset.id))
+  })
+}
+
+async function openCustomer(id) {
+  const c = allCustomers.find(x => x.id === id)
+  if (!c) return
+
+  document.getElementById('customerPanelTitle').textContent =
+    `${c.first_name || ''} ${c.last_name || ''}`.trim() || 'Customer'
+
+  const body = document.getElementById('customerPanelBody')
+  body.innerHTML = `
+    <div class="admin-form-row--split">
+      <div><div class="admin-label">Email</div><div>${esc(c.email || '—')}</div></div>
+      <div><div class="admin-label">Phone</div><div>${esc(c.phone || '—')}</div></div>
+    </div>
+    <div class="admin-form-row--split">
+      <div><div class="admin-label">Suburb</div><div>${esc(c.suburb || '—')}</div></div>
+      <div><div class="admin-label">Joined</div><div>${fmtDate(c.created_at)}</div></div>
+    </div>
+    <div class="admin-form-row">
+      <div class="admin-label">Total spent</div>
+      <div id="custSpent">Calculating…</div>
+    </div>
+    <div class="admin-form-row">
+      <label class="admin-label" for="custNotes">Internal notes</label>
+      <textarea id="custNotes" class="admin-textarea" rows="4" placeholder="Saved on blur">${esc(c.notes || '')}</textarea>
+      <div id="custNotesSaved" style="font-size:11px;color:var(--admin-green);margin-top:6px;display:none;">Saved.</div>
+    </div>
+    <h3 style="font-size:13px;font-weight:500;color:var(--admin-text);margin:24px 0 8px;">Activity</h3>
+    <div id="custTimeline" class="timeline"><p style="color:var(--admin-text-faint);font-size:12px;">Loading…</p></div>
+  `
+
+  // Notes save-on-blur
+  document.getElementById('custNotes').addEventListener('blur', async (e) => {
+    try {
+      const { error } = await adminSupabase.from('customers')
+        .update({ notes: e.target.value, updated_at: new Date().toISOString() })
+        .eq('id', id)
+      if (error) throw error
+      const saved = document.getElementById('custNotesSaved')
+      saved.style.display = 'block'
+      setTimeout(() => saved.style.display = 'none', 1800)
+      // Reflect locally
+      c.notes = e.target.value
+    } catch (err) {
+      console.error('[customers] notes save failed', err)
+    }
+  })
+
+  openSlidePanel('customerPanel')
+
+  // Build timeline from orders + viewing_bookings + service_requests
+  try {
+    const [orders, viewings, services] = await Promise.all([
+      adminSupabase.from('orders').select('id, order_number, total, created_at, status, pianos(brand, model, year)').eq('customer_id', id).order('created_at', { ascending: false }),
+      c.email ? adminSupabase.from('viewing_bookings').select('id, preferred_date, status, created_at').eq('email', c.email).order('created_at', { ascending: false }) : { data: [] },
+      c.email ? adminSupabase.from('service_requests').select('id, piano_brand, service_required, status, created_at').eq('email', c.email).order('created_at', { ascending: false }) : { data: [] },
+    ])
+
+    const items = []
+    ;(orders.data || []).forEach(o => items.push({
+      ts: o.created_at,
+      label: 'Order', icon: 'ti-receipt',
+      title: `${o.order_number || 'Order'} · ${o.pianos ? `${o.pianos.brand || ''} ${o.pianos.model || ''}`.trim() : 'Piano'}`,
+      meta: `${fmtMoney(o.total)} · ${o.status}`,
+    }))
+    ;(viewings.data || []).forEach(v => items.push({
+      ts: v.created_at,
+      label: 'Viewing booking', icon: 'ti-calendar',
+      title: `Viewing requested for ${fmtDate(v.preferred_date)}`,
+      meta: v.status,
+    }))
+    ;(services.data || []).forEach(s => items.push({
+      ts: s.created_at,
+      label: 'Service request', icon: 'ti-tool',
+      title: `${readableEnum(s.service_required)} · ${esc(s.piano_brand || '')}`.trim(),
+      meta: s.status,
+    }))
+    items.sort((a, b) => new Date(b.ts) - new Date(a.ts))
+
+    const totalSpent = (orders.data || []).reduce((s, o) => s + Number(o.total || 0), 0)
+    document.getElementById('custSpent').textContent = fmtMoney(totalSpent)
+
+    const tl = document.getElementById('custTimeline')
+    if (!items.length) {
+      tl.innerHTML = `<p style="color:var(--admin-text-faint);font-size:12px;">No activity yet.</p>`
+      return
+    }
+    tl.innerHTML = items.map(it => `
+      <div class="timeline-item">
+        <div class="label"><i class="ti ${it.icon}" style="margin-right:4px;"></i>${esc(it.label)} · ${timeAgo(it.ts)}</div>
+        <div class="title">${esc(it.title)}</div>
+        <div class="meta">${esc(it.meta || '')}</div>
+      </div>
+    `).join('')
+  } catch (err) {
+    console.error('[customers] timeline failed', err)
+    document.getElementById('custTimeline').innerHTML =
+      `<p style="color:var(--admin-text-faint);font-size:12px;">Couldn't load activity.</p>`
+  }
+}
+
+function exportCsv() {
+  if (!allCustomers.length) return
+  const headers = ['First name', 'Last name', 'Email', 'Phone', 'Suburb', 'Source', 'Joined']
+  const rows = allCustomers.map(c => [
+    c.first_name || '', c.last_name || '', c.email || '', c.phone || '',
+    c.suburb || '', c._source || 'manual', new Date(c.created_at).toISOString()
+  ])
+  const csv = [headers, ...rows]
+    .map(row => row.map(cell => {
+      const s = String(cell ?? '')
+      return /[,"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+    }).join(','))
+    .join('\n')
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `signature-pianos-customers-${new Date().toISOString().slice(0, 10)}.csv`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+</script>
+
+</body>
+</html>

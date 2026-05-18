@@ -915,15 +915,17 @@ STRIPE_SECRET_KEY
 ✓ Instruments page            instruments/index.html
 ✓ Find a teacher              teachers/index.html
 ✓ Delivery & warranty         services/delivery-warranty.html
-◯ Book a viewing              services/book-a-viewing.html
-◯ Tuning & servicing          services/tuning-servicing.html
-◯ About                       about.html
+✓ Book a viewing              services/book-a-viewing.html
+✓ Tuning & servicing          services/tuning-servicing.html
+✓ About                       about.html
 ✓ Individual piano listing    piano.html (root) — Supabase + Stripe
 ✓ Checkout success            checkout-success.html
 ◯ Customer portal             portal/index.html
 ◯ Teacher dashboard           portal/teacher.html
 ◯ Driver flow                 delivery/[token].html
-◯ Admin back office           admin/index.html
+✓ Admin back office           admin/  — login, dashboard, enquiries,
+                                       inventory, orders (+ PDF invoices),
+                                       customers, deliveries, teachers
 ```
 
 ---

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Signature Pianos Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="admin.css">
+<style>
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 960px) { .metric-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .metric-grid { grid-template-columns: 1fr; } }
+
+  .activity-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--admin-border);
+  }
+  .activity-row:last-child { border-bottom: 0; }
+  .activity-icon {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--admin-gold-light);
+    color: var(--admin-gold);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .activity-text .name { font-weight: 500; color: var(--admin-text); font-size: 13px; }
+  .activity-text .type { font-size: 12px; color: var(--admin-text-faint); margin-top: 2px; }
+  .activity-time { font-size: 12px; color: var(--admin-text-faint); }
+
+  .quick-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <span style="font-family:'DM Sans';font-size:13px;font-weight:500;color:#b8935a;letter-spacing:0.1em;">SIGNATURE</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.15em;display:block;margin-top:2px;">ADMIN</span>
+    </div>
+    <nav class="admin-nav">
+      <a href="dashboard.html"  class="admin-nav-item" data-page="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="enquiries.html"  class="admin-nav-item" data-page="enquiries"><i class="ti ti-mail"></i> Enquiries <span class="nav-badge" id="enquiriesBadge"></span></a>
+      <a href="inventory.html"  class="admin-nav-item" data-page="inventory"><i class="ti ti-piano"></i> Inventory</a>
+      <a href="orders.html"     class="admin-nav-item" data-page="orders"><i class="ti ti-receipt"></i> Orders &amp; POS</a>
+      <a href="customers.html"  class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
+      <a href="deliveries.html" class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
+      <a href="teachers.html"   class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="https://signaturepianos.com.au/" target="_blank" style="font-size:12px;color:rgba(255,255,255,0.4);text-decoration:none;display:flex;align-items:center;gap:6px;">
+        <i class="ti ti-external-link" style="font-size:13px;"></i> View live site
+      </a>
+      <button onclick="adminSignOut()" style="font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;margin-top:8px;">
+        <i class="ti ti-logout" style="font-size:13px;"></i> Sign out
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;">
+        <button class="admin-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+        <h1 class="admin-page-title">Dashboard</h1>
+      </div>
+      <div class="admin-topbar-right">
+        <span style="font-size:13px;color:var(--admin-text-muted);" data-admin-name>—</span>
+      </div>
+    </div>
+    <div class="admin-content">
+
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="icon-row"><i class="ti ti-calendar"></i> Pending viewings</div>
+          <div class="number" id="metricViewings">—</div>
+          <div class="sub">Awaiting confirmation</div>
+        </div>
+        <div class="metric-card">
+          <div class="icon-row"><i class="ti ti-tool"></i> Pending services</div>
+          <div class="number" id="metricServices">—</div>
+          <div class="sub">Awaiting confirmation</div>
+        </div>
+        <div class="metric-card">
+          <div class="icon-row"><i class="ti ti-piano"></i> Pianos available</div>
+          <div class="number" id="metricPianos">—</div>
+          <div class="sub">In current inventory</div>
+        </div>
+        <div class="metric-card">
+          <div class="icon-row"><i class="ti ti-receipt"></i> Total orders</div>
+          <div class="number" id="metricOrders">—</div>
+          <div class="sub">All-time</div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h2 class="admin-card-title">Recent activity</h2>
+        <div id="activityFeed">
+          <div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <a href="inventory.html?action=add" class="btn-gold"><i class="ti ti-plus"></i> Add new piano</a>
+        <a href="enquiries.html" class="btn-outline"><i class="ti ti-mail"></i> View all enquiries</a>
+        <a href="orders.html?action=new" class="btn-outline"><i class="ti ti-receipt"></i> Create invoice</a>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-nav.js"></script>
+<script>
+(async function init() {
+  const admin = await checkAdminAuth()
+  if (!admin) return
+
+  loadMetrics()
+  loadActivity()
+})()
+
+async function loadMetrics() {
+  try {
+    const [v, s, p, o] = await Promise.all([
+      adminSupabase.from('viewing_bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      adminSupabase.from('service_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      adminSupabase.from('pianos').select('*', { count: 'exact', head: true }).eq('stock_status', 'available'),
+      adminSupabase.from('orders').select('*', { count: 'exact', head: true }),
+    ])
+    document.getElementById('metricViewings').textContent = v.count ?? 0
+    document.getElementById('metricServices').textContent = s.count ?? 0
+    document.getElementById('metricPianos').textContent   = p.count ?? 0
+    document.getElementById('metricOrders').textContent   = o.count ?? 0
+  } catch (err) {
+    console.error('[dashboard] metrics failed', err)
+  }
+}
+
+async function loadActivity() {
+  const feed = document.getElementById('activityFeed')
+  try {
+    const [{ data: viewings }, { data: services }] = await Promise.all([
+      adminSupabase.from('viewing_bookings')
+        .select('id, first_name, last_name, status, created_at')
+        .order('created_at', { ascending: false }).limit(10),
+      adminSupabase.from('service_requests')
+        .select('id, first_name, last_name, status, created_at')
+        .order('created_at', { ascending: false }).limit(10),
+    ])
+    const all = []
+    ;(viewings || []).forEach(r => all.push({ ...r, _type: 'viewing' }))
+    ;(services || []).forEach(r => all.push({ ...r, _type: 'service' }))
+    all.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    const top = all.slice(0, 10)
+
+    if (!top.length) {
+      feed.innerHTML = `<div class="empty-state"><i class="ti ti-inbox"></i><p>No recent activity yet.</p></div>`
+      return
+    }
+
+    feed.innerHTML = top.map(r => {
+      const icon = r._type === 'viewing' ? 'ti-calendar' : 'ti-tool'
+      const typeLabel = r._type === 'viewing' ? 'Viewing request' : 'Service request'
+      const fullName = `${esc(r.first_name || '')} ${esc(r.last_name || '')}`.trim() || '—'
+      return `
+        <div class="activity-row">
+          <div class="activity-icon"><i class="ti ${icon}"></i></div>
+          <div class="activity-text">
+            <div class="name">${fullName}</div>
+            <div class="type">${typeLabel}</div>
+          </div>
+          <span class="${statusPillClass(r.status)}">${esc(r.status || '')}</span>
+          <span class="activity-time">${timeAgo(r.created_at)}</span>
+        </div>
+      `
+    }).join('')
+  } catch (err) {
+    console.error('[dashboard] activity failed', err)
+    feed.innerHTML = `<div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load activity.</p></div>`
+  }
+}
+</script>
+
+</body>
+</html>
