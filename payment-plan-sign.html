@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sign your payment plan — Signature Pianos</title>
+<meta name="robots" content="noindex, nofollow" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+<style>
+  :root {
+    --bg-1: #0e0e0d; --bg-2: #1a1a18; --bg-3: #242422;
+    --gold: #b8935a; --gold-light: #d4b483;
+    --text-1: #f5f0e8; --text-2: #9a9590; --text-3: #6b6760;
+    --border: rgba(184, 147, 90, 0.15);
+    --border-strong: rgba(184, 147, 90, 0.4);
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg-1); color: var(--text-1);
+    font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .header {
+    text-align: center;
+    padding: 56px 24px 24px;
+  }
+  .header .icon {
+    font-size: 36px; color: var(--gold); display: block; margin-bottom: 14px;
+  }
+  .header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300; font-style: italic;
+    font-size: 36px; line-height: 1.2;
+    margin: 0 0 8px;
+  }
+  .header .plan-no {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px; color: var(--gold);
+    letter-spacing: 0.06em;
+  }
+  .header .subline {
+    font-size: 13px; color: var(--text-2);
+    margin-top: 6px;
+  }
+
+  .contract-wrap { padding: 0 24px 80px; }
+
+  .loading, .error-box {
+    text-align: center; color: var(--text-2);
+    font-size: 14px; padding: 80px 24px;
+  }
+
+  /* Document card — white inside the dark page so it reads as a real contract */
+  .doc {
+    background: #fff; color: #1a1917;
+    border-radius: 4px; padding: 40px;
+    max-width: 680px; margin: 0 auto;
+    border: 1px solid rgba(184, 147, 90, 0.2);
+  }
+  .doc-header {
+    text-align: center;
+    border-bottom: 2px solid #1a1917;
+    padding-bottom: 24px;
+    margin-bottom: 24px;
+  }
+  .doc-header .brand {
+    font-size: 24px; font-style: italic; color: #b8935a;
+    margin-bottom: 4px;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .doc-header .title {
+    font-size: 18px; font-weight: 500; color: #1a1917;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .doc-header .meta {
+    font-size: 13px; color: #6b6760;
+  }
+
+  .section-h {
+    font-size: 14px; font-weight: 500; color: #1a1917;
+    margin: 24px 0 12px;
+    border-bottom: 1px solid #e8e4dd; padding-bottom: 8px;
+  }
+  .doc p { font-size: 13px; line-height: 1.8; color: #1a1917; }
+  .doc table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .doc table td.l { color: #6b6760; padding: 8px 0; border-bottom: 1px solid #e8e4dd; }
+  .doc table td.v { font-weight: 500; padding: 8px 0; border-bottom: 1px solid #e8e4dd; text-align: right; }
+
+  .panel-instrument {
+    background: #f8f7f5; border-radius: 4px;
+    padding: 16px; margin-bottom: 24px;
+  }
+  .panel-instrument .lbl {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #9a9590; margin-bottom: 8px;
+  }
+
+  .schedule {
+    width: 100%; border-collapse: collapse; font-size: 12px;
+  }
+  .schedule thead th {
+    background: #f8f7f5; color: #6b6760; font-weight: 500;
+    padding: 7px 10px; text-align: left; border-bottom: 1px solid #e8e4dd;
+  }
+  .schedule thead th.r { text-align: right; }
+  .schedule tbody td {
+    padding: 7px 10px; color: #1a1917; border-bottom: 1px solid #e8e4dd;
+  }
+  .schedule tbody td.r { text-align: right; }
+  .schedule tbody td.muted { color: #6b6760; }
+
+  .terms p { font-size: 12px; color: #6b6760; margin: 0 0 10px; }
+
+  /* Signature section */
+  .sig-wrap {
+    border-top: 2px solid #1a1917;
+    padding-top: 24px; margin-top: 24px;
+  }
+  .sig-wrap h3 {
+    font-size: 14px; font-weight: 500; color: #1a1917; margin: 0 0 8px;
+  }
+  .canvas-wrap {
+    position: relative;
+    border: 1px solid #e8e4dd; border-radius: 4px;
+    background: #fafafa; margin-bottom: 12px;
+    touch-action: none;
+  }
+  #signatureCanvas {
+    width: 100%; height: 150px; display: block;
+    touch-action: none; cursor: crosshair;
+  }
+  #signaturePlaceholder {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    font-size: 13px; color: #ccc; font-style: italic;
+  }
+  .sig-controls {
+    display: flex; gap: 8px; margin-bottom: 16px; align-items: center;
+    flex-wrap: wrap;
+  }
+  .sig-controls .clear-btn {
+    background: none; border: 1px solid #e8e4dd;
+    border-radius: 4px; padding: 7px 14px;
+    font-family: inherit; font-size: 12px; cursor: pointer; color: #6b6760;
+  }
+  .sig-controls .date-stamp {
+    font-size: 12px; color: #9a9590;
+  }
+  .sig-field { margin-bottom: 16px; }
+  .sig-field label.lbl {
+    display: block; font-size: 12px; color: #6b6760; margin-bottom: 6px;
+  }
+  .sig-field input[type="text"] {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid #e8e4dd; border-radius: 4px;
+    font-size: 13px; box-sizing: border-box;
+    font-family: inherit;
+  }
+  .agree {
+    display: flex; align-items: flex-start; gap: 10px;
+    cursor: pointer; margin-bottom: 20px;
+    font-size: 13px; color: #6b6760;
+  }
+  .agree input { margin-top: 2px; accent-color: var(--gold); }
+  .submit-btn {
+    width: 100%; background: var(--gold); color: #000;
+    border: none; border-radius: 4px; padding: 16px;
+    font-family: inherit; font-size: 14px; font-weight: 500;
+    letter-spacing: 0.05em; cursor: pointer; text-transform: uppercase;
+  }
+  .submit-btn:disabled { opacity: 0.6; cursor: progress; }
+  #signError {
+    display: none; margin-top: 10px; padding: 10px;
+    background: #fdecea; border-radius: 4px;
+    font-size: 12px; color: #c0392b;
+  }
+  #signError.is-shown { display: block; }
+
+  /* Success state */
+  .success-wrap {
+    text-align: center; padding: 80px 24px;
+  }
+  .success-wrap .icon {
+    font-size: 64px; color: var(--gold);
+    display: block; margin-bottom: 24px;
+  }
+  .success-wrap h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px; font-weight: 300; color: var(--text-1);
+    font-style: italic;
+    margin: 0 0 16px;
+  }
+  .success-wrap p {
+    font-size: 14px; color: var(--text-2);
+    line-height: 1.7; max-width: 400px; margin: 0 auto;
+  }
+
+  @media (max-width: 640px) {
+    .doc { padding: 24px; }
+    .header { padding: 36px 24px 16px; }
+    .header h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <i class="ti ti-writing-sign icon"></i>
+  <h1>Payment plan contract</h1>
+  <div class="plan-no" id="planNoLabel">—</div>
+  <div class="subline" id="custNameLabel"></div>
+</div>
+
+<div class="contract-wrap" id="contractWrap">
+  <div class="loading"><i class="ti ti-loader"></i><p>Loading your contract…</p></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script>
+/* ============================================================================
+   Signature Pianos — public payment-plan signing page
+   ----------------------------------------------------------------------------
+   No auth. Loads the plan via signature_token (anon RLS allows SELECT).
+   Submits the signature via /api/sign-contract which uses the service role
+   to upload the PNG and flip the row to signed.
+   ============================================================================ */
+
+const params = new URLSearchParams(window.location.search)
+const token = params.get('token')
+if (!token) { window.location.replace('index.html') }
+
+function esc(s) {
+  if (s == null) return ''
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+function fmtCur(v) {
+  return '$' + Math.abs(Number(v || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+function fmtDateAU(d) {
+  if (!d) return '—'
+  const [y, m, day] = String(d).split('T')[0].split('-')
+  if (!y || !m || !day) return d
+  return `${day}/${m}/${y}`
+}
+
+;(async function loadContract() {
+  let plan, instalments, settings
+  try {
+    const { data, error } = await _supabase
+      .from('payment_plans')
+      .select(`*, customer:customer_id(*), piano:piano_id(*)`)
+      .eq('signature_token', token)
+      .maybeSingle()
+    if (error) throw error
+    if (!data) return showError("We couldn't find this contract. The link may have expired.")
+    plan = data
+  } catch (err) {
+    console.error('[sign] plan load failed', err)
+    return showError("We couldn't load this contract. Please try again or contact us.")
+  }
+
+  if (plan.contract_signed) return showAlreadySigned(plan)
+
+  try {
+    const [{ data: ins, error: insErr }, { data: cs }] = await Promise.all([
+      _supabase.from('payment_instalments').select('*').eq('payment_plan_id', plan.id).order('instalment_number'),
+      _supabase.from('company_settings').select('*').limit(1).maybeSingle(),
+    ])
+    if (insErr) throw insErr
+    instalments = ins || []
+    settings = cs || {}
+  } catch (err) {
+    console.error('[sign] instalments / settings load failed', err)
+    instalments = []
+    settings = {}
+  }
+
+  renderContract(plan, instalments, settings)
+})()
+
+function showError(msg) {
+  document.getElementById('contractWrap').innerHTML = `
+    <div class="error-box">
+      <i class="ti ti-alert-circle" style="font-size:36px;color:var(--gold);display:block;margin-bottom:12px;"></i>
+      <p>${esc(msg)}</p>
+    </div>
+  `
+}
+
+function showAlreadySigned(plan) {
+  document.getElementById('contractWrap').innerHTML = `
+    <div class="success-wrap">
+      <i class="ti ti-circle-check icon"></i>
+      <h2>Contract already signed.</h2>
+      <p>This contract was signed on ${fmtDateAU(plan.contract_signed_at)}. Please contact us if you have any questions.</p>
+    </div>
+  `
+}
+
+function renderContract(plan, instalments, settings) {
+  const cust  = plan.customer || {}
+  const piano = plan.piano    || {}
+  const dated = fmtDateAU(plan.start_date)
+  const fullName = `${cust.first_name || ''} ${cust.last_name || ''}`.trim()
+
+  document.getElementById('planNoLabel').textContent  = plan.plan_number || '—'
+  document.getElementById('custNameLabel').textContent = fullName ? `For ${fullName}` : ''
+
+  document.getElementById('contractWrap').innerHTML = `
+    <div class="doc">
+
+      <div class="doc-header">
+        <div class="brand">${esc(settings.business_name || 'Signature Pianos')}</div>
+        <div class="title">Payment Plan Agreement</div>
+        <div class="meta">${esc(plan.plan_number || '')} · Dated ${esc(dated)}</div>
+      </div>
+
+      <p>
+        This Payment Plan Agreement is entered into between
+        <strong>${esc(settings.business_name || 'Signature Pianos')}</strong>
+        ${settings.abn ? `(ABN: ${esc(settings.abn)})` : ''}
+        ("the Seller") and
+        <strong>${esc(fullName || 'the Buyer')}</strong>
+        ${cust.email ? `(${esc(cust.email)})` : ''}
+        ("the Buyer").
+      </p>
+
+      <div class="panel-instrument">
+        <div class="lbl">Instrument</div>
+        <div style="font-size:14px;font-weight:500;color:#1a1917;">
+          ${esc((piano.brand || 'Yamaha') + ' ' + (piano.model || ''))}
+          ${piano.type ? esc(piano.type.replace(/_/g, ' ')) : ''}
+        </div>
+        <div style="font-size:13px;color:#6b6760;margin-top:4px;">
+          ${piano.year ? 'Year: ' + esc(piano.year) + ' · ' : ''}
+          ${piano.serial_number ? 'Serial: ' + esc(piano.serial_number) + ' · ' : ''}
+          ${piano.condition ? 'Condition: ' + esc(piano.condition) : ''}
+        </div>
+      </div>
+
+      <div class="section-h">Payment terms</div>
+      <table>
+        <tr><td class="l">Total purchase price</td><td class="v" style="color:#b8935a;">${fmtCur(plan.total_amount)}</td></tr>
+        <tr><td class="l">Deposit</td><td class="v">${fmtCur(plan.deposit_amount)}${plan.deposit_paid ? ' <span style="color:#1a7f4b;font-size:12px;">✓ Received</span>' : ''}</td></tr>
+        <tr><td class="l">Balance payable</td><td class="v">${fmtCur(plan.remaining_amount ?? (Number(plan.total_amount) - Number(plan.deposit_amount || 0)))}</td></tr>
+        <tr><td class="l">Instalment amount</td><td class="v">${fmtCur(plan.instalment_amount)} ${esc(plan.instalment_frequency || '')}</td></tr>
+        <tr><td class="l" style="border-bottom:0;">Number of instalments</td><td class="v" style="border-bottom:0;">${esc(plan.number_of_instalments || 0)}</td></tr>
+      </table>
+
+      <div class="section-h">Payment schedule</div>
+      <table class="schedule">
+        <thead>
+          <tr><th style="width:40px;">#</th><th>Due date</th><th class="r">Amount</th></tr>
+        </thead>
+        <tbody>
+          ${instalments.map(i => `
+            <tr>
+              <td class="muted">${esc(i.instalment_number)}</td>
+              <td>${fmtDateAU(i.due_date)}</td>
+              <td class="r">${fmtCur(i.amount)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <div class="section-h">Terms and conditions</div>
+      <div class="terms">
+        <p>1. <strong>Title.</strong> The instrument remains the property of Signature Pianos until all payments have been received in full.</p>
+        <p>2. <strong>Payments.</strong> Instalments are due on the dates specified in the payment schedule above. Late payments may incur a $50 administration fee.</p>
+        <p>3. <strong>Default.</strong> If the Buyer fails to make two consecutive payments, Signature Pianos reserves the right to reclaim the instrument and retain all payments received as compensation.</p>
+        <p>4. <strong>Warranty.</strong> The instrument is covered by the Signature Pianos 10-year warranty from the date of delivery, subject to the full purchase price being paid.</p>
+        <p>5. <strong>Delivery.</strong> Delivery will be arranged once the deposit has been received. The instrument will be delivered to the address provided by the Buyer.</p>
+        <p>6. <strong>Governing law.</strong> This agreement is governed by the laws of Victoria, Australia.</p>
+      </div>
+
+      <div class="sig-wrap">
+        <h3>Buyer signature</h3>
+        <p style="font-size:13px;color:#6b6760;margin:0 0 16px;">
+          By signing below I, <strong>${esc(fullName)}</strong>, confirm I have read and agree to the terms of this payment plan agreement.
+        </p>
+
+        <div class="canvas-wrap">
+          <canvas id="signatureCanvas" width="600" height="150"></canvas>
+          <div id="signaturePlaceholder">Sign here with your mouse or finger</div>
+        </div>
+
+        <div class="sig-controls">
+          <button type="button" class="clear-btn" id="clearSigBtn">Clear signature</button>
+          <span class="date-stamp">Date: ${new Date().toLocaleDateString('en-AU')}</span>
+        </div>
+
+        <div class="sig-field">
+          <label class="lbl" for="signatureFullName">Type your full name to confirm</label>
+          <input type="text" id="signatureFullName" placeholder="${esc(fullName)}">
+        </div>
+
+        <label class="agree">
+          <input type="checkbox" id="agreeCheckbox">
+          I confirm I have read and agree to the payment plan terms and conditions above.
+        </label>
+
+        <button type="button" class="submit-btn" id="submitSignatureBtn">Sign and submit contract</button>
+        <div id="signError"></div>
+      </div>
+    </div>
+  `
+
+  initSignatureCanvas()
+  document.getElementById('clearSigBtn').addEventListener('click', () => window.clearSignature())
+  document.getElementById('submitSignatureBtn').addEventListener('click', () => submitSignature(plan.id))
+}
+
+/* ---------- Canvas signature ---------- */
+function initSignatureCanvas() {
+  const canvas = document.getElementById('signatureCanvas')
+  const ctx = canvas.getContext('2d')
+  const placeholder = document.getElementById('signaturePlaceholder')
+
+  // Set actual resolution to match CSS width — HiDPI screens otherwise draw thin/jaggy.
+  const dpr = window.devicePixelRatio || 1
+  const rect = canvas.getBoundingClientRect()
+  canvas.width  = rect.width * dpr
+  canvas.height = 150 * dpr
+  ctx.scale(dpr, dpr)
+
+  let drawing = false
+  let hasSignature = false
+
+  ctx.strokeStyle = '#1a1917'
+  ctx.lineWidth = 2
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect()
+    const t = e.touches ? e.touches[0] : e
+    return { x: t.clientX - r.left, y: t.clientY - r.top }
+  }
+  function startDraw(e) {
+    e.preventDefault()
+    drawing = true
+    const p = getPos(e)
+    ctx.beginPath()
+    ctx.moveTo(p.x, p.y)
+    if (!hasSignature) { hasSignature = true; placeholder.style.display = 'none' }
+  }
+  function draw(e) {
+    if (!drawing) return
+    e.preventDefault()
+    const p = getPos(e)
+    ctx.lineTo(p.x, p.y)
+    ctx.stroke()
+  }
+  function stopDraw() { drawing = false }
+
+  canvas.addEventListener('mousedown',  startDraw)
+  canvas.addEventListener('mousemove',  draw)
+  canvas.addEventListener('mouseup',    stopDraw)
+  canvas.addEventListener('mouseleave', stopDraw)
+  canvas.addEventListener('touchstart', startDraw, { passive: false })
+  canvas.addEventListener('touchmove',  draw,      { passive: false })
+  canvas.addEventListener('touchend',   stopDraw)
+
+  window.clearSignature = function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    hasSignature = false
+    placeholder.style.display = 'flex'
+  }
+  window.getSignatureDataURL = function () {
+    return hasSignature ? canvas.toDataURL('image/png') : null
+  }
+  window.hasSignatureDrawn = function () {
+    return hasSignature
+  }
+}
+
+/* ---------- Submit ---------- */
+async function submitSignature(planId) {
+  const fullName = document.getElementById('signatureFullName').value.trim()
+  const agreed   = document.getElementById('agreeCheckbox').checked
+  const hasDrawn = window.hasSignatureDrawn()
+  const sigData  = window.getSignatureDataURL()
+  const err      = document.getElementById('signError')
+
+  if (!hasDrawn) { err.textContent = 'Please draw your signature above.'; err.classList.add('is-shown'); return }
+  if (!fullName) { err.textContent = 'Please type your full name to confirm.'; err.classList.add('is-shown'); return }
+  if (!agreed)   { err.textContent = 'Please check the box to confirm you agree to the terms.'; err.classList.add('is-shown'); return }
+
+  err.classList.remove('is-shown')
+
+  const btn = document.getElementById('submitSignatureBtn')
+  const original = btn.textContent
+  btn.textContent = 'Submitting…'
+  btn.disabled = true
+
+  try {
+    const res = await fetch('/api/sign-contract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        plan_id:        planId,
+        token,
+        signature_data: sigData,
+        full_name:      fullName,
+        signed_at:      new Date().toISOString(),
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      showSignedSuccess()
+    } else {
+      console.error('[sign] submit failed', result)
+      err.textContent = result.error || 'Something went wrong — please try again.'
+      err.classList.add('is-shown')
+      btn.textContent = original
+      btn.disabled = false
+    }
+  } catch (e) {
+    console.error('[sign] submit fetch failed', e)
+    err.textContent = 'Something went wrong — please try again.'
+    err.classList.add('is-shown')
+    btn.textContent = original
+    btn.disabled = false
+  }
+}
+
+function showSignedSuccess() {
+  document.getElementById('contractWrap').innerHTML = `
+    <div class="success-wrap">
+      <i class="ti ti-circle-check icon"></i>
+      <h2>Contract signed.</h2>
+      <p>Thank you. Your signed contract has been saved. A copy will be emailed to you shortly.</p>
+    </div>
+  `
+}
+</script>
+
+</body>
+</html>

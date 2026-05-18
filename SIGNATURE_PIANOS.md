@@ -931,12 +931,16 @@ STRIPE_SECRET_KEY
                                        orders (+ PDF invoices + inline
                                        HTML preview + edit/void/overdue-
                                        reminder + discreet auto-margin),
+                                       payment-plans (instalment plans +
+                                       contract send + sign tracking +
+                                       overdue reminders),
                                        customers, deliveries (+ partners
                                        tab + customer preferences),
                                        teachers, financials (P&L +
                                        revenue chart + XLSX export),
                                        settings
 ✓ Customer delivery prefs    delivery-preferences.html (public, token)
+✓ Customer contract signing  payment-plan-sign.html (public, token)
 ```
 
 ---
@@ -1289,6 +1293,104 @@ Side effect:        Forces delivery.status back to 'scheduled' so
                     the row can't be left in pickup_pending after
                     a partial edit. Reloads the deliveries table
                     on success so the row reflects the change.
+```
+
+### Payment plans (admin/payment-plans.html + payment-plan-sign.html)
+```
+Schema:            supabase/payment_plans.sql adds:
+                     payment_plans       — one row per plan
+                     payment_instalments — full schedule
+                     storage bucket 'contracts' (private)
+                     generate_plan_number() — PP-YYYY-XXXXX
+                   Trigger uses the existing set_updated_at()
+                   helper (spec called it update_updated_at_column;
+                   we standardise on the project-wide name).
+
+Numbering:         PP-YYYY-XXXXX (5-digit zero-padded sequence
+                   per calendar year). Signature_token is the
+                   project's existing generate_token() default.
+
+Admin page:        4 metric cards (active / pending signature /
+                   completed / overdue payments), plans table
+                   with progress bar + contract status pill, a
+                   detail slide-in panel and a New plan slide-in.
+
+New plan flow:     A. Optional order link (auto-fills customer
+                      + piano + total when matched on invoice #
+                      or order #).
+                   B. Customer search OR inline create (upsert
+                      by email so duplicates merge).
+                   C. Piano dropdown (every piano, with status).
+                   D. Plan details — total / deposit /
+                      instalment count (3/6/9/12/18/24) /
+                      frequency (weekly/fortnightly/monthly) /
+                      start date / deposit-paid checkbox / notes.
+                   E. Live schedule preview that recalculates
+                      on every input/change event — deposit,
+                      remaining, per-instalment rows + total.
+                   Create button RPC-calls generate_plan_number,
+                   inserts the plan, then inserts every
+                   instalment row with payment_plan_id stamped.
+
+Detail panel:      A — Plan summary grid (customer / piano /
+                       total / deposit / instalments / status)
+                   B — Gold progress bar — X of Y paid + %
+                   C — Instalment schedule with Paid / Overdue /
+                       Due soon / Upcoming badges. Mark-as-paid
+                       prompts for method + reference; auto-flips
+                       plan to completed when all instalments paid.
+                   D — Contract block: status pill (signed /
+                       sent / not sent), Send/Resend, Download
+                       signed (signed URL via Supabase Storage),
+                       Copy sign link.
+
+Public sign page:  payment-plan-sign.html?token=... at root.
+                   Dark Cormorant + DM Sans aesthetic with a
+                   formal white "document" card inside. Includes
+                   piano details, payment terms, full schedule,
+                   six-point T&Cs, signature canvas (mouse +
+                   touch, HiDPI-correct), typed full name, and
+                   an "I agree" checkbox. Already-signed contracts
+                   show a success state instead of the form.
+
+Signature API:     api/sign-contract.js (Vercel serverless).
+                   Verifies plan_id + signature_token together,
+                   refuses to overwrite, decodes the data-URL
+                   PNG and uploads to the `contracts` bucket as
+                   {plan_number}-signature-{ts}.png, sets
+                   contract_signed / contract_signed_at /
+                   contract_url / status='active', then POSTs
+                   payment_plan_signed to /api/send-email for
+                   the customer confirmation + Eric notification.
+
+Storage:           contracts bucket — private. Admin read via
+                   is_admin() policy; service role manages
+                   uploads/deletes. Admin downloads use a 60s
+                   signed URL from createSignedUrl().
+
+Email types
+(api/send-email.js):
+                   payment_plan_contract  — sent on Send/Resend.
+                                            Branded HTML card with
+                                            plan summary, schedule
+                                            and a Sign CTA pointing
+                                            at the public token URL.
+                   payment_plan_signed    — fired by sign-contract.js
+                                            after a successful sign.
+                                            Customer confirmation +
+                                            Eric notification.
+                   instalment_reminder    — overdue reminder on the
+                                            Send-reminder button. Lists
+                                            every overdue instalment +
+                                            BSB / account / reference.
+
+Run order:         1. supabase/payment_plans.sql in SQL editor
+                   2. Confirm storage bucket 'contracts' exists
+                      (private). SQL creates it idempotently.
+                   3. Refresh admin/payment-plans.html
+                   4. Smoke test: create plan → send contract →
+                      open the email's sign link → sign → check
+                      Storage upload + plan row flips to active.
 ```
 
 ---

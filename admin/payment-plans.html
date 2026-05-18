@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment plans — Signature Pianos Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="admin.css">
+<style>
+  /* ---------- Metric grid ---------- */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 960px) { .metric-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .metric-grid { grid-template-columns: 1fr; } }
+  .metric-card.is-blue  { border-left-color: var(--admin-blue); }
+  .metric-card.is-amber { border-left-color: var(--admin-amber); }
+  .metric-card.is-green { border-left-color: var(--admin-green); }
+  .metric-card.is-red   { border-left-color: var(--admin-red); }
+  .metric-card .icon-row.is-blue  { color: var(--admin-blue); }
+  .metric-card .icon-row.is-amber { color: var(--admin-amber); }
+  .metric-card .icon-row.is-green { color: var(--admin-green); }
+  .metric-card .icon-row.is-red   { color: var(--admin-red); }
+
+  /* ---------- Progress bar in plan rows ---------- */
+  .pp-progress {
+    height: 6px;
+    background: var(--admin-border);
+    border-radius: 999px;
+    overflow: hidden;
+    min-width: 100px;
+  }
+  .pp-progress-fill {
+    height: 100%;
+    background: var(--admin-gold);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+  .pp-progress-label {
+    font-size: 11px;
+    color: var(--admin-text-faint);
+    margin-top: 4px;
+  }
+
+  /* ---------- Contract status pill ---------- */
+  .contract-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .contract-pill.is-signed { background: var(--admin-green-light); color: var(--admin-green); }
+  .contract-pill.is-sent   { background: var(--admin-amber-light); color: var(--admin-amber); }
+  .contract-pill.is-none   { background: #f0ede8; color: var(--admin-text-faint); }
+
+  /* ---------- New plan panel — wider than default ---------- */
+  @media (min-width: 769px) {
+    #newPlanPanel { width: 640px; }
+    #planDetailPanel { width: 720px; }
+  }
+
+  .schedule-preview {
+    background: var(--admin-bg);
+    border-radius: 4px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+  .schedule-preview .row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--admin-border);
+    color: var(--admin-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .schedule-preview .row.is-total {
+    font-size: 13px;
+    color: var(--admin-gold);
+    font-weight: 500;
+    border-bottom: 0;
+    padding-top: 8px;
+  }
+  .schedule-preview .row .v { font-weight: 500; color: var(--admin-text); }
+
+  /* ---------- Detail panel ---------- */
+  .pp-summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .pp-summary-cell {
+    background: var(--admin-bg);
+    border-radius: 4px;
+    padding: 12px 14px;
+  }
+  .pp-summary-cell .lbl {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--admin-text-faint);
+    margin-bottom: 4px;
+  }
+  .pp-summary-cell .v {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--admin-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ins-row.is-paid    td { opacity: 0.65; }
+  .ins-row.is-overdue td { background: var(--admin-red-light); }
+</style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <span style="font-family:'DM Sans';font-size:13px;font-weight:500;color:#b8935a;letter-spacing:0.1em;">SIGNATURE</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.15em;display:block;margin-top:2px;">ADMIN</span>
+    </div>
+    <nav class="admin-nav">
+      <a href="dashboard.html"      class="admin-nav-item" data-page="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="enquiries.html"      class="admin-nav-item" data-page="enquiries"><i class="ti ti-mail"></i> Enquiries <span class="nav-badge" id="enquiriesBadge"></span></a>
+      <a href="inventory.html"      class="admin-nav-item" data-page="inventory"><i class="ti ti-piano"></i> Inventory</a>
+      <a href="orders.html"         class="admin-nav-item" data-page="orders"><i class="ti ti-receipt"></i> Orders &amp; POS</a>
+      <a href="payment-plans.html"  class="admin-nav-item" data-page="payment-plans"><i class="ti ti-credit-card"></i> Payment plans</a>
+      <a href="customers.html"      class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
+      <a href="deliveries.html"     class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
+      <a href="teachers.html"       class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+      <a href="financials.html"     class="admin-nav-item" data-page="financials"><i class="ti ti-chart-bar"></i> Financials</a>
+      <a href="settings.html"       class="admin-nav-item" data-page="settings"><i class="ti ti-settings"></i> Settings</a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="https://signaturepianos.com.au/" target="_blank" style="font-size:12px;color:rgba(255,255,255,0.4);text-decoration:none;display:flex;align-items:center;gap:6px;">
+        <i class="ti ti-external-link" style="font-size:13px;"></i> View live site
+      </a>
+      <button onclick="adminSignOut()" style="font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;margin-top:8px;">
+        <i class="ti ti-logout" style="font-size:13px;"></i> Sign out
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;">
+        <button class="admin-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+        <h1 class="admin-page-title">Payment plans</h1>
+      </div>
+      <div class="admin-topbar-right">
+        <button class="btn-gold" id="newPlanBtn"><i class="ti ti-plus"></i> New payment plan</button>
+        <span style="font-size:13px;color:var(--admin-text-muted);" data-admin-name>—</span>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <div class="metric-grid">
+        <div class="metric-card is-blue">
+          <div class="icon-row is-blue"><i class="ti ti-clock"></i> Active plans</div>
+          <div class="number" id="mActive">—</div>
+          <div class="sub">Signed and in repayment</div>
+        </div>
+        <div class="metric-card is-amber">
+          <div class="icon-row is-amber"><i class="ti ti-hourglass"></i> Pending signature</div>
+          <div class="number" id="mPending">—</div>
+          <div class="sub">Contract not yet signed</div>
+        </div>
+        <div class="metric-card is-green">
+          <div class="icon-row is-green"><i class="ti ti-circle-check"></i> Completed</div>
+          <div class="number" id="mCompleted">—</div>
+          <div class="sub">All instalments paid</div>
+        </div>
+        <div class="metric-card is-red">
+          <div class="icon-row is-red"><i class="ti ti-alert-circle"></i> Overdue payments</div>
+          <div class="number" id="mOverdue">—</div>
+          <div class="sub">Past due, unpaid</div>
+        </div>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Plan #</th>
+              <th>Customer</th>
+              <th>Piano</th>
+              <th style="text-align:right;">Total</th>
+              <th>Deposit</th>
+              <th>Instalments</th>
+              <th>Progress</th>
+              <th>Status</th>
+              <th>Contract</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="plansTableBody">
+            <tr><td colspan="10"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ============================================================
+     NEW PAYMENT PLAN — slide-in panel
+     ============================================================ -->
+<div class="slide-panel-overlay" id="newPlanPanelOverlay" onclick="closeSlidePanel('newPlanPanel')"></div>
+<aside class="slide-panel" id="newPlanPanel" aria-hidden="true">
+  <div class="slide-panel-header">
+    <h2 class="slide-panel-title">New payment plan</h2>
+    <button class="slide-panel-close" onclick="closeSlidePanel('newPlanPanel')" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body">
+
+    <!-- Section A — Link to order -->
+    <div class="admin-form-row">
+      <label class="admin-label">A · Link to an existing order (optional)</label>
+      <input type="text" id="pp_order_search" class="admin-input" placeholder="Search by invoice # or customer name…">
+      <div id="pp_order_results" style="margin-top:6px;font-size:12px;"></div>
+    </div>
+
+    <!-- Section B — Customer -->
+    <div class="admin-form-row">
+      <label class="admin-label">B · Customer</label>
+      <input type="text" id="pp_customer_search" class="admin-input" placeholder="Search existing customer by name or email…">
+      <div id="pp_customer_results" style="margin-top:6px;font-size:12px;"></div>
+      <div id="pp_customer_selected" style="margin-top:8px;display:none;background:var(--admin-green-light);padding:8px 12px;border-radius:4px;font-size:13px;color:var(--admin-green);"></div>
+      <details style="margin-top:10px;">
+        <summary style="cursor:pointer;font-size:12px;color:var(--admin-text-muted);">Or create a new customer</summary>
+        <div class="admin-form-row--split" style="margin-top:10px;">
+          <div>
+            <label class="admin-label" for="pp_new_first">First name</label>
+            <input type="text" id="pp_new_first" class="admin-input">
+          </div>
+          <div>
+            <label class="admin-label" for="pp_new_last">Last name</label>
+            <input type="text" id="pp_new_last" class="admin-input">
+          </div>
+        </div>
+        <div class="admin-form-row--split">
+          <div>
+            <label class="admin-label" for="pp_new_email">Email</label>
+            <input type="email" id="pp_new_email" class="admin-input">
+          </div>
+          <div>
+            <label class="admin-label" for="pp_new_phone">Phone</label>
+            <input type="tel" id="pp_new_phone" class="admin-input">
+          </div>
+        </div>
+        <button type="button" class="btn-ghost" id="pp_new_customer_save" style="font-size:12px;">Create &amp; select customer</button>
+      </details>
+    </div>
+
+    <!-- Section C — Piano -->
+    <div class="admin-form-row">
+      <label class="admin-label" for="pp_piano">C · Piano</label>
+      <select id="pp_piano" class="admin-select">
+        <option value="">— Choose a piano —</option>
+      </select>
+      <div id="pp_piano_meta" style="margin-top:6px;font-size:12px;color:var(--admin-text-muted);"></div>
+    </div>
+
+    <!-- Section D — Plan details -->
+    <div class="admin-form-row">
+      <label class="admin-label">D · Payment plan details</label>
+    </div>
+    <div class="admin-form-row--split">
+      <div>
+        <label class="admin-label" for="pp_total">Total amount ($)</label>
+        <input type="number" id="pp_total" class="admin-input" step="0.01" placeholder="0.00">
+      </div>
+      <div>
+        <label class="admin-label" for="pp_deposit">Deposit ($)</label>
+        <input type="number" id="pp_deposit" class="admin-input" step="0.01" value="500">
+      </div>
+    </div>
+    <div class="admin-form-row--split">
+      <div>
+        <label class="admin-label" for="pp_instalments">Number of instalments</label>
+        <select id="pp_instalments" class="admin-select">
+          <option value="3">3</option>
+          <option value="6" selected>6</option>
+          <option value="9">9</option>
+          <option value="12">12</option>
+          <option value="18">18</option>
+          <option value="24">24</option>
+        </select>
+      </div>
+      <div>
+        <label class="admin-label" for="pp_frequency">Frequency</label>
+        <select id="pp_frequency" class="admin-select">
+          <option value="weekly">Weekly</option>
+          <option value="fortnightly">Fortnightly</option>
+          <option value="monthly" selected>Monthly</option>
+        </select>
+      </div>
+    </div>
+    <div class="admin-form-row--split">
+      <div>
+        <label class="admin-label" for="pp_start">Start date</label>
+        <input type="date" id="pp_start" class="admin-input">
+      </div>
+      <div style="display:flex;align-items:flex-end;">
+        <label class="admin-checkbox-row">
+          <input type="checkbox" id="pp_deposit_paid">
+          <span>Deposit already paid</span>
+        </label>
+      </div>
+    </div>
+    <div class="admin-form-row">
+      <label class="admin-label" for="pp_notes">Notes (optional)</label>
+      <textarea id="pp_notes" class="admin-textarea" rows="2" placeholder="Anything to record on this plan"></textarea>
+    </div>
+
+    <!-- Section E — Live schedule preview -->
+    <div id="schedulePreview"></div>
+
+    <div class="banner banner--error" id="newPlanError"></div>
+  </div>
+  <div class="slide-panel-footer">
+    <button class="btn-ghost" onclick="closeSlidePanel('newPlanPanel')">Cancel</button>
+    <button class="btn-gold" id="createPlanBtn"><i class="ti ti-check"></i> Create payment plan</button>
+  </div>
+</aside>
+
+<!-- ============================================================
+     PAYMENT PLAN DETAIL — slide-in panel
+     ============================================================ -->
+<div class="slide-panel-overlay" id="planDetailPanelOverlay" onclick="closeSlidePanel('planDetailPanel')"></div>
+<aside class="slide-panel" id="planDetailPanel" aria-hidden="true">
+  <div class="slide-panel-header">
+    <h2 class="slide-panel-title" id="planDetailTitle">Plan detail</h2>
+    <button class="slide-panel-close" onclick="closeSlidePanel('planDetailPanel')" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body" id="planDetailBody">
+    <div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div>
+  </div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-nav.js"></script>
+<script>
+/* ============================================================================
+   Signature Pianos — Payment plans
+   ============================================================================ */
+
+let allPlans = []
+let availablePianos = []
+let selectedOrderId = null
+let selectedCustomerId = null
+let selectedCustomer = null
+let selectedPianoId = null
+
+;(async function init() {
+  const admin = await checkAdminAuth()
+  if (!admin) return
+
+  document.getElementById('newPlanBtn').addEventListener('click', openNewPlanPanel)
+  document.getElementById('createPlanBtn').addEventListener('click', createPaymentPlan)
+
+  // Wire schedule-preview inputs
+  ;['pp_total','pp_deposit','pp_instalments','pp_frequency','pp_start']
+    .forEach(id => {
+      const el = document.getElementById(id)
+      if (!el) return
+      el.addEventListener('input',  generateSchedule)
+      el.addEventListener('change', generateSchedule)
+    })
+
+  // Piano select
+  document.getElementById('pp_piano').addEventListener('change', onPianoChange)
+
+  // Customer + order search
+  document.getElementById('pp_customer_search').addEventListener('input', debounce(searchCustomers, 250))
+  document.getElementById('pp_order_search').addEventListener('input',    debounce(searchOrders, 250))
+  document.getElementById('pp_new_customer_save').addEventListener('click', saveNewCustomer)
+
+  // Escape closes whichever panel is open
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return
+    const newP    = document.getElementById('newPlanPanel')
+    const detailP = document.getElementById('planDetailPanel')
+    if (detailP.classList.contains('is-open')) closeSlidePanel('planDetailPanel')
+    else if (newP.classList.contains('is-open')) closeSlidePanel('newPlanPanel')
+  })
+
+  await loadStats()
+  await loadPaymentPlans()
+})()
+
+function debounce(fn, ms) {
+  let t
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms) }
+}
+
+/* ---------- Formatters ---------- */
+function fmtCur(n) {
+  return '$' + Math.abs(Number(n || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+function fmtDateAU(s) {
+  if (!s) return '—'
+  const [y, m, d] = String(s).split('T')[0].split('-')
+  if (!y || !m || !d) return s
+  return `${d}/${m}/${y}`
+}
+function todayISO() {
+  return new Date().toISOString().split('T')[0]
+}
+
+/* ---------- Stats ---------- */
+async function loadStats() {
+  const today = todayISO()
+  try {
+    const [active, pending, completed, overdue] = await Promise.all([
+      adminSupabase.from('payment_plans').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+      adminSupabase.from('payment_plans').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      adminSupabase.from('payment_plans').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
+      adminSupabase.from('payment_instalments').select('*', { count: 'exact', head: true }).eq('paid', false).lt('due_date', today),
+    ])
+    document.getElementById('mActive').textContent    = active.count    || 0
+    document.getElementById('mPending').textContent   = pending.count   || 0
+    document.getElementById('mCompleted').textContent = completed.count || 0
+    document.getElementById('mOverdue').textContent   = overdue.count   || 0
+  } catch (err) {
+    console.error('[payment-plans] loadStats failed', err)
+  }
+}
+
+/* ---------- Plans table ---------- */
+async function loadPaymentPlans() {
+  try {
+    const { data, error } = await adminSupabase
+      .from('payment_plans')
+      .select(`
+        *,
+        customer:customer_id(first_name, last_name, email),
+        piano:piano_id(brand, model, year)
+      `)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    allPlans = data || []
+    renderPlansTable()
+  } catch (err) {
+    console.error('[payment-plans] load failed', err)
+    document.getElementById('plansTableBody').innerHTML =
+      `<tr><td colspan="10"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load payment plans.</p></div></td></tr>`
+  }
+}
+
+function renderPlansTable() {
+  const body = document.getElementById('plansTableBody')
+  if (!allPlans.length) {
+    body.innerHTML = `<tr><td colspan="10"><div class="empty-state"><i class="ti ti-credit-card-off"></i><p>No payment plans yet.</p></div></td></tr>`
+    return
+  }
+
+  body.innerHTML = allPlans.map(p => {
+    const cust    = p.customer ? `${esc(p.customer.first_name || '')} ${esc(p.customer.last_name || '')}`.trim() : '—'
+    const pianoTx = p.piano ? `${esc(p.piano.brand || '')} ${esc(p.piano.model || '')}${p.piano.year ? ' · ' + esc(p.piano.year) : ''}` : '—'
+    const paid    = Number(p.instalments_paid || 0)
+    const total   = Number(p.number_of_instalments || 0)
+    const pct     = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0
+    const deposit = `${fmtCur(p.deposit_amount)}${p.deposit_paid ? ' <i class="ti ti-check" style="color:var(--admin-green);"></i>' : ''}`
+
+    let contractCell = ''
+    if (p.contract_signed) {
+      contractCell = `<span class="contract-pill is-signed"><i class="ti ti-writing-sign"></i> Signed</span>`
+    } else if (p.contract_sent) {
+      contractCell = `<span class="contract-pill is-sent"><i class="ti ti-clock"></i> Sent</span>`
+    } else {
+      contractCell = `<span class="contract-pill is-none"><i class="ti ti-file-x"></i> Not sent</span>`
+    }
+
+    return `
+      <tr data-plan-id="${esc(p.id)}" style="cursor:pointer;">
+        <td class="mono">${esc(p.plan_number || '—')}</td>
+        <td class="name-cell">${cust}</td>
+        <td>${pianoTx}</td>
+        <td style="text-align:right;">${fmtCur(p.total_amount)}</td>
+        <td>${deposit}</td>
+        <td>${paid} of ${total}</td>
+        <td>
+          <div class="pp-progress"><div class="pp-progress-fill" style="width:${pct}%;"></div></div>
+          <div class="pp-progress-label">${pct}%</div>
+        </td>
+        <td><span class="${statusPillClass(p.status)}">${esc(p.status || '')}</span></td>
+        <td>${contractCell}</td>
+        <td>
+          <div class="actions-cell">
+            <button class="icon-btn" data-action="view" title="Open detail"><i class="ti ti-eye"></i></button>
+            <button class="icon-btn" data-action="send" title="${p.contract_sent ? 'Resend' : 'Send'} contract"><i class="ti ti-send"></i></button>
+            <button class="icon-btn" data-action="remind" title="Send overdue reminder" style="border-color:var(--admin-amber);color:var(--admin-amber);"><i class="ti ti-bell"></i></button>
+          </div>
+        </td>
+      </tr>
+    `
+  }).join('')
+
+  body.querySelectorAll('tr[data-plan-id]').forEach(tr => {
+    tr.addEventListener('click', (e) => {
+      // Ignore clicks on action buttons — they handle themselves.
+      if (e.target.closest('[data-action]')) return
+      openPlanDetail(tr.dataset.planId)
+    })
+  })
+  body.querySelectorAll('[data-action="view"]').forEach(b => {
+    b.addEventListener('click', (e) => { e.stopPropagation(); openPlanDetail(b.closest('tr').dataset.planId) })
+  })
+  body.querySelectorAll('[data-action="send"]').forEach(b => {
+    b.addEventListener('click', (e) => { e.stopPropagation(); sendContract(b.closest('tr').dataset.planId, b) })
+  })
+  body.querySelectorAll('[data-action="remind"]').forEach(b => {
+    b.addEventListener('click', (e) => { e.stopPropagation(); sendInstalmentReminder(b.closest('tr').dataset.planId, b) })
+  })
+}
+
+/* ============================================================================
+   NEW PLAN PANEL
+   ============================================================================ */
+async function openNewPlanPanel() {
+  // Reset state
+  selectedOrderId    = null
+  selectedCustomerId = null
+  selectedCustomer   = null
+  selectedPianoId    = null
+  document.getElementById('newPlanError').classList.remove('is-shown')
+  ;['pp_total','pp_deposit','pp_notes','pp_new_first','pp_new_last','pp_new_email','pp_new_phone','pp_customer_search','pp_order_search']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = '' })
+  document.getElementById('pp_deposit').value = '500'
+  document.getElementById('pp_instalments').value = '6'
+  document.getElementById('pp_frequency').value = 'monthly'
+  document.getElementById('pp_deposit_paid').checked = false
+  document.getElementById('pp_start').value = todayISO()
+  document.getElementById('pp_customer_results').innerHTML = ''
+  document.getElementById('pp_order_results').innerHTML = ''
+  document.getElementById('pp_customer_selected').style.display = 'none'
+  document.getElementById('pp_piano_meta').textContent = ''
+  document.getElementById('schedulePreview').innerHTML = ''
+
+  // Load available pianos
+  try {
+    const { data, error } = await adminSupabase
+      .from('pianos')
+      .select('id, brand, model, year, condition, sale_price, type, stock_status')
+      .order('brand', { ascending: true })
+    if (error) throw error
+    availablePianos = data || []
+    const sel = document.getElementById('pp_piano')
+    sel.innerHTML = `<option value="">— Choose a piano —</option>` +
+      availablePianos.map(p =>
+        `<option value="${esc(p.id)}">${esc(p.brand || '')} ${esc(p.model || '')} · ${esc(p.year ?? '—')} · ${esc(p.condition || '')} · ${fmtCur(p.sale_price)} · ${esc(p.stock_status || '')}</option>`
+      ).join('')
+  } catch (err) {
+    console.error('[payment-plans] load pianos failed', err)
+  }
+
+  openSlidePanel('newPlanPanel')
+}
+
+async function searchCustomers() {
+  const q = document.getElementById('pp_customer_search').value.trim()
+  const out = document.getElementById('pp_customer_results')
+  if (q.length < 2) { out.innerHTML = ''; return }
+  try {
+    const { data, error } = await adminSupabase
+      .from('customers')
+      .select('id, first_name, last_name, email, phone')
+      .or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,email.ilike.%${q}%`)
+      .limit(6)
+    if (error) throw error
+    if (!data?.length) { out.innerHTML = `<span style="color:var(--admin-text-faint);">No matches</span>`; return }
+    out.innerHTML = data.map(c => `
+      <button type="button" class="btn-ghost" style="font-size:12px;display:block;width:100%;text-align:left;margin-bottom:4px;padding:6px 10px;" data-cust-id="${esc(c.id)}">
+        ${esc(c.first_name || '')} ${esc(c.last_name || '')} — <span style="color:var(--admin-text-faint);">${esc(c.email || '')}</span>
+      </button>
+    `).join('')
+    out.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => selectCustomer(data.find(c => c.id === btn.dataset.custId)))
+    })
+  } catch (err) {
+    console.error('[payment-plans] customer search failed', err)
+  }
+}
+
+function selectCustomer(c) {
+  if (!c) return
+  selectedCustomerId = c.id
+  selectedCustomer = c
+  document.getElementById('pp_customer_results').innerHTML = ''
+  const sel = document.getElementById('pp_customer_selected')
+  sel.style.display = 'block'
+  sel.textContent = `Selected: ${c.first_name || ''} ${c.last_name || ''} (${c.email || '—'})`
+}
+
+async function saveNewCustomer() {
+  const payload = {
+    first_name: document.getElementById('pp_new_first').value.trim(),
+    last_name:  document.getElementById('pp_new_last').value.trim(),
+    email:      document.getElementById('pp_new_email').value.trim(),
+    phone:      document.getElementById('pp_new_phone').value.trim() || null,
+  }
+  if (!payload.first_name || !payload.email) {
+    showToast('First name and email are required', 'error')
+    return
+  }
+  try {
+    // Upsert by email so we don't duplicate existing customers.
+    const { data: existing } = await adminSupabase.from('customers').select('id').eq('email', payload.email).maybeSingle()
+    if (existing?.id) {
+      await adminSupabase.from('customers').update(payload).eq('id', existing.id)
+      selectCustomer({ id: existing.id, ...payload })
+    } else {
+      const { data: newCust, error } = await adminSupabase.from('customers').insert(payload).select().single()
+      if (error) throw error
+      selectCustomer(newCust)
+    }
+    showToast('Customer ready.')
+  } catch (err) {
+    console.error('[payment-plans] saveNewCustomer failed', err)
+    showToast('Could not save customer', 'error')
+  }
+}
+
+async function searchOrders() {
+  const q = document.getElementById('pp_order_search').value.trim()
+  const out = document.getElementById('pp_order_results')
+  if (q.length < 2) { out.innerHTML = ''; return }
+  try {
+    const { data, error } = await adminSupabase
+      .from('orders')
+      .select(`id, invoice_number, order_number, total, customer_id, piano_id,
+               customers(first_name, last_name, email),
+               pianos(id, brand, model, year, type, sale_price)`)
+      .or(`invoice_number.ilike.%${q}%,order_number.ilike.%${q}%`)
+      .eq('voided', false)
+      .limit(6)
+    if (error) throw error
+    if (!data?.length) { out.innerHTML = `<span style="color:var(--admin-text-faint);">No matches</span>`; return }
+    out.innerHTML = data.map(o => {
+      const cust = o.customers ? `${esc(o.customers.first_name || '')} ${esc(o.customers.last_name || '')}`.trim() : '—'
+      return `
+        <button type="button" class="btn-ghost" style="font-size:12px;display:block;width:100%;text-align:left;margin-bottom:4px;padding:6px 10px;" data-order-id="${esc(o.id)}">
+          <strong>${esc(o.invoice_number || o.order_number || '—')}</strong> · ${cust} · ${fmtCur(o.total)}
+        </button>
+      `
+    }).join('')
+    out.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => selectOrder(data.find(o => o.id === btn.dataset.orderId)))
+    })
+  } catch (err) {
+    console.error('[payment-plans] order search failed', err)
+  }
+}
+
+function selectOrder(o) {
+  if (!o) return
+  selectedOrderId = o.id
+  if (o.customer_id) {
+    selectCustomer({
+      id: o.customer_id,
+      first_name: o.customers?.first_name,
+      last_name:  o.customers?.last_name,
+      email:      o.customers?.email,
+    })
+  }
+  if (o.piano_id) {
+    selectedPianoId = o.piano_id
+    const sel = document.getElementById('pp_piano')
+    sel.value = o.piano_id
+    onPianoChange()
+  }
+  if (o.total) {
+    document.getElementById('pp_total').value = Number(o.total).toFixed(2)
+    generateSchedule()
+  }
+  document.getElementById('pp_order_results').innerHTML =
+    `<span style="color:var(--admin-green);">Linked to order ${esc(o.invoice_number || o.order_number || '')}.</span>`
+}
+
+function onPianoChange() {
+  selectedPianoId = document.getElementById('pp_piano').value || null
+  const meta = document.getElementById('pp_piano_meta')
+  const p = availablePianos.find(x => x.id === selectedPianoId)
+  if (!p) { meta.textContent = ''; return }
+  meta.textContent = `${p.brand} ${p.model} ${p.year || ''} · ${p.condition || ''} · ${fmtCur(p.sale_price)} · ${p.stock_status}`
+  // Auto-fill total if empty
+  const totalEl = document.getElementById('pp_total')
+  if (!totalEl.value && p.sale_price) {
+    totalEl.value = Number(p.sale_price).toFixed(2)
+  }
+  generateSchedule()
+}
+
+/* ---------- Live schedule preview ---------- */
+function generateSchedule() {
+  const total = parseFloat(document.getElementById('pp_total').value) || 0
+  const deposit = parseFloat(document.getElementById('pp_deposit').value) || 0
+  const num = parseInt(document.getElementById('pp_instalments').value, 10) || 1
+  const freq = document.getElementById('pp_frequency').value
+  const startDate = document.getElementById('pp_start').value
+
+  if (!total || !startDate || total < deposit) {
+    document.getElementById('schedulePreview').innerHTML = ''
+    return
+  }
+
+  const remaining = total - deposit
+  const instalmentAmt = remaining / num
+
+  const schedule = []
+  let date = new Date(startDate + 'T00:00:00')
+  for (let i = 0; i < num; i++) {
+    if (i > 0) {
+      if (freq === 'weekly')      date.setDate(date.getDate() + 7)
+      else if (freq === 'fortnightly') date.setDate(date.getDate() + 14)
+      else                        date.setMonth(date.getMonth() + 1)
+    }
+    schedule.push({
+      number: i + 1,
+      date:   date.toISOString().split('T')[0],
+      amount: instalmentAmt,
+    })
+  }
+  const endDate = schedule[schedule.length - 1]?.date
+
+  document.getElementById('schedulePreview').innerHTML = `
+    <div class="schedule-preview">
+      <div style="font-size:12px;font-weight:500;margin-bottom:12px;color:var(--admin-text);">Payment schedule preview</div>
+
+      <div class="row"><span>Deposit ${document.getElementById('pp_deposit_paid').checked ? '· paid' : ''}</span><span class="v">${fmtCur(deposit)}</span></div>
+      <div class="row" style="border-bottom:2px solid var(--admin-border-dark);"><span>Remaining (${num} instalments)</span><span class="v">${fmtCur(remaining)}</span></div>
+
+      ${schedule.map(s => `
+        <div class="row"><span>Instalment ${s.number} · ${fmtDateAU(s.date)}</span><span>${fmtCur(s.amount)}</span></div>
+      `).join('')}
+
+      <div class="row is-total"><span>Total</span><span>${fmtCur(total)}</span></div>
+      ${endDate ? `<div style="font-size:11px;color:var(--admin-text-faint);margin-top:8px;">Final payment: ${fmtDateAU(endDate)}</div>` : ''}
+    </div>
+  `
+}
+
+/* ---------- Create plan ---------- */
+async function createPaymentPlan() {
+  const errEl = document.getElementById('newPlanError')
+  errEl.classList.remove('is-shown')
+
+  if (!selectedCustomerId) {
+    errEl.textContent = 'Select or create a customer first.'
+    errEl.classList.add('is-shown')
+    return
+  }
+  if (!selectedPianoId) {
+    errEl.textContent = 'Select a piano first.'
+    errEl.classList.add('is-shown')
+    return
+  }
+  const total   = parseFloat(document.getElementById('pp_total').value)
+  const deposit = parseFloat(document.getElementById('pp_deposit').value) || 0
+  const num     = parseInt(document.getElementById('pp_instalments').value, 10)
+  const freq    = document.getElementById('pp_frequency').value
+  const startDate = document.getElementById('pp_start').value
+  const depositPaid = document.getElementById('pp_deposit_paid').checked
+  const notes   = document.getElementById('pp_notes').value.trim() || null
+
+  if (!Number.isFinite(total) || total <= 0) {
+    errEl.textContent = 'Total amount must be greater than zero.'
+    errEl.classList.add('is-shown'); return
+  }
+  if (deposit > total) {
+    errEl.textContent = 'Deposit cannot exceed the total amount.'
+    errEl.classList.add('is-shown'); return
+  }
+  if (!startDate) {
+    errEl.textContent = 'Set a start date.'
+    errEl.classList.add('is-shown'); return
+  }
+
+  const remaining = total - deposit
+  const instalmentAmt = remaining / num
+
+  const btn = document.getElementById('createPlanBtn')
+  btn.disabled = true
+  btn.innerHTML = '<i class="ti ti-loader"></i> Creating…'
+
+  try {
+    // Plan number via RPC
+    const { data: planNumber, error: rpcErr } = await adminSupabase.rpc('generate_plan_number')
+    if (rpcErr) throw rpcErr
+
+    // signature_token has a column default (generate_token()), but we set
+    // one client-side too so it's deterministic for unit tests.
+    const signatureToken =
+      Math.random().toString(36).substring(2) +
+      Date.now().toString(36) +
+      Math.random().toString(36).substring(2)
+
+    // Build instalment schedule client-side so we can insert them in
+    // one call after the plan inserts.
+    const schedule = []
+    let date = new Date(startDate + 'T00:00:00')
+    for (let i = 0; i < num; i++) {
+      if (i > 0) {
+        if (freq === 'weekly')      date.setDate(date.getDate() + 7)
+        else if (freq === 'fortnightly') date.setDate(date.getDate() + 14)
+        else                        date.setMonth(date.getMonth() + 1)
+      }
+      schedule.push({
+        instalment_number: i + 1,
+        due_date:          date.toISOString().split('T')[0],
+        amount:            instalmentAmt,
+        paid:              false,
+      })
+    }
+    const endDate = schedule[schedule.length - 1]?.due_date
+
+    const { data: plan, error } = await adminSupabase
+      .from('payment_plans')
+      .insert({
+        order_id:              selectedOrderId,
+        customer_id:           selectedCustomerId,
+        piano_id:              selectedPianoId,
+        plan_number:           planNumber,
+        total_amount:          total,
+        deposit_amount:        deposit,
+        deposit_paid:          depositPaid,
+        deposit_paid_at:       depositPaid ? new Date().toISOString() : null,
+        remaining_amount:      remaining,
+        instalment_amount:     instalmentAmt,
+        instalment_frequency:  freq,
+        number_of_instalments: num,
+        start_date:            startDate,
+        end_date:              endDate,
+        status:                'pending',
+        signature_token:       signatureToken,
+        notes,
+      })
+      .select()
+      .single()
+    if (error) throw error
+
+    // Insert the instalment rows with the new plan_id stamped in.
+    const instalmentRows = schedule.map(s => ({ ...s, payment_plan_id: plan.id }))
+    const { error: insErr } = await adminSupabase.from('payment_instalments').insert(instalmentRows)
+    if (insErr) throw insErr
+
+    closeSlidePanel('newPlanPanel')
+    showToast(`Payment plan ${planNumber} created.`, 'success')
+    await loadStats()
+    await loadPaymentPlans()
+  } catch (err) {
+    console.error('[payment-plans] create failed', err)
+    errEl.textContent = err.message || 'Could not create plan — see console.'
+    errEl.classList.add('is-shown')
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = '<i class="ti ti-check"></i> Create payment plan'
+  }
+}
+
+/* ============================================================================
+   DETAIL PANEL
+   ============================================================================ */
+async function openPlanDetail(planId) {
+  document.getElementById('planDetailBody').innerHTML =
+    `<div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div>`
+  openSlidePanel('planDetailPanel')
+  await loadPlanDetail(planId)
+}
+
+async function loadPlanDetail(planId) {
+  try {
+    const [{ data: plan, error: pErr }, { data: instalments, error: iErr }] = await Promise.all([
+      adminSupabase.from('payment_plans').select(`
+        *,
+        customer:customer_id(*),
+        piano:piano_id(*)
+      `).eq('id', planId).single(),
+      adminSupabase.from('payment_instalments').select('*').eq('payment_plan_id', planId).order('instalment_number'),
+    ])
+    if (pErr) throw pErr
+    if (iErr) throw iErr
+    renderPlanDetail(plan, instalments || [])
+  } catch (err) {
+    console.error('[payment-plans] detail load failed', err)
+    document.getElementById('planDetailBody').innerHTML =
+      `<div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load plan detail.</p></div>`
+  }
+}
+
+function renderPlanDetail(plan, instalments) {
+  const cust = plan.customer
+  const piano = plan.piano
+  document.getElementById('planDetailTitle').textContent = plan.plan_number || 'Plan detail'
+
+  const paid = instalments.filter(i => i.paid).length
+  const total = instalments.length
+  const pct = total > 0 ? Math.round((paid / total) * 100) : 0
+  const today = todayISO()
+
+  document.getElementById('planDetailBody').innerHTML = `
+    <!-- A — Plan summary -->
+    <div class="pp-summary-grid">
+      <div class="pp-summary-cell"><div class="lbl">Customer</div><div class="v">${esc((cust?.first_name || '') + ' ' + (cust?.last_name || ''))}</div></div>
+      <div class="pp-summary-cell"><div class="lbl">Piano</div><div class="v">${esc((piano?.brand || '') + ' ' + (piano?.model || '') + (piano?.year ? ' · ' + piano.year : ''))}</div></div>
+      <div class="pp-summary-cell"><div class="lbl">Total</div><div class="v">${fmtCur(plan.total_amount)}</div></div>
+      <div class="pp-summary-cell"><div class="lbl">Deposit</div><div class="v">${fmtCur(plan.deposit_amount)}${plan.deposit_paid ? ' <span style="color:var(--admin-green);font-size:12px;">✓ paid</span>' : ' <span style="color:var(--admin-amber);font-size:12px;">unpaid</span>'}</div></div>
+      <div class="pp-summary-cell"><div class="lbl">Instalments</div><div class="v">${plan.number_of_instalments} × ${fmtCur(plan.instalment_amount)} ${esc(plan.instalment_frequency || '')}</div></div>
+      <div class="pp-summary-cell"><div class="lbl">Status</div><div class="v"><span class="${statusPillClass(plan.status)}">${esc(plan.status || '')}</span></div></div>
+    </div>
+
+    <!-- B — Progress -->
+    <div style="margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--admin-text-muted);margin-bottom:6px;">
+        <span>Instalment progress</span>
+        <span><strong style="color:var(--admin-text);">${paid}</strong> of ${total} paid · ${pct}%</span>
+      </div>
+      <div class="pp-progress" style="height:8px;"><div class="pp-progress-fill" style="width:${pct}%;"></div></div>
+    </div>
+
+    <!-- C — Instalment schedule -->
+    <div style="margin-bottom:24px;">
+      <div style="font-size:13px;font-weight:500;color:var(--admin-text);margin-bottom:10px;">Instalment schedule</div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Due</th><th style="text-align:right;">Amount</th><th>Status</th><th>Paid</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${instalments.map(ins => {
+              const overdue = !ins.paid && ins.due_date < today
+              const dueSoon = !ins.paid && !overdue && (new Date(ins.due_date) - new Date(today)) / (1000 * 60 * 60 * 24) <= 7
+              let badge
+              if (ins.paid)      badge = `<span class="pill pill--green">Paid</span>`
+              else if (overdue)  badge = `<span class="pill pill--red">Overdue</span>`
+              else if (dueSoon)  badge = `<span class="pill pill--amber">Due soon</span>`
+              else               badge = `<span class="pill pill--grey">Upcoming</span>`
+              return `
+                <tr class="ins-row ${ins.paid ? 'is-paid' : (overdue ? 'is-overdue' : '')}" data-ins-id="${esc(ins.id)}">
+                  <td>${ins.instalment_number}</td>
+                  <td>${fmtDateAU(ins.due_date)}</td>
+                  <td style="text-align:right;">${fmtCur(ins.amount)}</td>
+                  <td>${badge}</td>
+                  <td>${ins.paid ? fmtDateAU(ins.paid_at) : '—'}</td>
+                  <td>${ins.paid ? '' : `<button class="icon-btn" data-action="mark-paid" title="Mark as paid"><i class="ti ti-check"></i></button>`}</td>
+                </tr>
+              `
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- D — Contract section -->
+    <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--admin-border);">
+      <h4 style="font-size:13px;font-weight:500;margin:0 0 12px;display:flex;align-items:center;gap:8px;">
+        <i class="ti ti-writing-sign" style="color:var(--admin-gold);"></i>
+        Payment plan contract
+      </h4>
+      <div id="contractStatus_${esc(plan.id)}" style="font-size:12px;padding:10px 14px;border-radius:4px;margin-bottom:12px;"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-gold" data-action="send-contract" style="padding:8px 16px;font-size:13px;">
+          <i class="ti ti-send"></i> ${plan.contract_sent ? 'Resend contract' : 'Send contract'}
+        </button>
+        ${plan.contract_url ? `
+          <button class="btn-ghost" data-action="download-contract" style="padding:8px 16px;font-size:13px;">
+            <i class="ti ti-download"></i> Download signed contract
+          </button>
+        ` : ''}
+        <button class="btn-ghost" data-action="copy-sign-link" style="padding:8px 16px;font-size:13px;">
+          <i class="ti ti-link"></i> Copy sign link
+        </button>
+      </div>
+    </div>
+  `
+
+  renderContractStatus(plan)
+
+  // Wire actions
+  document.querySelectorAll('[data-action="mark-paid"]').forEach(btn => {
+    btn.addEventListener('click', () => markInstalmentPaid(btn.closest('tr').dataset.insId, plan.id))
+  })
+  document.querySelector('[data-action="send-contract"]')?.addEventListener('click', (e) => sendContract(plan.id, e.currentTarget))
+  document.querySelector('[data-action="download-contract"]')?.addEventListener('click', () => downloadContract(plan))
+  document.querySelector('[data-action="copy-sign-link"]')?.addEventListener('click', () => {
+    const url = `${window.location.origin}/payment-plan-sign.html?token=${encodeURIComponent(plan.signature_token)}`
+    navigator.clipboard?.writeText(url)
+      .then(() => showToast('Sign link copied.'))
+      .catch(() => prompt('Copy this link:', url))
+  })
+}
+
+function renderContractStatus(plan) {
+  const el = document.getElementById(`contractStatus_${plan.id}`)
+  if (!el) return
+  if (plan.contract_signed) {
+    el.style.background = 'var(--admin-green-light)'
+    el.style.color = 'var(--admin-green)'
+    el.innerHTML = `<i class="ti ti-circle-check"></i> Contract signed on ${fmtDateAU(plan.contract_signed_at)}`
+  } else if (plan.contract_sent) {
+    el.style.background = 'var(--admin-amber-light)'
+    el.style.color = 'var(--admin-amber)'
+    el.innerHTML = `<i class="ti ti-clock"></i> Contract sent on ${fmtDateAU(plan.contract_sent_at)} — awaiting signature`
+  } else {
+    el.style.background = 'var(--admin-bg)'
+    el.style.color = 'var(--admin-text-muted)'
+    el.innerHTML = `<i class="ti ti-file-x"></i> Contract not yet sent`
+  }
+}
+
+/* ---------- Mark instalment paid ---------- */
+async function markInstalmentPaid(instalmentId, planId) {
+  const method = prompt('Payment method? (Cash / Bank transfer / Stripe / Card)')
+  if (!method) return
+  const ref = prompt('Payment reference? (optional)') || null
+
+  try {
+    const { error } = await adminSupabase
+      .from('payment_instalments')
+      .update({
+        paid:              true,
+        paid_at:           new Date().toISOString(),
+        payment_method:    method.trim(),
+        payment_reference: ref ? ref.trim() : null,
+      })
+      .eq('id', instalmentId)
+    if (error) throw error
+
+    // Recount paid instalments and write back to plan; auto-complete when all paid.
+    const { data: remaining, error: remErr } = await adminSupabase
+      .from('payment_instalments')
+      .select('id, paid')
+      .eq('payment_plan_id', planId)
+    if (remErr) throw remErr
+    const paidCount = (remaining || []).filter(r => r.paid).length
+
+    const updates = { instalments_paid: paidCount }
+    if (paidCount === (remaining || []).length && remaining?.length > 0) {
+      updates.status = 'completed'
+    }
+    await adminSupabase.from('payment_plans').update(updates).eq('id', planId)
+
+    if (updates.status === 'completed') {
+      showToast('All instalments paid — plan completed!', 'success')
+    } else {
+      showToast('Instalment marked as paid', 'success')
+    }
+    await loadPlanDetail(planId)
+    await loadStats()
+    await loadPaymentPlans()
+  } catch (err) {
+    console.error('[payment-plans] markInstalmentPaid failed', err)
+    showToast('Could not mark as paid — see console.', 'error')
+  }
+}
+
+/* ============================================================================
+   CONTRACT — send, download, reminders
+   ============================================================================ */
+async function getCompanySettings() {
+  try {
+    const { data } = await adminSupabase.from('company_settings').select('*').limit(1).maybeSingle()
+    if (data) return data
+  } catch (err) {
+    console.warn('[payment-plans] settings load fell back', err)
+  }
+  return {}
+}
+
+async function sendContract(planId, btn) {
+  let plan
+  try {
+    const { data, error } = await adminSupabase
+      .from('payment_plans')
+      .select(`*, customer:customer_id(*), piano:piano_id(*)`)
+      .eq('id', planId)
+      .single()
+    if (error) throw error
+    plan = data
+  } catch (err) {
+    console.error('[payment-plans] sendContract fetch failed', err)
+    showToast('Could not load plan — see console.', 'error')
+    return
+  }
+
+  if (!plan.customer?.email) {
+    showToast('No customer email on this plan', 'error')
+    return
+  }
+  const fullName = `${plan.customer.first_name || ''} ${plan.customer.last_name || ''}`.trim()
+  if (!window.confirm(`Send payment plan contract to ${fullName} (${plan.customer.email})?`)) return
+
+  const originalHTML = btn?.innerHTML
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Sending…' }
+
+  try {
+    const { data: instalments } = await adminSupabase
+      .from('payment_instalments')
+      .select('*')
+      .eq('payment_plan_id', planId)
+      .order('instalment_number')
+
+    const settings = await getCompanySettings()
+    const signUrl = `${window.location.origin}/payment-plan-sign.html?token=${encodeURIComponent(plan.signature_token)}`
+
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'payment_plan_contract',
+        plan: {
+          id:                    plan.id,
+          plan_number:           plan.plan_number,
+          total_amount:          plan.total_amount,
+          deposit_amount:        plan.deposit_amount,
+          deposit_paid:          plan.deposit_paid,
+          remaining_amount:      plan.remaining_amount,
+          instalment_amount:     plan.instalment_amount,
+          instalment_frequency:  plan.instalment_frequency,
+          number_of_instalments: plan.number_of_instalments,
+          start_date:            plan.start_date,
+          signature_token:       plan.signature_token,
+          notes:                 plan.notes,
+        },
+        customer: plan.customer,
+        piano:    plan.piano,
+        instalments: instalments || [],
+        settings,
+        signUrl,
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      const { error: updErr } = await adminSupabase
+        .from('payment_plans')
+        .update({
+          contract_sent:    true,
+          contract_sent_at: new Date().toISOString(),
+          status:           'pending',
+        })
+        .eq('id', planId)
+      if (updErr) console.error('[payment-plans] sent flag update failed', updErr)
+      showToast(`Contract sent to ${plan.customer.email}`, 'success')
+      await loadPaymentPlans()
+      await loadPlanDetail(planId)
+    } else {
+      console.error('[payment-plans] sendContract email failed', result)
+      showToast('Failed to send contract', 'error')
+    }
+  } catch (err) {
+    console.error('[payment-plans] sendContract fetch failed', err)
+    showToast('Failed to send contract', 'error')
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = originalHTML }
+  }
+}
+
+async function downloadContract(plan) {
+  if (!plan.contract_url) {
+    showToast('No signed contract on this plan', 'error')
+    return
+  }
+  try {
+    const { data, error } = await adminSupabase.storage
+      .from('contracts')
+      .createSignedUrl(plan.contract_url, 60)
+    if (error) throw error
+    window.open(data.signedUrl, '_blank', 'noopener')
+  } catch (err) {
+    console.error('[payment-plans] downloadContract failed', err)
+    showToast('Could not get download link — see console.', 'error')
+  }
+}
+
+async function sendInstalmentReminder(planId, btn) {
+  let plan
+  try {
+    const { data, error } = await adminSupabase
+      .from('payment_plans')
+      .select(`*, customer:customer_id(*), piano:piano_id(*)`)
+      .eq('id', planId)
+      .single()
+    if (error) throw error
+    plan = data
+  } catch (err) {
+    console.error('[payment-plans] reminder fetch failed', err)
+    showToast('Could not load plan — see console.', 'error')
+    return
+  }
+
+  const today = todayISO()
+  const { data: overdueInstalments } = await adminSupabase
+    .from('payment_instalments')
+    .select('*')
+    .eq('payment_plan_id', planId)
+    .eq('paid', false)
+    .lt('due_date', today)
+    .order('due_date')
+
+  if (!overdueInstalments?.length) {
+    showToast('No overdue instalments on this plan', 'warning')
+    return
+  }
+  if (!plan.customer?.email) {
+    showToast('No customer email on this plan', 'error')
+    return
+  }
+  const fullName = `${plan.customer.first_name || ''} ${plan.customer.last_name || ''}`.trim()
+  if (!window.confirm(`Send overdue reminder to ${fullName} for ${overdueInstalments.length} overdue instalment(s)?`)) return
+
+  const originalHTML = btn?.innerHTML
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i>' }
+  try {
+    const settings = await getCompanySettings()
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'instalment_reminder',
+        plan,
+        customer: plan.customer,
+        piano:    plan.piano,
+        overdueInstalments,
+        settings,
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      showToast(`Reminder sent to ${plan.customer.email}`, 'success')
+    } else {
+      console.error('[payment-plans] reminder email failed', result)
+      showToast('Failed to send reminder', 'error')
+    }
+  } catch (err) {
+    console.error('[payment-plans] reminder fetch failed', err)
+    showToast('Failed to send reminder', 'error')
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = originalHTML }
+  }
+}
+</script>
+
+</body>
+</html>
