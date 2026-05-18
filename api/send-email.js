@@ -94,7 +94,7 @@ module.exports = async (req, res) => {
       await resend.emails.send({
         from: FROM,
         to: BUSINESS_EMAIL,
-        subject: `Delivery preferences received — ${data.customer_name || 'customer'} (${data.order_number || ''})`,
+        subject: `Delivery preferences received — ${data.customer_name || 'customer'} · ${data.order_number || ''}`,
         html: deliveryPreferencesEmail(data)
       })
     }
@@ -249,6 +249,39 @@ module.exports = async (req, res) => {
           <p>Overdue instalment reminder sent to ${esc(customer.email)}.</p>
           <p>Plan: ${esc(plan.plan_number || '')}</p>
           <p>Overdue instalments: ${overdueInstalments?.length || 0}</p>
+        `
+      })
+    }
+
+    /* ===== Driver — pickup or delivery photo upload link ===== */
+    if (type === 'driver_pickup_link' || type === 'driver_delivery_link') {
+      const isPickup = type === 'driver_pickup_link'
+      const { driver_name, driver_email, customer, piano,
+              pickup_url, delivery_url, scheduled_date, scheduled_time } = data
+      if (!driver_email) {
+        return res.status(400).json({ error: 'Driver email missing' })
+      }
+      const pianoLabel = `${piano?.brand || ''} ${piano?.model || ''} ${piano?.year || ''}`.trim()
+      await resend.emails.send({
+        from: FROM,
+        to: driver_email,
+        subject: isPickup
+          ? `Piano pickup — photos required · ${pianoLabel}`
+          : `Piano delivery — photos required · ${pianoLabel}`,
+        html: buildDriverLiveEmail({
+          isPickup, driver_name, customer, piano,
+          tokenUrl: isPickup ? pickup_url : delivery_url,
+          scheduled_date, scheduled_time,
+        })
+      })
+      await resend.emails.send({
+        from: FROM,
+        to: BUSINESS_EMAIL,
+        subject: isPickup ? `Pickup link sent to ${driver_name}` : `Delivery link sent to ${driver_name}`,
+        html: `
+          <p>${isPickup ? 'Pickup' : 'Delivery'} photo link sent to ${esc(driver_name)} (${esc(driver_email)}).</p>
+          <p>Piano: ${esc(pianoLabel)}</p>
+          <p>Customer: ${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))}</p>
         `
       })
     }
@@ -613,31 +646,71 @@ function internalSaleEmail(data) {
   })
 }
 
-/* ---------- DELIVERY PREFERENCES SUBMITTED — internal ---------- */
+/* ---------- DELIVERY PREFERENCES SUBMITTED — internal ----------
+ * Branded white-card template (matches invoice + payment-plan emails)
+ * so Eric can read the customer's name, contact, piano, address and
+ * three preferred windows at a glance without opening admin. */
 function deliveryPreferencesEmail(data) {
-  const formatPref = (p, n) => {
-    if (!p) return ['Preference ' + n, '—']
-    return ['Preference ' + n, `${esc(p.date || '—')} · ${esc(p.time || '—')}`, n === 1]
-  }
-  const rows = [
-    ['Customer', esc(data.customer_name || '—'), true],
-    ['Order #', esc(data.order_number || '—')],
-    formatPref(data.preferences?.[0], 1),
-    formatPref(data.preferences?.[1], 2),
-    formatPref(data.preferences?.[2], 3),
-  ]
-  if (data.address)      rows.push(['Address', esc(data.address)])
-  if (data.instructions) rows.push(['Notes', esc(data.instructions)])
+  const name = esc(data.customer_name || '—')
+  return `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+    <div style="background:#1a1917;padding:24px 32px;">
+      <div style="font-size:18px;color:#b8935a;font-style:italic;">Signature Pianos</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;">Delivery preferences received</div>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#1a1917;margin:0 0 20px;font-size:18px;">${name} has submitted their delivery preferences</h2>
 
-  const body = `
-    ${h1('Customer delivery preferences')}
-    ${p(`A customer has submitted their three preferred delivery windows. Confirm one of them and assign a delivery partner from the admin dashboard.`, { muted: true })}
-    ${detailTable(rows)}
-  `
-  return shell({
-    preview: `${data.customer_name || 'Customer'} sent delivery preferences for order ${data.order_number || ''}`,
-    body
-  })
+      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">Customer &amp; order</div>
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <tr><td style="padding:6px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:40%;">Customer</td><td style="padding:6px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${name}</td></tr>
+          <tr><td style="padding:6px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Email</td><td style="padding:6px 0;border-bottom:1px solid #e8e4dd;"><a href="mailto:${esc(data.customer_email || '')}" style="color:#b8935a;">${esc(data.customer_email || '—')}</a></td></tr>
+          <tr><td style="padding:6px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Phone</td><td style="padding:6px 0;border-bottom:1px solid #e8e4dd;">${esc(data.customer_phone || '—')}</td></tr>
+          <tr><td style="padding:6px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Order number</td><td style="padding:6px 0;font-weight:500;border-bottom:1px solid #e8e4dd;font-family:monospace;">${esc(data.order_number || '—')}</td></tr>
+          <tr><td style="padding:6px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Invoice</td><td style="padding:6px 0;border-bottom:1px solid #e8e4dd;font-family:monospace;">${esc(data.invoice_number || '—')}</td></tr>
+          <tr><td style="padding:6px 0;color:#9a9590;">Piano</td><td style="padding:6px 0;font-weight:500;">${esc(data.piano || '—')}</td></tr>
+        </table>
+      </div>
+
+      ${data.address ? `
+        <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:8px;">Delivery address</div>
+          <div style="font-size:13px;color:#1a1917;font-weight:500;">${esc(data.address)}</div>
+        </div>
+      ` : ''}
+
+      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">Preferred delivery windows</div>
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:30%;">1st preference</td><td style="padding:8px 0;font-weight:500;border-bottom:1px solid #e8e4dd;color:#1a1917;">${esc(data.pref1 || '—')}</td></tr>
+          <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">2nd preference</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">${esc(data.pref2 || '—')}</td></tr>
+          <tr><td style="padding:8px 0;color:#9a9590;">3rd preference</td><td style="padding:8px 0;">${esc(data.pref3 || '—')}</td></tr>
+        </table>
+      </div>
+
+      ${data.notes ? `
+        <div style="background:#f8f7f5;border-radius:4px;padding:14px;margin-bottom:20px;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:6px;">Special instructions</div>
+          <div style="font-size:13px;color:#6b6760;line-height:1.6;">${esc(data.notes)}</div>
+        </div>
+      ` : ''}
+
+      <div style="text-align:center;margin-top:24px;">
+        <a href="https://signaturepianos.com.au/admin/deliveries.html"
+           style="display:inline-block;background:#b8935a;color:#000;padding:12px 28px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:500;">
+          Action in admin portal →
+        </a>
+      </div>
+    </div>
+    <div style="background:#f8f7f5;padding:16px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
+      Signature Pianos Admin · signaturepianos.com.au
+    </div>
+  </div>
+</body>
+</html>`
 }
 
 /* ============================================================================
@@ -1164,6 +1237,91 @@ function instalmentReminderEmail({ plan, customer, piano, overdueInstalments, se
     <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
       ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
     </div>
+  </div>
+</body>
+</html>`
+}
+
+/* ============================================================================
+ * Driver pickup / delivery photo-link email.
+ * Same layout as api/send-driver-test.js but with real data and no test
+ * banner. Adds scheduled date + time rows when present.
+ * ======================================================================== */
+function buildDriverLiveEmail({ isPickup, driver_name, customer, piano, tokenUrl, scheduled_date, scheduled_time }) {
+  const fullAddress = [
+    customer?.address_line1, customer?.suburb, customer?.state, customer?.postcode,
+  ].filter(Boolean).map(esc).join(', ') || '—'
+  const fmtDay = (d) => {
+    if (!d) return '—'
+    try { return new Date(d).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }
+    catch { return esc(d) }
+  }
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; background: #f8f7f5; margin: 0; padding: 40px 20px; }
+    .card { background: #fff; max-width: 560px; margin: 0 auto; border-radius: 8px; overflow: hidden; border: 1px solid #e8e4dd; }
+    .header { background: #1a1917; padding: 32px; text-align: center; }
+    .logo { font-size: 20px; color: #b8935a; font-style: italic; }
+    .body { padding: 32px; }
+    h2 { font-size: 20px; color: #1a1917; margin: 0 0 8px; }
+    p { color: #6b6760; font-size: 14px; line-height: 1.7; margin: 0 0 16px; }
+    .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #9a9590; margin-bottom: 10px; margin-top: 20px; display: block; }
+    .detail-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 4px; }
+    .detail-table td { padding: 8px 0; border-bottom: 1px solid #e8e4dd; }
+    .detail-table td:first-child { color: #9a9590; width: 40%; }
+    .detail-table td:last-child { font-weight: 500; color: #1a1917; }
+    .detail-table tr:last-child td { border-bottom: none; }
+    .action-box { background: #f0f9f4; border: 1px solid #9fe1cb; border-radius: 4px; padding: 20px; text-align: center; margin: 24px 0; }
+    .btn-gold { display: inline-block; background: #b8935a; color: #000; padding: 14px 32px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 500; }
+    .warning { background: #fdecea; border-left: 3px solid #c0392b; padding: 12px 16px; border-radius: 0 4px 4px 0; font-size: 13px; color: #c0392b; margin: 16px 0; }
+    .footer { background: #f8f7f5; padding: 20px; text-align: center; font-size: 12px; color: #9a9590; border-top: 1px solid #e8e4dd; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header"><div class="logo">Signature Pianos</div></div>
+    <div class="body">
+      <h2>Hi ${esc(driver_name || '')},</h2>
+      <p>
+        ${isPickup
+          ? 'You have a piano pickup for Signature Pianos. Please photograph the piano thoroughly before moving it.'
+          : `You have a piano delivery for Signature Pianos. Please photograph the piano after placing it in the customer's home.`}
+      </p>
+
+      <span class="section-label">Job details</span>
+      <table class="detail-table">
+        <tr><td>Piano</td><td>${esc((piano?.brand || 'Yamaha') + ' ' + (piano?.model || '') + ' ' + (piano?.year || ''))}</td></tr>
+        <tr><td>Serial</td><td style="font-family:monospace;">${esc(piano?.serial_number || '—')}</td></tr>
+        <tr><td>${isPickup ? 'Pickup from' : 'Deliver to'}</td><td>${fullAddress}</td></tr>
+        ${!isPickup ? `<tr><td>Customer phone</td><td><a href="tel:${esc(customer?.phone || '')}" style="color:#b8935a;">${esc(customer?.phone || '—')}</a></td></tr>` : ''}
+        ${scheduled_date ? `<tr><td>Date</td><td style="color:#b8935a;font-weight:500;">${fmtDay(scheduled_date)}</td></tr>` : ''}
+        ${scheduled_time ? `<tr><td>Time window</td><td>${esc(scheduled_time)}</td></tr>` : ''}
+      </table>
+
+      <div class="warning">
+        <strong>Important:</strong>
+        ${isPickup
+          ? 'Do not move the piano until all photos are uploaded.'
+          : 'Do not leave the property until all photos are uploaded.'}
+      </div>
+
+      <div class="action-box">
+        <div style="font-size:15px;font-weight:500;color:#085041;margin-bottom:8px;">
+          ${isPickup ? 'Upload pickup photos' : 'Upload delivery photos'}
+        </div>
+        <p style="font-size:13px;color:#085041;margin:0 0 16px;">
+          Tap the button to open the photo upload page. You can take photos directly from your phone.
+        </p>
+        <a href="${esc(tokenUrl || '#')}" class="btn-gold">
+          ${isPickup ? 'Upload pickup photos →' : 'Upload delivery photos →'}
+        </a>
+        <p style="font-size:11px;color:#9a9590;margin:12px 0 0;">This link is unique to this delivery. Do not share it.</p>
+      </div>
+    </div>
+    <div class="footer">Signature Pianos Melbourne · signaturepianos.com.au</div>
   </div>
 </body>
 </html>`

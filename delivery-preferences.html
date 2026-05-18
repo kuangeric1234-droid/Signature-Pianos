@@ -219,7 +219,7 @@ async function loadDelivery(token) {
     if (dlv.order_id) {
       const { data: ord } = await _supabase
         .from('orders')
-        .select('order_number, total, customers(first_name, last_name, address_line1, address_line2, suburb, state, postcode), pianos(brand, model, year)')
+        .select('order_number, invoice_number, total, customers(first_name, last_name, email, phone, address_line1, address_line2, suburb, state, postcode), pianos(brand, model, year, serial_number)')
         .eq('id', dlv.order_id)
         .maybeSingle()
       orderSummary = ord || null
@@ -402,19 +402,36 @@ async function onSubmit(e) {
       .eq('preference_token', delivery.preference_token)
     if (error) throw error
 
-    // Fire-and-forget notification to the business inbox
+    // Fire-and-forget notification to the business inbox. The payload
+    // is richer than the original shape — name + email + phone, the
+    // full piano label, both order + invoice numbers, and each of the
+    // three preferences as a human-readable string — so Eric can act
+    // on the email without opening admin.
+    const _cust = orderSummary?.customers || {}
+    const _piano = orderSummary?.pianos || {}
+    const _customerName = `${_cust.first_name || ''} ${_cust.last_name || ''}`.trim()
+    const _pianoLabel = [
+      `${_piano.brand || ''} ${_piano.model || ''} ${_piano.year || ''}`.trim(),
+      _piano.serial_number ? `Serial ${_piano.serial_number}` : '',
+    ].filter(Boolean).join(' — ')
+    const _prefString = (p) => p ? `${p.date} ${p.time}` : '—'
+
     fetch('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        type: 'delivery_preferences_submitted',
-        order_number: orderSummary?.order_number || null,
-        customer_name: orderSummary?.customers
-          ? `${orderSummary.customers.first_name || ''} ${orderSummary.customers.last_name || ''}`.trim()
-          : '',
-        preferences: prefs,
+        type:           'delivery_preferences_submitted',
+        customer_name:  _customerName,
+        customer_email: _cust.email || '',
+        customer_phone: _cust.phone || '',
+        piano:          _pianoLabel,
+        order_number:   orderSummary?.order_number || '',
+        invoice_number: orderSummary?.invoice_number || '',
+        pref1:          _prefString(prefs[0]),
+        pref2:          _prefString(prefs[1]),
+        pref3:          _prefString(prefs[2]),
         address,
-        instructions: document.getElementById('pref-instructions').value.trim() || '',
+        notes:          document.getElementById('pref-instructions').value.trim() || '',
       }),
     }).catch(() => { /* non-blocking */ })
 

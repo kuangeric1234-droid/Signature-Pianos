@@ -80,6 +80,11 @@
         <h1 class="admin-page-title">Deliveries</h1>
       </div>
       <div class="admin-topbar-right">
+        <button onclick="sendTestEmails()" title="Fire test emails to kuangeric1234@gmail.com to preview what tuners + drivers receive."
+          style="background:none;border:1px solid var(--admin-border);border-radius:4px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--admin-text-muted);display:flex;align-items:center;gap:5px;">
+          <i class="ti ti-mail" style="font-size:13px;"></i>
+          Send test emails
+        </button>
         <span style="font-size:13px;color:var(--admin-text-muted);" data-admin-name>—</span>
       </div>
     </div>
@@ -512,6 +517,16 @@ function openDelivery(id) {
         <button class="btn-ghost" type="button" id="copyPickupBtn"><i class="ti ti-link"></i> Copy pickup link</button>
         <button class="btn-ghost" type="button" id="copyDeliveryBtn"><i class="ti ti-link"></i> Copy delivery link</button>
       </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button data-action="send-pickup-link" data-delivery-id="${esc(d.id)}"
+          style="flex:1;background:none;border:1px solid var(--admin-border);border-radius:4px;padding:8px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;color:var(--admin-text-muted);">
+          <i class="ti ti-camera"></i> Send pickup photo link
+        </button>
+        <button data-action="send-delivery-link" data-delivery-id="${esc(d.id)}"
+          style="flex:1;background:none;border:1px solid var(--admin-border);border-radius:4px;padding:8px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;color:var(--admin-text-muted);">
+          <i class="ti ti-home-check"></i> Send delivery photo link
+        </button>
+      </div>
       <div id="copyConfirm" style="font-size:11px;color:var(--admin-green);margin-top:6px;display:none;">Copied to clipboard.</div>
     </div>
     ${(d.pickup_photos?.length || d.delivery_photos?.length) ? `
@@ -530,6 +545,11 @@ function openDelivery(id) {
 
   document.getElementById('copyPickupBtn').addEventListener('click',   () => copyToClipboard(pickupUrl))
   document.getElementById('copyDeliveryBtn').addEventListener('click', () => copyToClipboard(deliveryUrl))
+
+  document.querySelector('[data-action="send-pickup-link"]')?.addEventListener('click', (e) =>
+    sendDriverPickupLink(e.currentTarget.dataset.deliveryId, e.currentTarget))
+  document.querySelector('[data-action="send-delivery-link"]')?.addEventListener('click', (e) =>
+    sendDriverDeliveryLink(e.currentTarget.dataset.deliveryId, e.currentTarget))
 
   // Confirm date + notify customer — only rendered when scheduled_date is set.
   const confirmBtn = document.querySelector('[data-action="confirm-delivery"]')
@@ -1196,6 +1216,177 @@ async function updatePartnerActive(id, active) {
   } catch (err) {
     console.error('[partners] toggle active failed', err)
     alert("Couldn't update partner — please try again.")
+  }
+}
+
+/* ============================================================================
+   TEST EMAILS + LIVE DRIVER LINKS
+   ----------------------------------------------------------------------------
+   Send test emails — fires 4 emails to kuangeric1234@gmail.com so Eric
+   can preview what each downstream party receives without creating real
+   data. Drivers + tuners are mocked.
+
+   Live driver-link buttons — fire the real pickup/delivery photo upload
+   link to the assigned delivery partner via /api/send-email. The link
+   destination at /delivery/[token] is not yet built — the email will
+   land but the link 404s for now. That page is a follow-up session.
+   ========================================================================= */
+
+async function sendTestEmails() {
+  if (!window.confirm(
+    'Send test emails to kuangeric1234@gmail.com?\n\n' +
+    '1. Delivery preferences notification (as Eric)\n' +
+    '2. Tuner booking notification (as the tuner)\n' +
+    '3. Driver pickup photo link (as the driver)\n' +
+    '4. Driver delivery photo link (as the driver)'
+  )) return
+
+  let okCount = 0
+  let failCount = 0
+
+  // 1. Delivery preferences notification (delivered by send-email dispatcher)
+  try {
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type:           'delivery_preferences_submitted',
+        customer_name:  'Eric Kuang',
+        customer_email: 'kuangeric1234@gmail.com',
+        customer_phone: '+61400000000',
+        piano:          'Yamaha U3A 1983 — Serial 3843471',
+        order_number:   'SP-2026-00001',
+        invoice_number: 'INV-2026-00001',
+        pref1:          '2026-06-20 Morning (8am–12pm)',
+        pref2:          '2026-06-21 Afternoon (12pm–4pm)',
+        pref3:          '2026-06-22 All day (flexible)',
+        address:        '123 Test Street, Fitzroy VIC 3065',
+        notes:          'Please use the side gate. Two steps at the entrance.',
+      }),
+    })
+    if (res.ok) okCount++; else failCount++
+  } catch (err) { console.error('[test] prefs email failed', err); failCount++ }
+
+  // 2. Tuner booking notification
+  try {
+    const res = await fetch('/api/send-tuner-test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ test_email: 'kuangeric1234@gmail.com' }),
+    })
+    if (res.ok) okCount++; else failCount++
+  } catch (err) { console.error('[test] tuner email failed', err); failCount++ }
+
+  // 3. Driver pickup link
+  try {
+    const res = await fetch('/api/send-driver-test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ test_email: 'kuangeric1234@gmail.com', type: 'pickup' }),
+    })
+    if (res.ok) okCount++; else failCount++
+  } catch (err) { console.error('[test] driver pickup failed', err); failCount++ }
+
+  // 4. Driver delivery link
+  try {
+    const res = await fetch('/api/send-driver-test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ test_email: 'kuangeric1234@gmail.com', type: 'delivery' }),
+    })
+    if (res.ok) okCount++; else failCount++
+  } catch (err) { console.error('[test] driver delivery failed', err); failCount++ }
+
+  if (failCount === 0) {
+    showToast(`${okCount} test emails sent to kuangeric1234@gmail.com`, 'success')
+  } else {
+    showToast(`${okCount} sent · ${failCount} failed — check console`, failCount === 4 ? 'error' : 'warning')
+  }
+}
+
+async function sendDriverPickupLink(deliveryId, btn) {
+  await sendDriverLink(deliveryId, 'pickup', btn)
+}
+async function sendDriverDeliveryLink(deliveryId, btn) {
+  await sendDriverLink(deliveryId, 'delivery', btn)
+}
+
+async function sendDriverLink(deliveryId, kind, btn) {
+  const isPickup = kind === 'pickup'
+  let delivery
+  try {
+    const { data, error } = await adminSupabase
+      .from('deliveries')
+      .select(`
+        *,
+        order:order_id (
+          *,
+          customers ( * ),
+          pianos    ( * )
+        ),
+        partner:delivery_partner_id ( * )
+      `)
+      .eq('id', deliveryId)
+      .single()
+    if (error) throw error
+    delivery = data
+  } catch (err) {
+    console.error(`[deliveries] send-${kind}-link fetch failed`, err)
+    showToast("Couldn't load delivery — see console.", 'error')
+    return
+  }
+
+  const tokenField = isPickup ? 'pickup_link_token' : 'delivery_link_token'
+  if (!delivery?.[tokenField]) {
+    showToast(`No ${isPickup ? 'pickup' : 'delivery'} token on this delivery`, 'error')
+    return
+  }
+  if (!delivery?.partner?.email) {
+    showToast('Delivery partner has no email — add it in the Partners tab', 'error')
+    return
+  }
+
+  const customer = delivery.order?.customers
+  const piano    = delivery.order?.pianos
+  if (!customer || !piano) {
+    showToast('Order is missing customer or piano details', 'error')
+    return
+  }
+
+  if (!window.confirm(`Send ${isPickup ? 'pickup' : 'delivery'} photo link to ${delivery.partner.name} (${delivery.partner.email})?`)) return
+
+  const originalHTML = btn?.innerHTML
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Sending…' }
+
+  try {
+    const tokenUrl = `${window.location.origin}/delivery/${delivery[tokenField]}`
+    const payload = {
+      type:         isPickup ? 'driver_pickup_link' : 'driver_delivery_link',
+      driver_name:  delivery.partner.name,
+      driver_email: delivery.partner.email,
+      customer,
+      piano,
+      [isPickup ? 'pickup_url' : 'delivery_url']: tokenUrl,
+      scheduled_date: delivery.scheduled_date,
+      scheduled_time: delivery.scheduled_time_window,
+    }
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      showToast(`${isPickup ? 'Pickup' : 'Delivery'} link sent to ${delivery.partner.email}`, 'success')
+    } else {
+      console.error(`[deliveries] ${kind} link email failed`, result)
+      showToast('Failed to send — check console', 'error')
+    }
+  } catch (err) {
+    console.error(`[deliveries] ${kind} link fetch failed`, err)
+    showToast('Failed to send — check console', 'error')
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = originalHTML }
   }
 }
 </script>

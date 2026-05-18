@@ -1393,6 +1393,60 @@ Run order:         1. supabase/payment_plans.sql in SQL editor
                       Storage upload + plan row flips to active.
 ```
 
+### Email previews + tuner / driver notification overhaul
+```
+Delivery prefs:    The internal email fired when a customer submits
+                   their 3 windows is now a full branded HTML card:
+                   customer name + email + phone, order #,
+                   invoice #, piano (with serial), confirmed
+                   address, all three preferences, special
+                   instructions, and a one-click CTA to the admin
+                   deliveries page. delivery-preferences.html now
+                   sends the richer payload via /api/send-email.
+
+Tuner booking:     api/tuner-booking.js now sends the tuner an
+                   email containing the customer's email, phone
+                   AND full address (line1 + suburb + state +
+                   postcode), plus Email customer / Call customer
+                   buttons that tap straight into the dialer or
+                   mail client. The Twilio SMS mirrors the same
+                   structured layout so the tuner can act from
+                   SMS alone if needed.
+
+Test email button: admin/deliveries.html topbar — small "Send test
+                   emails" link. Fires four emails to
+                   kuangeric1234@gmail.com with realistic mock
+                   data and a "TEST EMAIL" banner across the top
+                   of each so they can't be mistaken for live:
+                     1. delivery_preferences_submitted (via the
+                        regular dispatcher)
+                     2. /api/send-tuner-test (tuner booking)
+                     3. /api/send-driver-test type=pickup
+                     4. /api/send-driver-test type=delivery
+                   Toast reports a per-email success/fail count.
+
+Driver photo
+links (live):      Send pickup photo link / Send delivery photo
+                   link buttons inside the delivery detail panel,
+                   only useful once a delivery partner with an
+                   email is assigned. Both POST to /api/send-email
+                   (types driver_pickup_link / driver_delivery_link)
+                   which fire a branded card with full address,
+                   piano details, the assigned date/time, an
+                   "Important — don't move until photos uploaded"
+                   warning, and an Upload photos CTA pointing at
+                   /delivery/{token}. Note: that destination page
+                   isn't built yet — the link 404s until a follow-
+                   up session adds /delivery/[token].html +
+                   api/driver-confirm.js for the upload flow.
+
+Shared template:   buildDriverLiveEmail() in api/send-email.js is
+                   the live counterpart to buildDriverTestEmail()
+                   in api/send-driver-test.js. Same layout, no
+                   test banner, with scheduled date/time rows
+                   added when present.
+```
+
 ---
 
 *Last updated: May 2025*

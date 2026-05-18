@@ -118,16 +118,31 @@ module.exports = async (req, res) => {
     }
 
     // 2) SMS to tuner — skipped silently if Twilio isn't configured.
+    // Body mirrors the email so the tuner can act from SMS alone if needed
+    // (customer name, phone, email, full address, piano + serial, date).
     if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && TWILIO_PHONE) {
       try {
+        const fullAddress = [
+          customer.address_line1,
+          customer.suburb,
+          customer.state,
+          customer.postcode,
+        ].filter(Boolean).join(', ') || '—'
         const twilio = require('twilio')(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
         await twilio.messages.create({
           body:
-            `Hi ${tuner.name}, you have a piano tuning booking request from Signature Pianos.\n\n` +
-            `Customer: ${customer.first_name} ${customer.last_name}\n` +
-            `Piano: Yamaha ${piano.model} ${piano.year || ''}\n` +
-            `Proposed date: ${formatDate(booking.proposed_date)}\n` +
-            `Address: ${customer.suburb || 'Melbourne'}\n\n` +
+            `Hi ${tuner.name}, new piano tuning booking from Signature Pianos.\n\n` +
+            `CUSTOMER\n` +
+            `Name: ${customer.first_name || ''} ${customer.last_name || ''}\n` +
+            `Phone: ${customer.phone || '—'}\n` +
+            `Email: ${customer.email || '—'}\n` +
+            `Address: ${fullAddress}\n\n` +
+            `PIANO\n` +
+            `Yamaha ${piano.model || ''} ${piano.year || ''}\n` +
+            `Serial: ${piano.serial_number || '—'}\n\n` +
+            `PROPOSED DATE\n` +
+            `${formatDate(booking.proposed_date)}` +
+            `${booking.proposed_time ? ' · ' + booking.proposed_time : ''}\n\n` +
             `Confirm here: ${confirmUrl}`,
           from: TWILIO_PHONE,
           to: tuner.phone,
@@ -194,29 +209,44 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
 
-/* ---------- email template (dark / gold brand) ---------- */
+/* ---------- email template (dark / gold brand) ----------
+ * Now includes the customer's email, phone and full address so the
+ * tuner can reach them directly without bouncing off Eric, plus a
+ * Call button that taps straight into the phone dialer on mobile. */
 
 function tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, completeUrl }) {
+  const fullAddress = [
+    customer.address_line1,
+    customer.address_line2,
+    customer.suburb,
+    customer.state,
+    customer.postcode,
+  ].filter(Boolean).map(escapeHtml).join(', ') || '—'
+
   return `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
       <style>
-        body { font-family: 'DM Sans', Arial, sans-serif; background: #f8f7f5; margin: 0; padding: 40px 20px; }
+        body { font-family: Arial, Helvetica, sans-serif; background: #f8f7f5; margin: 0; padding: 40px 20px; }
         .card { background: #fff; max-width: 560px; margin: 0 auto; border-radius: 8px; overflow: hidden; border: 1px solid #e8e4dd; }
         .header { background: #1a1917; padding: 32px; text-align: center; }
-        .logo { font-size: 20px; color: #b8935a; letter-spacing: 0.1em; font-style: italic; }
+        .logo { font-size: 20px; color: #b8935a; font-style: italic; }
         .body { padding: 32px; }
-        h2 { font-size: 22px; color: #1a1917; margin: 0 0 8px; }
+        h2 { font-size: 20px; color: #1a1917; margin: 0 0 8px; }
         p { color: #6b6760; font-size: 14px; line-height: 1.7; margin: 0 0 16px; }
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e8e4dd; font-size: 13px; }
-        .detail-label { color: #9a9590; }
-        .detail-value { color: #1a1917; font-weight: 500; }
-        .btn { display: inline-block; padding: 14px 28px; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 0.05em; margin: 8px 8px 8px 0; }
+        .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #9a9590; margin-bottom: 10px; margin-top: 20px; display: block; }
+        .detail-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 4px; }
+        .detail-table td { padding: 8px 0; border-bottom: 1px solid #e8e4dd; }
+        .detail-table td:first-child { color: #9a9590; width: 40%; }
+        .detail-table td:last-child { font-weight: 500; color: #1a1917; }
+        .detail-table tr:last-child td { border-bottom: none; }
+        .btn { display: inline-block; padding: 12px 24px; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: 500; margin: 6px 6px 6px 0; }
         .btn-gold { background: #b8935a; color: #000; }
         .btn-outline { border: 1px solid #b8935a; color: #b8935a; }
-        .footer { background: #f8f7f5; padding: 20px 32px; font-size: 12px; color: #9a9590; text-align: center; }
+        .highlight { background: #f0f9f4; border-left: 3px solid #1a7f4b; padding: 12px 16px; border-radius: 0 4px 4px 0; margin: 16px 0; }
+        .footer { background: #f8f7f5; padding: 20px; text-align: center; font-size: 12px; color: #9a9590; border-top: 1px solid #e8e4dd; }
       </style>
     </head>
     <body>
@@ -228,39 +258,39 @@ function tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, comple
           <h2>Hi ${escapeHtml(tuner.name)},</h2>
           <p>You have a new piano tuning booking request from Signature Pianos. Please review the details below and confirm your availability.</p>
 
-          <div class="detail-row">
-            <span class="detail-label">Customer</span>
-            <span class="detail-value">${escapeHtml(customer.first_name)} ${escapeHtml(customer.last_name)}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Address</span>
-            <span class="detail-value">${escapeHtml(customer.suburb || 'Melbourne')}, VIC</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Piano</span>
-            <span class="detail-value">Yamaha ${escapeHtml(piano.model || '')} ${escapeHtml(piano.year || '')}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Serial number</span>
-            <span class="detail-value">${escapeHtml(piano.serial_number || '—')}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Proposed date</span>
-            <span class="detail-value">${formatDate(booking.proposed_date)}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Proposed time</span>
-            <span class="detail-value">${escapeHtml(booking.proposed_time || 'Flexible — please suggest')}</span>
-          </div>
+          <span class="section-label">Customer details</span>
+          <table class="detail-table">
+            <tr><td>Name</td><td>${escapeHtml(customer.first_name || '')} ${escapeHtml(customer.last_name || '')}</td></tr>
+            <tr><td>Email</td><td><a href="mailto:${escapeHtml(customer.email || '')}" style="color:#b8935a;">${escapeHtml(customer.email || '—')}</a></td></tr>
+            <tr><td>Phone</td><td><a href="tel:${escapeHtml(customer.phone || '')}" style="color:#b8935a;">${escapeHtml(customer.phone || '—')}</a></td></tr>
+            <tr><td>Address</td><td>${fullAddress}</td></tr>
+          </table>
 
-          <p style="margin-top:24px;">Please confirm or contact us if this date doesn't work for you.</p>
+          <span class="section-label">Piano details</span>
+          <table class="detail-table">
+            <tr><td>Piano</td><td>Yamaha ${escapeHtml(piano.model || '')} ${escapeHtml(piano.year || '')}</td></tr>
+            <tr><td>Serial number</td><td style="font-family:monospace;">${escapeHtml(piano.serial_number || '—')}</td></tr>
+            <tr><td>Condition</td><td>${escapeHtml(piano.condition || '—')}</td></tr>
+          </table>
+
+          <span class="section-label">Booking details</span>
+          <table class="detail-table">
+            <tr><td>Proposed date</td><td style="color:#b8935a;font-weight:500;">${formatDate(booking.proposed_date)}</td></tr>
+            <tr><td>Time window</td><td>${escapeHtml(booking.proposed_time || 'Flexible — please suggest')}</td></tr>
+          </table>
+
+          <div class="highlight">
+            <div style="font-size:13px;color:#085041;font-weight:500;margin-bottom:4px;">Please confirm or suggest an alternative time</div>
+            <div style="font-size:12px;color:#085041;">Contact the customer directly if you need to arrange a different time before confirming.</div>
+          </div>
 
           <a href="${confirmUrl}" class="btn btn-gold">Confirm this booking</a>
-          <a href="mailto:${escapeHtml(BUSINESS_EMAIL || 'info@signaturepianos.com.au')}" class="btn btn-outline">Contact Eric</a>
+          <a href="mailto:${escapeHtml(customer.email || '')}" class="btn btn-outline">Email customer</a>
+          <a href="tel:${escapeHtml(customer.phone || '')}" class="btn btn-outline">Call customer</a>
 
-          <p style="margin-top:24px;font-size:12px;color:#9a9590;">
-            Once the tuning is complete, use this link to mark it as done:<br>
-            <a href="${completeUrl}" style="color:#b8935a;">${completeUrl}</a>
+          <p style="margin-top:20px;font-size:12px;color:#9a9590;">
+            Once the tuning is complete use this link to mark it as done and notify the customer:<br>
+            <a href="${completeUrl}" style="color:#b8935a;word-break:break-all;">${completeUrl}</a>
           </p>
         </div>
         <div class="footer">
