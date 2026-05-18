@@ -522,15 +522,30 @@ function openDelivery(id) {
         <button class="btn-ghost" type="button" id="copyPickupBtn"><i class="ti ti-link"></i> Copy pickup link</button>
         <button class="btn-ghost" type="button" id="copyDeliveryBtn"><i class="ti ti-link"></i> Copy delivery link</button>
       </div>
-      <div style="display:flex;gap:8px;margin-top:8px;">
-        <button data-action="send-pickup-link" data-delivery-id="${esc(d.id)}"
-          style="flex:1;background:none;border:1px solid var(--admin-border);border-radius:4px;padding:8px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;color:var(--admin-text-muted);">
-          <i class="ti ti-camera"></i> Send pickup photo link
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+        <button data-action="assign-notify" data-delivery-id="${esc(d.id)}"
+          style="width:100%;background:var(--admin-gold);color:#000;border:none;border-radius:4px;padding:10px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <i class="ti ti-send"></i> Assign &amp; notify driver
         </button>
-        <button data-action="send-delivery-link" data-delivery-id="${esc(d.id)}"
-          style="flex:1;background:none;border:1px solid var(--admin-border);border-radius:4px;padding:8px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;color:var(--admin-text-muted);">
-          <i class="ti ti-home-check"></i> Send delivery photo link
-        </button>
+        ${d.driver_accepted ? `
+          <div style="font-size:11px;color:var(--admin-green);text-align:center;padding:2px;">
+            ✓ Driver accepted${d.driver_accepted_at ? ' · ' + fmtDate(d.driver_accepted_at) : ''}
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button data-action="send-pickup-link" data-delivery-id="${esc(d.id)}"
+              style="flex:1;background:none;border:1px solid var(--admin-border);border-radius:4px;padding:8px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;color:var(--admin-text-muted);">
+              <i class="ti ti-camera"></i> Send pickup link
+            </button>
+            <button data-action="send-delivery-link" data-delivery-id="${esc(d.id)}"
+              style="flex:1;background:none;border:1px solid var(--admin-border);border-radius:4px;padding:8px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;color:var(--admin-text-muted);">
+              <i class="ti ti-home-check"></i> Send delivery link
+            </button>
+          </div>
+        ` : `
+          <div style="font-size:11px;color:var(--admin-text-faint);text-align:center;padding:6px;background:var(--admin-bg);border-radius:4px;">
+            Photo links available after driver accepts the assignment
+          </div>
+        `}
       </div>
       <div id="copyConfirm" style="font-size:11px;color:var(--admin-green);margin-top:6px;display:none;">Copied to clipboard.</div>
     </div>
@@ -542,6 +557,8 @@ function openDelivery(id) {
   document.getElementById('copyPickupBtn').addEventListener('click',   () => copyToClipboard(pickupUrl))
   document.getElementById('copyDeliveryBtn').addEventListener('click', () => copyToClipboard(deliveryUrl))
 
+  document.querySelector('[data-action="assign-notify"]')?.addEventListener('click', (e) =>
+    assignAndNotifyDriver(e.currentTarget.dataset.deliveryId, e.currentTarget))
   document.querySelector('[data-action="send-pickup-link"]')?.addEventListener('click', (e) =>
     sendDriverPickupLink(e.currentTarget.dataset.deliveryId, e.currentTarget))
   document.querySelector('[data-action="send-delivery-link"]')?.addEventListener('click', (e) =>
@@ -1355,6 +1372,131 @@ async function sendTestEmails() {
     showToast(`${okCount} test emails sent to kuangeric1234@gmail.com`, 'success')
   } else {
     showToast(`${okCount} sent · ${failCount} failed — check console`, failCount === 4 ? 'error' : 'warning')
+  }
+}
+
+async function assignAndNotifyDriver(deliveryId, btn) {
+  let delivery
+  try {
+    const { data, error } = await adminSupabase
+      .from('deliveries')
+      .select(`
+        *,
+        order:order_id (
+          *,
+          customers ( * ),
+          pianos    ( * )
+        ),
+        partner:delivery_partner_id ( * )
+      `)
+      .eq('id', deliveryId)
+      .single()
+    if (error) throw error
+    delivery = data
+  } catch (err) {
+    console.error('[deliveries] assign fetch failed', err)
+    showToast("Couldn't load delivery — see console.", 'error')
+    return
+  }
+
+  if (!delivery.partner) {
+    showToast('Please assign a delivery partner first', 'error')
+    return
+  }
+  if (!delivery.partner.email) {
+    showToast('Delivery partner has no email — add it in the Partners tab', 'error')
+    return
+  }
+  if (!delivery.customer_preference_1) {
+    showToast('Customer has not submitted delivery preferences yet', 'warning')
+    return
+  }
+
+  const customer = delivery.order?.customers
+  const piano    = delivery.order?.pianos
+  if (!customer || !piano) {
+    showToast('Order is missing customer or piano details', 'error')
+    return
+  }
+
+  if (!window.confirm(`Assign delivery to ${delivery.partner.name} and send them the customer's preferred times?`)) {
+    return
+  }
+
+  const originalHTML = btn?.innerHTML
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Sending…' }
+
+  try {
+    // Ensure acceptance token exists. The DB backfill sets one for
+    // pre-existing rows but new ones may not have one until first assign.
+    let acceptanceToken = delivery.acceptance_token
+    if (!acceptanceToken) {
+      acceptanceToken = (Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2)).slice(0, 32)
+      const { error: tokErr } = await adminSupabase
+        .from('deliveries')
+        .update({ acceptance_token: acceptanceToken })
+        .eq('id', deliveryId)
+      if (tokErr) throw tokErr
+    }
+
+    // Customer prefs are stored as jsonb { date, time }. Flatten to
+    // readable strings so the assignment email + later parsing (which
+    // splits on first space to extract date) work as designed.
+    const fmtPref = (p) => p ? `${p.date || ''} ${p.time || ''}`.trim() : null
+
+    // Deliver-to address — fall back to customer's stored address.
+    const deliveryAddress = delivery.customer_address_confirmed ||
+      [customer.address_line1, customer.suburb, customer.state, customer.postcode]
+        .filter(Boolean).join(', ')
+
+    const PUBLIC_HOST = 'https://signaturepianos.com.au'
+    const acceptUrl = `${PUBLIC_HOST}/delivery/accept/${acceptanceToken}`
+
+    const settings = await loadSettings()
+
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'driver_assignment',
+        driver_name:  delivery.partner.name,
+        driver_email: delivery.partner.email,
+        customer,
+        piano,
+        preferences: {
+          pref1: fmtPref(delivery.customer_preference_1),
+          pref2: fmtPref(delivery.customer_preference_2),
+          pref3: fmtPref(delivery.customer_preference_3),
+        },
+        delivery_address: deliveryAddress,
+        acceptance_token: acceptanceToken,
+        accept_url: acceptUrl,
+        settings,
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      showToast(`Assignment sent to ${delivery.partner.email}`, 'success')
+      await loadDeliveries()
+    } else {
+      console.error('[deliveries] assign email failed', result)
+      showToast('Failed to send — check console', 'error')
+    }
+  } catch (err) {
+    console.error('[deliveries] assign-notify failed', err)
+    showToast('Failed to send — check console', 'error')
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = originalHTML }
+  }
+}
+
+async function loadSettings() {
+  try {
+    const { data } = await adminSupabase.from('company_settings').select('*').limit(1).maybeSingle()
+    return data || {}
+  } catch (err) {
+    console.warn('[deliveries] settings load fell back', err)
+    return {}
   }
 }
 

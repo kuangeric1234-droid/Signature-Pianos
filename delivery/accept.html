@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Accept delivery — Signature Pianos</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0e0e0d;
+      color: #f5f0e8;
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+</head>
+<body>
+
+<div id="pageContent">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;">
+    <div style="text-align:center;">
+      <div style="font-size:20px;color:#b8935a;font-style:italic;margin-bottom:16px;">Signature Pianos</div>
+      <div style="font-size:13px;color:#6b6760;">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script>
+/* ============================================================================
+   Signature Pianos — driver delivery ACCEPTANCE (public, token based)
+   ----------------------------------------------------------------------------
+   Driver opens /delivery/accept/{token}. The page lists the customer's
+   three preferred windows; the driver picks one. The row update (and
+   downstream emails) happen server-side in api/driver-accept.js so the
+   anon guard trigger doesn't block the status change.
+   ============================================================================ */
+
+const params = new URLSearchParams(window.location.search)
+// Also fall back to the last path segment in case the rewrite ever drops
+// the query (defensive — the current vercel.json passes ?token=:token).
+const token = params.get('token') || window.location.pathname.split('/').pop()
+if (!token || token === 'accept') { window.location.replace('/index.html') }
+
+let selectedPrefNum = null
+
+;(async function loadAcceptPage() {
+  try {
+    const { data: delivery, error } = await _supabase
+      .from('deliveries')
+      .select(`
+        *,
+        order:order_id (
+          *,
+          customer:customer_id ( * ),
+          piano:piano_id ( * )
+        )
+      `)
+      .eq('acceptance_token', token)
+      .maybeSingle()
+
+    if (error) throw error
+    if (!delivery) return showError('This link is invalid or has expired.')
+
+    if (delivery.driver_accepted) return showAlreadyAccepted(delivery)
+    renderAcceptPage(delivery)
+  } catch (err) {
+    console.error('[accept] load failed', err)
+    showError('We could not load this assignment. Please try again or contact Signature Pianos.')
+  }
+})()
+
+function esc(s) {
+  if (s == null) return ''
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+function fmtPref(p) {
+  if (!p) return null
+  return `${p.date || ''} ${p.time || ''}`.trim()
+}
+
+function renderAcceptPage(delivery) {
+  const piano    = delivery.order?.piano    || {}
+  const customer = delivery.order?.customer || {}
+  // jsonb -> readable string. Falsy entries are filtered so we only
+  // render the prefs the customer actually picked.
+  const prefs = [
+    fmtPref(delivery.customer_preference_1),
+    fmtPref(delivery.customer_preference_2),
+    fmtPref(delivery.customer_preference_3),
+  ].filter(Boolean)
+
+  const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
+  const deliverTo = delivery.customer_address_confirmed ||
+    [customer.address_line1, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(', ')
+
+  document.getElementById('pageContent').innerHTML = `
+
+    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(184,147,90,0.2);">
+      <div style="font-size:16px;color:#b8935a;font-style:italic;">Signature Pianos</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Delivery acceptance</div>
+    </div>
+
+    <div style="padding:24px;max-width:480px;margin:0 auto;">
+
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 8px;">Accept delivery</h2>
+      <p style="font-size:14px;color:#9a9590;margin:0 0 24px;line-height:1.6;">
+        Select which delivery window you can do. The customer will be notified of the confirmed date.
+      </p>
+
+      <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-bottom:8px;">Piano</div>
+        <div style="font-size:18px;font-family:'Cormorant Garamond',serif;color:#f5f0e8;font-style:italic;margin-bottom:4px;">${esc(pianoLabel)}</div>
+        <div style="font-size:12px;color:#6b6760;">
+          ${piano.serial_number ? 'Serial: ' + esc(piano.serial_number) : ''}
+          ${piano.weight_kg ? ' · ' + esc(piano.weight_kg) + ' kg' : ' · ~200 kg'}
+        </div>
+      </div>
+
+      <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-bottom:8px;">Collect from</div>
+        <div style="font-size:14px;color:#f5f0e8;font-weight:500;">Signature Pianos Warehouse</div>
+        <div style="font-size:13px;color:#9a9590;margin-top:4px;">63 Blackburn Road, Mount Waverley VIC 3149</div>
+      </div>
+
+      <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;margin-bottom:24px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-bottom:8px;">Deliver to</div>
+        <div style="font-size:14px;color:#f5f0e8;font-weight:500;">${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}</div>
+        <div style="font-size:13px;color:#9a9590;margin-top:4px;">${esc(deliverTo || '—')}</div>
+        ${customer.phone ? `
+          <div style="margin-top:8px;">
+            <a href="tel:${esc(customer.phone)}" style="font-size:13px;color:#b8935a;text-decoration:none;">${esc(customer.phone)}</a>
+          </div>
+        ` : ''}
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <div style="font-size:14px;font-weight:500;color:#f5f0e8;margin-bottom:12px;">Select which window you can do:</div>
+        ${prefs.length === 0 ? `
+          <div style="font-size:13px;color:#9a9590;padding:14px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;">
+            The customer hasn't submitted preferred windows yet. Please contact Signature Pianos.
+          </div>
+        ` : prefs.map((pref, i) => `
+          <label data-pref-num="${i + 1}" onclick="selectPref(${i + 1}, this)"
+            style="display:flex;align-items:flex-start;gap:12px;padding:14px;margin-bottom:8px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;cursor:pointer;transition:border-color 0.2s;">
+            <input type="radio" name="preference" value="${i + 1}" style="margin-top:2px;accent-color:#b8935a;flex-shrink:0;">
+            <div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-bottom:3px;">
+                ${i === 0 ? "Customer's 1st choice" : i === 1 ? "Customer's 2nd choice" : "Customer's 3rd choice"}
+              </div>
+              <div style="font-size:14px;color:#f5f0e8;font-weight:500;">${esc(pref)}</div>
+            </div>
+          </label>
+        `).join('')}
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <label style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Notes for Signature Pianos (optional)</label>
+        <textarea id="acceptanceNotes" rows="3"
+          placeholder="Any questions or notes about this delivery..."
+          style="width:100%;padding:12px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;color:#f5f0e8;font-size:14px;resize:vertical;box-sizing:border-box;font-family:'DM Sans',sans-serif;"></textarea>
+      </div>
+
+      <button id="acceptBtn" onclick="submitAcceptance('${esc(delivery.id)}')"
+        disabled
+        style="width:100%;background:#444;color:#888;border:none;border-radius:4px;padding:18px;font-size:15px;font-weight:500;letter-spacing:0.05em;cursor:not-allowed;transition:all 0.2s ease;font-family:'DM Sans',sans-serif;">
+        SELECT A TIME WINDOW ABOVE
+      </button>
+
+      <div id="acceptError" style="display:none;margin-top:12px;padding:12px;background:rgba(192,57,43,0.1);border-radius:4px;font-size:13px;color:#e74c3c;text-align:center;"></div>
+
+    </div>
+  `
+}
+
+function selectPref(num, el) {
+  selectedPrefNum = num
+  document.querySelectorAll('label[data-pref-num]').forEach(l => {
+    l.style.borderColor = 'rgba(184,147,90,0.2)'
+  })
+  el.style.borderColor = 'rgba(184,147,90,0.8)'
+  const radio = el.querySelector('input[type="radio"]')
+  if (radio) radio.checked = true
+
+  const btn = document.getElementById('acceptBtn')
+  btn.disabled = false
+  btn.style.background = '#b8935a'
+  btn.style.color = '#000'
+  btn.style.cursor = 'pointer'
+  btn.textContent = 'CONFIRM ACCEPTANCE'
+}
+
+async function submitAcceptance(deliveryId) {
+  if (!selectedPrefNum) return
+  const btn     = document.getElementById('acceptBtn')
+  const errorEl = document.getElementById('acceptError')
+  btn.disabled = true
+  btn.textContent = 'CONFIRMING…'
+  errorEl.style.display = 'none'
+
+  try {
+    const res = await fetch('/api/driver-accept', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token,
+        delivery_id:         deliveryId,
+        accepted_preference: selectedPrefNum,
+        notes:               document.getElementById('acceptanceNotes').value.trim() || null,
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      showAcceptedSuccess(result.confirmed_date)
+    } else {
+      throw new Error(result.error || 'Unknown error')
+    }
+  } catch (err) {
+    console.error('[accept] submit failed', err)
+    btn.disabled = false
+    btn.textContent = 'CONFIRM ACCEPTANCE'
+    errorEl.style.display = 'block'
+    errorEl.textContent = 'Something went wrong — please try again.'
+  }
+}
+
+function showAcceptedSuccess(confirmedDate) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <div style="font-size:64px;margin-bottom:20px;color:#1D9E75;">✓</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Delivery accepted.</h2>
+        <p style="font-size:14px;color:#9a9590;line-height:1.7;margin:0 0 20px;">
+          ${confirmedDate ? `Confirmed for ${esc(confirmedDate)}.` : 'Delivery confirmed.'} The customer has been notified.
+        </p>
+        <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;font-size:13px;color:#6b6760;text-align:left;line-height:1.8;">
+          You will receive a reminder email 3 days before pickup and again on the day.<br><br>
+          Your pickup photo link will be sent 3 days before the confirmed date.
+        </div>
+      </div>
+    </div>
+  `
+}
+
+function showAlreadyAccepted() {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <div style="font-size:48px;margin-bottom:16px;color:#1D9E75;">✓</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Already accepted</h2>
+        <p style="font-size:13px;color:#9a9590;line-height:1.7;">You have already accepted this delivery. Check your email for your reminder and pickup link.</p>
+      </div>
+    </div>
+  `
+}
+
+function showError(message) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <div style="font-size:48px;margin-bottom:16px;color:#b8935a;">✗</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Link not found</h2>
+        <p style="font-size:13px;color:#9a9590;line-height:1.7;">${esc(message)}</p>
+      </div>
+    </div>
+  `
+}
+</script>
+
+</body>
+</html>

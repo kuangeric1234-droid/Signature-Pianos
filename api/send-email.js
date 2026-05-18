@@ -253,6 +253,33 @@ module.exports = async (req, res) => {
       })
     }
 
+    /* ===== Driver assignment — admin assigns a partner, customer
+       prefs go out for selection ===== */
+    if (type === 'driver_assignment') {
+      const { driver_name, driver_email, customer, piano,
+              preferences, delivery_address, accept_url, settings } = data
+      if (!driver_email) {
+        return res.status(400).json({ error: 'Driver email missing' })
+      }
+      const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
+      await resend.emails.send({
+        from: FROM,
+        to: driver_email,
+        subject: `Delivery assignment — ${pianoLabel} · ${customer?.first_name || ''} ${customer?.last_name || ''}`.trim(),
+        html: driverAssignmentEmail({ driver_name, customer, piano, preferences, delivery_address, accept_url, settings })
+      })
+      await resend.emails.send({
+        from: FROM,
+        to: BUSINESS_EMAIL,
+        subject: `Driver assigned — ${driver_name} · ${pianoLabel}`.trim(),
+        html: `
+          <p>Assignment email sent to ${esc(driver_name)} (${esc(driver_email)}).</p>
+          <p>Customer: ${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))}</p>
+          <p>Awaiting driver acceptance.</p>
+        `
+      })
+    }
+
     /* ===== Driver — pickup or delivery photo upload link ===== */
     if (type === 'driver_pickup_link' || type === 'driver_delivery_link') {
       const isPickup = type === 'driver_pickup_link'
@@ -1322,6 +1349,88 @@ function buildDriverLiveEmail({ isPickup, driver_name, customer, piano, tokenUrl
       </div>
     </div>
     <div class="footer">Signature Pianos Melbourne · signaturepianos.com.au</div>
+  </div>
+</body>
+</html>`
+}
+
+/* ============================================================================
+ * Driver assignment email — sent when admin assigns a partner. Shows the
+ * piano, the customer + delivery address, the warehouse pickup address
+ * (63 Blackburn Road, Mount Waverley VIC 3149), and the customer's three
+ * preferred windows. CTA points at /delivery/accept/{token}.
+ * ======================================================================== */
+function driverAssignmentEmail({ driver_name, customer, piano, preferences, delivery_address, accept_url, settings }) {
+  const fullAddress = delivery_address ||
+    [customer?.address_line1, customer?.suburb, customer?.state, customer?.postcode].filter(Boolean).map(esc).join(', ') || '—'
+  return `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
+  <div style="max-width:580px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+    <div style="background:#1a1917;padding:32px;text-align:center;">
+      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;">Delivery assignment</div>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#1a1917;margin:0 0 8px;">Hi ${esc(driver_name || '')},</h2>
+      <p style="color:#6b6760;font-size:14px;line-height:1.7;margin:0 0 24px;">
+        You have been assigned a piano delivery by Signature Pianos. Please review the details below and accept one of the customer's preferred delivery windows.
+      </p>
+
+      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">Piano</div>
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:40%;">Instrument</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc((piano?.brand || 'Yamaha') + ' ' + (piano?.model || '') + ' ' + (piano?.year || ''))}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Serial</td><td style="padding:7px 0;border-bottom:1px solid #e8e4dd;font-family:monospace;">${esc(piano?.serial_number || '—')}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;">Weight</td><td style="padding:7px 0;">${esc(piano?.weight_kg || '~200')} kg</td></tr>
+        </table>
+      </div>
+
+      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">Customer &amp; delivery address</div>
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:40%;">Name</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Phone</td><td style="padding:7px 0;border-bottom:1px solid #e8e4dd;"><a href="tel:${esc(customer?.phone || '')}" style="color:#b8935a;">${esc(customer?.phone || '—')}</a></td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;">Delivery address</td><td style="padding:7px 0;font-weight:500;">${fullAddress}</td></tr>
+        </table>
+      </div>
+
+      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">Pickup location</div>
+        <div style="font-size:13px;font-weight:500;color:#1a1917;">Signature Pianos Warehouse</div>
+        <div style="font-size:13px;color:#6b6760;margin-top:4px;">63 Blackburn Road, Mount Waverley VIC 3149</div>
+      </div>
+
+      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:20px;margin-bottom:24px;">
+        <div style="font-size:14px;font-weight:500;color:#085041;margin-bottom:12px;">Customer's preferred delivery windows</div>
+        <div style="font-size:13px;color:#085041;line-height:2;">
+          <strong>1st preference:</strong> ${esc(preferences?.pref1 || '—')}<br>
+          <strong>2nd preference:</strong> ${esc(preferences?.pref2 || '—')}<br>
+          <strong>3rd preference:</strong> ${esc(preferences?.pref3 || '—')}
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-bottom:20px;">
+        <a href="${esc(accept_url || '#')}"
+           style="display:inline-block;background:#b8935a;color:#000;padding:14px 36px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:500;">
+          Accept this delivery →
+        </a>
+        <p style="font-size:12px;color:#9a9590;margin:12px 0 0;">
+          Clicking accept will let you confirm which time window works for you.
+        </p>
+      </div>
+
+      <div style="border-top:1px solid #e8e4dd;padding-top:16px;">
+        <p style="font-size:13px;color:#6b6760;line-height:1.7;margin:0;">
+          If none of these windows work please contact the customer directly on
+          <a href="tel:${esc(customer?.phone || '')}" style="color:#b8935a;">${esc(customer?.phone || 'their provided number')}</a>
+          to arrange an alternative time, then reply to this email with the agreed date.
+        </p>
+      </div>
+    </div>
+    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
+      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
+    </div>
   </div>
 </body>
 </html>`

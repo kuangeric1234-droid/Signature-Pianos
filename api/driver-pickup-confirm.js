@@ -47,7 +47,8 @@ module.exports = async (req, res) => {
           *,
           customer:customer_id ( * ),
           piano:piano_id ( * )
-        )
+        ),
+        partner:delivery_partner_id ( * )
       `)
       .eq('pickup_link_token', token)
       .maybeSingle()
@@ -117,6 +118,27 @@ module.exports = async (req, res) => {
       console.error('[driver-pickup-confirm] internal email failed', mailErr)
     }
 
+    // 6. Driver next-step — immediately send the delivery photo link
+    // so they have it ready when they arrive at the customer's home.
+    const partner = delivery.partner || {}
+    if (partner.email && delivery.delivery_link_token) {
+      const SITE_URL = process.env.SITE_URL || 'https://signaturepianos.com.au'
+      const deliveryUrl = `${SITE_URL}/delivery/drop/${delivery.delivery_link_token}`
+      try {
+        await resend.emails.send({
+          from: FROM,
+          to: partner.email,
+          subject: `Next step: delivery photos required — ${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim(),
+          html: driverDeliveryLinkEmail({
+            driver_name: partner.name,
+            customer, piano, delivery_url: deliveryUrl, settings,
+          }),
+        })
+      } catch (mailErr) {
+        console.error('[driver-pickup-confirm] delivery-link email failed', mailErr)
+      }
+    }
+
     return res.status(200).json({ success: true })
   } catch (err) {
     console.error('[driver-pickup-confirm] handler failed', err)
@@ -129,6 +151,51 @@ function esc(s) {
   return String(s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+
+function driverDeliveryLinkEmail({ driver_name, customer, piano, delivery_url, settings }) {
+  const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
+  const fullAddress = [
+    customer?.address_line1, customer?.suburb, customer?.state, customer?.postcode,
+  ].filter(Boolean).map(esc).join(', ') || '—'
+  return `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+    <div style="background:#1a1917;padding:24px 32px;">
+      <div style="font-size:18px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">Pickup confirmed — next step</div>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#1a1917;margin:0 0 8px;">Great work, ${esc(driver_name || '')}.</h2>
+      <p style="color:#6b6760;font-size:14px;line-height:1.7;margin:0 0 20px;">
+        Pickup photos received. The customer has been notified their piano is on its way. Here are the delivery details:
+      </p>
+
+      <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:20px;">
+        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:40%;">Deliver to</td><td style="padding:8px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))}</td></tr>
+        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Address</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">${fullAddress}</td></tr>
+        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Customer phone</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;"><a href="tel:${esc(customer?.phone || '')}" style="color:#b8935a;">${esc(customer?.phone || '—')}</a></td></tr>
+        <tr><td style="padding:8px 0;color:#9a9590;">Piano</td><td style="padding:8px 0;">${esc(pianoLabel)}</td></tr>
+      </table>
+
+      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:20px;text-align:center;">
+        <div style="font-size:14px;font-weight:500;color:#085041;margin-bottom:8px;">After you deliver the piano</div>
+        <p style="font-size:13px;color:#085041;margin:0 0 16px;line-height:1.5;">
+          Place the piano in the agreed position then use this link to upload your delivery photos before leaving.
+        </p>
+        <a href="${esc(delivery_url || '#')}" style="display:inline-block;background:#b8935a;color:#000;padding:12px 28px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:500;">
+          Upload delivery photos →
+        </a>
+        <p style="font-size:11px;color:#9a9590;margin:12px 0 0;">Do not leave the property until photos are uploaded.</p>
+      </div>
+    </div>
+    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
+      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
+    </div>
+  </div>
+</body>
+</html>`
 }
 
 function pianoOnItsWayEmail({ customer, piano, settings }) {

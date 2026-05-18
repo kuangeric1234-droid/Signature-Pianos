@@ -1,9 +1,13 @@
 {
+  "crons": [
+    { "path": "/api/cron-delivery-reminders", "schedule": "0 22 * * *" }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
 
-    { "source": "/delivery/drop/:token", "destination": "/delivery/dropoff.html?token=:token" },
-    { "source": "/delivery/:token",      "destination": "/delivery/pickup.html?token=:token"  },
+    { "source": "/delivery/accept/:token", "destination": "/delivery/accept.html?token=:token"  },
+    { "source": "/delivery/drop/:token",   "destination": "/delivery/dropoff.html?token=:token" },
+    { "source": "/delivery/:token",        "destination": "/delivery/pickup.html?token=:token"  },
 
     {
       "source": "/js/(.*)",

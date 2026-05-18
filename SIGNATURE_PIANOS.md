@@ -924,8 +924,12 @@ STRIPE_SECRET_KEY
 ◯ Teacher dashboard           portal/teacher.html
 ✓ Driver pickup flow          delivery/pickup.html  (public, token)
 ✓ Driver delivery flow        delivery/dropoff.html (public, token)
+✓ Driver acceptance flow      delivery/accept.html  (public, token)
 ✓ Driver pickup API           api/driver-pickup-confirm.js
 ✓ Driver delivery API         api/driver-delivery-confirm.js
+✓ Driver acceptance API       api/driver-accept.js
+✓ Delivery reminder cron      api/cron-delivery-reminders.js
+                              (daily 22:00 UTC ≈ 8am AEST)
 ✓ Admin back office           admin/  — login, dashboard, enquiries,
                                        inventory (+ XLS import + service
                                        log badge + cost column),
@@ -1523,6 +1527,102 @@ Run order:        1. supabase/driver_flow.sql in SQL editor (adds
                      upload 3 photos → check Storage + photos appear
                      in admin → repeat for delivery → verify the
                      warranty + tuner_booking rows + 2 customer emails.
+```
+
+### Driver acceptance + reminders (Session 9)
+```
+Showroom address: 63 Blackburn Road, Mount Waverley VIC 3149.
+                  Burned into the driver assignment email + accept
+                  page + reminder emails as the pickup location.
+
+Schema:           supabase/driver_flow_updates.sql adds:
+                    driver_accepted / _at / _preference
+                    acceptance_token (unique, indexed)
+                    reminder_3day_sent / _at
+                    reminder_day_of_sent / _at
+                  Existing anon SELECT on deliveries already covers
+                  the accept page (every row has pickup/delivery
+                  tokens so the OR clause matches).
+
+End-to-end flow:
+  1. Admin assigns a delivery partner + clicks Assign & notify driver.
+  2. Driver email lands with the customer's three preferred windows.
+     Email contains piano, customer + delivery address, warehouse
+     pickup address (63 Blackburn Rd), and an Accept CTA pointing at
+     /delivery/accept/{acceptance_token}.
+  3. Driver opens the accept page on their phone, picks one of the
+     three windows, optionally leaves a note, hits Confirm.
+  4. api/driver-accept.js writes driver_accepted + scheduled_date +
+     scheduled_time_window, sets status='scheduled', and fires:
+       - Customer email: "Your delivery is confirmed for {date}"
+       - Eric email: "Driver accepted — assign-tuner prompt"
+  5. Daily cron (vercel.json crons + api/cron-delivery-reminders.js
+     at 22:00 UTC = 08:00 AEST) checks every accepted+scheduled row
+     and sends:
+       - 3-day reminder when scheduled_date = today + 3
+       - Day-of reminder when scheduled_date = today AND status is
+         still 'scheduled' (i.e. pickup hasn't happened yet)
+     Both flags are idempotent (boolean + _at timestamp) so retries
+     never double-send.
+  6. Driver opens the pickup link from the email → uploads 3+ photos.
+     api/driver-pickup-confirm.js now ALSO fires a "next step:
+     delivery photos required" email to the same driver immediately
+     after the pickup is confirmed, so they have the dropoff link
+     queued before they arrive at the customer.
+  7. Driver uploads dropoff photos → existing
+     api/driver-delivery-confirm.js inserts warranty + tuner booking
+     and sends the customer arrival + certificate emails.
+
+Admin UI:         Delivery detail panel — Assign & notify driver is
+                  now the primary gold button. Pickup / delivery
+                  photo link buttons are gated behind
+                  driver_accepted=true (a "Photo links available
+                  after driver accepts" hint shows otherwise). A
+                  small green "✓ Driver accepted · {date}" line
+                  appears between assign + photo buttons once the
+                  driver has accepted.
+
+Vercel cron:      vercel.json gains:
+                    "crons": [{ "path": "/api/cron-delivery-reminders",
+                                "schedule": "0 22 * * *" }]
+                  Plus a new rewrite:
+                    "/delivery/accept/:token" →
+                    "/delivery/accept.html?token=:token"
+                  Cron auth: Vercel auto-attaches
+                  Authorization: Bearer ${CRON_SECRET}; the handler
+                  rejects anything else with 401 so the endpoint
+                  is unhittable from the public internet.
+
+Env vars:         CRON_SECRET — any unguessable random string.
+                  Add to Vercel dashboard under Project Settings →
+                  Environment Variables. The cron handler reads it
+                  from process.env. If unset, every cron call returns
+                  401 and no reminders go out.
+
+Pref string fmt:  Customer preferences are stored as jsonb
+                  { date: 'YYYY-MM-DD', time: 'Morning…' }.
+                  admin/deliveries.html flattens them to
+                  "YYYY-MM-DD <time>" before POSTing to send-email so
+                  the assignment email + later split-on-space date
+                  parsing in api/driver-accept.js work as designed.
+                  The accept page also reads the jsonb directly and
+                  formats client-side for display.
+
+Run order:        1. supabase/driver_flow_updates.sql in SQL editor
+                  2. Add CRON_SECRET to Vercel env vars + redeploy
+                     so the cron registration picks it up
+                  3. Smoke test:
+                     a. Customer submits delivery preferences
+                     b. Admin opens delivery, picks a partner, clicks
+                        Assign & notify driver
+                     c. Open driver email → click Accept → pick a
+                        window → confirm
+                     d. Check Supabase: driver_accepted=true,
+                        scheduled_date / window set, status='scheduled'
+                     e. Check customer inbox for confirmation email
+                     f. Manually fire a cron pass via curl with the
+                        CRON_SECRET to verify the reminder logic
+                        (or wait for 08:00 AEST)
 ```
 
 ---
