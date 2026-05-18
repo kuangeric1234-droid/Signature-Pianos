@@ -402,36 +402,25 @@ async function onSubmit(e) {
       .eq('preference_token', delivery.preference_token)
     if (error) throw error
 
-    // Fire-and-forget notification to the business inbox. The payload
-    // is richer than the original shape — name + email + phone, the
-    // full piano label, both order + invoice numbers, and each of the
-    // three preferences as a human-readable string — so Eric can act
-    // on the email without opening admin.
-    const _cust = orderSummary?.customers || {}
-    const _piano = orderSummary?.pianos || {}
-    const _customerName = `${_cust.first_name || ''} ${_cust.last_name || ''}`.trim()
-    const _pianoLabel = [
-      `${_piano.brand || ''} ${_piano.model || ''} ${_piano.year || ''}`.trim(),
-      _piano.serial_number ? `Serial ${_piano.serial_number}` : '',
-    ].filter(Boolean).join(' — ')
+    // Fire-and-forget notification to the business inbox. We pass only
+    // the preference_token + form fields here; the API resolves the
+    // full delivery / order / customer / piano server-side under the
+    // service role. The anon client can't read orders/customers/pianos
+    // (no anon RLS policy on those tables), so client-side joins
+    // returned empty objects and the email rendered as dashes.
     const _prefString = (p) => p ? `${p.date} ${p.time}` : '—'
 
     fetch('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        type:           'delivery_preferences_submitted',
-        customer_name:  _customerName,
-        customer_email: _cust.email || '',
-        customer_phone: _cust.phone || '',
-        piano:          _pianoLabel,
-        order_number:   orderSummary?.order_number || '',
-        invoice_number: orderSummary?.invoice_number || '',
-        pref1:          _prefString(prefs[0]),
-        pref2:          _prefString(prefs[1]),
-        pref3:          _prefString(prefs[2]),
+        type:             'delivery_preferences_submitted',
+        preference_token: delivery.preference_token,
+        pref1:            _prefString(prefs[0]),
+        pref2:            _prefString(prefs[1]),
+        pref3:            _prefString(prefs[2]),
         address,
-        notes:          document.getElementById('pref-instructions').value.trim() || '',
+        notes:            document.getElementById('pref-instructions').value.trim() || '',
       }),
     }).catch(() => { /* non-blocking */ })
 

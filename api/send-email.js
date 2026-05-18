@@ -90,12 +90,17 @@ module.exports = async (req, res) => {
     }
 
     if (type === 'delivery_preferences_submitted') {
-      // Internal-only — the customer already sees their confirmation page.
+      // The client only sends preference_token + the form fields (anon
+      // can't read orders/customers/pianos through RLS, so client-side
+      // joins were returning null and the email was rendering as
+      // dashes). We resolve the full record server-side via service
+      // role, then hand the flattened payload to the template.
+      const enriched = await enrichDeliveryPreferencesPayload(data)
       await resend.emails.send({
         from: FROM,
         to: BUSINESS_EMAIL,
-        subject: `Delivery preferences received — ${data.customer_name || 'customer'} · ${data.order_number || ''}`,
-        html: deliveryPreferencesEmail(data)
+        subject: `Delivery preferences received — ${enriched.customer_name || 'customer'} · ${enriched.order_number || ''}`,
+        html: deliveryPreferencesEmail(enriched)
       })
     }
 
@@ -1095,6 +1100,88 @@ const planDateAU = (d) => {
   const [y, m, day] = String(d).split('T')[0].split('-')
   if (!y || !m || !day) return d
   return `${day}/${m}/${y}`
+}
+
+/* Server-side resolver for the delivery preferences email.
+ *
+ * The public delivery-preferences.html page can only read the deliveries
+ * table (anon RLS by preference_token). The orders / customers / pianos
+ * tables have no anon SELECT policy, so client-side joins returned null
+ * and the resulting email payload was all dashes. This helper does the
+ * lookup under the service role so the email can fully populate from a
+ * single source of truth: the preference_token the customer just used.
+ *
+ * Returns a flat payload matching what deliveryPreferencesEmail expects:
+ *   customer_name / customer_email / customer_phone / piano / order_number
+ *   / invoice_number / pref1 / pref2 / pref3 / address / notes
+ */
+async function enrichDeliveryPreferencesPayload(data) {
+  const out = {
+    customer_name:  '',
+    customer_email: '',
+    customer_phone: '',
+    piano:          '',
+    order_number:   '',
+    invoice_number: '',
+    pref1:          data?.pref1   || '—',
+    pref2:          data?.pref2   || '—',
+    pref3:          data?.pref3   || '—',
+    address:        data?.address || '',
+    notes:          data?.notes   || '',
+  }
+
+  const token = data?.preference_token
+  if (!token) {
+    // Fall back to the legacy direct-payload shape for any old callers.
+    return Object.assign(out, {
+      customer_name:  data?.customer_name  || out.customer_name,
+      customer_email: data?.customer_email || out.customer_email,
+      customer_phone: data?.customer_phone || out.customer_phone,
+      piano:          data?.piano          || out.piano,
+      order_number:   data?.order_number   || out.order_number,
+      invoice_number: data?.invoice_number || out.invoice_number,
+    })
+  }
+
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return out
+  }
+  try {
+    const { createClient } = require('@supabase/supabase-js')
+    const supa = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    )
+    const { data: row, error } = await supa
+      .from('deliveries')
+      .select(`
+        id,
+        order:order_id (
+          order_number,
+          invoice_number,
+          customer:customer_id ( first_name, last_name, email, phone ),
+          piano:piano_id ( brand, model, year, serial_number )
+        )
+      `)
+      .eq('preference_token', token)
+      .maybeSingle()
+    if (error || !row?.order) return out
+    const c = row.order.customer || {}
+    const p = row.order.piano    || {}
+    out.customer_name  = `${c.first_name || ''} ${c.last_name || ''}`.trim()
+    out.customer_email = c.email || ''
+    out.customer_phone = c.phone || ''
+    out.order_number   = row.order.order_number || ''
+    out.invoice_number = row.order.invoice_number || ''
+    out.piano = [
+      `${p.brand || ''} ${p.model || ''} ${p.year || ''}`.trim(),
+      p.serial_number ? `Serial ${p.serial_number}` : '',
+    ].filter(Boolean).join(' — ')
+  } catch (err) {
+    console.error('[send-email] enrichDeliveryPreferencesPayload failed', err)
+  }
+  return out
 }
 
 // Lazy company_settings fetch — only loaded when payment_plan_signed fires,

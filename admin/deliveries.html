@@ -508,7 +508,7 @@ function openDelivery(id) {
     </div>
     <div class="admin-form-row">
       <label class="admin-label" for="dlv-partner">Delivery partner</label>
-      <select id="dlv-partner" class="admin-select">
+      <select id="dlv-partner" class="admin-select" data-delivery-id="${esc(d.id)}">
         <option value="">— Unassigned —</option>
         ${allPartners.filter(p => p.active || p.id === d.delivery_partner_id).map(p =>
           `<option value="${esc(p.id)}"${d.delivery_partner_id === p.id ? ' selected' : ''}>${esc(p.name)}${p.service_area ? ' · ' + esc(p.service_area) : ''}</option>`
@@ -556,6 +556,12 @@ function openDelivery(id) {
 
   document.getElementById('copyPickupBtn').addEventListener('click',   () => copyToClipboard(pickupUrl))
   document.getElementById('copyDeliveryBtn').addEventListener('click', () => copyToClipboard(deliveryUrl))
+
+  // Persist the partner selection IMMEDIATELY on change rather than
+  // waiting for the Save button. Without this, Assign & notify driver
+  // sees the old (null) partner_id on the row and refuses to fire.
+  document.getElementById('dlv-partner')?.addEventListener('change', (e) =>
+    assignDeliveryPartner(e.currentTarget.dataset.deliveryId, e.currentTarget.value))
 
   document.querySelector('[data-action="assign-notify"]')?.addEventListener('click', (e) =>
     assignAndNotifyDriver(e.currentTarget.dataset.deliveryId, e.currentTarget))
@@ -1375,6 +1381,25 @@ async function sendTestEmails() {
   }
 }
 
+/* Persist the dropdown selection immediately so the row in Supabase
+   matches what's on screen. Without this, Assign & notify driver
+   would re-fetch the row and see a stale delivery_partner_id. */
+async function assignDeliveryPartner(deliveryId, partnerId) {
+  if (!deliveryId) return
+  try {
+    const { error } = await adminSupabase
+      .from('deliveries')
+      .update({ delivery_partner_id: partnerId || null, updated_at: new Date().toISOString() })
+      .eq('id', deliveryId)
+    if (error) throw error
+    showToast(partnerId ? 'Delivery partner assigned' : 'Delivery partner cleared', 'success')
+    await loadDeliveries()
+  } catch (err) {
+    console.error('[deliveries] assignDeliveryPartner failed', err)
+    showToast("Couldn't save partner assignment — see console.", 'error')
+  }
+}
+
 async function assignAndNotifyDriver(deliveryId, btn) {
   let delivery
   try {
@@ -1398,6 +1423,10 @@ async function assignAndNotifyDriver(deliveryId, btn) {
     showToast("Couldn't load delivery — see console.", 'error')
     return
   }
+
+  // Debug — surfaces if the partner join is silently coming back as null
+  // (e.g. the row was just updated and the join isn't being followed).
+  console.log('[deliveries] assignAndNotifyDriver fetched partner =', delivery?.partner)
 
   if (!delivery.partner) {
     showToast('Please assign a delivery partner first', 'error')
