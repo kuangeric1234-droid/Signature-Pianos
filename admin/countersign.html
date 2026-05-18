@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Countersign contract — Signature Pianos Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="admin.css">
+<style>
+  @media (max-width: 900px) {
+    .countersign-grid {
+      grid-template-columns: 1fr !important;
+    }
+    .countersign-grid > .sticky {
+      position: static !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <span style="font-family:'DM Sans';font-size:13px;font-weight:500;color:#b8935a;letter-spacing:0.1em;">SIGNATURE</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.15em;display:block;margin-top:2px;">ADMIN</span>
+    </div>
+    <nav class="admin-nav">
+      <a href="dashboard.html"     class="admin-nav-item" data-page="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="enquiries.html"     class="admin-nav-item" data-page="enquiries"><i class="ti ti-mail"></i> Enquiries <span class="nav-badge" id="enquiriesBadge"></span></a>
+      <a href="inventory.html"     class="admin-nav-item" data-page="inventory"><i class="ti ti-piano"></i> Inventory</a>
+      <a href="orders.html"        class="admin-nav-item" data-page="orders"><i class="ti ti-receipt"></i> Orders &amp; POS</a>
+      <a href="payment-plans.html" class="admin-nav-item is-active" data-page="payment-plans"><i class="ti ti-credit-card"></i> Payment plans</a>
+      <a href="customers.html"     class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
+      <a href="deliveries.html"    class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
+      <a href="teachers.html"      class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+      <a href="financials.html"    class="admin-nav-item" data-page="financials"><i class="ti ti-chart-bar"></i> Financials</a>
+      <a href="settings.html"      class="admin-nav-item" data-page="settings"><i class="ti ti-settings"></i> Settings</a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="https://signaturepianos.com.au/" target="_blank" style="font-size:12px;color:rgba(255,255,255,0.4);text-decoration:none;display:flex;align-items:center;gap:6px;">
+        <i class="ti ti-external-link" style="font-size:13px;"></i> View live site
+      </a>
+      <button onclick="adminSignOut()" style="font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;margin-top:8px;">
+        <i class="ti ti-logout" style="font-size:13px;"></i> Sign out
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;">
+        <button class="admin-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+        <h1 class="admin-page-title" id="pageTitle">Countersign contract</h1>
+      </div>
+      <div class="admin-topbar-right">
+        <span style="font-size:13px;color:var(--admin-text-muted);" data-admin-name>—</span>
+      </div>
+    </div>
+
+    <div class="admin-content" id="pageContent">
+      <div class="empty-state"><i class="ti ti-loader"></i><p>Loading contract…</p></div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.min.js"></script>
+<script>
+/* ============================================================================
+   Signature Pianos — Eric's countersign page
+   ----------------------------------------------------------------------------
+   Token-gated admin page. The countersign_token comes via email link;
+   admin-auth.js still enforces a real admin session on top.
+   ============================================================================ */
+
+const params = new URLSearchParams(window.location.search)
+const token  = params.get('token')
+if (!token) window.location.replace('dashboard.html')
+
+let currentPlan        = null
+let currentInstalments = null
+let currentSettings    = null
+
+function esc(s) {
+  if (s == null) return ''
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+
+async function loadCountersignPage() {
+  // Verify admin session — defence in depth on top of admin-auth.js.
+  const { data: { user } } = await adminSupabase.auth.getUser()
+  if (!user) {
+    window.location.replace('index.html?redirect=' + encodeURIComponent(window.location.href))
+    return
+  }
+
+  const { data: plan, error } = await adminSupabase
+    .from('payment_plans')
+    .select(`*, customer:customer_id(*), piano:piano_id(*)`)
+    .eq('countersign_token', token)
+    .single()
+
+  if (error || !plan) return showError('Contract not found or link expired.')
+  if (plan.countersigned)     return showAlreadyCountersigned(plan)
+  if (!plan.contract_signed)  return showError('Customer has not signed yet.')
+
+  const [{ data: instalments }, { data: settings }] = await Promise.all([
+    adminSupabase.from('payment_instalments').select('*').eq('payment_plan_id', plan.id).order('instalment_number'),
+    adminSupabase.from('company_settings').select('*').limit(1).maybeSingle(),
+  ])
+
+  currentPlan        = plan
+  currentInstalments = instalments || []
+  currentSettings    = settings    || {}
+
+  renderCountersignPage(plan, currentInstalments, currentSettings)
+}
+
+function showError(msg) {
+  document.getElementById('pageContent').innerHTML = `
+    <div class="empty-state">
+      <i class="ti ti-alert-circle"></i>
+      <p>${esc(msg)}</p>
+      <a href="payment-plans.html" style="display:inline-block;margin-top:12px;color:var(--admin-gold);font-size:13px;">
+        Back to payment plans →
+      </a>
+    </div>
+  `
+}
+
+function showAlreadyCountersigned(plan) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="max-width:560px;text-align:center;padding:60px 24px;">
+      <div style="font-size:48px;margin-bottom:16px;">✓</div>
+      <h2 style="font-size:22px;font-weight:500;color:var(--admin-text);margin:0 0 12px;">Already countersigned</h2>
+      <p style="font-size:14px;color:var(--admin-text-muted);line-height:1.7;">
+        This contract was countersigned on ${new Date(plan.countersigned_at).toLocaleDateString('en-AU')}.
+      </p>
+      <a href="payment-plans.html" style="display:inline-block;margin-top:16px;color:var(--admin-gold);font-size:13px;">
+        Back to payment plans →
+      </a>
+    </div>
+  `
+}
+
+function renderCountersignPage(plan, instalments, settings) {
+  document.getElementById('pageTitle').textContent = `Countersign — ${plan.plan_number}`
+
+  document.getElementById('pageContent').innerHTML = `
+
+    <div style="max-width:1100px;">
+
+      <!-- Status banner -->
+      <div style="background:var(--admin-amber-light);border:1px solid var(--admin-amber);border-radius:4px;padding:14px 16px;margin-bottom:24px;display:flex;align-items:center;gap:10px;">
+        <i class="ti ti-writing-sign" style="color:var(--admin-amber);font-size:18px;"></i>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--admin-amber);">
+            Customer has signed — your countersignature is required
+          </div>
+          <div style="font-size:12px;color:var(--admin-text-muted);margin-top:2px;">
+            Review the contract below then add your signature to execute the agreement.
+          </div>
+        </div>
+      </div>
+
+      <!-- Two column layout -->
+      <div class="countersign-grid" style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;">
+
+        <!-- Left — contract preview -->
+        <div>
+          <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:4px;overflow:hidden;margin-bottom:16px;">
+            <div style="padding:12px 16px;border-bottom:1px solid var(--admin-border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+              <span style="font-size:13px;font-weight:500;">Payment Plan Agreement</span>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onclick="downloadContractPDF()" style="background:none;border:1px solid var(--admin-border);border-radius:4px;padding:5px 10px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                  <i class="ti ti-download"></i> Download PDF
+                </button>
+                ${plan.id_document_url ? `
+                  <button onclick="viewIDDocument()" style="background:none;border:1px solid var(--admin-border);border-radius:4px;padding:5px 10px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                    <i class="ti ti-id"></i> View ID
+                  </button>
+                ` : `
+                  <span style="font-size:12px;color:var(--admin-amber);display:flex;align-items:center;gap:4px;">
+                    <i class="ti ti-alert-triangle"></i> No ID uploaded
+                  </span>
+                `}
+              </div>
+            </div>
+            <div style="padding:28px;background:#fff;">
+              ${renderAgreementHTML(plan, instalments, settings)}
+            </div>
+          </div>
+
+          ${plan.contract_url ? `
+            <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:4px;padding:16px;margin-bottom:16px;">
+              <div style="font-size:12px;font-weight:500;margin-bottom:10px;">Customer signature</div>
+              <img id="customerSignatureImg" alt="Customer signature"
+                style="max-width:300px;max-height:100px;border:1px solid var(--admin-border);border-radius:4px;background:#fff;padding:8px;">
+              <div style="font-size:11px;color:var(--admin-text-faint);margin-top:6px;">
+                Signed on ${new Date(plan.contract_signed_at).toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Right — countersign panel -->
+        <div class="sticky" style="position:sticky;top:24px;">
+          <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:4px;padding:20px;">
+            <h3 style="font-size:14px;font-weight:500;margin:0 0 16px;">Your signature</h3>
+
+            <div style="border:1px solid var(--admin-border);border-radius:4px;background:#fff;margin-bottom:8px;position:relative;">
+              <canvas id="countersignCanvas" style="width:100%;height:120px;display:block;touch-action:none;cursor:crosshair;"></canvas>
+              <div id="countersignPlaceholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                <span style="font-size:12px;color:#ccc;font-style:italic;">Sign here</span>
+              </div>
+            </div>
+
+            <button onclick="window.clearCountersign && window.clearCountersign()" style="font-size:11px;background:none;border:1px solid var(--admin-border);border-radius:4px;padding:4px 10px;cursor:pointer;margin-bottom:14px;color:var(--admin-text-muted);">
+              Clear
+            </button>
+
+            <div style="margin-bottom:14px;">
+              <label style="font-size:11px;color:var(--admin-text-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+                Your full name
+              </label>
+              <input type="text" id="countersignName" placeholder="Eric Kuang"
+                style="width:100%;padding:8px 10px;border:1px solid var(--admin-border);border-radius:4px;font-size:13px;box-sizing:border-box;">
+            </div>
+
+            <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-bottom:16px;font-size:12px;color:var(--admin-text-muted);">
+              <input type="checkbox" id="countersignAgree" style="margin-top:2px;accent-color:var(--admin-gold);">
+              I confirm I have reviewed this agreement and am authorised to sign on behalf of ${esc(settings?.business_name || 'Signature Pianos')}.
+            </label>
+
+            <button onclick="submitCountersignature()" id="countersignBtn"
+              style="width:100%;background:var(--admin-gold);color:#000;border:none;border-radius:4px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;">
+              EXECUTE CONTRACT
+            </button>
+
+            <div id="countersignError"
+              style="display:none;margin-top:10px;padding:10px;background:var(--admin-red-light);border-radius:4px;font-size:12px;color:var(--admin-red);">
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `
+
+  if (plan.contract_url) loadCustomerSignatureImage(plan)
+
+  // Defer canvas init until after the section is laid out — getBoundingClientRect
+  // returns 0×0 inside elements that haven't finished layout yet.
+  setTimeout(initCountersignCanvas, 100)
+}
+
+async function loadCustomerSignatureImage(plan) {
+  try {
+    const { data } = await adminSupabase.storage
+      .from('contracts')
+      .createSignedUrl(plan.contract_url, 300)
+    if (data?.signedUrl) {
+      const img = document.getElementById('customerSignatureImg')
+      if (img) img.src = data.signedUrl
+    }
+  } catch (e) {
+    console.error('[countersign] signature image load failed', e)
+  }
+}
+
+async function viewIDDocument() {
+  try {
+    const { data } = await adminSupabase.storage
+      .from('id-documents')
+      .createSignedUrl(currentPlan.id_document_url, 300)
+    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+  } catch (e) {
+    console.error('[countersign] ID view failed', e)
+  }
+}
+
+/* ============================================================================
+   Countersign canvas — clone-first pattern, mirrors payment-plan-sign.html
+   ============================================================================ */
+function initCountersignCanvas() {
+  const old = document.getElementById('countersignCanvas')
+  if (!old) return
+
+  const cloned = old.cloneNode(false)
+  old.parentNode.replaceChild(cloned, old)
+  const canvas      = document.getElementById('countersignCanvas')
+  const placeholder = document.getElementById('countersignPlaceholder')
+
+  const rect = canvas.getBoundingClientRect()
+  const dpr  = window.devicePixelRatio || 1
+  const cssW = rect.width  || canvas.clientWidth  || 0
+  const cssH = rect.height || canvas.clientHeight || 120
+
+  canvas.width  = Math.max(1, Math.floor(cssW * dpr))
+  canvas.height = Math.max(1, Math.floor(cssH * dpr))
+  canvas.style.width  = cssW + 'px'
+  canvas.style.height = '120px'
+
+  const ctx = canvas.getContext('2d')
+  ctx.scale(dpr, dpr)
+  ctx.strokeStyle = '#1a1917'
+  ctx.lineWidth   = 2.5
+  ctx.lineCap     = 'round'
+  ctx.lineJoin    = 'round'
+
+  let drawing      = false
+  let hasSignature = false
+
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect()
+    const t = e.touches ? e.touches[0] : e
+    return { x: t.clientX - r.left, y: t.clientY - r.top }
+  }
+  function startDraw(e) {
+    e.preventDefault()
+    drawing = true
+    const p = getPos(e)
+    ctx.beginPath()
+    ctx.moveTo(p.x, p.y)
+    if (!hasSignature) {
+      hasSignature = true
+      if (placeholder) placeholder.style.display = 'none'
+    }
+  }
+  function draw(e) {
+    if (!drawing) return
+    e.preventDefault()
+    const p = getPos(e)
+    ctx.lineTo(p.x, p.y)
+    ctx.stroke()
+  }
+  function stopDraw() {
+    if (!drawing) return
+    drawing = false
+    ctx.beginPath()
+  }
+
+  canvas.addEventListener('mousedown',   startDraw)
+  canvas.addEventListener('mousemove',   draw)
+  canvas.addEventListener('mouseup',     stopDraw)
+  canvas.addEventListener('mouseleave',  stopDraw)
+  canvas.addEventListener('touchstart',  startDraw, { passive: false })
+  canvas.addEventListener('touchmove',   draw,      { passive: false })
+  canvas.addEventListener('touchend',    stopDraw)
+  canvas.addEventListener('touchcancel', stopDraw)
+
+  window.clearCountersign = function () {
+    const r = canvas.getBoundingClientRect()
+    ctx.clearRect(0, 0, r.width, r.height)
+    hasSignature = false
+    if (placeholder) placeholder.style.display = 'flex'
+  }
+  window.getCountersignDataURL = function () {
+    const c = document.getElementById('countersignCanvas')
+    return (hasSignature && c) ? c.toDataURL('image/png') : null
+  }
+  window.hasCountersignDrawn = function () {
+    return hasSignature
+  }
+}
+
+/* ============================================================================
+   Submit
+   ============================================================================ */
+async function submitCountersignature() {
+  const name           = document.getElementById('countersignName').value.trim()
+  const agreed         = document.getElementById('countersignAgree').checked
+  const hasDrawn       = window.hasCountersignDrawn?.()
+  const signatureData  = window.getCountersignDataURL?.()
+  const errorEl        = document.getElementById('countersignError')
+
+  function err(msg) {
+    errorEl.style.display = 'block'
+    errorEl.textContent   = msg
+  }
+  errorEl.style.display = 'none'
+
+  if (!hasDrawn) return err('Please draw your signature.')
+  if (!name)     return err('Please enter your full name.')
+  if (!agreed)   return err('Please confirm you are authorised to sign.')
+
+  const btn      = document.getElementById('countersignBtn')
+  const original = btn.textContent
+  btn.textContent = 'EXECUTING CONTRACT…'
+  btn.disabled    = true
+
+  try {
+    const res = await fetch('/api/countersign-contract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token,
+        plan_id:          currentPlan.id,
+        signature_data:   signatureData,
+        countersigned_by: name,
+        countersigned_at: new Date().toISOString(),
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      showCountersignSuccess()
+    } else {
+      throw new Error(result.error || 'Unknown error')
+    }
+  } catch (e) {
+    console.error('[countersign] submit failed', e)
+    btn.disabled = false
+    btn.textContent = original
+    err('Something went wrong — ' + (e.message || 'please try again.'))
+  }
+}
+
+function showCountersignSuccess() {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="max-width:560px;text-align:center;padding:60px 24px;">
+      <div style="font-size:64px;margin-bottom:20px;color:var(--admin-green);">✓</div>
+      <h2 style="font-size:24px;font-weight:500;color:var(--admin-text);margin:0 0 12px;">
+        Contract executed.
+      </h2>
+      <p style="font-size:14px;color:var(--admin-text-muted);line-height:1.7;margin:0 0 20px;">
+        The fully executed contract has been emailed to ${esc(currentPlan.customer?.first_name || '')} ${esc(currentPlan.customer?.last_name || '')}.
+        Their piano is now scheduled for delivery.
+      </p>
+      <a href="payment-plans.html"
+         style="display:inline-block;background:var(--admin-gold);color:#000;padding:10px 24px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:500;">
+        Back to payment plans →
+      </a>
+    </div>
+  `
+}
+
+/* ============================================================================
+   Agreement HTML preview — copied from payment-plan-sign.html so the
+   admin page is self-contained. If this diverges from the customer
+   page's version it'll be a real bug — keep both in sync.
+   ============================================================================ */
+function renderAgreementHTML(plan, instalments, settings) {
+  const formatCurrency = (v) =>
+    '$' + Math.abs(v || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const formatDate = (d) => {
+    if (!d) return '—'
+    const [y, m, day] = (String(d).split('T')[0]).split('-')
+    return `${day}/${m}/${y}`
+  }
+
+  return `
+    <div style="font-family:Georgia,serif;color:#1a1917;">
+
+      <div style="text-align:center;padding-bottom:20px;border-bottom:2px solid #1a1917;margin-bottom:20px;">
+        <div style="font-size:22px;color:#b8935a;font-style:italic;margin-bottom:4px;">
+          ${esc(settings?.business_name || 'Signature Pianos')}
+        </div>
+        ${settings?.abn ? `<div style="font-size:11px;color:#9a9590;">ABN: ${esc(settings.abn)}</div>` : ''}
+        <div style="font-size:16px;font-weight:bold;text-transform:uppercase;letter-spacing:0.12em;margin-top:12px;color:#1a1917;">
+          Payment Plan Agreement
+        </div>
+        <div style="font-size:12px;color:#9a9590;margin-top:4px;">
+          ${esc(plan.plan_number || '')} · Dated ${formatDate(plan.start_date)}
+        </div>
+      </div>
+
+      <div style="font-size:13px;line-height:1.8;margin-bottom:16px;color:#1a1917;">
+        This Payment Plan Agreement (<strong>"Agreement"</strong>) is entered into between
+        <strong>${esc(settings?.business_name || 'Signature Pianos')}</strong>
+        ${settings?.abn ? `(ABN ${esc(settings.abn)})` : ''}
+        of ${esc([settings?.address_line1, settings?.suburb, settings?.state, settings?.postcode].filter(Boolean).join(', ') || 'Melbourne, Victoria')}
+        (<strong>"Seller"</strong>) and
+        <strong>${esc(plan.customer?.first_name || '')} ${esc(plan.customer?.last_name || '')}</strong>
+        ${plan.customer?.email ? `(${esc(plan.customer.email)})` : ''}
+        (<strong>"Buyer"</strong>).
+      </div>
+
+      <div style="background:#f8f7f5;padding:14px;border-radius:4px;margin-bottom:16px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#9a9590;margin-bottom:8px;">Instrument</div>
+        <div style="font-size:14px;font-weight:bold;">
+          ${esc(plan.piano?.brand || 'Yamaha')} ${esc(plan.piano?.model || '')} ${plan.piano?.type ? esc(String(plan.piano.type).replace(/_/g, ' ')) : ''}
+        </div>
+        <div style="font-size:12px;color:#6b6760;margin-top:2px;">
+          Year: ${esc(plan.piano?.year || '—')} ·
+          Serial: ${esc(plan.piano?.serial_number || '—')} ·
+          Condition: ${esc(plan.piano?.condition || '—')}
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;color:#1a1917;border-bottom:1px solid #e8e4dd;padding-bottom:6px;margin-bottom:10px;">
+          Payment Terms
+        </div>
+        <table style="width:100%;font-size:12px;border-collapse:collapse;">
+          <tr><td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;width:50%;">Total purchase price</td><td style="padding:6px 0;font-weight:bold;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(plan.total_amount)}</td></tr>
+          ${Number(plan.surcharge_amount) > 0 ? `
+            <tr><td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Credit card surcharge (${esc(plan.surcharge_percentage || '1.5')}%)</td><td style="padding:6px 0;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(plan.surcharge_amount)}</td></tr>
+            <tr><td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Total payable</td><td style="padding:6px 0;font-weight:bold;border-bottom:1px solid #f0f0f0;text-align:right;color:#b8935a;">${formatCurrency(plan.total_with_surcharge)}</td></tr>
+          ` : ''}
+          <tr><td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Deposit</td><td style="padding:6px 0;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(plan.deposit_amount)} ${plan.deposit_paid ? '<span style="color:#1D9E75;">✓ Paid</span>' : ''}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Balance payable</td><td style="padding:6px 0;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(plan.remaining_amount)}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Instalments</td><td style="padding:6px 0;border-bottom:1px solid #f0f0f0;text-align:right;">${esc(plan.number_of_instalments || 0)} × ${formatCurrency(plan.instalment_amount)} ${esc(plan.instalment_frequency || '')}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b6760;">Payment method</td><td style="padding:6px 0;text-align:right;">${plan.payment_method === 'credit_card' ? 'Credit card' : 'Bank transfer'}</td></tr>
+        </table>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;color:#1a1917;border-bottom:1px solid #e8e4dd;padding-bottom:6px;margin-bottom:10px;">
+          Payment Schedule
+        </div>
+        <table style="width:100%;font-size:11px;border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f8f7f5;">
+              <th style="padding:6px 8px;text-align:left;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">#</th>
+              <th style="padding:6px 8px;text-align:left;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">Due date</th>
+              <th style="padding:6px 8px;text-align:right;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(instalments || []).map(ins => `
+              <tr>
+                <td style="padding:5px 8px;color:#6b6760;border-bottom:1px solid #f0f0f0;">${esc(ins.instalment_number)}</td>
+                <td style="padding:5px 8px;color:#1a1917;border-bottom:1px solid #f0f0f0;">${formatDate(ins.due_date)}</td>
+                <td style="padding:5px 8px;color:#1a1917;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(ins.amount)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;color:#1a1917;border-bottom:1px solid #e8e4dd;padding-bottom:6px;margin-bottom:10px;">
+          Terms and Conditions
+        </div>
+        <div style="font-size:11px;color:#6b6760;line-height:1.9;">
+          <p style="margin:0 0 8px;"><strong>1. Title.</strong> The instrument remains the property of ${esc(settings?.business_name || 'Signature Pianos')} until all payments have been received in full.</p>
+          <p style="margin:0 0 8px;"><strong>2. Payments.</strong> Instalments are due on the dates specified in the payment schedule above. A grace period of 3 days applies before a late fee is incurred.</p>
+          <p style="margin:0 0 8px;"><strong>3. Late payments.</strong> Payments overdue by more than 3 days will incur a $50 administration fee.${plan.payment_method === 'credit_card' ? ' Where a credit card has been provided, overdue amounts will be automatically charged to the saved card.' : ''}</p>
+          <p style="margin:0 0 8px;"><strong>4. Default.</strong> If the Buyer fails to make two consecutive payments, ${esc(settings?.business_name || 'Signature Pianos')} reserves the right to reclaim the instrument and retain all payments received as compensation for losses incurred.</p>
+          <p style="margin:0 0 8px;"><strong>5. Warranty.</strong> The instrument is covered by the ${esc(settings?.business_name || 'Signature Pianos')} 10-year warranty from the date of delivery, subject to the full purchase price being paid.</p>
+          <p style="margin:0 0 8px;"><strong>6. Delivery.</strong> Delivery will be arranged once the deposit has been received and this agreement has been signed. The instrument will be delivered to the address provided.</p>
+          <p style="margin:0 0 0;"><strong>7. Governing law.</strong> This agreement is governed by the laws of Victoria, Australia.</p>
+        </div>
+      </div>
+
+    </div>
+  `
+}
+
+/* ============================================================================
+   PDF download — mirror of payment-plan-sign.html's downloadAgreementPDF.
+   ============================================================================ */
+async function downloadContractPDF() {
+  const plan        = currentPlan
+  const instalments = currentInstalments
+  const settings    = currentSettings
+  if (!plan) return
+
+  const formatCurrency = (v) =>
+    '$' + Math.abs(v || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const formatDate = (d) => {
+    if (!d) return '—'
+    const parts = (String(d).split('T')[0]).split('-')
+    return `${parts[2]}/${parts[1]}/${parts[0]}`
+  }
+
+  const docDefinition = {
+    pageSize: 'A4',
+    pageMargins: [50, 60, 50, 60],
+    defaultStyle: { font: 'Roboto', fontSize: 10, color: '#1a1917' },
+    content: [
+      {
+        columns: [
+          { text: settings?.business_name || 'Signature Pianos', style: 'businessName' },
+          {
+            text: [
+              { text: 'PAYMENT PLAN AGREEMENT\n', style: 'docTitle' },
+              { text: `${plan.plan_number || ''}\n`, style: 'planNumber' },
+              { text: `Dated ${formatDate(plan.start_date)}`, style: 'planDate' },
+            ],
+            alignment: 'right',
+          },
+        ],
+        margin: [0, 0, 0, 16],
+      },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 495, y2: 0, lineWidth: 1.5, lineColor: '#1a1917' }], margin: [0, 0, 0, 16] },
+      {
+        text: [
+          settings?.abn ? `ABN: ${settings.abn}   ` : '',
+          settings?.address_line1 || '',
+          settings?.suburb ? `   ${settings.suburb} ${settings.state || ''} ${settings.postcode || ''}` : '',
+        ].filter(Boolean).join(''),
+        style: 'subText',
+        margin: [0, 0, 0, 16],
+      },
+      {
+        text: [
+          'This Payment Plan Agreement ',
+          { text: '("Agreement") ', bold: true },
+          'is entered into between ',
+          { text: settings?.business_name || 'Signature Pianos', bold: true },
+          settings?.abn ? ` (ABN ${settings.abn}) ` : ' ',
+          '("Seller") and ',
+          { text: `${plan.customer?.first_name || ''} ${plan.customer?.last_name || ''}`, bold: true },
+          plan.customer?.email ? ` (${plan.customer.email}) ` : ' ',
+          '("Buyer").',
+        ],
+        style: 'body',
+        margin: [0, 0, 0, 16],
+      },
+      { text: 'INSTRUMENT', style: 'sectionHeader' },
+      {
+        table: {
+          widths: ['*'],
+          body: [[{
+            stack: [
+              { text: `${plan.piano?.brand || 'Yamaha'} ${plan.piano?.model || ''} ${plan.piano?.type ? String(plan.piano.type).replace(/_/g, ' ') : ''}`, style: 'instrumentName' },
+              { text: `Year: ${plan.piano?.year || '—'}   Serial: ${plan.piano?.serial_number || '—'}   Condition: ${plan.piano?.condition || '—'}`, style: 'subText', margin: [0, 4, 0, 0] },
+            ],
+            fillColor: '#f8f7f5',
+            border: [false, false, false, false],
+            margin: [12, 10, 12, 10],
+          }]],
+        },
+        margin: [0, 0, 0, 16],
+      },
+      { text: 'PAYMENT TERMS', style: 'sectionHeader' },
+      {
+        table: {
+          widths: ['*', 'auto'],
+          body: [
+            [{ text: 'Total purchase price', style: 'tableLabel' }, { text: formatCurrency(plan.total_amount), style: 'tableValue' }],
+            ...(Number(plan.surcharge_amount) > 0 ? [
+              [{ text: `Credit card surcharge (${plan.surcharge_percentage || '1.5'}%)`, style: 'tableLabel' }, { text: formatCurrency(plan.surcharge_amount), style: 'tableValue' }],
+              [{ text: 'Total payable', style: 'tableLabelBold' }, { text: formatCurrency(plan.total_with_surcharge), style: 'tableValueGold' }],
+            ] : []),
+            [{ text: 'Deposit', style: 'tableLabel' }, { text: formatCurrency(plan.deposit_amount) + (plan.deposit_paid ? ' ✓ Paid' : ''), style: 'tableValue' }],
+            [{ text: 'Balance payable', style: 'tableLabel' }, { text: formatCurrency(plan.remaining_amount), style: 'tableValue' }],
+            [{ text: 'Instalments', style: 'tableLabel' }, { text: `${plan.number_of_instalments} × ${formatCurrency(plan.instalment_amount)} ${plan.instalment_frequency || ''}`, style: 'tableValue' }],
+            [{ text: 'Payment method', style: 'tableLabel' }, { text: plan.payment_method === 'credit_card' ? 'Credit card' : 'Bank transfer', style: 'tableValue' }],
+          ],
+        },
+        layout: {
+          hLineWidth: () => 0.5, vLineWidth: () => 0,
+          hLineColor: () => '#e8e4dd',
+          paddingLeft: () => 0, paddingRight: () => 0,
+          paddingTop: () => 6, paddingBottom: () => 6,
+        },
+        margin: [0, 0, 0, 16],
+      },
+      { text: 'PAYMENT SCHEDULE', style: 'sectionHeader' },
+      {
+        table: {
+          widths: [30, '*', 'auto'],
+          headerRows: 1,
+          body: [
+            [{ text: '#', style: 'tableHeader' }, { text: 'Due date', style: 'tableHeader' }, { text: 'Amount', style: 'tableHeader', alignment: 'right' }],
+            ...(instalments || []).map(ins => [
+              { text: String(ins.instalment_number), style: 'tableCell' },
+              { text: formatDate(ins.due_date), style: 'tableCell' },
+              { text: formatCurrency(ins.amount), style: 'tableCell', alignment: 'right' },
+            ]),
+          ],
+        },
+        layout: {
+          hLineWidth: (i) => i === 0 || i === 1 ? 0.5 : 0.3,
+          vLineWidth: () => 0,
+          hLineColor: () => '#e8e4dd',
+          fillColor: (i) => i === 0 ? '#f8f7f5' : null,
+          paddingLeft: () => 4, paddingRight: () => 4,
+          paddingTop: () => 5, paddingBottom: () => 5,
+        },
+        margin: [0, 0, 0, 16],
+      },
+      { text: 'TERMS AND CONDITIONS', style: 'sectionHeader' },
+      {
+        ol: [
+          { text: [{ text: 'Title. ', bold: true }, `The instrument remains the property of ${settings?.business_name || 'Signature Pianos'} until all payments have been received in full.`], style: 'body', margin: [0, 0, 0, 6] },
+          { text: [{ text: 'Payments. ', bold: true }, 'Instalments are due on the dates specified in the payment schedule above. A grace period of 3 days applies before a late fee is incurred.'], style: 'body', margin: [0, 0, 0, 6] },
+          { text: [{ text: 'Late payments. ', bold: true }, 'Payments overdue by more than 3 days will incur a $50 administration fee.' + (plan.payment_method === 'credit_card' ? ' Where a credit card has been provided, overdue amounts will be automatically charged to the saved card.' : '')], style: 'body', margin: [0, 0, 0, 6] },
+          { text: [{ text: 'Default. ', bold: true }, `If the Buyer fails to make two consecutive payments, ${settings?.business_name || 'Signature Pianos'} reserves the right to reclaim the instrument and retain all payments received as compensation.`], style: 'body', margin: [0, 0, 0, 6] },
+          { text: [{ text: 'Warranty. ', bold: true }, `The instrument is covered by the ${settings?.business_name || 'Signature Pianos'} 10-year warranty from the date of delivery, subject to the full purchase price being paid.`], style: 'body', margin: [0, 0, 0, 6] },
+          { text: [{ text: 'Governing law. ', bold: true }, 'This agreement is governed by the laws of Victoria, Australia.'], style: 'body', margin: [0, 0, 0, 0] },
+        ],
+        margin: [0, 0, 0, 20],
+      },
+    ],
+    styles: {
+      businessName:   { fontSize: 18, color: '#b8935a', italics: true, bold: false },
+      docTitle:       { fontSize: 14, bold: true, color: '#1a1917', characterSpacing: 1 },
+      planNumber:     { fontSize: 11, color: '#9a9590' },
+      planDate:       { fontSize: 10, color: '#9a9590' },
+      sectionHeader:  { fontSize: 9,  bold: true, characterSpacing: 1.5, color: '#1a1917', margin: [0, 0, 0, 8] },
+      body:           { fontSize: 10, color: '#1a1917', lineHeight: 1.5 },
+      subText:        { fontSize: 9,  color: '#9a9590' },
+      tableLabel:     { fontSize: 10, color: '#6b6760' },
+      tableLabelBold: { fontSize: 10, color: '#1a1917', bold: true },
+      tableValue:     { fontSize: 10, color: '#1a1917', alignment: 'right' },
+      tableValueGold: { fontSize: 11, color: '#b8935a', bold: true, alignment: 'right' },
+      tableHeader:    { fontSize: 9,  bold: true, color: '#6b6760', characterSpacing: 0.5 },
+      tableCell:      { fontSize: 10, color: '#1a1917' },
+      instrumentName: { fontSize: 13, bold: true, color: '#1a1917' },
+    },
+  }
+
+  pdfMake.createPdf(docDefinition).download(
+    `Signature-Pianos-Payment-Plan-${plan.plan_number || 'agreement'}.pdf`
+  )
+}
+
+loadCountersignPage()
+</script>
+
+</body>
+</html>

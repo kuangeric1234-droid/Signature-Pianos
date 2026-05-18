@@ -16,6 +16,8 @@
     { "source": "/portal",                 "destination": "/portal/index.html"     },
     { "source": "/portal/dashboard",       "destination": "/portal/dashboard.html" },
 
+    { "source": "/admin/countersign",      "destination": "/admin/countersign.html" },
+
     {
       "source": "/js/(.*)",
       "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }],

@@ -2059,6 +2059,119 @@ Run order:        1. supabase/missing_features.sql in SQL editor
                   5. Smoke test each of the 8 features end-to-end.
 ```
 
+### Two-party contract execution (Session 14)
+```
+Splits the single-signature flow into a customer-then-Eric
+countersignature flow. Customer signing no longer marks the plan
+"active" or triggers delivery — that only happens after Eric
+countersigns. For acoustic pianos the countersign step also
+auto-creates an order + delivery row + sets the piano to reserved.
+
+Schema:           supabase/contract_updates.sql adds to payment_plans:
+                    countersigned / _at / _by
+                    countersign_token (unique) + countersign_url
+                    fully_executed / _at
+                    final_contract_url (reserved for future
+                      merged-PDF render)
+                    delivery_triggered / _at
+                  Backfills countersign_token on every existing
+                  plan so admin/payment-plans.html "Sign contract
+                  now" button works for in-flight contracts.
+
+Customer sign:    api/sign-contract.js NO LONGER sets status='active'.
+                  It now:
+                    - flips contract_signed=true + writes audit fields
+                      (id_document_url, signer_ip, signer_user_agent)
+                    - mints a countersign_token if missing
+                    - emails Eric an action-required notification with
+                      /admin/countersign.html?token={countersign_token}
+                    - emails the customer an acknowledgement
+                      ("Contract received — awaiting countersignature")
+                  Plan stays at status='pending' until countersign.
+
+Countersign:      admin/countersign.html — token-gated admin page.
+                  Requires admin auth on top of the token. Shows the
+                  full agreement preview, a 5-minute signed-URL view
+                  of the customer signature image and ID document
+                  (from contracts and id-documents buckets), Download
+                  PDF button, and a signature canvas. Layout: two-
+                  column with sticky countersign panel on desktop;
+                  stacks on <900px.
+
+Countersign API:  api/countersign-contract.js — verifies countersign_token,
+                  uploads Eric's signature PNG to contracts/{plan_number}
+                  -countersig-{ts}.png, sets countersigned=true,
+                  fully_executed=true, status='active'. For acoustic
+                  pianos (piano.type in {'acoustic_upright',
+                  'acoustic_grand'}) and only if delivery_triggered=false:
+                    - Reuses plan.order_id if present, otherwise inserts
+                      a new orders row (status='confirmed', total/subtotal
+                      from plan.total_amount) and links it back to the plan
+                    - Inserts a deliveries row (status='scheduled',
+                      auto_created=true) with fresh pickup_link_token,
+                      delivery_link_token, acceptance_token, preference_token
+                    - Updates pianos.stock_status='reserved'
+                    - Flips delivery_triggered=true
+                  Then sends two emails:
+                    - Customer: fully-executed agreement with schedule,
+                      bank-transfer details (if applicable), and a
+                      delivery-preferences link (acoustic only)
+                    - Eric: confirmation notification
+
+Admin detail
+panel update:     admin/payment-plans.html renderPlanDetail() now calls
+                  renderContractSection(plan) inline (replaces the old
+                  contractStatus_{id} div + separate ID block). The
+                  section renders one of five states:
+                    executed | countersigned | awaiting_countersign |
+                    awaiting_customer | not_sent
+                  with action buttons:
+                    - "Sign contract now" (when awaiting_countersign)
+                      → countersign.html?token={countersign_token}
+                    - Send / Resend contract
+                    - Download signed contract (customer signature PNG)
+                    - View customer ID (signed URL, 5 min)
+                  downloadSignedContract() is added; the legacy
+                  downloadContract() / renderContractStatus() functions
+                  are left in place but no longer called.
+
+Vercel route:     /admin/countersign → /admin/countersign.html
+                  (email links use /admin/countersign.html?token=...
+                  directly so the rewrite is for typed URLs only)
+
+Storage:          Both contracts and id-documents buckets stay private.
+                  Admin reads via createSignedUrl(path, 300) — 5 min
+                  expiry. Customer signature image now also exposed
+                  via signed URL inside admin/countersign.html.
+
+Run order:        1. supabase/contract_updates.sql in SQL editor
+                  2. Smoke test:
+                     a. Open a plan with contract_signed=true OR sign
+                        a new plan as customer
+                     b. Confirm Eric's countersign email lands with
+                        the /admin/countersign.html?token=... link
+                     c. Click → admin/countersign.html loads agreement
+                        + customer signature + ID button
+                     d. Sign → /api/countersign-contract returns success
+                     e. Confirm payment_plans row:
+                        fully_executed=true, status='active',
+                        delivery_triggered=true (acoustic)
+                     f. Confirm orders row exists, deliveries row
+                        exists, piano.stock_status='reserved'
+                     g. Confirm customer received fully-executed email
+                        with delivery-preferences link
+
+Caveats (flagged):
+  - api/countersign-contract.js's order_number computation
+    (SP-{year}-{lastNum+1}) races with the orders table's default
+    generate_order_number() sequence. Low volume = low risk; on
+    collision the unique constraint fails and the order insert
+    errors. The plan still flips to fully_executed because the
+    order insert is wrapped in its own try/catch.
+  - FROM address is hello@signaturepianos.com.au — must be a
+    verified sender in Resend, otherwise both emails bounce.
+```
+
 ---
 
 *Last updated: May 2025*

@@ -1081,64 +1081,145 @@ function renderPlanDetail(plan, instalments) {
       ` : ''}
     </div>
 
-    <!-- ID document block (Step 11) -->
-    ${plan.id_document_url ? `
-      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--admin-border);">
-        <h4 style="font-size:13px;font-weight:500;margin:0 0 8px;display:flex;align-items:center;gap:8px;">
-          <i class="ti ti-id" style="color:var(--admin-green);"></i>
-          ID verified
-        </h4>
-        <button class="btn-ghost" data-action="view-id" style="padding:6px 14px;font-size:12px;">
-          <i class="ti ti-eye"></i> View ID document
-        </button>
-        ${plan.id_uploaded_at ? `<div style="font-size:11px;color:var(--admin-text-faint);margin-top:4px;">Uploaded ${fmtDateAU(plan.id_uploaded_at)}</div>` : ''}
-      </div>
-    ` : `
-      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--admin-border);">
-        <div style="font-size:12px;color:var(--admin-amber);display:flex;align-items:center;gap:6px;">
-          <i class="ti ti-alert-triangle"></i> ID not yet uploaded
-        </div>
-      </div>
-    `}
-
-    <!-- D — Contract section -->
-    <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--admin-border);">
-      <h4 style="font-size:13px;font-weight:500;margin:0 0 12px;display:flex;align-items:center;gap:8px;">
-        <i class="ti ti-writing-sign" style="color:var(--admin-gold);"></i>
-        Payment plan contract
-      </h4>
-      <div id="contractStatus_${esc(plan.id)}" style="font-size:12px;padding:10px 14px;border-radius:4px;margin-bottom:12px;"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn-gold" data-action="send-contract" style="padding:8px 16px;font-size:13px;">
-          <i class="ti ti-send"></i> ${plan.contract_sent ? 'Resend contract' : 'Send contract'}
-        </button>
-        ${plan.contract_url ? `
-          <button class="btn-ghost" data-action="download-contract" style="padding:8px 16px;font-size:13px;">
-            <i class="ti ti-download"></i> Download signed contract
-          </button>
-        ` : ''}
-        <button class="btn-ghost" data-action="copy-sign-link" style="padding:8px 16px;font-size:13px;">
-          <i class="ti ti-link"></i> Copy sign link
-        </button>
-      </div>
-    </div>
+    <!-- Contract section (Step 5 — replaces the old contract block AND
+         the standalone ID document block; renderContractSection includes
+         the View customer ID button when an ID is on file). -->
+    ${renderContractSection(plan)}
   `
 
-  renderContractStatus(plan)
-
-  // Wire actions
+  // Wire actions still using data-action attrs (mark-paid only — the
+  // contract-section buttons use inline onclick handlers).
   document.querySelectorAll('[data-action="mark-paid"]').forEach(btn => {
     btn.addEventListener('click', () => markInstalmentPaid(btn.closest('tr').dataset.insId, plan.id))
   })
-  document.querySelector('[data-action="send-contract"]')?.addEventListener('click', (e) => sendContract(plan.id, e.currentTarget))
-  document.querySelector('[data-action="download-contract"]')?.addEventListener('click', () => downloadContract(plan))
-  document.querySelector('[data-action="view-id"]')?.addEventListener('click', () => viewIDDocument(plan.id))
-  document.querySelector('[data-action="copy-sign-link"]')?.addEventListener('click', () => {
-    const url = `${window.location.origin}/payment-plan-sign.html?token=${encodeURIComponent(plan.signature_token)}`
-    navigator.clipboard?.writeText(url)
-      .then(() => showToast('Sign link copied.'))
-      .catch(() => prompt('Copy this link:', url))
-  })
+}
+
+/* ---------- Contract section (Session 14 Step 5) ---------- */
+function renderContractSection(plan) {
+  const formatDate = (d) => {
+    if (!d) return '—'
+    const [y, m, day] = (String(d).split('T')[0]).split('-')
+    return `${day}/${m}/${y}`
+  }
+
+  const state =
+    plan.fully_executed   ? 'executed' :
+    plan.countersigned    ? 'countersigned' :
+    plan.contract_signed  ? 'awaiting_countersign' :
+    plan.contract_sent    ? 'awaiting_customer' :
+                            'not_sent'
+
+  const stateConfig = {
+    executed: {
+      bg:    'var(--admin-green-light)',
+      color: 'var(--admin-green)',
+      icon:  'ti-circle-check',
+      label: `Fully executed on ${formatDate(plan.fully_executed_at)}`,
+    },
+    countersigned: {
+      bg:    'var(--admin-green-light)',
+      color: 'var(--admin-green)',
+      icon:  'ti-circle-check',
+      label: `Countersigned on ${formatDate(plan.countersigned_at)}`,
+    },
+    awaiting_countersign: {
+      bg:    'var(--admin-amber-light)',
+      color: 'var(--admin-amber)',
+      icon:  'ti-writing-sign',
+      label: `Customer signed ${formatDate(plan.contract_signed_at)} — awaiting your countersignature`,
+    },
+    awaiting_customer: {
+      bg:    'var(--admin-amber-light)',
+      color: 'var(--admin-amber)',
+      icon:  'ti-clock',
+      label: `Sent ${formatDate(plan.contract_sent_at)} — awaiting customer signature`,
+    },
+    not_sent: {
+      bg:    'var(--admin-bg)',
+      color: 'var(--admin-text-faint)',
+      icon:  'ti-file-x',
+      label: 'Contract not yet sent',
+    },
+  }
+
+  const s = stateConfig[state]
+
+  return `
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--admin-border);">
+      <h4 style="font-size:13px;font-weight:500;margin:0 0 10px;">Contract</h4>
+
+      <div style="background:${s.bg};border-radius:4px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <i class="ti ${s.icon}" style="color:${s.color};font-size:15px;"></i>
+        <span style="font-size:12px;color:${s.color};">${esc(s.label)}</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;">
+
+        ${state === 'awaiting_countersign' && plan.countersign_token ? `
+          <a href="countersign.html?token=${encodeURIComponent(plan.countersign_token)}"
+             style="display:flex;align-items:center;justify-content:center;gap:6px;background:var(--admin-gold);color:#000;border:none;border-radius:4px;padding:9px;font-size:12px;font-weight:500;cursor:pointer;text-decoration:none;">
+            <i class="ti ti-writing-sign"></i>
+            Sign contract now
+          </a>
+        ` : ''}
+
+        ${plan.contract_sent ? `
+          <button onclick="sendContract('${esc(plan.id)}', this)" style="background:none;border:1px solid var(--admin-border);border-radius:4px;padding:7px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
+            <i class="ti ti-send"></i> ${state === 'awaiting_countersign' ? 'Resend to customer' : 'Resend contract'}
+          </button>
+        ` : `
+          <button onclick="sendContract('${esc(plan.id)}', this)" style="background:var(--admin-gold);color:#000;border:none;border-radius:4px;padding:9px;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
+            <i class="ti ti-send"></i> Send contract
+          </button>
+        `}
+
+        ${plan.contract_url ? `
+          <button onclick="downloadSignedContract('${esc(plan.id)}')" style="background:none;border:1px solid var(--admin-border);border-radius:4px;padding:7px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
+            <i class="ti ti-download"></i> Download signed contract
+          </button>
+        ` : ''}
+
+        ${plan.id_document_url ? `
+          <button onclick="viewIDDocument('${esc(plan.id)}')" style="background:none;border:1px solid var(--admin-border);border-radius:4px;padding:7px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
+            <i class="ti ti-id" style="color:var(--admin-green);"></i> View customer ID
+          </button>
+        ` : `
+          <div style="font-size:11px;color:var(--admin-amber);display:flex;align-items:center;gap:4px;">
+            <i class="ti ti-alert-triangle"></i> No ID document uploaded yet
+          </div>
+        `}
+
+      </div>
+    </div>
+  `
+}
+
+async function downloadSignedContract(planId) {
+  try {
+    const { data: plan, error } = await adminSupabase
+      .from('payment_plans')
+      .select('contract_url, plan_number')
+      .eq('id', planId)
+      .single()
+    if (error) throw error
+    if (!plan?.contract_url) {
+      showToast('No signed contract on file', 'warning')
+      return
+    }
+    const { data, error: sErr } = await adminSupabase.storage
+      .from('contracts')
+      .createSignedUrl(plan.contract_url, 300)
+    if (sErr) throw sErr
+    if (data?.signedUrl) {
+      const a = document.createElement('a')
+      a.href = data.signedUrl
+      a.download = `Signature-Pianos-Contract-${plan.plan_number}.png`
+      a.click()
+    }
+  } catch (err) {
+    console.error('[payment-plans] download signed contract failed', err)
+    showToast('Could not download signed contract.', 'error')
+  }
 }
 
 /* ---------- View ID document (Step 11) ---------- */
