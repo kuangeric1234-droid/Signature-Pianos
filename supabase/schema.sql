@@ -74,11 +74,15 @@ $$;
 
 -- 24 random bytes → exactly 32 base64 chars (no padding), then converted to
 -- URL-safe alphabet (RFC 4648 §5).
+-- search_path includes `extensions` because pgcrypto (which provides
+-- gen_random_bytes) is installed in the `extensions` schema on Supabase,
+-- not `public`. Fully qualifying with extensions.gen_random_bytes() would
+-- also work but ties the function to Supabase's schema layout.
 CREATE OR REPLACE FUNCTION generate_token()
 RETURNS text
 LANGUAGE sql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
   SELECT translate(encode(gen_random_bytes(24), 'base64'), '+/=', '-_');
 $$;
