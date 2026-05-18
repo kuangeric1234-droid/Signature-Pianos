@@ -59,6 +59,16 @@ module.exports = async (req, res) => {
       })
     }
 
+    if (type === 'overdue_reminder') {
+      // Customer-facing reminder only — no internal copy needed since admin triggered it.
+      await resend.emails.send({
+        from: FROM,
+        to: data.email,
+        subject: `Payment reminder — invoice ${data.invoice_number || ''}`.trim(),
+        html: overdueReminderEmail(data)
+      })
+    }
+
     return res.status(200).json({ success: true })
   } catch (err) {
     console.error('Email error:', err)
@@ -275,6 +285,41 @@ function serviceConfirmationEmail(data) {
   `
   return shell({
     preview: `Service request received — we'll be in touch within 24 hours.`,
+    body
+  })
+}
+
+/* ---------- OVERDUE PAYMENT REMINDER — customer ---------- */
+function overdueReminderEmail(data) {
+  const paymentLabels = {
+    cash: 'Cash',
+    bank_transfer: 'Bank transfer',
+    stripe: 'Stripe',
+    card_in_person: 'Card in person',
+    deposit_paid_online: 'Deposit paid online',
+  }
+  const aud = (n) => '$' + Number(n || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const issued = data.issued_at ? formatDate(data.issued_at) : '—'
+
+  const body = `
+    ${h1(`Hi ${esc(data.first_name)},`)}
+    ${p(`This is a friendly reminder that the balance for your recent Signature Pianos purchase is still outstanding. If you've already settled it in the last day or two, please ignore this note — bank transfers can take a moment to land.`)}
+
+    <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:20px;color:#b8935a;margin:32px 0 8px;">Invoice details</h2>
+    ${detailTable([
+      ['Invoice #', esc(data.invoice_number || '—'), true],
+      ['Order #', esc(data.order_number || '—')],
+      ['Issued', esc(issued)],
+      ['Amount due', aud(data.total), true],
+      ['Payment method', esc(paymentLabels[data.payment_method] || data.payment_method || '—')],
+    ])}
+
+    ${p(`If you'd like to pay by a different method, or if you have any questions about the invoice, just reply to this email and we'll sort it straight away.`, { muted: true })}
+
+    ${signOff('Eric Kuang')}
+  `
+  return shell({
+    preview: `Payment reminder — invoice ${data.invoice_number || ''} for ${aud(data.total)}`,
     body
   })
 }

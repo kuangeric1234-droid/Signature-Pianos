@@ -131,3 +131,33 @@ function closeSlidePanel(panelId) {
   if (panel) panel.classList.remove('is-open')
   if (overlay) overlay.classList.remove('is-open')
 }
+
+/* ---------- Toast notification (auto-injects on first call) ---------- */
+function showToast(message, type = 'success') {
+  let toast = document.getElementById('adminToast')
+  if (!toast) {
+    toast = document.createElement('div')
+    toast.id = 'adminToast'
+    toast.style.cssText =
+      'position:fixed;bottom:24px;right:24px;padding:12px 20px;' +
+      'border-radius:4px;font-size:13px;font-weight:500;color:#fff;' +
+      'z-index:9999;transform:translateY(100px);opacity:0;' +
+      'transition:all 0.3s ease;pointer-events:none;max-width:360px;'
+    document.body.appendChild(toast)
+  }
+  const colors = {
+    success: '#1a7f4b',
+    warning: '#b8860b',
+    error:   '#c0392b',
+    info:    '#2471a3',
+  }
+  toast.textContent = message
+  toast.style.background = colors[type] || colors.success
+  toast.style.transform = 'translateY(0)'
+  toast.style.opacity = '1'
+  clearTimeout(toast._timer)
+  toast._timer = setTimeout(() => {
+    toast.style.transform = 'translateY(100px)'
+    toast.style.opacity = '0'
+  }, 3000)
+}

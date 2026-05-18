@@ -924,8 +924,10 @@ STRIPE_SECRET_KEY
 ◯ Teacher dashboard           portal/teacher.html
 ◯ Driver flow                 delivery/[token].html
 ✓ Admin back office           admin/  — login, dashboard, enquiries,
-                                       inventory, orders (+ PDF invoices),
-                                       customers, deliveries, teachers
+                                       inventory, orders (+ PDF invoices +
+                                       inline HTML preview + edit/void/
+                                       overdue-reminder), customers,
+                                       deliveries, teachers, settings
 ```
 
 ---
@@ -1020,6 +1022,39 @@ Complete:         Tuner clicks the completion link after the visit.
 Visibility:       admin/deliveries.html shows a tuner column with the
                   current status on every delivery row. The Tuners tab
                   is a simple CRUD view of the tuners table.
+```
+
+### Invoice management flow
+```
+Settings table:   company_settings holds business name, ABN, address,
+                  email/website, bank details (name/BSB/account/account
+                  name), and the invoice_notes footer. Singleton row,
+                  edited via admin/settings.html. Both the pdfmake PDF
+                  and the inline HTML preview pull from this table —
+                  one source of truth for branding.
+
+Orders columns:   voided / voided_at / voided_reason for soft delete,
+                  invoice_number (auto-sequenced via generate_token()),
+                  line_items JSONB (snapshot of the rows on the invoice).
+
+View invoice:     Eye icon on each row → full-screen modal with an HTML
+                  invoice that mirrors the PDF layout, plus a Download
+                  PDF button inside the modal.
+
+Edit invoice:     Pencil icon → slide-in panel with status / payment
+                  method + reference / total / discount / notes. GST is
+                  recalculated as total ÷ 11 on save. Invoice number is
+                  preserved so re-issued PDFs stay traceable.
+
+Void invoice:     Trash icon → prompt for optional reason → orders row
+                  is soft-deleted (voided=true) and the piano flips
+                  back to stock_status='available' so it returns to
+                  the public catalogue. The Voided invoices filter pill
+                  shows the audit trail.
+
+Overdue reminder: Bell icon (only shown on unpaid, non-Stripe orders)
+                  → POSTs { type: 'overdue_reminder' } to /api/send-email,
+                  which fires the branded customer reminder template.
 ```
 
 ### Tuner-flow env vars (Vercel dashboard)

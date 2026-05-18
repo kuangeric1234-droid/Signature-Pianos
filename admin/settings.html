@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — Signature Pianos Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="admin.css">
+<style>
+  .settings-stack { max-width: 760px; }
+  .settings-stack .admin-card { margin-bottom: 20px; }
+  .danger-card {
+    border-left: 3px solid var(--admin-red);
+  }
+  .danger-card .admin-card-title { color: var(--admin-red); }
+  .field-hint {
+    font-size: 11px;
+    color: var(--admin-text-faint);
+    margin-top: 4px;
+  }
+  .save-bar {
+    position: sticky;
+    bottom: 0;
+    background: linear-gradient(to top, var(--admin-bg) 70%, transparent);
+    padding: 20px 0;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .save-bar .btn-gold { padding: 14px 28px; font-size: 13px; }
+
+  /* Confirm modal */
+  .confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .confirm-overlay.is-open { display: flex; }
+  .confirm-card {
+    background: var(--admin-surface);
+    border-radius: 8px;
+    border: 1px solid var(--admin-border);
+    width: 90%;
+    max-width: 420px;
+    padding: 28px;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.4);
+  }
+  .confirm-card h3 { font-size: 16px; font-weight: 500; margin: 0 0 8px; }
+  .confirm-card p { font-size: 13px; color: var(--admin-text-muted); line-height: 1.6; margin: 0 0 20px; }
+  .confirm-card .btn-row { display: flex; justify-content: flex-end; gap: 10px; }
+  .btn-danger {
+    background: var(--admin-red);
+    color: #fff;
+    border: 1px solid var(--admin-red);
+    border-radius: 4px;
+    padding: 9px 16px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .btn-danger:hover { background: #a02e21; border-color: #a02e21; }
+  .btn-outline-danger {
+    background: transparent;
+    color: var(--admin-red);
+    border: 1px solid var(--admin-red);
+    border-radius: 4px;
+    padding: 9px 16px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .btn-outline-danger:hover { background: var(--admin-red-light); }
+</style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <span style="font-family:'DM Sans';font-size:13px;font-weight:500;color:#b8935a;letter-spacing:0.1em;">SIGNATURE</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.15em;display:block;margin-top:2px;">ADMIN</span>
+    </div>
+    <nav class="admin-nav">
+      <a href="dashboard.html"  class="admin-nav-item" data-page="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="enquiries.html"  class="admin-nav-item" data-page="enquiries"><i class="ti ti-mail"></i> Enquiries <span class="nav-badge" id="enquiriesBadge"></span></a>
+      <a href="inventory.html"  class="admin-nav-item" data-page="inventory"><i class="ti ti-piano"></i> Inventory</a>
+      <a href="orders.html"     class="admin-nav-item" data-page="orders"><i class="ti ti-receipt"></i> Orders &amp; POS</a>
+      <a href="customers.html"  class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
+      <a href="deliveries.html" class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
+      <a href="teachers.html"   class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+      <a href="settings.html"   class="admin-nav-item" data-page="settings"><i class="ti ti-settings"></i> Settings</a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="https://signaturepianos.com.au/" target="_blank" style="font-size:12px;color:rgba(255,255,255,0.4);text-decoration:none;display:flex;align-items:center;gap:6px;">
+        <i class="ti ti-external-link" style="font-size:13px;"></i> View live site
+      </a>
+      <button onclick="adminSignOut()" style="font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;margin-top:8px;">
+        <i class="ti ti-logout" style="font-size:13px;"></i> Sign out
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;">
+        <button class="admin-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+        <h1 class="admin-page-title">Settings</h1>
+      </div>
+      <div class="admin-topbar-right">
+        <span style="font-size:13px;color:var(--admin-text-muted);" data-admin-name>—</span>
+      </div>
+    </div>
+
+    <div class="admin-content">
+      <div class="settings-stack">
+
+        <!-- ============ A · COMPANY DETAILS ============ -->
+        <div class="admin-card">
+          <h2 class="admin-card-title">Company details</h2>
+
+          <div class="admin-form-row">
+            <label class="admin-label" for="setting_business_name">Business name</label>
+            <input type="text" id="setting_business_name" class="admin-input" placeholder="Signature Pianos">
+          </div>
+
+          <div class="admin-form-row">
+            <label class="admin-label" for="setting_abn">ABN</label>
+            <input type="text" id="setting_abn" class="admin-input" placeholder="XX XXX XXX XXX">
+            <p class="field-hint">TODO: ADD YOUR ABN — appears on every tax invoice.</p>
+          </div>
+
+          <div class="admin-form-row">
+            <label class="admin-label" for="setting_address_line1">Address line 1</label>
+            <input type="text" id="setting_address_line1" class="admin-input" placeholder="TODO: ADD ADDRESS">
+          </div>
+
+          <div class="admin-form-row">
+            <label class="admin-label" for="setting_address_line2">
+              Address line 2 <span style="color:var(--admin-text-faint);text-transform:none;letter-spacing:0;font-weight:400;">(optional)</span>
+            </label>
+            <input type="text" id="setting_address_line2" class="admin-input">
+          </div>
+
+          <div class="admin-form-row--split">
+            <div>
+              <label class="admin-label" for="setting_suburb">Suburb</label>
+              <input type="text" id="setting_suburb" class="admin-input">
+            </div>
+            <div>
+              <label class="admin-label" for="setting_state">State</label>
+              <select id="setting_state" class="admin-select">
+                <option value="VIC">VIC</option>
+                <option value="NSW">NSW</option>
+                <option value="QLD">QLD</option>
+                <option value="SA">SA</option>
+                <option value="WA">WA</option>
+                <option value="TAS">TAS</option>
+                <option value="ACT">ACT</option>
+                <option value="NT">NT</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="admin-form-row" style="max-width:160px;">
+            <label class="admin-label" for="setting_postcode">Postcode</label>
+            <input type="text" id="setting_postcode" class="admin-input"
+                   inputmode="numeric" pattern="\d{4}" maxlength="4">
+          </div>
+
+          <div class="admin-form-row--split">
+            <div>
+              <label class="admin-label" for="setting_email">Email</label>
+              <input type="email" id="setting_email" class="admin-input" placeholder="TODO: ADD EMAIL">
+            </div>
+            <div>
+              <label class="admin-label" for="setting_phone">Phone</label>
+              <input type="tel" id="setting_phone" class="admin-input" placeholder="TODO: ADD PHONE">
+            </div>
+          </div>
+
+          <div class="admin-form-row">
+            <label class="admin-label" for="setting_website">Website</label>
+            <input type="text" id="setting_website" class="admin-input" placeholder="signaturepianos.com.au">
+          </div>
+        </div>
+
+        <!-- ============ B · BANK & PAYMENT DETAILS ============ -->
+        <div class="admin-card">
+          <h2 class="admin-card-title">Bank details</h2>
+
+          <div class="admin-form-row">
+            <label class="admin-label" for="setting_bank_name">Bank name</label>
+            <input type="text" id="setting_bank_name" class="admin-input" placeholder="TODO: ADD BANK NAME">
+          </div>
+
+          <div class="admin-form-row--split">
+            <div style="max-width:200px;">
+              <label class="admin-label" for="setting_bank_bsb">BSB</label>
+              <input type="text" id="setting_bank_bsb" class="admin-input" placeholder="XXX-XXX">
+            </div>
+            <div>
+              <label class="admin-label" for="setting_bank_account">Account number</label>
+              <input type="text" id="setting_bank_account" class="admin-input" placeholder="TODO: ADD ACCOUNT NUMBER">
+            </div>
+          </div>
+
+          <div class="admin-form-row">
+            <label class="admin-label" for="setting_bank_account_name">Account name</label>
+            <input type="text" id="setting_bank_account_name" class="admin-input" placeholder="TODO: ADD ACCOUNT NAME">
+          </div>
+
+          <p class="field-hint">
+            These details appear on invoices when payment method is bank transfer.
+          </p>
+        </div>
+
+        <!-- ============ C · INVOICE SETTINGS ============ -->
+        <div class="admin-card">
+          <h2 class="admin-card-title">Invoice settings</h2>
+
+          <div class="admin-form-row" style="max-width:200px;">
+            <label class="admin-label" for="setting_invoice_prefix">Invoice prefix</label>
+            <input type="text" id="setting_invoice_prefix" class="admin-input" maxlength="5" placeholder="INV">
+            <p class="field-hint">Invoices will be numbered <code>INV-2026-00001</code>.</p>
+          </div>
+
+          <div class="admin-form-row">
+            <label class="admin-label" for="setting_invoice_notes">Invoice footer notes</label>
+            <textarea id="setting_invoice_notes" class="admin-textarea" rows="3"></textarea>
+          </div>
+        </div>
+
+        <!-- Single save bar — applies to every section above -->
+        <div class="banner banner--success" id="settingsSavedBanner" style="margin-bottom:0;">
+          Settings saved.
+        </div>
+        <div class="banner banner--error" id="settingsErrorBanner" style="margin-bottom:0;"></div>
+
+        <div class="save-bar">
+          <button class="btn-gold" id="saveSettingsBtn">
+            <i class="ti ti-device-floppy"></i> Save changes
+          </button>
+          <span style="font-size:12px;color:var(--admin-text-faint);">
+            Applies to every future invoice + the bank-detail block on bank-transfer invoices.
+          </span>
+        </div>
+
+        <!-- ============ D · DANGER ZONE ============ -->
+        <div class="admin-card danger-card" style="margin-top:32px;">
+          <h2 class="admin-card-title">Danger zone</h2>
+          <p style="font-size:13px;color:var(--admin-text-muted);margin:0 0 16px;line-height:1.6;">
+            Reset the invoice counter back to 1. Only do this if you're starting a fresh
+            financial year and want invoice numbers to restart. This cannot be undone.
+          </p>
+          <button class="btn-outline-danger" id="resetCounterBtn">
+            <i class="ti ti-rotate-clockwise-2"></i> Reset invoice counter
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Confirm modal (reset counter) -->
+<div class="confirm-overlay" id="confirmResetOverlay">
+  <div class="confirm-card">
+    <h3>Reset invoice counter?</h3>
+    <p>Are you sure? This will reset the invoice counter to 1. This cannot be undone.</p>
+    <div class="btn-row">
+      <button class="btn-ghost" id="confirmResetCancel">Cancel</button>
+      <button class="btn-danger" id="confirmResetGo">Reset to 1</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-nav.js"></script>
+<script>
+const SETTING_FIELDS = [
+  'business_name','abn',
+  'address_line1','address_line2','suburb','state','postcode',
+  'email','phone','website',
+  'bank_name','bank_bsb','bank_account','bank_account_name',
+  'invoice_prefix','invoice_notes',
+]
+
+let settingsRowId = null   // captured on load so we always update the single row
+
+;(async function init() {
+  const admin = await checkAdminAuth()
+  if (!admin) return
+
+  document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings)
+  document.getElementById('resetCounterBtn').addEventListener('click', () => {
+    document.getElementById('confirmResetOverlay').classList.add('is-open')
+  })
+  document.getElementById('confirmResetCancel').addEventListener('click', () => {
+    document.getElementById('confirmResetOverlay').classList.remove('is-open')
+  })
+  document.getElementById('confirmResetGo').addEventListener('click', resetInvoiceCounter)
+
+  // Escape closes the confirm modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.getElementById('confirmResetOverlay').classList.remove('is-open')
+    }
+  })
+
+  await loadSettings()
+})()
+
+async function loadSettings() {
+  try {
+    const { data, error } = await adminSupabase
+      .from('company_settings')
+      .select('*')
+      .limit(1)
+      .maybeSingle()
+    if (error) throw error
+
+    if (data) {
+      settingsRowId = data.id
+      SETTING_FIELDS.forEach(key => {
+        const el = document.getElementById(`setting_${key}`)
+        if (el && data[key] != null) el.value = data[key]
+      })
+    }
+  } catch (err) {
+    console.error('[settings] load failed', err)
+    showBanner('error', 'Could not load settings — please refresh.')
+  }
+}
+
+async function saveSettings() {
+  const errEl = document.getElementById('settingsErrorBanner')
+  errEl.classList.remove('is-shown')
+  document.getElementById('settingsSavedBanner').classList.remove('is-shown')
+
+  const payload = {}
+  SETTING_FIELDS.forEach(key => {
+    const el = document.getElementById(`setting_${key}`)
+    if (!el) return
+    payload[key] = el.value
+  })
+  payload.updated_at = new Date().toISOString()
+
+  const btn = document.getElementById('saveSettingsBtn')
+  btn.disabled = true
+  btn.innerHTML = '<i class="ti ti-loader"></i> Saving…'
+
+  try {
+    let result
+    if (settingsRowId) {
+      result = await adminSupabase
+        .from('company_settings')
+        .update(payload)
+        .eq('id', settingsRowId)
+    } else {
+      // First-time setup: insert the singleton row.
+      result = await adminSupabase
+        .from('company_settings')
+        .insert(payload)
+        .select('id')
+        .single()
+      if (result.data) settingsRowId = result.data.id
+    }
+    if (result.error) throw result.error
+
+    showBanner('success', 'Settings saved.')
+    if (typeof showToast === 'function') showToast('Settings saved')
+  } catch (err) {
+    console.error('[settings] save failed', err)
+    showBanner('error', err.message || "Couldn't save — please try again.")
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save changes'
+  }
+}
+
+async function resetInvoiceCounter() {
+  document.getElementById('confirmResetOverlay').classList.remove('is-open')
+  try {
+    const { error } = await adminSupabase
+      .from('company_settings')
+      .update({ next_invoice_number: 1, updated_at: new Date().toISOString() })
+      .eq('id', settingsRowId)
+    if (error) throw error
+    if (typeof showToast === 'function') showToast('Invoice counter reset to 1', 'warning')
+  } catch (err) {
+    console.error('[settings] reset counter failed', err)
+    if (typeof showToast === 'function') showToast("Couldn't reset the counter", 'error')
+  }
+}
+
+function showBanner(kind, text) {
+  const ok = document.getElementById('settingsSavedBanner')
+  const bad = document.getElementById('settingsErrorBanner')
+  if (kind === 'success') {
+    ok.textContent = text
+    ok.classList.add('is-shown')
+    bad.classList.remove('is-shown')
+    setTimeout(() => ok.classList.remove('is-shown'), 2400)
+  } else {
+    bad.textContent = text
+    bad.classList.add('is-shown')
+    ok.classList.remove('is-shown')
+  }
+}
+</script>
+
+</body>
+</html>
