@@ -27,18 +27,27 @@ alter table deliveries
   add column if not exists driver_accepted_at timestamptz,
   add column if not exists driver_accepted_preference integer;
 
+-- The deliveries table has a deliveries_anon_guard trigger (see
+-- delivery_updates.sql) that blocks token rotation when auth.role() is not
+-- 'anon'. In the Supabase SQL editor auth.role() returns NULL, which the
+-- guard treats as anon and rejects. Disable the trigger for the backfill,
+-- then re-enable it.
+alter table deliveries disable trigger trg_deliveries_anon_guard;
+
 update deliveries
 set
   pickup_link_token =
-    md5(random()::text || id::text || 'pickup'),
+    coalesce(pickup_link_token,   md5(random()::text || id::text || 'pickup')),
   delivery_link_token =
-    md5(random()::text || id::text || 'delivery'),
+    coalesce(delivery_link_token, md5(random()::text || id::text || 'delivery')),
   acceptance_token =
-    md5(random()::text || id::text || 'accept')
+    coalesce(acceptance_token,    md5(random()::text || id::text || 'accept'))
 where
   pickup_link_token is null
   or delivery_link_token is null
   or acceptance_token is null;
+
+alter table deliveries enable trigger trg_deliveries_anon_guard;
 
 insert into storage.buckets (id, name, public)
 values ('delivery-photos', 'delivery-photos', false)
