@@ -9,6 +9,8 @@
     { "source": "/delivery/drop/:token",   "destination": "/delivery/dropoff.html?token=:token" },
     { "source": "/delivery/:token",        "destination": "/delivery/pickup.html?token=:token"  },
 
+    { "source": "/tuner/respond/:token",   "destination": "/tuner/respond.html?token=:token"   },
+
     {
       "source": "/js/(.*)",
       "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }],

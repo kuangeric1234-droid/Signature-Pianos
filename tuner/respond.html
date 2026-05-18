@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Tuning booking response — Signature Pianos</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0e0e0d;
+      color: #f5f0e8;
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+</head>
+<body>
+
+<div id="pageContent">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;">
+    <div style="text-align:center;">
+      <div style="font-size:20px;color:#b8935a;font-style:italic;margin-bottom:16px;">Signature Pianos</div>
+      <div style="font-size:13px;color:#6b6760;">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script>
+/* ============================================================================
+   Signature Pianos — tuner booking response (public, token based)
+   ----------------------------------------------------------------------------
+   Tuner opens /tuner/respond/{acceptance_token}. Default view is Accept;
+   ?action=propose flips to the propose-new-date form. The row update +
+   downstream emails happen server-side in api/tuner-respond.js under
+   the service role.
+   ============================================================================ */
+
+const params = new URLSearchParams(window.location.search)
+const action = params.get('action')   // 'propose' or null
+// Token comes from the path (/tuner/respond/{token}) via vercel.json's
+// rewrite which preserves the segment as ?token=. Fall back to last
+// path segment if the rewrite is ever bypassed.
+const token = params.get('token') || window.location.pathname.split('/').pop()
+if (!token || token === 'respond') { window.location.replace('/index.html') }
+
+;(async function loadRespondPage() {
+  try {
+    const { data: booking, error } = await _supabase
+      .from('tuner_bookings')
+      .select(`
+        *,
+        tuner:tuner_id ( * ),
+        order:order_id (
+          *,
+          customer:customer_id ( * ),
+          piano:piano_id ( * )
+        )
+      `)
+      .eq('acceptance_token', token)
+      .maybeSingle()
+
+    if (error) throw error
+    if (!booking) return showError('This link is invalid or has expired.')
+
+    if (booking.tuner_accepted || booking.tuner_response === 'proposed_new') {
+      return showAlreadyResponded(booking)
+    }
+
+    if (action === 'propose') renderProposePage(booking)
+    else                       renderAcceptPage(booking)
+  } catch (err) {
+    console.error('[tuner-respond] load failed', err)
+    showError('We could not load this booking. Please try again or contact Signature Pianos.')
+  }
+})()
+
+function esc(s) {
+  if (s == null) return ''
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+
+function fmtDateLong(d) {
+  if (!d) return '—'
+  try {
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-AU', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    })
+  } catch { return d }
+}
+
+function fmtDateAU(d) {
+  if (!d) return '—'
+  const [y, m, day] = String(d).split('T')[0].split('-')
+  if (!y || !m || !day) return d
+  return `${day}/${m}/${y}`
+}
+
+/* ---------- Accept view ---------- */
+function renderAcceptPage(booking) {
+  const piano    = booking.order?.piano    || {}
+  const customer = booking.order?.customer || {}
+  const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
+  const deliverTo = [customer.address_line1, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(', ')
+
+  document.getElementById('pageContent').innerHTML = `
+
+    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(184,147,90,0.2);">
+      <div style="font-size:16px;color:#b8935a;font-style:italic;">Signature Pianos</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Tuning booking response</div>
+    </div>
+
+    <div style="padding:24px;max-width:480px;margin:0 auto;">
+
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 8px;">Confirm this booking</h2>
+      <p style="font-size:14px;color:#9a9590;margin:0 0 24px;line-height:1.6;">
+        Please confirm you are available for the proposed tuning date below.
+      </p>
+
+      <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;margin-bottom:20px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-bottom:10px;">Booking details</div>
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid rgba(255,255,255,0.06);width:40%;">Date</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid rgba(255,255,255,0.06);color:#b8935a;font-size:15px;">${esc(fmtDateLong(booking.proposed_date))}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid rgba(255,255,255,0.06);">Time</td><td style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);">${esc(booking.proposed_time || 'Flexible')}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid rgba(255,255,255,0.06);">Piano</td><td style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);">${esc(pianoLabel)}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid rgba(255,255,255,0.06);">Customer</td><td style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);">${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;">Address</td><td style="padding:7px 0;font-size:12px;">${esc(deliverTo || '—')}</td></tr>
+          ${customer.phone ? `
+            <tr><td style="padding:7px 0;color:#9a9590;border-top:1px solid rgba(255,255,255,0.06);">Phone</td><td style="padding:7px 0;border-top:1px solid rgba(255,255,255,0.06);"><a href="tel:${esc(customer.phone)}" style="color:#b8935a;text-decoration:none;">${esc(customer.phone)}</a></td></tr>
+          ` : ''}
+        </table>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
+        <button id="acceptBtn" onclick="submitAccept('${esc(booking.id)}')"
+          style="width:100%;background:#b8935a;color:#000;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          ✓ CONFIRM THIS DATE
+        </button>
+        <button onclick="goPropose()"
+          style="width:100%;background:transparent;color:#b8935a;border:1px solid rgba(184,147,90,0.4);border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          ↩ Propose a different date
+        </button>
+      </div>
+
+      <div id="acceptError" style="display:none;padding:12px;background:rgba(192,57,43,0.1);border-radius:4px;font-size:13px;color:#e74c3c;text-align:center;"></div>
+
+    </div>
+  `
+}
+
+function goPropose() {
+  // Add ?action=propose to the current URL and reload. Preserves the
+  // token in the path so the vercel rewrite still matches.
+  const url = new URL(window.location.href)
+  url.searchParams.set('action', 'propose')
+  window.location.href = url.toString()
+}
+
+/* ---------- Propose view ---------- */
+function renderProposePage(booking) {
+  const piano    = booking.order?.piano    || {}
+  const customer = booking.order?.customer || {}
+  const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
+
+  // Minimum date = tomorrow
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const minDate = tomorrow.toISOString().slice(0, 10)
+
+  document.getElementById('pageContent').innerHTML = `
+
+    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(184,147,90,0.2);">
+      <div style="font-size:16px;color:#b8935a;font-style:italic;">Signature Pianos</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Propose alternative date</div>
+    </div>
+
+    <div style="padding:24px;max-width:480px;margin:0 auto;">
+
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 8px;">Propose a new date</h2>
+      <p style="font-size:14px;color:#9a9590;margin:0 0 24px;line-height:1.6;">
+        The proposed date doesn't work for you. Suggest an alternative and we'll confirm it with the customer.
+      </p>
+
+      <div style="background:#1a1a18;border:1px solid rgba(255,255,255,0.06);border-radius:4px;padding:12px 16px;margin-bottom:24px;">
+        <div style="font-size:11px;color:#6b6760;margin-bottom:4px;">Original proposed date</div>
+        <div style="font-size:14px;color:#9a9590;text-decoration:line-through;">${esc(fmtDateAU(booking.proposed_date))} · ${esc(booking.proposed_time || 'Flexible')}</div>
+        <div style="font-size:12px;color:#6b6760;margin-top:6px;">For ${esc(pianoLabel)} · ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}</div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Your proposed date *</label>
+        <input type="date" id="newDate" min="${minDate}"
+          style="width:100%;padding:12px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;color:#f5f0e8;font-size:14px;box-sizing:border-box;">
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Preferred time *</label>
+        <select id="newTime"
+          style="width:100%;padding:12px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;color:#f5f0e8;font-size:14px;box-sizing:border-box;">
+          <option value="">Select time window...</option>
+          <option>Morning (9am–12pm)</option>
+          <option>Afternoon (12pm–4pm)</option>
+          <option>Late afternoon (4pm–6pm)</option>
+          <option>Flexible — I'll confirm with customer</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <label style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Message to Signature Pianos (optional)</label>
+        <textarea id="proposeNotes" rows="3"
+          placeholder="Any notes about your availability or the booking..."
+          style="width:100%;padding:12px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;color:#f5f0e8;font-size:14px;resize:vertical;box-sizing:border-box;font-family:'DM Sans',sans-serif;"></textarea>
+      </div>
+
+      <button id="proposeBtn" onclick="submitProposal('${esc(booking.id)}')"
+        style="width:100%;background:#b8935a;color:#000;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        SUBMIT NEW DATE
+      </button>
+
+      <div id="proposeError" style="display:none;margin-top:12px;padding:12px;background:rgba(192,57,43,0.1);border-radius:4px;font-size:13px;color:#e74c3c;text-align:center;"></div>
+
+    </div>
+  `
+}
+
+/* ---------- Submit handlers ---------- */
+async function submitAccept(bookingId) {
+  const btn = document.getElementById('acceptBtn')
+  const err = document.getElementById('acceptError')
+  btn.textContent = 'CONFIRMING…'
+  btn.disabled = true
+  err.style.display = 'none'
+
+  try {
+    const res = await fetch('/api/tuner-respond', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, booking_id: bookingId, response: 'accepted' }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      showAcceptSuccess()
+    } else {
+      throw new Error(result.error || 'Unknown error')
+    }
+  } catch (e) {
+    console.error('[tuner-respond] accept failed', e)
+    btn.disabled = false
+    btn.textContent = '✓ CONFIRM THIS DATE'
+    err.style.display = 'block'
+    err.textContent = 'Something went wrong — please try again.'
+  }
+}
+
+async function submitProposal(bookingId) {
+  const newDate = document.getElementById('newDate').value
+  const newTime = document.getElementById('newTime').value
+  const notes   = document.getElementById('proposeNotes').value.trim()
+  const err     = document.getElementById('proposeError')
+  const btn     = document.getElementById('proposeBtn')
+
+  if (!newDate) { err.style.display = 'block'; err.textContent = 'Please select a date.'; return }
+  if (!newTime) { err.style.display = 'block'; err.textContent = 'Please select a time window.'; return }
+
+  btn.textContent = 'SUBMITTING…'
+  btn.disabled = true
+  err.style.display = 'none'
+
+  try {
+    const res = await fetch('/api/tuner-respond', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token, booking_id: bookingId, response: 'proposed_new',
+        proposed_date: newDate, proposed_time: newTime, notes: notes || null,
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      showProposalSuccess(newDate, newTime)
+    } else {
+      throw new Error(result.error || 'Unknown error')
+    }
+  } catch (e) {
+    console.error('[tuner-respond] propose failed', e)
+    btn.disabled = false
+    btn.textContent = 'SUBMIT NEW DATE'
+    err.style.display = 'block'
+    err.textContent = 'Something went wrong — please try again.'
+  }
+}
+
+function showAcceptSuccess() {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <div style="font-size:64px;margin-bottom:20px;color:#1D9E75;">✓</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Booking confirmed.</h2>
+        <p style="font-size:14px;color:#9a9590;line-height:1.7;margin:0 0 20px;">
+          Thank you. The customer and Signature Pianos have been notified. You will receive a reminder closer to the date.
+        </p>
+      </div>
+    </div>
+  `
+}
+
+function showProposalSuccess(date, time) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <div style="font-size:64px;margin-bottom:20px;color:#b8935a;">📅</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">New date proposed.</h2>
+        <p style="font-size:14px;color:#9a9590;line-height:1.7;margin:0 0 16px;">
+          Your proposed date of <strong style="color:#f5f0e8;">${esc(fmtDateLong(date))}</strong> · ${esc(time)} has been sent to Signature Pianos.
+        </p>
+        <p style="font-size:13px;color:#6b6760;line-height:1.6;">
+          We will confirm with the customer and get back to you shortly.
+        </p>
+      </div>
+    </div>
+  `
+}
+
+function showAlreadyResponded(booking) {
+  const msg = booking.tuner_response === 'accepted'
+    ? 'You have already confirmed this booking.'
+    : 'You have already proposed a new date. We will be in touch shortly.'
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <div style="font-size:48px;margin-bottom:16px;color:#1D9E75;">✓</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Already responded</h2>
+        <p style="font-size:13px;color:#9a9590;line-height:1.7;">${esc(msg)}</p>
+      </div>
+    </div>
+  `
+}
+
+function showError(message) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <div style="font-size:48px;margin-bottom:16px;color:#b8935a;">✗</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Link not found</h2>
+        <p style="font-size:13px;color:#9a9590;line-height:1.7;">${esc(message)}</p>
+      </div>
+    </div>
+  `
+}
+</script>
+
+</body>
+</html>

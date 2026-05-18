@@ -86,12 +86,14 @@ module.exports = async (req, res) => {
     // tuner's earlier link); otherwise mint fresh ones.
     const confirmationToken = booking.confirmation_token || generateToken()
     const completionToken   = booking.completion_token   || generateToken()
+    const acceptanceToken   = booking.acceptance_token   || generateToken()
 
     const { error: updateErr } = await supabase
       .from('tuner_bookings')
       .update({
         confirmation_token: confirmationToken,
-        completion_token: completionToken,
+        completion_token:   completionToken,
+        acceptance_token:   acceptanceToken,
         status: 'pending',
       })
       .eq('id', tuner_booking_id)
@@ -101,8 +103,13 @@ module.exports = async (req, res) => {
     const customer = booking.order.customer
     const piano = booking.order.piano
 
-    const confirmUrl = `${SITE_URL}/api/tuner-confirm?token=${confirmationToken}`
+    // Legacy one-click confirm endpoint — kept for backwards compat but
+    // no longer surfaced in the email. The new email uses Accept /
+    // Propose buttons that route through /tuner/respond/{acceptance_token}.
+    const confirmUrl  = `${SITE_URL}/api/tuner-confirm?token=${confirmationToken}`
     const completeUrl = `${SITE_URL}/api/tuner-complete?token=${completionToken}`
+    const acceptUrl   = `${SITE_URL}/tuner/respond/${acceptanceToken}`
+    const proposeUrl  = `${SITE_URL}/tuner/respond/${acceptanceToken}?action=propose`
 
     // 1) Email to tuner
     try {
@@ -110,7 +117,7 @@ module.exports = async (req, res) => {
         from: FROM,
         to: tuner.email,
         subject: `Piano tuning booking — ${customer.first_name} ${customer.last_name}`,
-        html: tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, completeUrl }),
+        html: tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, completeUrl, acceptUrl, proposeUrl }),
       })
     } catch (mailErr) {
       console.error('[tuner-booking] tuner email failed', mailErr)
@@ -214,7 +221,7 @@ function escapeHtml(s) {
  * tuner can reach them directly without bouncing off Eric, plus a
  * Call button that taps straight into the phone dialer on mobile. */
 
-function tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, completeUrl }) {
+function tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, completeUrl, acceptUrl, proposeUrl }) {
   const fullAddress = [
     customer.address_line1,
     customer.address_line2,
@@ -222,6 +229,25 @@ function tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, comple
     customer.state,
     customer.postcode,
   ].filter(Boolean).map(escapeHtml).join(', ') || '—'
+
+  // Calendar links for the proposed date. The booking row's
+  // proposed_time is a readable window like "Morning (9am–12pm)" — the
+  // helper maps known windows to a sensible start hour.
+  const cal = generateCalendarLinks({
+    title: `Piano tuning — Yamaha ${piano.model || ''} ${piano.year || ''}`.trim(),
+    description:
+      `Piano tuning for Signature Pianos.\n\n` +
+      `Customer: ${customer.first_name || ''} ${customer.last_name || ''}\n` +
+      `Phone: ${customer.phone || '—'}\n` +
+      `Address: ${[customer.address_line1, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(', ')}\n\n` +
+      `Piano: Yamaha ${piano.model || ''} ${piano.year || ''}\n` +
+      `Serial: ${piano.serial_number || '—'}\n\n` +
+      `Complete tuning: ${completeUrl}`,
+    location: [customer.address_line1, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(', '),
+    startDate: booking.proposed_date,
+    startTime: booking.proposed_time || 'Morning',
+    durationHours: 2,
+  })
 
   return `
     <!DOCTYPE html>
@@ -279,14 +305,46 @@ function tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, comple
             <tr><td>Time window</td><td>${escapeHtml(booking.proposed_time || 'Flexible — please suggest')}</td></tr>
           </table>
 
-          <div class="highlight">
-            <div style="font-size:13px;color:#085041;font-weight:500;margin-bottom:4px;">Please confirm or suggest an alternative time</div>
-            <div style="font-size:12px;color:#085041;">Contact the customer directly if you need to arrange a different time before confirming.</div>
+          <div style="margin:24px 0;">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:12px;">Your response</div>
+
+            <a href="${acceptUrl}"
+               style="display:block;background:#b8935a;color:#000;padding:14px 24px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:500;text-align:center;margin-bottom:10px;">
+              ✓ Accept — ${formatDate(booking.proposed_date)}${booking.proposed_time ? ' · ' + escapeHtml(booking.proposed_time) : ''}
+            </a>
+
+            <a href="${proposeUrl}"
+               style="display:block;background:#fff;border:1px solid #b8935a;color:#b8935a;padding:14px 24px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:500;text-align:center;">
+              ↩ Propose a different date
+            </a>
           </div>
 
-          <a href="${confirmUrl}" class="btn btn-gold">Confirm this booking</a>
-          <a href="mailto:${escapeHtml(customer.email || '')}" class="btn btn-outline">Email customer</a>
-          <a href="tel:${escapeHtml(customer.phone || '')}" class="btn btn-outline">Call customer</a>
+          <p style="font-size:12px;color:#9a9590;line-height:1.6;margin-top:16px;">
+            Alternatively you can contact the customer directly on
+            <a href="tel:${escapeHtml(customer.phone || '')}" style="color:#b8935a;">${escapeHtml(customer.phone || '—')}</a>
+            to arrange a suitable time, then reply to this email with the agreed date.
+          </p>
+
+          <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e8e4dd;">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">Add to calendar (proposed date)</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <a href="${cal.googleUrl}" target="_blank" rel="noopener"
+                 style="font-size:12px;color:#b8935a;text-decoration:none;border:1px solid #b8935a;padding:8px 14px;border-radius:4px;">
+                Google Calendar
+              </a>
+              <a href="${cal.outlookUrl}" target="_blank" rel="noopener"
+                 style="font-size:12px;color:#b8935a;text-decoration:none;border:1px solid #b8935a;padding:8px 14px;border-radius:4px;">
+                Outlook
+              </a>
+              <a href="${cal.icsDataUrl}" download="signature-pianos-tuning.ics"
+                 style="font-size:12px;color:#b8935a;text-decoration:none;border:1px solid #b8935a;padding:8px 14px;border-radius:4px;">
+                Apple / .ics
+              </a>
+            </div>
+            <p style="font-size:11px;color:#9a9590;margin:10px 0 0;line-height:1.5;">
+              If you propose a different date the calendar links will be re-issued with the confirmed time.
+            </p>
+          </div>
 
           <p style="margin-top:20px;font-size:12px;color:#9a9590;">
             Once the tuning is complete use this link to mark it as done and notify the customer:<br>
@@ -300,4 +358,88 @@ function tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, comple
     </body>
     </html>
   `
+}
+
+/* ============================================================================
+ * Calendar link generator — Google Calendar, Outlook, and a data: ICS URL.
+ * Used by the tuner booking email today; co-located here for now. TODO:
+ * extract to a shared module (e.g. lib/calendar.js) when a second email
+ * needs calendar links so we don't duplicate the time-window mapping.
+ *
+ * Args:
+ *   title          — short event title
+ *   description    — multi-line event details (will be %-encoded)
+ *   location       — street address (text)
+ *   startDate      — 'YYYY-MM-DD'
+ *   startTime      — readable window text; mapped to local hour below
+ *   durationHours  — integer (default 2)
+ *
+ * Returns: { googleUrl, outlookUrl, icsDataUrl }
+ *
+ * Note on time zones: Google + Outlook URL templates work with local
+ * naive timestamps when no Z suffix is used. Mail clients render the
+ * calendar event in the recipient's local zone. Since drivers + tuners
+ * are all Melbourne-based, naive local times read as AEST/AEDT and
+ * everyone gets the same wall-clock time.
+ * ======================================================================== */
+function generateCalendarLinks({ title, description, location, startDate, startTime, durationHours }) {
+  // Map known time-window phrases to a sensible 24h start hour.
+  const t = String(startTime || '').toLowerCase()
+  let startHour = 9 // default — morning
+  if (t.includes('morning'))         startHour = 9
+  else if (t.includes('afternoon') && t.includes('late')) startHour = 16
+  else if (t.includes('afternoon'))  startHour = 13
+  else if (t.includes('evening'))    startHour = 18
+  else if (t.includes('flexible'))   startHour = 10
+
+  const dur = Number(durationHours) > 0 ? Number(durationHours) : 2
+  // Build local naive timestamps in the format YYYYMMDDTHHMMSS (no Z).
+  // startDate is 'YYYY-MM-DD' — strip dashes.
+  const dateDigits = String(startDate || '').replace(/-/g, '')
+  const pad = (n) => String(n).padStart(2, '0')
+  const startStamp = `${dateDigits}T${pad(startHour)}0000`
+  const endHour = startHour + dur
+  const endStamp = `${dateDigits}T${pad(endHour)}0000`
+
+  // Outlook expects ISO-ish startdt / enddt with a T separator.
+  const outlookStart = `${startDate}T${pad(startHour)}:00:00`
+  const outlookEnd   = `${startDate}T${pad(endHour)}:00:00`
+
+  const enc = (s) => encodeURIComponent(s || '')
+
+  const googleUrl =
+    `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+    `&text=${enc(title)}` +
+    `&dates=${startStamp}/${endStamp}` +
+    `&details=${enc(description)}` +
+    `&location=${enc(location)}`
+
+  const outlookUrl =
+    `https://outlook.office.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent` +
+    `&subject=${enc(title)}` +
+    `&body=${enc(description)}` +
+    `&startdt=${enc(outlookStart)}` +
+    `&enddt=${enc(outlookEnd)}` +
+    `&location=${enc(location)}`
+
+  // Inline ICS as a data: URL so Apple Mail / Calendar can download it
+  // without a server round trip. Lines must be CRLF per RFC 5545.
+  const icsLines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Signature Pianos//Tuning Booking//EN',
+    'BEGIN:VEVENT',
+    `UID:${dateDigits}T${pad(startHour)}0000@signaturepianos.com.au`,
+    `DTSTAMP:${dateDigits}T${pad(startHour)}0000`,
+    `DTSTART:${startStamp}`,
+    `DTEND:${endStamp}`,
+    `SUMMARY:${(title || '').replace(/\n/g, '\\n')}`,
+    `DESCRIPTION:${(description || '').replace(/\n/g, '\\n')}`,
+    `LOCATION:${(location || '').replace(/\n/g, '\\n')}`,
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ]
+  const icsDataUrl = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(icsLines.join('\r\n'))
+
+  return { googleUrl, outlookUrl, icsDataUrl }
 }
