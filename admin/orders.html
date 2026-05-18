@@ -368,9 +368,10 @@
       <div class="filter-bar" id="voidFilterBar">
         <button class="filter-pill is-active" data-void-filter="active" type="button">Active invoices</button>
         <button class="filter-pill" data-void-filter="voided" type="button">Voided invoices</button>
+        <button class="filter-pill" data-void-filter="reserved" type="button">Reserved pianos</button>
       </div>
 
-      <div class="admin-table-wrap">
+      <div class="admin-table-wrap" id="ordersTableWrap">
         <table class="admin-table">
           <thead>
             <tr>
@@ -387,6 +388,16 @@
             <tr><td colspan="7"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Reserved pianos (Session 13): deposit-paid orders awaiting balance.
+           Identified by payment_method='deposit_paid_online' since the
+           order_status enum doesn't include a 'reserved' value — the
+           Stripe webhook sets deposit orders to status='pending'. -->
+      <div id="reservedPianosWrap" style="display:none;">
+        <div id="reservedPianosTable">
+          <div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div>
+        </div>
       </div>
 
     </div>
@@ -716,7 +727,7 @@ const DEFAULT_LINE_ITEMS = [
   document.getElementById('discountType').addEventListener('change', updateTotals)
   document.getElementById('isBusinessCustomer').addEventListener('change', toggleBusinessFields)
 
-  // Void filter pill toggle
+  // Void filter pill toggle (now also handles the 'reserved' branch)
   document.querySelectorAll('#voidFilterBar [data-void-filter]').forEach(btn => {
     btn.addEventListener('click', () => {
       const next = btn.dataset.voidFilter
@@ -724,6 +735,19 @@ const DEFAULT_LINE_ITEMS = [
       voidFilter = next
       document.querySelectorAll('#voidFilterBar [data-void-filter]')
         .forEach(b => b.classList.toggle('is-active', b.dataset.voidFilter === next))
+
+      // Toggle which wrap is visible.
+      const ordersWrap   = document.getElementById('ordersTableWrap')
+      const reservedWrap = document.getElementById('reservedPianosWrap')
+      if (next === 'reserved') {
+        ordersWrap.style.display = 'none'
+        reservedWrap.style.display = ''
+        loadReservedPianos()
+        return
+      }
+      ordersWrap.style.display = ''
+      reservedWrap.style.display = 'none'
+
       document.getElementById('ordersTableBody').innerHTML =
         `<tr><td colspan="7"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>`
       loadOrders()
@@ -761,6 +785,161 @@ function fmtAUD2(n) {
 
 /* ---------- ORDERS TABLE ---------- */
 let voidFilter = 'active'   // 'active' | 'voided'
+
+/* ============================================================================
+   RESERVED PIANOS (Session 13)
+   ----------------------------------------------------------------------------
+   Deposit-paid orders awaiting balance payment. Filtered by
+   payment_method='deposit_paid_online' (the Stripe webhook tags deposit
+   orders this way; the order_status enum has no 'reserved' value).
+   ============================================================================ */
+async function loadReservedPianos() {
+  const wrap = document.getElementById('reservedPianosTable')
+  try {
+    const { data: orders, error } = await adminSupabase
+      .from('orders')
+      .select(`*, customers(*), pianos(*)`)
+      .eq('payment_method', 'deposit_paid_online')
+      .eq('voided', false)
+      .order('created_at', { ascending: true })
+    if (error) throw error
+
+    if (!orders?.length) {
+      wrap.innerHTML = `<div class="empty-state"><i class="ti ti-clock"></i><p>No reserved pianos awaiting balance payment.</p></div>`
+      return
+    }
+
+    const today = new Date()
+    wrap.innerHTML = `
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Piano</th>
+            <th>Deposit paid</th>
+            <th>Days since</th>
+            <th style="text-align:right;">Balance owing</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${orders.map(o => {
+            const depositDate = new Date(o.created_at)
+            const daysSince = Math.floor((today - depositDate) / 86400000)
+            const balance = Number(o.total || 0) - 500
+            const isUrgent = daysSince > 14
+            const ageColor = daysSince > 14 ? 'var(--admin-red)' : daysSince > 7 ? 'var(--admin-amber)' : 'var(--admin-text)'
+            return `
+              <tr data-order-id="${esc(o.id)}" style="${isUrgent ? 'background:rgba(192,57,43,0.03);' : ''}">
+                <td class="name-cell">
+                  ${esc((o.customers?.first_name || '') + ' ' + (o.customers?.last_name || ''))}
+                  <div style="font-size:11px;color:var(--admin-text-muted);">${esc(o.customers?.email || '')}</div>
+                </td>
+                <td>${esc((o.pianos?.brand || 'Yamaha') + ' ' + (o.pianos?.model || '') + ' ' + (o.pianos?.year || ''))}</td>
+                <td>${fmtDate(o.created_at)}</td>
+                <td style="color:${ageColor};font-weight:500;">${daysSince} days</td>
+                <td style="text-align:right;color:var(--admin-gold);font-weight:500;">${fmtMoney(balance)}</td>
+                <td>
+                  <div class="actions-cell">
+                    <button class="icon-btn" data-action="remind" title="Send balance reminder" style="border-color:var(--admin-amber);color:var(--admin-amber);">
+                      <i class="ti ti-bell"></i>
+                    </button>
+                    <button class="icon-btn" data-action="payment-link" title="Send Stripe payment link" style="background:var(--admin-gold);color:#000;border-color:var(--admin-gold);">
+                      <i class="ti ti-link"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `
+          }).join('')}
+        </tbody>
+      </table>
+    `
+    wrap.querySelectorAll('[data-action="remind"]').forEach(b =>
+      b.addEventListener('click', (e) => sendBalanceReminder(e.currentTarget.closest('tr').dataset.orderId, e.currentTarget)))
+    wrap.querySelectorAll('[data-action="payment-link"]').forEach(b =>
+      b.addEventListener('click', (e) => sendBalancePaymentLink(e.currentTarget.closest('tr').dataset.orderId, e.currentTarget)))
+  } catch (err) {
+    console.error('[orders] loadReservedPianos failed', err)
+    wrap.innerHTML = `<div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load reserved pianos.</p></div>`
+  }
+}
+
+async function sendBalanceReminder(orderId, btn) {
+  let order
+  try {
+    const { data, error } = await adminSupabase
+      .from('orders').select('*, customers(*), pianos(*)').eq('id', orderId).single()
+    if (error) throw error
+    order = data
+  } catch (err) {
+    console.error('[orders] balance reminder fetch failed', err)
+    showToast("Couldn't load order — see console.", 'error')
+    return
+  }
+  if (!order.customers?.email) { showToast('No customer email', 'error'); return }
+  const fullName = `${order.customers.first_name || ''} ${order.customers.last_name || ''}`.trim()
+  if (!window.confirm(`Send balance payment reminder to ${fullName}?`)) return
+
+  const orig = btn?.innerHTML
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i>' }
+  try {
+    const settings = await getCompanySettings()
+    const balance = Number(order.total || 0) - 500
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'balance_reminder',
+        customer: order.customers,
+        piano: order.pianos,
+        order: { invoice_number: order.invoice_number, total: order.total, balance },
+        settings,
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) showToast('Balance reminder sent', 'success')
+    else { console.error('[orders] balance reminder failed', result); showToast('Failed — see console', 'error') }
+  } catch (err) {
+    console.error('[orders] balance reminder fetch failed', err); showToast('Failed — see console', 'error')
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = orig }
+  }
+}
+
+async function sendBalancePaymentLink(orderId, btn) {
+  let order
+  try {
+    const { data, error } = await adminSupabase
+      .from('orders').select('*, customers(*), pianos(*)').eq('id', orderId).single()
+    if (error) throw error
+    order = data
+  } catch (err) {
+    console.error('[orders] payment link fetch failed', err)
+    showToast("Couldn't load order — see console.", 'error'); return
+  }
+  if (!order.customers?.email) { showToast('No customer email', 'error'); return }
+  const balance = Number(order.total || 0) - 500
+  const fmtAud = (v) => '$' + Number(v).toLocaleString('en-AU', { minimumFractionDigits: 2 })
+  if (!window.confirm(`Create a Stripe payment link for ${fmtAud(balance)} and send to ${order.customers.email}?`)) return
+
+  const orig = btn?.innerHTML
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i>' }
+  try {
+    const res = await fetch('/api/create-balance-payment-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order_id: orderId }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) showToast(`Payment link sent to ${order.customers.email}`, 'success')
+    else { console.error('[orders] payment link failed', result); showToast(result.error || 'Failed to create link', 'error') }
+  } catch (err) {
+    console.error('[orders] payment link fetch failed', err); showToast('Failed — see console', 'error')
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = orig }
+  }
+}
 
 async function loadOrders() {
   try {

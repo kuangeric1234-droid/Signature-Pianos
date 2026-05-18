@@ -258,6 +258,41 @@ module.exports = async (req, res) => {
       })
     }
 
+    /* ===== Viewing appointment — admin-created direct booking ===== */
+    if (type === 'viewing_confirmed') {
+      const { first_name, email, appointment_date, appointment_time, notes, settings } = data
+      if (!email) return res.status(400).json({ error: 'Customer email missing' })
+      await resend.emails.send({
+        from: FROM,
+        to: email,
+        subject: 'Your viewing is confirmed — Signature Pianos',
+        html: viewingConfirmedBookingEmail({ first_name, appointment_date, appointment_time, notes, settings })
+      })
+    }
+
+    if (type === 'viewing_reminder') {
+      const { first_name, email, appointment_date, appointment_time, settings } = data
+      if (!email) return res.status(400).json({ error: 'Customer email missing' })
+      await resend.emails.send({
+        from: FROM,
+        to: email,
+        subject: 'Reminder: Your viewing is tomorrow — Signature Pianos',
+        html: viewingReminderBookingEmail({ first_name, appointment_date, appointment_time, settings })
+      })
+    }
+
+    /* ===== Balance reminder — admin pings reserved-piano customer ===== */
+    if (type === 'balance_reminder') {
+      const { customer, piano, order, settings } = data
+      if (!customer?.email) return res.status(400).json({ error: 'Customer email missing' })
+      await resend.emails.send({
+        from: FROM,
+        to: customer.email,
+        subject: `Balance payment reminder — ${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim(),
+        html: balanceReminderEmail({ customer, piano, order, settings })
+      })
+    }
+
     /* ===== Driver assignment — admin assigns a partner, customer
        prefs go out for selection ===== */
     if (type === 'driver_assignment') {
@@ -1578,4 +1613,120 @@ function serviceInternalEmail(data) {
     preview: `New service request — ${data.first_name} ${data.last_name}${isSig ? ' (existing customer)' : ''}`,
     body
   })
+}
+
+/* ============================================================================
+ * Session 13 — viewing appointment + balance reminder templates.
+ * All three use the standard white-card layout with the dark header strip.
+ * ======================================================================== */
+
+function viewingConfirmedBookingEmail({ first_name, appointment_date, appointment_time, notes, settings }) {
+  const fmt = (d) => { if (!d) return '—'; try { return new Date(d + 'T00:00:00').toLocaleDateString('en-AU', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) } catch { return d } }
+  return `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+    <div style="background:#1a1917;padding:32px;text-align:center;">
+      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#1a1917;margin:0 0 16px;">Your viewing is confirmed, ${esc(first_name || 'friend')}.</h2>
+      <p style="color:#6b6760;font-size:14px;line-height:1.7;">We look forward to seeing you. Here are your appointment details:</p>
+
+      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:20px;margin:20px 0;">
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <tr><td style="padding:8px 0;color:#085041;border-bottom:1px solid rgba(26,127,75,0.2);width:40%;">Date</td><td style="padding:8px 0;font-weight:500;border-bottom:1px solid rgba(26,127,75,0.2);color:#085041;">${esc(fmt(appointment_date))}</td></tr>
+          <tr><td style="padding:8px 0;color:#085041;border-bottom:1px solid rgba(26,127,75,0.2);">Time</td><td style="padding:8px 0;font-weight:500;border-bottom:1px solid rgba(26,127,75,0.2);color:#085041;">${esc(appointment_time || '—')}</td></tr>
+          <tr><td style="padding:8px 0;color:#085041;">Location</td><td style="padding:8px 0;font-weight:500;color:#085041;">63 Blackburn Road<br>Mount Waverley VIC 3149</td></tr>
+        </table>
+      </div>
+
+      ${notes ? `
+        <div style="background:#f8f7f5;border-radius:4px;padding:14px;margin-bottom:16px;font-size:13px;color:#6b6760;">
+          <strong style="color:#1a1917;">Notes:</strong> ${esc(notes)}
+        </div>
+      ` : ''}
+
+      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
+        Parking is available on site. If you need to reschedule please reply to this email or call us directly.
+      </p>
+      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
+        We have a range of Yamaha uprights available for you to try. Take your time — there is no pressure.
+      </p>
+    </div>
+    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
+      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
+      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+function viewingReminderBookingEmail({ first_name, appointment_date, appointment_time, settings }) {
+  const fmt = (d) => { if (!d) return '—'; try { return new Date(d + 'T00:00:00').toLocaleDateString('en-AU', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) } catch { return d } }
+  return `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+    <div style="background:#b8935a;padding:24px 32px;">
+      <div style="font-size:18px;color:#000;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
+      <div style="font-size:12px;color:rgba(0,0,0,0.6);margin-top:4px;">⚡ Viewing reminder — tomorrow</div>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#1a1917;margin:0 0 16px;">Your viewing is tomorrow, ${esc(first_name || 'friend')}.</h2>
+      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:16px 0;">
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:35%;">Date</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;color:#1a1917;">${esc(fmt(appointment_date))}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Time</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc(appointment_time || '—')}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;">Address</td><td style="padding:7px 0;">63 Blackburn Road<br>Mount Waverley VIC 3149</td></tr>
+        </table>
+      </div>
+      <p style="color:#6b6760;font-size:13px;line-height:1.7;">We look forward to seeing you tomorrow. Parking is available on site.</p>
+    </div>
+    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
+      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+function balanceReminderEmail({ customer, piano, order, settings }) {
+  const fmtCur = (v) => '$' + Math.abs(Number(v || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
+  return `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+    <div style="background:#1a1917;padding:32px;text-align:center;">
+      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#1a1917;margin:0 0 16px;">Hi ${esc(customer?.first_name || 'friend')} — balance payment reminder</h2>
+      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
+        Just a friendly reminder that the balance payment for your ${esc(pianoLabel)} is outstanding.
+      </p>
+      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:20px 0;">
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Piano</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc(pianoLabel)}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Deposit paid</td><td style="padding:7px 0;color:#1D9E75;border-bottom:1px solid #e8e4dd;">$500.00 ✓</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;">Balance owing</td><td style="padding:7px 0;font-weight:500;font-size:15px;color:#b8935a;">${fmtCur(order?.balance)}</td></tr>
+        </table>
+      </div>
+      <p style="color:#6b6760;font-size:13px;line-height:1.7;">Please arrange payment at your earliest convenience. Bank transfer details:</p>
+      <div style="background:#f8f7f5;border-radius:4px;padding:14px;margin:12px 0 20px;font-size:13px;color:#6b6760;line-height:1.8;">
+        ${settings?.bank_bsb         ? `BSB: ${esc(settings.bank_bsb)}<br>` : ''}
+        ${settings?.bank_account     ? `Account: ${esc(settings.bank_account)}<br>` : ''}
+        ${settings?.bank_account_name ? `Account name: ${esc(settings.bank_account_name)}<br>` : ''}
+        Reference: ${esc(order?.invoice_number || '—')}
+      </div>
+      <p style="color:#6b6760;font-size:13px;line-height:1.7;">If you have any questions please reply to this email.</p>
+    </div>
+    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
+      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
+    </div>
+  </div>
+</body>
+</html>`
 }

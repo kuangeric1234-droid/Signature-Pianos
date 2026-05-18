@@ -1943,6 +1943,122 @@ Run order:
      f. Admin detail panel shows ···· 4242 (Visa) + View ID button
 ```
 
+### Session 13 — 8 missing features
+```
+SQL:              supabase/missing_features.sql adds:
+                    * viewing_appointments table (admin-created
+                      direct bookings, distinct from public
+                      viewing_bookings form submissions)
+                    * deliveries.damage_* + failed_delivery_*
+                    * orders.followup_sent + review_request_sent
+                    * company_settings.google_review_url
+                    * payment_instalments.reminder_{3,7,14}day_sent
+                    * 'damage_reported' added to delivery_status enum
+                  Trigger uses set_updated_at() (spec said
+                  update_updated_at_column — standardised here).
+
+1. Viewing appointments (admin/enquiries.html → Viewings calendar)
+                  New tab next to Viewing requests + Service requests.
+                  Stats: today / this week / this month. Add panel
+                  collects name + email + phone + date + time + source
+                  + notes. Insert → fires viewing_confirmed email →
+                  toast. Per-row actions: send reminder now / mark
+                  complete / mark no-show / cancel.
+                  Cron sends day-before reminder + flips
+                  status → 'reminder_sent'.
+
+2. Reserved pianos (admin/orders.html → Reserved pianos pill)
+                  Filter on payment_method='deposit_paid_online'
+                  (order_status enum has no 'reserved' value — that's
+                  the Stripe webhook's marker for deposit orders).
+                  Per-row: days-since-deposit colour-coded (green
+                  <7, amber 7-14, red >14), balance owing, Send
+                  balance reminder, Send Stripe payment link.
+                  api/create-balance-payment-link.js creates a
+                  Stripe Payment Link for (total - $500) and
+                  emails it to the customer.
+
+3. Damage / failed-delivery (delivery/dropoff.html)
+                  Three radios above the photo upload: delivered /
+                  damage / failed. Damage + failed reveal a required
+                  description field. api/driver-delivery-confirm.js
+                  branches BEFORE warranty + tuner creation —
+                  damage flips status='damage_reported' + writes
+                  damage_notes + damage_photos + urgent-emails Eric.
+                  Failed flips status='failed' + writes
+                  failed_delivery_reason + urgent-emails Eric.
+                  Warranty + tuner booking pause until resolved.
+
+4. Post-tuning follow-up + Google review (cron)
+                  14 days after tuner_bookings.completed_at, fires a
+                  warm "how is the piano going?" email. On the next
+                  cron pass (so the two don't land at once), fires a
+                  Google review request — gated on
+                  settings.google_review_url being set. Both flags
+                  live on orders so the trigger is per-order.
+
+5. Payment instalment overdue reminders (cron)
+                  Three urgency tiers based on days-overdue:
+                    3-6 days  → gentle (dark/gold header)
+                    7-13 days → firm (brown/yellow header, late-fee warning)
+                    14+ days  → urgent customer email + alert Eric
+                                (red header, default-process warning)
+                  Each tier has its own *_sent / *_at idempotency
+                  flags so retries never double-send.
+
+6. Customer portal (portal/index.html + portal/dashboard.html)
+                  Magic-link auth via Supabase. Login page sends
+                  the link; dashboard reads auth.user.email, looks
+                  up the customer record, then loads orders +
+                  warranties + tuner bookings + deliveries scoped
+                  to that customer.
+                  Four sections: My pianos (orders + status pill +
+                  view-invoice + download-warranty stubs), Delivery
+                  progress (5-step bar), Tuning appointment,
+                  Warranty (certificate # + expiry).
+                  TODO: invoice + warranty PDF generation in the
+                  portal currently shows an alert pointing to the
+                  email — extraction of admin/orders.html's
+                  pdfmake builder into a shared module is the next
+                  step.
+
+7. Google review URL setting
+                  Field in admin/settings.html → Section A. Stored
+                  in company_settings.google_review_url. Used by
+                  the cron review-request email template — if
+                  unset, no review email fires.
+
+8. Viewing day-before reminder (covered by point 1's cron entry
+                  — fires on viewing_appointments where
+                  appointment_date = tomorrow AND reminder_sent =
+                  false).
+
+New email dispatcher types (api/send-email.js):
+                  viewing_confirmed    — admin create
+                  viewing_reminder     — manual admin "send reminder now"
+                  balance_reminder     — admin reserved-pianos action
+
+Vercel routes:    /portal           → /portal/index.html
+                  /portal/dashboard → /portal/dashboard.html
+
+Run order:        1. supabase/missing_features.sql in SQL editor
+                  2. Set company_settings.google_review_url via
+                     admin/settings.html before the cron starts
+                     firing review requests
+                  3. For the customer portal to read orders, add
+                     anon-scoped RLS on the customer-owned tables
+                     keyed off auth.jwt() ->> 'email' (currently
+                     only admin RLS exists — portal will show empty
+                     state otherwise)
+                  4. In Supabase Studio → Authentication → URL
+                     Configuration, add both
+                     https://signaturepianos.com.au/portal/dashboard.html
+                     and (if you set up my.signaturepianos.com.au)
+                     https://my.signaturepianos.com.au/portal/dashboard.html
+                     to the redirect allow-list
+                  5. Smoke test each of the 8 features end-to-end.
+```
+
 ---
 
 *Last updated: May 2025*

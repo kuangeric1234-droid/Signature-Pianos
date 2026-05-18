@@ -56,6 +56,22 @@ if (!token || token === 'dropoff.html' || token === 'drop') {
 
 let currentDelivery = null
 let selectedPhotos = []
+let deliveryStatusType = 'no_issues'
+
+window.setDeliveryStatus = function (type) {
+  deliveryStatusType = type
+  const issueDetails = document.getElementById('issueDetails')
+  const issueLabel   = document.getElementById('issueTypeLabel')
+  if (!issueDetails || !issueLabel) return
+  if (type === 'no_issues') {
+    issueDetails.style.display = 'none'
+  } else {
+    issueDetails.style.display = 'block'
+    issueLabel.textContent = type === 'damage'
+      ? '⚠ Damage report — Eric will be notified immediately'
+      : '✗ Failed delivery — Eric will be notified immediately'
+  }
+}
 
 ;(async function loadDeliveryPage() {
   try {
@@ -148,6 +164,43 @@ function renderDeliveryPage(delivery) {
       <div style="background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.3);border-radius:4px;padding:14px;margin-bottom:24px;">
         <div style="font-size:13px;color:#e74c3c;font-weight:500;margin-bottom:4px;">Do not leave the property until photos are uploaded</div>
         <div style="font-size:12px;color:rgba(231,76,60,0.85);line-height:1.5;">These photos confirm successful delivery and trigger the customer's warranty.</div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-size:14px;font-weight:500;color:#f5f0e8;margin-bottom:12px;">Delivery status</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="display:flex;align-items:center;gap:10px;padding:14px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;cursor:pointer;">
+            <input type="radio" name="deliveryStatus" value="no_issues" checked onchange="setDeliveryStatus('no_issues')" style="accent-color:#b8935a;flex-shrink:0;">
+            <div>
+              <div style="font-size:14px;color:#f5f0e8;font-weight:500;">✓ Delivered successfully</div>
+              <div style="font-size:12px;color:#9a9590;margin-top:2px;">No issues — piano placed in position</div>
+            </div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:14px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;cursor:pointer;">
+            <input type="radio" name="deliveryStatus" value="damage" onchange="setDeliveryStatus('damage')" style="accent-color:#e74c3c;flex-shrink:0;">
+            <div>
+              <div style="font-size:14px;color:#f5f0e8;font-weight:500;">⚠ Damage to report</div>
+              <div style="font-size:12px;color:#9a9590;margin-top:2px;">Piano was damaged during delivery</div>
+            </div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:14px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;cursor:pointer;">
+            <input type="radio" name="deliveryStatus" value="failed" onchange="setDeliveryStatus('failed')" style="accent-color:#e74c3c;flex-shrink:0;">
+            <div>
+              <div style="font-size:14px;color:#f5f0e8;font-weight:500;">✗ Delivery failed</div>
+              <div style="font-size:12px;color:#9a9590;margin-top:2px;">Customer not home / piano doesn't fit / other issue</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div id="issueDetails" style="display:none;margin-bottom:20px;">
+        <div style="background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.3);border-radius:4px;padding:16px;">
+          <div id="issueTypeLabel" style="font-size:13px;color:#e74c3c;font-weight:500;margin-bottom:10px;"></div>
+          <label style="font-size:12px;color:#9a9590;display:block;margin-bottom:6px;">Describe what happened *</label>
+          <textarea id="issueDescription" rows="4"
+            placeholder="Please describe the damage or reason for failed delivery..."
+            style="width:100%;padding:12px;background:#1a1a18;border:1px solid rgba(192,57,43,0.3);border-radius:4px;color:#f5f0e8;font-size:14px;resize:vertical;box-sizing:border-box;font-family:'DM Sans',sans-serif;"></textarea>
+        </div>
       </div>
 
       <div style="margin-bottom:24px;">
@@ -267,14 +320,23 @@ async function submitDeliveryPhotos() {
     }
 
     btn.textContent = 'CONFIRMING DELIVERY…'
+    // Session 13 adds delivery_status + issue_description so the API can
+    // branch on damage / failed-delivery and skip the warranty + tuner
+    // booking chain when something went wrong.
+    const issueDescription = document.getElementById('issueDescription')?.value?.trim() || null
+    if (deliveryStatusType !== 'no_issues' && !issueDescription) {
+      throw new Error('Please describe what happened before submitting.')
+    }
     const res = await fetch('/api/driver-delivery-confirm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         token,
-        photo_urls:  uploadedUrls,
-        photo_count: uploadedUrls.length,
-        notes:       document.getElementById('deliveryNotes').value.trim() || null,
+        photo_urls:        uploadedUrls,
+        photo_count:       uploadedUrls.length,
+        notes:             document.getElementById('deliveryNotes').value.trim() || null,
+        delivery_status:   deliveryStatusType,
+        issue_description: issueDescription,
       }),
     })
     const result = await res.json().catch(() => ({}))
@@ -283,7 +345,7 @@ async function submitDeliveryPhotos() {
       throw new Error(result.error || 'Confirm failed')
     }
 
-    showDeliverySuccess(uploadedUrls.length)
+    showDeliverySuccess(uploadedUrls.length, deliveryStatusType)
   } catch (err) {
     console.error('[dropoff] upload failed', err)
     btn.disabled = false
@@ -295,20 +357,54 @@ async function submitDeliveryPhotos() {
   }
 }
 
-function showDeliverySuccess(count) {
+function showDeliverySuccess(count, status) {
+  const messages = {
+    no_issues: {
+      icon: '✓', color: '#1D9E75',
+      title: 'Delivery confirmed.',
+      body: `${count} photos uploaded successfully. The customer has been notified their piano has arrived. Their warranty has been issued automatically.`,
+      checklist: [
+        'Photos saved to Signature Pianos',
+        'Customer notified — piano has arrived',
+        '10-year warranty certificate emailed',
+        'First tuning auto-booked (~25 days)',
+      ],
+      checklistColor: '#1D9E75',
+    },
+    damage: {
+      icon: '⚠', color: '#e74c3c',
+      title: 'Damage report submitted.',
+      body: 'Eric has been notified immediately. Do not leave until you have spoken with Eric.',
+      checklist: [
+        `Photos saved (${count})`,
+        'Damage notes logged',
+        'Eric notified urgently',
+        'Warranty + tuner booking paused until resolved',
+      ],
+      checklistColor: '#e74c3c',
+    },
+    failed: {
+      icon: '✗', color: '#e74c3c',
+      title: 'Failed delivery logged.',
+      body: 'Eric has been notified. Please contact Eric directly to arrange redelivery.',
+      checklist: [
+        `Photos saved (${count})`,
+        'Reason logged',
+        'Eric notified — will contact customer',
+        'Warranty + tuner booking paused until redelivery',
+      ],
+      checklistColor: '#e74c3c',
+    },
+  }
+  const m = messages[status] || messages.no_issues
   document.getElementById('pageContent').innerHTML = `
     <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
       <div style="text-align:center;max-width:360px;">
-        <div style="font-size:72px;margin-bottom:24px;color:#1D9E75;">✓</div>
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 16px;">Delivery confirmed.</h2>
-        <p style="font-size:14px;color:#9a9590;line-height:1.7;margin:0 0 24px;">
-          ${count} photos uploaded successfully. The customer has been notified their piano has arrived. Their warranty has been issued automatically.
-        </p>
+        <div style="font-size:72px;margin-bottom:24px;color:${m.color};">${m.icon}</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 16px;">${m.title}</h2>
+        <p style="font-size:14px;color:#9a9590;line-height:1.7;margin:0 0 24px;">${m.body}</p>
         <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;font-size:13px;color:#6b6760;text-align:left;">
-          <div style="margin-bottom:6px;">✓ Photos saved to Signature Pianos</div>
-          <div style="margin-bottom:6px;">✓ Customer notified — piano has arrived</div>
-          <div style="margin-bottom:6px;">✓ 10-year warranty certificate emailed</div>
-          <div>✓ First tuning auto-booked (~25 days)</div>
+          ${m.checklist.map((line, i) => `<div style="margin-bottom:${i === m.checklist.length - 1 ? '0' : '6px'};">${m.icon === '✓' ? '✓' : '•'} ${esc(line)}</div>`).join('')}
         </div>
       </div>
     </div>

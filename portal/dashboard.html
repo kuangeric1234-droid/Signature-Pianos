@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Account — Signature Pianos</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0e0e0d;
+    color: #f5f0e8;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .header-strip {
+    background: #1a1917;
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(184,147,90,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: #b8935a;
+    font-style: italic;
+  }
+  .signout-btn {
+    background: none;
+    border: 1px solid rgba(184,147,90,0.3);
+    color: #9a9590;
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .signout-btn:hover { color: #f5f0e8; border-color: rgba(184,147,90,0.5); }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 32px 24px 80px; }
+  .welcome {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+  .tagline { font-size: 13px; color: #9a9590; margin-bottom: 32px; }
+
+  .section {
+    background: #1a1a18;
+    border: 1px solid rgba(184,147,90,0.15);
+    border-radius: 4px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #b8935a;
+    margin-bottom: 16px;
+  }
+  .pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .pill-amber { background: rgba(184,134,11,0.15); color: #b8860b; }
+  .pill-blue  { background: rgba(36,113,163,0.15); color: #2471a3; }
+  .pill-green { background: rgba(26,127,75,0.15);  color: #1a7f4b; }
+  .pill-red   { background: rgba(192,57,43,0.15);  color: #c0392b; }
+
+  .progress-steps {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin: 14px 0 4px;
+  }
+  .progress-step {
+    text-align: center;
+    font-size: 10px;
+    color: #6b6760;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .progress-step .dot {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .progress-step.is-done .dot { background: #b8935a; color: #000; }
+  .progress-step.is-current .dot { background: rgba(184,147,90,0.3); color: #b8935a; box-shadow: 0 0 0 2px #b8935a; }
+
+  .btn-outline {
+    display: inline-block;
+    background: none;
+    border: 1px solid rgba(184,147,90,0.4);
+    color: #b8935a;
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-size: 12px;
+    text-decoration: none;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+  }
+  .btn-outline:hover { background: rgba(184,147,90,0.1); }
+  .btn-gold {
+    display: inline-block;
+    background: #b8935a;
+    color: #000;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-size: 12px;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-strip">
+  <div>
+    <div class="logo">Signature Pianos</div>
+    <div style="font-size:10px;color:#6b6760;letter-spacing:0.15em;text-transform:uppercase;margin-top:2px;">My Account</div>
+  </div>
+  <button class="signout-btn" onclick="signOut()">
+    <i class="ti ti-logout" style="font-size:13px;"></i> Sign out
+  </button>
+</div>
+
+<div class="wrap" id="dashboardContent">
+  <div style="padding:80px 24px;text-align:center;color:#6b6760;">Loading your account…</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script>
+/* ============================================================================
+   Signature Pianos — customer portal dashboard
+   ----------------------------------------------------------------------------
+   Magic-link auth: redirected here from portal/index.html. We check the
+   session, look up the customer record by auth.user.email, then load
+   orders / deliveries / warranties / tuner bookings scoped to that
+   customer. RLS on those tables currently restricts to is_admin() —
+   for the portal to read them, add a Supabase Auth policy that allows
+   SELECT WHERE customer_id IN (SELECT id FROM customers WHERE email =
+   auth.jwt() ->> 'email'). The dashboard handles the no-rows case
+   gracefully so it doesn't crash before those policies are added.
+   ============================================================================ */
+
+function esc(s) {
+  if (s == null) return ''
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+function fmtDateAU(d) {
+  if (!d) return '—'
+  const [y, m, day] = String(d).split('T')[0].split('-')
+  if (!y || !m || !day) return d
+  return `${day}/${m}/${y}`
+}
+function fmtCur(v) {
+  return '$' + Math.abs(Number(v || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+async function signOut() {
+  await _supabase.auth.signOut()
+  window.location.replace('/portal/index.html')
+}
+
+;(async function loadDashboard() {
+  const { data: { user } } = await _supabase.auth.getUser()
+  if (!user) { window.location.replace('/portal/index.html'); return }
+
+  let customer = null
+  try {
+    const { data, error } = await _supabase
+      .from('customers')
+      .select('*')
+      .eq('email', user.email)
+      .maybeSingle()
+    if (error) throw error
+    customer = data
+  } catch (err) {
+    console.error('[portal] customer lookup failed', err)
+  }
+  if (!customer) return showNoAccountFound(user.email)
+
+  let orders = [], tunerBookings = []
+  try {
+    const [ordersRes, tbRes] = await Promise.all([
+      _supabase.from('orders')
+        .select(`*, piano:piano_id(*), warranties(*), deliveries(*)`)
+        .eq('customer_id', customer.id)
+        .eq('voided', false)
+        .order('created_at', { ascending: false }),
+      _supabase.from('tuner_bookings').select('*').eq('customer_id', customer.id).order('created_at', { ascending: false }),
+    ])
+    orders        = ordersRes.data || []
+    tunerBookings = tbRes.data     || []
+  } catch (err) {
+    console.error('[portal] data load failed', err)
+  }
+
+  renderDashboard(customer, orders, tunerBookings)
+})()
+
+function renderDashboard(customer, orders, tunerBookings) {
+  const wrap = document.getElementById('dashboardContent')
+  if (!orders.length) {
+    wrap.innerHTML = `
+      <h1 class="welcome">Welcome back, ${esc(customer.first_name || 'friend')}.</h1>
+      <p class="tagline">No orders yet — once you make a purchase, you'll see your piano and delivery details here.</p>
+    `
+    return
+  }
+
+  wrap.innerHTML = `
+    <h1 class="welcome">Welcome back, ${esc(customer.first_name || 'friend')}.</h1>
+    <p class="tagline">Here's everything on your account.</p>
+
+    ${renderMyPianos(orders)}
+    ${renderDeliveryStatus(orders)}
+    ${renderTuningStatus(orders, tunerBookings)}
+    ${renderWarrantySection(orders)}
+  `
+}
+
+/* ---------- Section 1 — My pianos ---------- */
+function renderMyPianos(orders) {
+  return `
+    <div class="section">
+      <div class="section-title">My pianos</div>
+      ${orders.map(o => {
+        const piano = o.piano || {}
+        const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
+        const statusPill = (() => {
+          if (o.status === 'paid' || o.status === 'complete' || o.status === 'delivered') return '<span class="pill pill-green">Delivered</span>'
+          if (o.payment_method === 'deposit_paid_online' || o.status === 'pending') return '<span class="pill pill-amber">Reserved</span>'
+          return `<span class="pill pill-blue">${esc(o.status || 'confirmed')}</span>`
+        })()
+        return `
+          <div style="padding:14px 0;border-bottom:1px solid rgba(184,147,90,0.1);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+              <div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-style:italic;color:#f5f0e8;">${esc(pianoLabel)}</div>
+                <div style="font-size:12px;color:#6b6760;margin-top:2px;">
+                  Invoice ${esc(o.invoice_number || '—')} · ${fmtDateAU(o.created_at)} · ${fmtCur(o.total)}
+                </div>
+              </div>
+              <div>${statusPill}</div>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn-outline" onclick="alert('Invoice viewing from the portal is on the roadmap — for now please use the PDF in your purchase confirmation email or contact us.')">View invoice</button>
+              ${o.warranties?.length ? `<button class="btn-outline" onclick="alert('Warranty PDF download is on the roadmap — your certificate is in your inbox.')">Download warranty</button>` : ''}
+            </div>
+          </div>
+        `
+      }).join('')}
+    </div>
+  `
+}
+
+/* ---------- Section 2 — Delivery status (first order only) ---------- */
+function renderDeliveryStatus(orders) {
+  const first = orders[0]
+  const delivery = first?.deliveries?.[0]
+  if (!delivery) return ''
+
+  // Map delivery status to a 5-step progress.
+  const steps = ['Order placed', 'Preferences', 'Confirmed', 'Picked up', 'Delivered']
+  let stepIdx = 0
+  if (first.status) stepIdx = 0
+  if (delivery.customer_preferences_submitted) stepIdx = Math.max(stepIdx, 1)
+  if (delivery.driver_accepted)                stepIdx = Math.max(stepIdx, 2)
+  if (delivery.status === 'picked_up' || delivery.status === 'in_transit') stepIdx = Math.max(stepIdx, 3)
+  if (delivery.status === 'delivered')         stepIdx = 4
+
+  return `
+    <div class="section">
+      <div class="section-title">Delivery progress</div>
+      <div class="progress-steps">
+        ${steps.map((s, i) => `
+          <div class="progress-step ${i < stepIdx ? 'is-done' : (i === stepIdx ? 'is-current' : '')}">
+            <div class="dot">${i < stepIdx ? '✓' : i + 1}</div>
+            ${esc(s)}
+          </div>
+        `).join('')}
+      </div>
+      ${delivery.scheduled_date && delivery.status !== 'delivered' ? `
+        <div style="font-size:12px;color:#9a9590;margin-top:14px;">
+          Scheduled for ${fmtDateAU(delivery.scheduled_date)}${delivery.scheduled_time_window ? ' · ' + esc(delivery.scheduled_time_window) : ''}.
+        </div>
+      ` : ''}
+      ${delivery.status === 'delivered' && delivery.delivered_at ? `
+        <div style="font-size:12px;color:#1a7f4b;margin-top:14px;">
+          Delivered ${fmtDateAU(delivery.delivered_at)}.
+        </div>
+      ` : ''}
+    </div>
+  `
+}
+
+/* ---------- Section 3 — Tuning appointment ---------- */
+function renderTuningStatus(orders, tunerBookings) {
+  const tb = tunerBookings[0]
+  let body
+  if (tb?.confirmed_date) {
+    body = `Your tuning is scheduled for <strong style="color:#f5f0e8;">${fmtDateAU(tb.confirmed_date)}</strong>${tb.confirmed_time ? ' · ' + esc(tb.confirmed_time) : ''}.`
+  } else if (tb?.contact_sent) {
+    body = 'A tuner will be in contact with you shortly to arrange your first tuning appointment.'
+  } else {
+    body = 'Your complimentary first tuning will be arranged approximately 25 days after delivery.'
+  }
+  return `
+    <div class="section">
+      <div class="section-title">Tuning appointment</div>
+      <p style="font-size:14px;color:#9a9590;line-height:1.7;">${body}</p>
+    </div>
+  `
+}
+
+/* ---------- Section 4 — Warranty ---------- */
+function renderWarrantySection(orders) {
+  const warranty = orders.flatMap(o => o.warranties || [])[0]
+  if (!warranty) return ''
+  return `
+    <div class="section">
+      <div class="section-title">Warranty</div>
+      <div style="font-size:13px;color:#9a9590;line-height:1.9;">
+        Certificate: <strong style="color:#f5f0e8;font-family:ui-monospace,monospace;">${esc(warranty.warranty_number)}</strong><br>
+        Start: ${fmtDateAU(warranty.start_date)}<br>
+        Expires: <strong style="color:#b8935a;">${fmtDateAU(warranty.expiry_date)}</strong>
+      </div>
+      <p style="font-size:12px;color:#6b6760;margin-top:12px;line-height:1.6;">
+        Your 10-year warranty certificate is in the email we sent on delivery day. Reply to that email if you need a fresh copy.
+      </p>
+    </div>
+  `
+}
+
+function showNoAccountFound(email) {
+  document.getElementById('dashboardContent').innerHTML = `
+    <h1 class="welcome">No account found</h1>
+    <p class="tagline">
+      We couldn't find a customer record for <strong style="color:#f5f0e8;">${esc(email)}</strong>.
+    </p>
+    <p style="font-size:13px;color:#6b6760;line-height:1.7;max-width:480px;">
+      If you've purchased from us before, the email you logged in with may not match the one we have on file. Please contact us and we'll sort it out.
+    </p>
+    <button class="signout-btn" style="margin-top:24px;" onclick="signOut()">Sign out</button>
+  `
+}
+</script>
+
+</body>
+</html>

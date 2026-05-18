@@ -13,6 +13,9 @@
     { "source": "/tuner/log-date/:token",  "destination": "/tuner/log-date.html?token=:token"  },
     { "source": "/tuner/complete/:token",  "destination": "/tuner/complete.html?token=:token"  },
 
+    { "source": "/portal",                 "destination": "/portal/index.html"     },
+    { "source": "/portal/dashboard",       "destination": "/portal/dashboard.html" },
+
     {
       "source": "/js/(.*)",
       "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }],

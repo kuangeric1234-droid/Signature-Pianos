@@ -193,6 +193,16 @@
             <label class="admin-label" for="setting_website">Website</label>
             <input type="text" id="setting_website" class="admin-input" placeholder="signaturepianos.com.au">
           </div>
+
+          <div class="admin-form-row">
+            <label class="admin-label" for="setting_google_review_url">Google review link</label>
+            <input type="url" id="setting_google_review_url" class="admin-input"
+                   placeholder="https://g.page/r/YOUR_PLACE_ID/review">
+            <p class="field-hint">
+              Go to your Google Business Profile → Ask for reviews → Copy the link.
+              Used in the post-tuning review request email sent ~15 days after the first tuning.
+            </p>
+          </div>
         </div>
 
         <!-- ============ B · BANK & PAYMENT DETAILS ============ -->
@@ -294,6 +304,7 @@ const SETTING_FIELDS = [
   'business_name','abn',
   'address_line1','address_line2','suburb','state','postcode',
   'email','phone','website',
+  'google_review_url',
   'bank_name','bank_bsb','bank_account','bank_account_name',
   'invoice_prefix','invoice_notes',
 ]

@@ -36,10 +36,14 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { token, photo_urls, photo_count, notes } = req.body || {}
+  const { token, photo_urls, photo_count, notes, delivery_status, issue_description } = req.body || {}
   if (!token) return res.status(400).json({ error: 'Missing token' })
   if (!Array.isArray(photo_urls) || photo_urls.length < 3) {
     return res.status(400).json({ error: 'At least 3 photos required' })
+  }
+  const issueKind = (delivery_status === 'damage' || delivery_status === 'failed') ? delivery_status : null
+  if (issueKind && !issue_description) {
+    return res.status(400).json({ error: 'Issue description required for damage/failed deliveries' })
   }
 
   try {
@@ -66,8 +70,85 @@ module.exports = async (req, res) => {
     const order    = delivery.order || {}
     const customer = order.customer || {}
     const piano    = order.piano    || {}
+    const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
 
-    // 2. Row update — flip to delivered
+    // 1b. Session 13 — damage or failed-delivery branch.
+    //     Writes the new damage_* / failed_* columns, urgent-emails
+    //     Eric, and returns early WITHOUT creating warranty or auto-
+    //     booking the tuner. The flow can be resumed manually from
+    //     admin after the issue is resolved.
+    if (issueKind === 'damage') {
+      try {
+        await supabase
+          .from('deliveries')
+          .update({
+            damage_reported:    true,
+            damage_reported_at: new Date().toISOString(),
+            damage_notes:       issue_description,
+            damage_photos:      photo_urls,
+            delivery_notes:     notes || null,
+            status:             'damage_reported',
+          })
+          .eq('id', delivery.id)
+      } catch (updErr) {
+        console.error('[driver-delivery-confirm] damage update failed', updErr)
+      }
+      try {
+        await resend.emails.send({
+          from: FROM,
+          to: BUSINESS_EMAIL,
+          subject: `⚠ URGENT — Delivery damage reported · ${pianoLabel}`,
+          html: `
+            <h2 style="color:#c0392b;">⚠ Damage reported during delivery</h2>
+            <p><strong>Customer:</strong> ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))} (${esc(customer.email || '—')} · ${esc(customer.phone || '—')})</p>
+            <p><strong>Piano:</strong> ${esc(pianoLabel)} · Serial ${esc(piano.serial_number || '—')}</p>
+            <p><strong>Driver notes:</strong> ${esc(issue_description)}</p>
+            <p><strong>Photos uploaded:</strong> ${esc(photo_count)}</p>
+            <p style="color:#c0392b;font-weight:bold;">Action required immediately — contact customer and driver.</p>
+          `,
+        })
+      } catch (mailErr) {
+        console.error('[driver-delivery-confirm] damage email failed', mailErr)
+      }
+      return res.status(200).json({ success: true, status: 'damage_reported' })
+    }
+
+    if (issueKind === 'failed') {
+      try {
+        await supabase
+          .from('deliveries')
+          .update({
+            failed_delivery:        true,
+            failed_delivery_reason: issue_description,
+            failed_delivery_at:     new Date().toISOString(),
+            delivery_photos:        photo_urls,
+            delivery_notes:         notes || null,
+            status:                 'failed',
+          })
+          .eq('id', delivery.id)
+      } catch (updErr) {
+        console.error('[driver-delivery-confirm] failed-delivery update failed', updErr)
+      }
+      try {
+        await resend.emails.send({
+          from: FROM,
+          to: BUSINESS_EMAIL,
+          subject: `✗ Delivery failed · ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
+          html: `
+            <h2 style="color:#c0392b;">✗ Delivery failed</h2>
+            <p><strong>Customer:</strong> ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))} (${esc(customer.email || '—')} · ${esc(customer.phone || '—')})</p>
+            <p><strong>Piano:</strong> ${esc(pianoLabel)}</p>
+            <p><strong>Reason:</strong> ${esc(issue_description)}</p>
+            <p style="color:#c0392b;font-weight:bold;">Action required — contact customer to reschedule.</p>
+          `,
+        })
+      } catch (mailErr) {
+        console.error('[driver-delivery-confirm] failed email failed', mailErr)
+      }
+      return res.status(200).json({ success: true, status: 'failed' })
+    }
+
+    // 2. Normal happy-path — row update — flip to delivered
     const nowIso = new Date().toISOString()
     const { error: updErr } = await supabase
       .from('deliveries')

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Account — Signature Pianos</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0e0e0d;
+    color: #f5f0e8;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .login-card {
+    background: #1a1a18;
+    border: 1px solid rgba(184,147,90,0.2);
+    border-radius: 4px;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+  }
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    color: #b8935a;
+    font-style: italic;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .tagline {
+    font-size: 12px;
+    color: #6b6760;
+    text-align: center;
+    margin-bottom: 32px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  label {
+    font-size: 12px;
+    color: #6b6760;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 6px;
+  }
+  input {
+    width: 100%;
+    padding: 12px;
+    background: #0e0e0d;
+    border: 1px solid rgba(184,147,90,0.2);
+    border-radius: 4px;
+    color: #f5f0e8;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    margin-bottom: 16px;
+  }
+  input:focus { outline: none; border-color: rgba(184,147,90,0.5); }
+  .btn {
+    width: 100%;
+    background: #b8935a;
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.05em;
+  }
+  .btn:disabled { opacity: 0.6; cursor: progress; }
+  .error {
+    background: rgba(192,57,43,0.1);
+    border: 1px solid rgba(192,57,43,0.3);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #e74c3c;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .hint {
+    font-size: 12px;
+    color: #6b6760;
+    text-align: center;
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="logo">Signature Pianos</div>
+  <div class="tagline">My Account</div>
+
+  <div id="loginView">
+    <label>Email address</label>
+    <input type="email" id="loginEmail"
+      placeholder="your@email.com"
+      onkeydown="if(event.key==='Enter')sendMagicLink()">
+
+    <div class="error" id="loginError"></div>
+
+    <button class="btn" onclick="sendMagicLink()" id="loginBtn">
+      SEND LOGIN LINK
+    </button>
+
+    <p class="hint">We'll send a secure login link to your email.<br>No password needed.</p>
+  </div>
+
+  <div id="sentView" style="display:none;text-align:center;">
+    <div style="font-size:48px;margin-bottom:16px;">📧</div>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;font-style:italic;margin-bottom:12px;">
+      Check your email
+    </h2>
+    <p style="font-size:13px;color:#9a9590;line-height:1.7;">
+      We sent a login link to<br>
+      <strong id="sentEmail" style="color:#f5f0e8;"></strong>
+    </p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script>
+async function sendMagicLink() {
+  const email = document.getElementById('loginEmail').value.trim()
+  const errorEl = document.getElementById('loginError')
+  const btn = document.getElementById('loginBtn')
+
+  if (!email) {
+    errorEl.style.display = 'block'
+    errorEl.textContent = 'Please enter your email address.'
+    return
+  }
+
+  btn.textContent = 'SENDING…'
+  btn.disabled = true
+  errorEl.style.display = 'none'
+
+  // The redirect target must be on the Supabase Auth allow-list
+  // (Supabase Studio → Authentication → URL Configuration). Add
+  // both https://signaturepianos.com.au/portal/dashboard.html and
+  // https://my.signaturepianos.com.au/portal/dashboard.html if a
+  // custom subdomain is set up later.
+  const { error } = await _supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.origin + '/portal/dashboard.html' },
+  })
+
+  if (error) {
+    errorEl.style.display = 'block'
+    errorEl.textContent = error.message
+    btn.textContent = 'SEND LOGIN LINK'
+    btn.disabled = false
+    return
+  }
+
+  document.getElementById('loginView').style.display = 'none'
+  document.getElementById('sentView').style.display = 'block'
+  document.getElementById('sentEmail').textContent = email
+}
+</script>
+
+</body>
+</html>

@@ -56,6 +56,7 @@
       <div class="tab-bar">
         <button class="tab is-active" data-tab="viewing" type="button">Viewing requests</button>
         <button class="tab" data-tab="service" type="button">Service requests</button>
+        <button class="tab" data-tab="calendar" type="button">Viewings calendar</button>
       </div>
 
       <!-- Filter bar (shared across tabs) -->
@@ -110,9 +111,123 @@
         </table>
       </div>
 
+      <!-- Viewings calendar (admin-created direct appointments) -->
+      <div id="calendarWrap" style="display:none;">
+        <div class="stats-strip" id="viewingStatsStrip">
+          <div class="stat"><span class="stat-label">Today</span><span class="stat-value" id="statViewingsToday">—</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><span class="stat-label">This week</span><span class="stat-value" id="statViewingsWeek">—</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><span class="stat-label">This month</span><span class="stat-value" id="statViewingsMonth">—</span></div>
+          <div style="margin-left:auto;">
+            <button class="btn-gold" id="newViewingBtn"><i class="ti ti-plus"></i> New viewing</button>
+          </div>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Source</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="calendarTableBody">
+              <tr><td colspan="8"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   </main>
 </div>
+
+<!-- Add viewing slide-in panel -->
+<div class="slide-panel-overlay" id="addViewingPanelOverlay" onclick="closeSlidePanel('addViewingPanel')"></div>
+<aside class="slide-panel" id="addViewingPanel" aria-hidden="true">
+  <div class="slide-panel-header">
+    <h2 class="slide-panel-title">New viewing</h2>
+    <button class="slide-panel-close" onclick="closeSlidePanel('addViewingPanel')" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body">
+    <div class="admin-form-row"><label class="admin-label">A · Customer</label></div>
+    <div class="admin-form-row--split">
+      <div>
+        <label class="admin-label" for="av_first">First name *</label>
+        <input type="text" id="av_first" class="admin-input">
+      </div>
+      <div>
+        <label class="admin-label" for="av_last">Last name *</label>
+        <input type="text" id="av_last" class="admin-input">
+      </div>
+    </div>
+    <div class="admin-form-row--split">
+      <div>
+        <label class="admin-label" for="av_email">Email *</label>
+        <input type="email" id="av_email" class="admin-input">
+      </div>
+      <div>
+        <label class="admin-label" for="av_phone">Phone</label>
+        <input type="tel" id="av_phone" class="admin-input">
+      </div>
+    </div>
+
+    <div class="admin-form-row" style="border-top:1px solid var(--admin-border);padding-top:14px;"><label class="admin-label">B · Appointment</label></div>
+    <div class="admin-form-row--split">
+      <div>
+        <label class="admin-label" for="av_date">Date *</label>
+        <input type="date" id="av_date" class="admin-input">
+      </div>
+      <div>
+        <label class="admin-label" for="av_time">Time *</label>
+        <select id="av_time" class="admin-select">
+          <option value="">— Select —</option>
+          <option>9:00am</option><option>9:30am</option>
+          <option>10:00am</option><option>10:30am</option>
+          <option>11:00am</option><option>11:30am</option>
+          <option>12:00pm</option><option>12:30pm</option>
+          <option>1:00pm</option><option>1:30pm</option>
+          <option>2:00pm</option><option>2:30pm</option>
+          <option>3:00pm</option><option>3:30pm</option>
+          <option>4:00pm</option><option>4:30pm</option>
+          <option>5:00pm</option>
+        </select>
+      </div>
+    </div>
+    <div class="admin-form-row">
+      <label class="admin-label" for="av_source">Source</label>
+      <select id="av_source" class="admin-select">
+        <option value="admin">Admin (default)</option>
+        <option value="facebook_marketplace">Facebook Marketplace</option>
+        <option value="facebook_groups">Facebook Groups</option>
+        <option value="meta_ads">Meta Ads</option>
+        <option value="web_enquiry">Web enquiry</option>
+        <option value="phone">Phone</option>
+        <option value="walk_in">Walk-in</option>
+        <option value="teacher_referral">Teacher referral</option>
+        <option value="existing_customer">Existing customer</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="admin-form-row">
+      <label class="admin-label" for="av_notes">Notes (optional)</label>
+      <textarea id="av_notes" class="admin-textarea" rows="3"></textarea>
+    </div>
+
+    <div class="banner banner--error" id="newViewingError"></div>
+  </div>
+  <div class="slide-panel-footer">
+    <button class="btn-ghost" onclick="closeSlidePanel('addViewingPanel')">Cancel</button>
+    <button class="btn-gold" id="createViewingBtn"><i class="ti ti-check"></i> Book viewing &amp; notify customer</button>
+  </div>
+</aside>
 
 <!-- Detail slide-in panel (re-used for both tabs) -->
 <div class="slide-panel-overlay" id="detailPanelOverlay" onclick="closeSlidePanel('detailPanel')"></div>
@@ -135,10 +250,11 @@
 <script src="js/admin-auth.js"></script>
 <script src="js/admin-nav.js"></script>
 <script>
-let currentTab = 'viewing'      // viewing | service
+let currentTab = 'viewing'      // viewing | service | calendar
 let currentFilter = 'all'       // all | pending | confirmed | completed | cancelled
 let viewingRows = []
 let serviceRows = []
+let calendarRows = []           // viewing_appointments rows
 
 ;(async function init() {
   const admin = await checkAdminAuth()
@@ -152,6 +268,9 @@ let serviceRows = []
       currentTab = btn.dataset.tab
       document.getElementById('viewingTableWrap').style.display = currentTab === 'viewing' ? '' : 'none'
       document.getElementById('serviceTableWrap').style.display = currentTab === 'service' ? '' : 'none'
+      document.getElementById('calendarWrap').style.display      = currentTab === 'calendar' ? '' : 'none'
+      // Filter pills only apply to the form-submission tabs; hide them on calendar.
+      document.getElementById('filterBar').style.display = currentTab === 'calendar' ? 'none' : ''
       renderCurrent()
     })
   })
@@ -166,7 +285,10 @@ let serviceRows = []
     })
   })
 
-  await Promise.all([loadViewings(), loadServices()])
+  document.getElementById('newViewingBtn').addEventListener('click', openNewViewingPanel)
+  document.getElementById('createViewingBtn').addEventListener('click', createViewingAppointment)
+
+  await Promise.all([loadViewings(), loadServices(), loadCalendar()])
 })()
 
 async function loadViewings() {
@@ -205,8 +327,206 @@ function applyFilter(rows) {
 }
 
 function renderCurrent() {
-  if (currentTab === 'viewing') renderViewings()
-  else renderServices()
+  if (currentTab === 'viewing')       renderViewings()
+  else if (currentTab === 'service')  renderServices()
+  else if (currentTab === 'calendar') renderCalendar()
+}
+
+/* ============================================================================
+   VIEWINGS CALENDAR — admin-created direct appointments
+   (Session 13 — distinct from public viewing_bookings tab above)
+   ============================================================================ */
+
+async function loadCalendar() {
+  try {
+    const { data, error } = await adminSupabase
+      .from('viewing_appointments')
+      .select('*')
+      .order('appointment_date', { ascending: true })
+      .order('appointment_time', { ascending: true })
+    if (error) throw error
+    calendarRows = data || []
+  } catch (err) {
+    console.error('[enquiries] load calendar failed', err)
+    calendarRows = []
+  }
+  if (currentTab === 'calendar') renderCalendar()
+}
+
+function renderCalendar() {
+  // Stats
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const todayStr = today.toISOString().slice(0, 10)
+  const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate() + 7)
+  const weekEndStr = weekEnd.toISOString().slice(0, 10)
+  const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+  const monthEndStr = monthEnd.toISOString().slice(0, 10)
+
+  const upcomingActive = calendarRows.filter(r => ['confirmed', 'reminder_sent'].includes(r.status))
+  document.getElementById('statViewingsToday').textContent =
+    upcomingActive.filter(r => r.appointment_date === todayStr).length
+  document.getElementById('statViewingsWeek').textContent =
+    upcomingActive.filter(r => r.appointment_date >= todayStr && r.appointment_date <= weekEndStr).length
+  document.getElementById('statViewingsMonth').textContent =
+    upcomingActive.filter(r => r.appointment_date >= todayStr && r.appointment_date <= monthEndStr).length
+
+  const body = document.getElementById('calendarTableBody')
+  if (!calendarRows.length) {
+    body.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-calendar-off"></i><p>No viewings yet — click "New viewing" to add one.</p></div></td></tr>`
+    return
+  }
+
+  const statusPill = (s) => {
+    const map = { confirmed: 'pill--blue', reminder_sent: 'pill--amber', completed: 'pill--green', no_show: 'pill--red', cancelled: 'pill--grey' }
+    return `<span class="pill ${map[s] || 'pill--grey'}">${esc(s || '—').replace(/_/g, ' ')}</span>`
+  }
+
+  body.innerHTML = calendarRows.map(r => `
+    <tr data-appt-id="${esc(r.id)}">
+      <td>${fmtDate(r.appointment_date)}</td>
+      <td>${esc(r.appointment_time || '—')}</td>
+      <td class="name-cell">${esc((r.first_name || '') + ' ' + (r.last_name || ''))}</td>
+      <td>${r.phone ? `<a href="tel:${esc(r.phone)}" style="color:var(--admin-gold);">${esc(r.phone)}</a>` : '—'}</td>
+      <td>${r.email ? `<a href="mailto:${esc(r.email)}" style="color:var(--admin-gold);">${esc(r.email)}</a>` : '—'}</td>
+      <td>${esc((r.source || '').replace(/_/g, ' '))}</td>
+      <td>${statusPill(r.status)}</td>
+      <td>
+        <div class="actions-cell">
+          ${r.status === 'confirmed' ? `<button class="icon-btn" data-action="vw-remind" title="Send reminder now"><i class="ti ti-mail"></i></button>` : ''}
+          ${['confirmed', 'reminder_sent'].includes(r.status) ? `<button class="icon-btn" data-action="vw-complete" title="Mark complete"><i class="ti ti-check"></i></button>` : ''}
+          ${['confirmed', 'reminder_sent'].includes(r.status) ? `<button class="icon-btn is-red" data-action="vw-noshow" title="Mark no-show"><i class="ti ti-x"></i></button>` : ''}
+          ${r.status !== 'cancelled' ? `<button class="icon-btn is-red" data-action="vw-cancel" title="Cancel"><i class="ti ti-trash"></i></button>` : ''}
+        </div>
+      </td>
+    </tr>
+  `).join('')
+
+  body.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = e.currentTarget.closest('tr').dataset.apptId
+      const act = e.currentTarget.dataset.action
+      if (act === 'vw-remind')      sendViewingReminderManual(id)
+      else if (act === 'vw-complete') updateViewingStatus(id, 'completed')
+      else if (act === 'vw-noshow')   updateViewingStatus(id, 'no_show')
+      else if (act === 'vw-cancel')   updateViewingStatus(id, 'cancelled')
+    })
+  })
+}
+
+function openNewViewingPanel() {
+  document.getElementById('newViewingError').classList.remove('is-shown')
+  ;['av_first', 'av_last', 'av_email', 'av_phone', 'av_notes'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = ''
+  })
+  document.getElementById('av_date').value = new Date().toISOString().slice(0, 10)
+  document.getElementById('av_time').value = ''
+  document.getElementById('av_source').value = 'admin'
+  openSlidePanel('addViewingPanel')
+}
+
+async function createViewingAppointment() {
+  const errEl = document.getElementById('newViewingError')
+  errEl.classList.remove('is-shown')
+
+  const first_name       = document.getElementById('av_first').value.trim()
+  const last_name        = document.getElementById('av_last').value.trim()
+  const email            = document.getElementById('av_email').value.trim()
+  const phone            = document.getElementById('av_phone').value.trim() || null
+  const appointment_date = document.getElementById('av_date').value
+  const appointment_time = document.getElementById('av_time').value
+  const notes            = document.getElementById('av_notes').value.trim() || null
+  const source           = document.getElementById('av_source').value
+
+  if (!first_name || !last_name || !email || !appointment_date || !appointment_time) {
+    errEl.textContent = 'First name, last name, email, date and time are all required.'
+    errEl.classList.add('is-shown')
+    return
+  }
+
+  const btn = document.getElementById('createViewingBtn')
+  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Booking…'
+  try {
+    const { error } = await adminSupabase
+      .from('viewing_appointments')
+      .insert({ first_name, last_name, email, phone, appointment_date, appointment_time, notes, source, status: 'confirmed' })
+    if (error) throw error
+
+    // Fire customer confirmation (non-blocking — toast on either branch)
+    try {
+      const { data: settings } = await adminSupabase.from('company_settings').select('*').limit(1).maybeSingle()
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'viewing_confirmed',
+          first_name, last_name, email,
+          appointment_date, appointment_time, notes,
+          settings: settings || {},
+        }),
+      })
+    } catch (mailErr) {
+      console.error('[enquiries] confirmation email fetch failed', mailErr)
+    }
+
+    closeSlidePanel('addViewingPanel')
+    showToast('Viewing booked — confirmation sent', 'success')
+    await loadCalendar()
+  } catch (err) {
+    console.error('[enquiries] create viewing failed', err)
+    errEl.textContent = err.message || 'Could not book viewing — please try again.'
+    errEl.classList.add('is-shown')
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-check"></i> Book viewing &amp; notify customer'
+  }
+}
+
+async function updateViewingStatus(id, status) {
+  if (!window.confirm(`Mark this viewing as ${status.replace('_', ' ')}?`)) return
+  try {
+    const { error } = await adminSupabase
+      .from('viewing_appointments')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+    if (error) throw error
+    showToast(`Marked as ${status.replace('_', ' ')}`, 'success')
+    await loadCalendar()
+  } catch (err) {
+    console.error('[enquiries] update viewing status failed', err)
+    showToast("Couldn't update — see console", 'error')
+  }
+}
+
+async function sendViewingReminderManual(id) {
+  const row = calendarRows.find(r => r.id === id)
+  if (!row) return
+  if (!window.confirm(`Send reminder to ${row.first_name} ${row.last_name} (${row.email})?`)) return
+  try {
+    const { data: settings } = await adminSupabase.from('company_settings').select('*').limit(1).maybeSingle()
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'viewing_reminder',
+        first_name: row.first_name, last_name: row.last_name, email: row.email,
+        appointment_date: row.appointment_date, appointment_time: row.appointment_time,
+        settings: settings || {},
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      await adminSupabase.from('viewing_appointments')
+        .update({ reminder_sent: true, reminder_sent_at: new Date().toISOString(), status: 'reminder_sent' })
+        .eq('id', id)
+      showToast('Reminder sent', 'success')
+      await loadCalendar()
+    } else {
+      console.error('[enquiries] reminder failed', result)
+      showToast('Failed to send — see console', 'error')
+    }
+  } catch (err) {
+    console.error('[enquiries] reminder fetch failed', err)
+    showToast('Failed to send — see console', 'error')
+  }
 }
 
 function renderViewings() {

@@ -297,8 +297,212 @@ module.exports = async (req, res) => {
       console.error('[cron] tuner-reminder section failed', remOuterErr)
     }
 
-    console.log(`[cron-delivery-reminders] sent3Day=${sent3Day} sentDayOf=${sentDayOf} tunerContact=${sentTunerContact} tunerReminder=${sentTunerReminder} errors=${errors.length}`)
-    return res.status(200).json({ success: true, sent3Day, sentDayOf, sentTunerContact, sentTunerReminder, errors })
+    // ─────────────────────────────────────────────────────────────────
+    // VIEWING APPOINTMENT REMINDERS — day-before (Session 13)
+    // ─────────────────────────────────────────────────────────────────
+    let sentViewingReminders = 0
+    try {
+      const { data: upcomingViewings, error: vwErr } = await supabase
+        .from('viewing_appointments')
+        .select('*')
+        .eq('appointment_date', tomorrowStr)
+        .eq('reminder_sent', false)
+        .eq('status', 'confirmed')
+      if (vwErr) throw vwErr
+
+      for (const appt of (upcomingViewings || [])) {
+        try {
+          await resend.emails.send({
+            from: FROM,
+            to: appt.email,
+            subject: 'Reminder: Your viewing is tomorrow — Signature Pianos',
+            html: viewingReminderCronEmail({ appt, settings }),
+          })
+          await supabase
+            .from('viewing_appointments')
+            .update({ reminder_sent: true, reminder_sent_at: new Date().toISOString(), status: 'reminder_sent' })
+            .eq('id', appt.id)
+          sentViewingReminders++
+        } catch (mailErr) {
+          console.error('[cron] viewing reminder failed', appt.id, mailErr)
+          errors.push({ id: appt.id, kind: 'viewing_reminder', err: String(mailErr) })
+        }
+      }
+    } catch (outerErr) {
+      console.error('[cron] viewing-reminder section failed', outerErr)
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // POST-TUNING FOLLOW-UP + GOOGLE REVIEW REQUEST (Session 13)
+    // Fires 14 days after the first tuning is marked completed. Review
+    // request only fires when google_review_url is set in settings.
+    // ─────────────────────────────────────────────────────────────────
+    let sentFollowups = 0
+    let sentReviewRequests = 0
+    const fourteenDaysAgo = new Date(today)
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
+
+    try {
+      const { data: completedTunings, error: ctErr } = await supabase
+        .from('tuner_bookings')
+        .select(`
+          *,
+          order:order_id (
+            *,
+            customer:customer_id ( * ),
+            piano:piano_id ( * )
+          )
+        `)
+        .eq('completed', true)
+        .lte('completed_at', fourteenDaysAgo.toISOString())
+        .not('order_id', 'is', null)
+      if (ctErr) throw ctErr
+
+      for (const booking of (completedTunings || [])) {
+        const order    = booking.order
+        const customer = order?.customer
+        const piano    = order?.piano
+        if (!order?.id || !customer?.email) continue
+
+        // Read order's followup_sent + review_request_sent flags
+        const { data: flags } = await supabase
+          .from('orders')
+          .select('followup_sent, review_request_sent')
+          .eq('id', order.id)
+          .maybeSingle()
+
+        if (flags && !flags.followup_sent) {
+          try {
+            await resend.emails.send({
+              from: FROM,
+              to: customer.email,
+              subject: `How is your ${piano?.brand || 'Yamaha'} ${piano?.model || ''} going? — Signature Pianos`.trim(),
+              html: postTuningFollowupEmail({ customer, piano, settings }),
+            })
+            await supabase.from('orders')
+              .update({ followup_sent: true, followup_sent_at: new Date().toISOString() })
+              .eq('id', order.id)
+            sentFollowups++
+          } catch (mailErr) {
+            console.error('[cron] followup failed', order.id, mailErr)
+            errors.push({ id: order.id, kind: 'followup', err: String(mailErr) })
+          }
+        } else if (flags?.followup_sent && !flags.review_request_sent && settings?.google_review_url) {
+          // Review request — fires on the next cron pass after the followup,
+          // so customer doesn't get both in the same inbox at the same time.
+          try {
+            await resend.emails.send({
+              from: FROM,
+              to: customer.email,
+              subject: 'Would you mind leaving us a review? — Signature Pianos',
+              html: googleReviewRequestEmail({ customer, piano, settings }),
+            })
+            await supabase.from('orders')
+              .update({ review_request_sent: true, review_request_sent_at: new Date().toISOString() })
+              .eq('id', order.id)
+            sentReviewRequests++
+          } catch (mailErr) {
+            console.error('[cron] review request failed', order.id, mailErr)
+            errors.push({ id: order.id, kind: 'review_request', err: String(mailErr) })
+          }
+        }
+      }
+    } catch (outerErr) {
+      console.error('[cron] followup/review section failed', outerErr)
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // PAYMENT INSTALMENT OVERDUE REMINDERS — 3 / 7 / 14 day (Session 13)
+    // ─────────────────────────────────────────────────────────────────
+    let sent3DayInst = 0
+    let sent7DayInst = 0
+    let sent14DayAlerts = 0
+
+    try {
+      const { data: overdueInstalments, error: oiErr } = await supabase
+        .from('payment_instalments')
+        .select(`
+          *,
+          plan:payment_plan_id (
+            *,
+            customer:customer_id ( * ),
+            piano:piano_id ( * )
+          )
+        `)
+        .eq('paid', false)
+        .lt('due_date', todayStr)
+      if (oiErr) throw oiErr
+
+      for (const ins of (overdueInstalments || [])) {
+        const plan = ins.plan
+        if (!plan?.customer?.email) continue
+        const customer = plan.customer
+        const piano    = plan.piano
+        const dueDate = new Date(ins.due_date + 'T00:00:00')
+        const daysOverdue = Math.floor((today - dueDate) / 86400000)
+
+        try {
+          if (daysOverdue >= 3 && daysOverdue < 7 && !ins.reminder_3day_sent) {
+            await resend.emails.send({
+              from: FROM,
+              to: customer.email,
+              subject: `Payment overdue — Plan ${plan.plan_number || ''} · Signature Pianos`,
+              html: instalmentOverdueEmail({ customer, piano, plan, instalment: ins, daysOverdue, settings, urgency: 'gentle' }),
+            })
+            await supabase.from('payment_instalments').update({ reminder_3day_sent: true, reminder_3day_sent_at: new Date().toISOString() }).eq('id', ins.id)
+            sent3DayInst++
+          } else if (daysOverdue >= 7 && daysOverdue < 14 && !ins.reminder_7day_sent) {
+            await resend.emails.send({
+              from: FROM,
+              to: customer.email,
+              subject: `Second reminder — Payment overdue ${daysOverdue} days · Plan ${plan.plan_number || ''}`,
+              html: instalmentOverdueEmail({ customer, piano, plan, instalment: ins, daysOverdue, settings, urgency: 'firm' }),
+            })
+            await supabase.from('payment_instalments').update({ reminder_7day_sent: true, reminder_7day_sent_at: new Date().toISOString() }).eq('id', ins.id)
+            sent7DayInst++
+          } else if (daysOverdue >= 14 && !ins.reminder_14day_sent) {
+            // Final customer notice
+            await resend.emails.send({
+              from: FROM,
+              to: customer.email,
+              subject: `Urgent — Payment overdue ${daysOverdue} days · Plan ${plan.plan_number || ''}`,
+              html: instalmentOverdueEmail({ customer, piano, plan, instalment: ins, daysOverdue, settings, urgency: 'urgent' }),
+            })
+            // + alert Eric
+            await resend.emails.send({
+              from: FROM,
+              to: process.env.BUSINESS_EMAIL || FROM,
+              subject: `⚠ Payment plan default risk — ${customer.first_name || ''} ${customer.last_name || ''} · ${daysOverdue} days overdue`,
+              html: `
+                <h2 style="color:#c0392b;">Payment plan overdue ${daysOverdue} days</h2>
+                <p><strong>Customer:</strong> ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))} (${esc(customer.email || '—')} · ${esc(customer.phone || '—')})</p>
+                <p><strong>Plan:</strong> ${esc(plan.plan_number || '—')}</p>
+                <p><strong>Piano:</strong> ${esc((piano?.brand || 'Yamaha') + ' ' + (piano?.model || '') + ' ' + (piano?.year || ''))}</p>
+                <p><strong>Overdue instalment:</strong> #${esc(ins.instalment_number)} — $${Number(ins.amount).toLocaleString('en-AU', {minimumFractionDigits:2})} — due ${esc(ins.due_date)}</p>
+                <p><strong>Days overdue:</strong> ${daysOverdue} days</p>
+                <p style="color:#c0392b;font-weight:bold;">Action required — contact customer directly. Consider initiating default process if no response.</p>
+                <a href="https://signaturepianos.com.au/admin/payment-plans.html" style="display:inline-block;background:#b8935a;color:#000;padding:10px 20px;border-radius:4px;text-decoration:none;font-size:13px;">View in admin →</a>
+              `,
+            })
+            await supabase.from('payment_instalments').update({ reminder_14day_sent: true, reminder_14day_sent_at: new Date().toISOString() }).eq('id', ins.id)
+            sent14DayAlerts++
+          }
+        } catch (mailErr) {
+          console.error('[cron] instalment reminder failed', ins.id, mailErr)
+          errors.push({ id: ins.id, kind: 'instalment_reminder', err: String(mailErr) })
+        }
+      }
+    } catch (outerErr) {
+      console.error('[cron] instalment-overdue section failed', outerErr)
+    }
+
+    console.log(`[cron-delivery-reminders] sent3Day=${sent3Day} sentDayOf=${sentDayOf} tunerContact=${sentTunerContact} tunerReminder=${sentTunerReminder} viewingReminders=${sentViewingReminders} followups=${sentFollowups} reviewRequests=${sentReviewRequests} inst3=${sent3DayInst} inst7=${sent7DayInst} inst14=${sent14DayAlerts} errors=${errors.length}`)
+    return res.status(200).json({
+      success: true, sent3Day, sentDayOf, sentTunerContact, sentTunerReminder,
+      sentViewingReminders, sentFollowups, sentReviewRequests,
+      sent3DayInst, sent7DayInst, sent14DayAlerts,
+      errors,
+    })
   } catch (err) {
     console.error('[cron-delivery-reminders] handler failed', err)
     return res.status(500).json({ error: err.message || 'Cron failed' })
@@ -475,6 +679,145 @@ function buildReminderEmail({ driver_name, type, scheduled_date, piano, customer
     </div>
     <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
       Signature Pianos Melbourne · signaturepianos.com.au
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+/* ============================================================================
+ * Session 13 — viewing reminder, post-tuning follow-up, Google review
+ * request, and instalment overdue templates.
+ * ======================================================================== */
+
+function viewingReminderCronEmail({ appt, settings }) {
+  return `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+    <div style="background:#b8935a;padding:24px 32px;">
+      <div style="font-size:18px;color:#000;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
+      <div style="font-size:12px;color:rgba(0,0,0,0.6);margin-top:4px;">⚡ Viewing reminder — tomorrow</div>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#1a1917;margin:0 0 16px;">Your viewing is tomorrow, ${esc(appt.first_name || 'friend')}.</h2>
+      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:16px 0;">
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:35%;">Date</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;color:#1a1917;">${esc(fmtDateLong(appt.appointment_date))}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Time</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc(appt.appointment_time || '—')}</td></tr>
+          <tr><td style="padding:7px 0;color:#9a9590;">Address</td><td style="padding:7px 0;">63 Blackburn Road<br>Mount Waverley VIC 3149</td></tr>
+        </table>
+      </div>
+      <p style="color:#6b6760;font-size:13px;line-height:1.7;">We look forward to seeing you tomorrow. Parking is available on site.</p>
+    </div>
+    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
+      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+function postTuningFollowupEmail({ customer, piano, settings }) {
+  const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
+  return `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+    <div style="background:#1a1917;padding:32px;text-align:center;">
+      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#1a1917;margin:0 0 16px;">How is the piano going, ${esc(customer.first_name || 'friend')}?</h2>
+      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
+        It has been a couple of weeks since your ${esc(pianoLabel)} was tuned and settled into its new home. We hope you and your family are enjoying it.
+      </p>
+      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
+        If you have any questions about your piano — whether it is about tuning frequency, care and maintenance, or anything else — please do not hesitate to reach out. We are always happy to help.
+      </p>
+      <p style="color:#6b6760;font-size:13px;line-height:1.7;">Your piano is covered by your 10-year warranty. Keep this email for your records.</p>
+    </div>
+    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
+      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
+      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+function googleReviewRequestEmail({ customer, piano, settings }) {
+  const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''}`.trim()
+  return `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+    <div style="background:#1a1917;padding:32px;text-align:center;">
+      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#1a1917;margin:0 0 16px;">Would you mind leaving us a review?</h2>
+      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
+        Hi ${esc(customer.first_name || 'friend')}, we hope you are loving your ${esc(pianoLabel)}. It means a lot to us that you chose Signature Pianos.
+      </p>
+      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
+        If you had a great experience we would be so grateful if you could leave us a quick Google review. It only takes a minute and it helps other families find us.
+      </p>
+      <div style="text-align:center;margin:28px 0;">
+        <a href="${esc(settings.google_review_url)}" target="_blank" style="display:inline-block;background:#b8935a;color:#000;padding:14px 36px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:500;">
+          Leave a Google review ★
+        </a>
+      </div>
+      <p style="color:#6b6760;font-size:13px;line-height:1.7;">And if you know anyone else looking for a quality piano — we would love to help them too. Feel free to send them our way.</p>
+      <p style="color:#6b6760;font-size:13px;line-height:1.7;">Thank you for being a Signature Pianos customer.</p>
+    </div>
+    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
+      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+function instalmentOverdueEmail({ customer, piano, plan, instalment, daysOverdue, settings, urgency }) {
+  const fmtCur = (v) => '$' + Math.abs(Number(v || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const cfg = {
+    gentle: { headerBg: '#1a1917', headerColor: '#b8935a', title: 'Friendly payment reminder',         intro: `This is a gentle reminder that instalment #${instalment.instalment_number} of your payment plan is now ${daysOverdue} days overdue.`, cta: 'Please arrange payment at your earliest convenience.' },
+    firm:   { headerBg: '#633806', headerColor: '#FAC775', title: 'Payment overdue — second reminder', intro: `Your instalment #${instalment.instalment_number} is now ${daysOverdue} days overdue. This is your second reminder.`, cta: 'Please make payment immediately to avoid a late fee.' },
+    urgent: { headerBg: '#c0392b', headerColor: '#fff',    title: 'Urgent — payment overdue',          intro: `Your instalment #${instalment.instalment_number} is now ${daysOverdue} days overdue. This is your final notice before we initiate the default process.`, cta: 'Please contact us immediately to discuss your account.' },
+  }[urgency] || {}
+  return `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+    <div style="background:${cfg.headerBg};padding:24px 32px;">
+      <div style="font-size:18px;color:${cfg.headerColor};font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
+      <div style="font-size:12px;color:${cfg.headerColor};opacity:0.7;margin-top:4px;">${esc(cfg.title)}</div>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#1a1917;margin:0 0 16px;">Hi ${esc(customer.first_name || '')}</h2>
+      <p style="color:#6b6760;font-size:14px;line-height:1.7;">${esc(cfg.intro)}</p>
+      <div style="background:#fdecea;border-radius:4px;padding:16px;margin:20px 0;border-left:3px solid #c0392b;">
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <tr><td style="padding:6px 0;color:#c0392b;width:50%;">Plan</td><td style="padding:6px 0;font-weight:500;color:#c0392b;">${esc(plan.plan_number || '—')}</td></tr>
+          <tr><td style="padding:6px 0;color:#c0392b;">Instalment #</td><td style="padding:6px 0;color:#c0392b;">${esc(instalment.instalment_number)}</td></tr>
+          <tr><td style="padding:6px 0;color:#c0392b;">Amount overdue</td><td style="padding:6px 0;font-weight:500;font-size:15px;color:#c0392b;">${fmtCur(instalment.amount)}</td></tr>
+          <tr><td style="padding:6px 0;color:#c0392b;">Days overdue</td><td style="padding:6px 0;font-weight:500;color:#c0392b;">${daysOverdue} days</td></tr>
+        </table>
+      </div>
+      ${settings?.bank_bsb ? `
+        <div style="background:#f8f7f5;border-radius:4px;padding:14px;margin-bottom:16px;font-size:13px;color:#6b6760;line-height:1.8;">
+          BSB: ${esc(settings.bank_bsb)}<br>
+          Account: ${esc(settings.bank_account || '')}<br>
+          Account name: ${esc(settings.bank_account_name || '')}<br>
+          Reference: ${esc(plan.plan_number || '—')}
+        </div>
+      ` : ''}
+      <p style="color:#6b6760;font-size:13px;line-height:1.7;">${esc(cfg.cta)}</p>
+    </div>
+    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
+      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
+      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
     </div>
   </div>
 </body>
