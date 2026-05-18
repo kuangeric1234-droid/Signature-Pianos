@@ -20,6 +20,27 @@
     border-radius: 4px;
     border: 1px solid var(--admin-border);
   }
+  .tuner-summary {
+    background: var(--admin-bg);
+    border-radius: 4px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  .tuner-summary .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .tuner-summary .top-row .name { font-size: 13px; font-weight: 500; color: var(--admin-text); }
+  .tuner-summary .meta { font-size: 12px; color: var(--admin-text-muted); }
+  .tuner-summary .notes {
+    font-size: 12px;
+    color: var(--admin-text-muted);
+    margin-top: 8px;
+    font-style: italic;
+  }
+  .tab-actions { display: flex; justify-content: flex-end; margin-bottom: 16px; }
 </style>
 </head>
 <body>
@@ -62,38 +83,72 @@
 
     <div class="admin-content">
 
-      <div class="stats-strip">
-        <div class="stat"><span class="stat-label">Scheduled</span><span class="stat-value" id="statScheduled">—</span></div>
-        <div class="stat-divider"></div>
-        <div class="stat"><span class="stat-label">In transit</span><span class="stat-value" id="statInTransit">—</span></div>
-        <div class="stat-divider"></div>
-        <div class="stat"><span class="stat-label">Delivered today</span><span class="stat-value" id="statToday">—</span></div>
+      <!-- Tabs -->
+      <div class="tab-bar">
+        <button class="tab is-active" data-tab="deliveries" type="button">Deliveries</button>
+        <button class="tab" data-tab="tuners" type="button">Tuners</button>
       </div>
 
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Customer</th>
-              <th>Piano</th>
-              <th>Scheduled</th>
-              <th>Driver</th>
-              <th>Status</th>
-              <th>Photos</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="deliveriesTableBody">
-            <tr><td colspan="7"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
-          </tbody>
-        </table>
+      <!-- ============ DELIVERIES TAB ============ -->
+      <div id="deliveriesTab">
+        <div class="stats-strip">
+          <div class="stat"><span class="stat-label">Scheduled</span><span class="stat-value" id="statScheduled">—</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><span class="stat-label">In transit</span><span class="stat-value" id="statInTransit">—</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><span class="stat-label">Delivered today</span><span class="stat-value" id="statToday">—</span></div>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Piano</th>
+                <th>Scheduled</th>
+                <th>Driver</th>
+                <th>Delivery status</th>
+                <th>Tuner status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="deliveriesTableBody">
+              <tr><td colspan="7"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ TUNERS TAB ============ -->
+      <div id="tunersTab" style="display:none;">
+        <div class="tab-actions">
+          <button class="btn-gold" id="addTunerBtn"><i class="ti ti-plus"></i> Add tuner</button>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Suburb</th>
+                <th>Active</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tunersTableBody">
+              <tr><td colspan="6"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>
   </main>
 </div>
 
-<!-- Detail / edit slide-in panel -->
+<!-- Delivery detail / edit slide-in panel -->
 <div class="slide-panel-overlay" id="deliveryPanelOverlay" onclick="closeSlidePanel('deliveryPanel')"></div>
 <aside class="slide-panel" id="deliveryPanel" aria-hidden="true">
   <div class="slide-panel-header">
@@ -107,20 +162,89 @@
   </div>
 </aside>
 
+<!-- Tuner add/edit slide-in panel -->
+<div class="slide-panel-overlay" id="tunerPanelOverlay" onclick="closeSlidePanel('tunerPanel')"></div>
+<aside class="slide-panel" id="tunerPanel" aria-hidden="true">
+  <div class="slide-panel-header">
+    <h2 class="slide-panel-title" id="tunerPanelTitle">Add tuner</h2>
+    <button class="slide-panel-close" onclick="closeSlidePanel('tunerPanel')" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body">
+    <form id="tunerForm" novalidate>
+      <input type="hidden" id="tuner-id">
+      <div class="admin-form-row">
+        <label class="admin-label" for="t-name">Name</label>
+        <input type="text" id="t-name" class="admin-input" required>
+      </div>
+      <div class="admin-form-row--split">
+        <div>
+          <label class="admin-label" for="t-email">Email</label>
+          <input type="email" id="t-email" class="admin-input" required>
+        </div>
+        <div>
+          <label class="admin-label" for="t-phone">Phone</label>
+          <input type="tel" id="t-phone" class="admin-input" required>
+        </div>
+      </div>
+      <div class="admin-form-row">
+        <label class="admin-label" for="t-suburb">Suburb</label>
+        <input type="text" id="t-suburb" class="admin-input">
+      </div>
+      <div class="admin-form-row">
+        <label class="admin-label" for="t-notes">Notes</label>
+        <textarea id="t-notes" class="admin-textarea" rows="3" placeholder="Availability, specialties, anything internal."></textarea>
+      </div>
+      <div class="admin-form-row">
+        <label class="admin-checkbox-row">
+          <input type="checkbox" id="t-active" checked>
+          <span>Active (available for new bookings)</span>
+        </label>
+      </div>
+      <div class="banner banner--error" id="tunerFormError"></div>
+    </form>
+  </div>
+  <div class="slide-panel-footer">
+    <button class="btn-ghost" onclick="closeSlidePanel('tunerPanel')">Cancel</button>
+    <button class="btn-gold" id="saveTunerBtn"><i class="ti ti-device-floppy"></i> Save tuner</button>
+  </div>
+</aside>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/config.js"></script>
 <script src="js/admin-auth.js"></script>
 <script src="js/admin-nav.js"></script>
 <script>
 let allDeliveries = []
-let editingId = null
+let allTuners = []
+let bookingsByOrder = {}    // { order_id: tuner_booking (with .tuner joined) }
+let editingDeliveryId = null
+let editingTunerId = null
 
 ;(async function init() {
   const admin = await checkAdminAuth()
   if (!admin) return
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('is-active'))
+      btn.classList.add('is-active')
+      const which = btn.dataset.tab
+      document.getElementById('deliveriesTab').style.display = which === 'deliveries' ? '' : 'none'
+      document.getElementById('tunersTab').style.display     = which === 'tuners'     ? '' : 'none'
+    })
+  })
+
   document.getElementById('saveDeliveryBtn').addEventListener('click', saveDelivery)
-  await loadDeliveries()
+  document.getElementById('addTunerBtn').addEventListener('click', () => openTunerPanel(null))
+  document.getElementById('saveTunerBtn').addEventListener('click', saveTuner)
+
+  await Promise.all([loadDeliveries(), loadTuners()])
 })()
+
+/* ============================================================================
+   DELIVERIES
+   ========================================================================= */
 
 async function loadDeliveries() {
   try {
@@ -130,8 +254,23 @@ async function loadDeliveries() {
       .order('scheduled_date', { ascending: true, nullsLast: true })
     if (error) throw error
     allDeliveries = data || []
+
+    // Fetch tuner_bookings for the orders we just loaded, then index by order_id.
+    const orderIds = allDeliveries.map(d => d.order_id).filter(Boolean)
+    if (orderIds.length) {
+      const { data: tbs, error: tbErr } = await adminSupabase
+        .from('tuner_bookings')
+        .select(`*, tuner:tuner_id(*)`)
+        .in('order_id', orderIds)
+      if (tbErr) throw tbErr
+      bookingsByOrder = {}
+      ;(tbs || []).forEach(b => { bookingsByOrder[b.order_id] = b })
+    } else {
+      bookingsByOrder = {}
+    }
+
     renderStats()
-    renderTable()
+    renderDeliveries()
   } catch (err) {
     console.error('[deliveries] load failed', err)
     document.getElementById('deliveriesTableBody').innerHTML =
@@ -150,7 +289,21 @@ function renderStats() {
   document.getElementById('statToday').textContent     = today
 }
 
-function renderTable() {
+function tunerStatusCell(orderId) {
+  const tb = bookingsByOrder[orderId]
+  if (!tb) {
+    return `<span class="pill pill--grey">No tuner</span>`
+  }
+  switch (tb.status) {
+    case 'pending':   return `<span class="pill pill--amber">Awaiting confirmation</span>`
+    case 'confirmed': return `<span class="pill pill--blue">Confirmed</span>`
+    case 'completed': return `<span class="pill pill--green">Complete</span>`
+    case 'cancelled': return `<span class="pill pill--red">Cancelled</span>`
+    default:          return `<span class="pill pill--grey">${esc(tb.status || '—')}</span>`
+  }
+}
+
+function renderDeliveries() {
   const body = document.getElementById('deliveriesTableBody')
   if (!allDeliveries.length) {
     body.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="ti ti-truck-off"></i><p>No deliveries yet.</p></div></td></tr>`
@@ -163,7 +316,6 @@ function renderTable() {
     const piano = d.orders?.pianos
       ? `${esc(d.orders.pianos.brand || '')} ${esc(d.orders.pianos.model || '')}`.trim()
       : '—'
-    const photoCount = (d.pickup_photos?.length || 0) + (d.delivery_photos?.length || 0)
     return `
       <tr class="clickable" data-id="${esc(d.id)}">
         <td class="name-cell">${cust}</td>
@@ -171,7 +323,7 @@ function renderTable() {
         <td>${fmtDate(d.scheduled_date)}<br><span style="font-size:11px;color:var(--admin-text-faint);">${esc(d.scheduled_time_window || '')}</span></td>
         <td>${esc(d.driver_name || '—')}</td>
         <td><span class="${statusPillClass(d.status)}">${esc((d.status || '').replace(/_/g,' '))}</span></td>
-        <td>${photoCount ? `<i class="ti ti-photo" style="color:var(--admin-gold);"></i> ${photoCount}` : '<span style="color:var(--admin-text-faint);">—</span>'}</td>
+        <td>${tunerStatusCell(d.order_id)}</td>
         <td>
           <div class="actions-cell">
             <button class="icon-btn" data-action="view"><i class="ti ti-eye"></i></button>
@@ -189,15 +341,16 @@ function renderTable() {
 function openDelivery(id) {
   const d = allDeliveries.find(x => x.id === id)
   if (!d) return
-  editingId = id
+  editingDeliveryId = id
 
   const cust = d.orders?.customers
   const piano = d.orders?.pianos
   document.getElementById('deliveryPanelTitle').textContent =
     cust ? `${cust.first_name || ''} ${cust.last_name || ''}`.trim() : 'Delivery'
 
-  const pickupUrl = `${window.location.origin}/delivery/${d.pickup_link_token}`
+  const pickupUrl   = `${window.location.origin}/delivery/${d.pickup_link_token}`
   const deliveryUrl = `${window.location.origin}/delivery/${d.delivery_link_token}`
+  const tunerBooking = bookingsByOrder[d.order_id] || null
 
   document.getElementById('deliveryPanelBody').innerHTML = `
     <div class="admin-form-row--split">
@@ -250,10 +403,19 @@ function openDelivery(id) {
         ${(d.delivery_photos || []).map(u => `<img src="${esc(u)}" alt="Delivery">`).join('') || '<span style="font-size:12px;color:var(--admin-text-faint);">None yet</span>'}
       </div>
     ` : ''}
+
+    ${renderTunerSection(d, tunerBooking)}
   `
 
-  document.getElementById('copyPickupBtn').addEventListener('click', () => copyToClipboard(pickupUrl))
+  document.getElementById('copyPickupBtn').addEventListener('click',   () => copyToClipboard(pickupUrl))
   document.getElementById('copyDeliveryBtn').addEventListener('click', () => copyToClipboard(deliveryUrl))
+
+  // Wire the tuner assignment form
+  const assignBtn = document.getElementById('assignTunerBtn')
+  if (assignBtn) {
+    assignBtn.addEventListener('click', () =>
+      assignTuner(d.order_id, tunerBooking ? tunerBooking.id : ''))
+  }
 
   openSlidePanel('deliveryPanel')
 }
@@ -262,8 +424,7 @@ async function copyToClipboard(text) {
   try {
     await navigator.clipboard.writeText(text)
     const c = document.getElementById('copyConfirm')
-    c.style.display = 'block'
-    setTimeout(() => c.style.display = 'none', 1500)
+    if (c) { c.style.display = 'block'; setTimeout(() => c.style.display = 'none', 1500) }
   } catch (err) {
     console.error('[deliveries] clipboard failed', err)
     prompt('Copy this link:', text)
@@ -271,7 +432,7 @@ async function copyToClipboard(text) {
 }
 
 async function saveDelivery() {
-  if (!editingId) return
+  if (!editingDeliveryId) return
   const payload = {
     driver_name:           document.getElementById('dlv-driver-name').value.trim() || null,
     driver_phone:          document.getElementById('dlv-driver-phone').value.trim() || null,
@@ -283,7 +444,7 @@ async function saveDelivery() {
   const btn = document.getElementById('saveDeliveryBtn')
   btn.disabled = true; btn.textContent = 'Saving…'
   try {
-    const { error } = await adminSupabase.from('deliveries').update(payload).eq('id', editingId)
+    const { error } = await adminSupabase.from('deliveries').update(payload).eq('id', editingDeliveryId)
     if (error) throw error
     closeSlidePanel('deliveryPanel')
     await loadDeliveries()
@@ -293,6 +454,312 @@ async function saveDelivery() {
   } finally {
     btn.disabled = false
     btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save'
+  }
+}
+
+/* ============================================================================
+   TUNER BOOKING (inside the delivery panel)
+   ========================================================================= */
+
+function renderTunerSection(delivery, tunerBooking) {
+  const defaultDate = getDefaultTunerDate(delivery.delivered_at)
+  const activeTuners = allTuners.filter(t => t.active)
+  return `
+    <div style="margin-top:24px;padding-top:24px;border-top:1px solid var(--admin-border);">
+      <h3 style="font-size:14px;font-weight:500;color:var(--admin-text);margin:0 0 16px;display:flex;align-items:center;gap:8px;">
+        <i class="ti ti-music" style="color:var(--admin-gold);"></i>
+        Tuner booking
+      </h3>
+
+      ${tunerBooking ? `
+        <div class="tuner-summary">
+          <div class="top-row">
+            <span class="name">${esc(tunerBooking.tuner?.name || 'Tuner assigned')}</span>
+            ${tunerStatusCell(delivery.order_id)}
+          </div>
+          <div class="meta">
+            ${tunerBooking.proposed_date ? `Proposed: ${fmtDate(tunerBooking.proposed_date)}` : 'Date not set'}
+            ${tunerBooking.proposed_time ? ` · ${esc(tunerBooking.proposed_time)}` : ''}
+            ${tunerBooking.completed_at ? ` · Completed ${fmtDate(tunerBooking.completed_at)}` : ''}
+          </div>
+          ${tunerBooking.completion_notes
+            ? `<div class="notes">Notes: ${esc(tunerBooking.completion_notes)}</div>`
+            : ''}
+        </div>
+      ` : ''}
+
+      <div id="assignTunerForm">
+        <div class="admin-form-row">
+          <label class="admin-label" for="tunerSelect">Select tuner</label>
+          <select id="tunerSelect" class="admin-select">
+            <option value="">Choose a tuner…</option>
+            ${activeTuners.map(t => `
+              <option value="${esc(t.id)}"${tunerBooking?.tuner_id === t.id ? ' selected' : ''}>
+                ${esc(t.name)} — ${esc(t.suburb || 'Melbourne')}
+              </option>
+            `).join('')}
+          </select>
+          ${activeTuners.length === 0
+            ? `<div style="font-size:12px;color:var(--admin-text-faint);margin-top:6px;">No active tuners — add one in the Tuners tab first.</div>`
+            : ''}
+        </div>
+
+        <div class="admin-form-row--split">
+          <div>
+            <label class="admin-label" for="tunerDate">Proposed date</label>
+            <input type="date" id="tunerDate" class="admin-input"
+                   value="${esc(tunerBooking?.proposed_date || defaultDate)}">
+          </div>
+          <div>
+            <label class="admin-label" for="tunerTime">Time window</label>
+            <select id="tunerTime" class="admin-select">
+              <option value=""${!tunerBooking?.proposed_time ? ' selected' : ''}>Flexible</option>
+              ${['Morning (9am–12pm)','Afternoon (12pm–4pm)','Late afternoon (4pm–6pm)'].map(w =>
+                `<option value="${esc(w)}"${tunerBooking?.proposed_time === w ? ' selected' : ''}>${esc(w)}</option>`
+              ).join('')}
+            </select>
+          </div>
+        </div>
+
+        <button id="assignTunerBtn" class="btn-gold" style="width:100%;justify-content:center;padding:12px;">
+          <i class="ti ti-send"></i>
+          ${tunerBooking ? 'Update &amp; resend notification' : 'Assign tuner &amp; send notification'}
+        </button>
+
+        <div id="tunerSuccess"
+          style="display:none;margin-top:10px;padding:10px 14px;background:var(--admin-green-light);
+                 border-radius:4px;font-size:12px;color:var(--admin-green);">
+          <i class="ti ti-check"></i> Tuner notified by email${
+            // Twilio is optional — we don't know from the client whether SMS went through,
+            // but the API will have logged either way.
+            ''
+          } (and SMS if Twilio is configured).
+        </div>
+        <div id="tunerError"
+          style="display:none;margin-top:10px;padding:10px 14px;background:var(--admin-red-light);
+                 border-radius:4px;font-size:12px;color:var(--admin-red);">
+          Failed to send notification — please try again.
+        </div>
+      </div>
+    </div>
+  `
+}
+
+function getDefaultTunerDate(deliveredAt) {
+  const base = deliveredAt ? new Date(deliveredAt) : new Date()
+  base.setDate(base.getDate() + 25)   // ~3.5 weeks after delivery
+  return base.toISOString().slice(0, 10)
+}
+
+async function assignTuner(orderId, existingBookingId) {
+  const tunerId = document.getElementById('tunerSelect').value
+  const date    = document.getElementById('tunerDate').value || null
+  const time    = document.getElementById('tunerTime').value || null
+
+  const successEl = document.getElementById('tunerSuccess')
+  const errorEl   = document.getElementById('tunerError')
+  successEl.style.display = 'none'
+  errorEl.style.display = 'none'
+
+  if (!tunerId) {
+    errorEl.textContent = 'Please select a tuner.'
+    errorEl.style.display = 'block'
+    return
+  }
+
+  const btn = document.getElementById('assignTunerBtn')
+  btn.disabled = true
+  btn.innerHTML = '<i class="ti ti-loader"></i> Sending…'
+
+  try {
+    let bookingId = existingBookingId
+
+    if (!bookingId) {
+      const { data: newBooking, error } = await adminSupabase
+        .from('tuner_bookings')
+        .insert({
+          order_id: orderId,
+          tuner_id: tunerId,
+          proposed_date: date,
+          proposed_time: time,
+          status: 'pending',
+          auto_booked: false,
+        })
+        .select()
+        .single()
+      if (error) throw error
+      bookingId = newBooking.id
+    } else {
+      const { error } = await adminSupabase
+        .from('tuner_bookings')
+        .update({
+          tuner_id: tunerId,
+          proposed_date: date,
+          proposed_time: time,
+          status: 'pending',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', bookingId)
+      if (error) throw error
+    }
+
+    // Fire the API to send email + SMS + tokens
+    const res = await fetch('/api/tuner-booking', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tuner_booking_id: bookingId }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (!res.ok || !result.success) throw new Error(result.error || 'Notification failed')
+
+    successEl.style.display = 'block'
+    btn.innerHTML = '<i class="ti ti-check"></i> Notification sent'
+
+    setTimeout(() => {
+      loadDeliveries()
+    }, 1500)
+  } catch (err) {
+    console.error('[deliveries] assignTuner failed', err)
+    errorEl.textContent = 'Failed to send notification — ' + (err.message || 'please try again.')
+    errorEl.style.display = 'block'
+    btn.disabled = false
+    btn.innerHTML = '<i class="ti ti-send"></i> Assign tuner &amp; send notification'
+  }
+}
+
+/* ============================================================================
+   TUNERS MANAGEMENT TAB
+   ========================================================================= */
+
+async function loadTuners() {
+  try {
+    const { data, error } = await adminSupabase
+      .from('tuners')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    allTuners = data || []
+    renderTuners()
+  } catch (err) {
+    console.error('[tuners] load failed', err)
+    document.getElementById('tunersTableBody').innerHTML =
+      `<tr><td colspan="6"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load tuners.</p></div></td></tr>`
+  }
+}
+
+function renderTuners() {
+  const body = document.getElementById('tunersTableBody')
+  if (!allTuners.length) {
+    body.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="ti ti-user-off"></i><p>No tuners yet — add your first one.</p></div></td></tr>`
+    return
+  }
+  body.innerHTML = allTuners.map(t => `
+    <tr data-id="${esc(t.id)}">
+      <td class="name-cell">${esc(t.name)}</td>
+      <td><a href="mailto:${esc(t.email)}" style="color:var(--admin-gold);">${esc(t.email)}</a></td>
+      <td><a href="tel:${esc(t.phone)}" style="color:var(--admin-text);text-decoration:none;">${esc(t.phone)}</a></td>
+      <td>${esc(t.suburb || '—')}</td>
+      <td>
+        ${t.active
+          ? `<span class="pill pill--green">Active</span>`
+          : `<span class="pill pill--grey">Inactive</span>`}
+      </td>
+      <td>
+        <div class="actions-cell">
+          <button class="icon-btn" data-action="edit" title="Edit"><i class="ti ti-edit"></i></button>
+          <button class="icon-btn ${t.active ? 'is-red' : 'is-green'}" data-action="toggle" title="${t.active ? 'Deactivate' : 'Reactivate'}">
+            <i class="ti ${t.active ? 'ti-x' : 'ti-rotate'}"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('')
+
+  body.querySelectorAll('[data-action="edit"]').forEach(btn => {
+    btn.addEventListener('click', () => openTunerPanel(btn.closest('tr').dataset.id))
+  })
+  body.querySelectorAll('[data-action="toggle"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.closest('tr').dataset.id
+      const t = allTuners.find(x => x.id === id)
+      if (t) updateTunerActive(id, !t.active)
+    })
+  })
+}
+
+function openTunerPanel(id) {
+  editingTunerId = id || null
+  const titleEl = document.getElementById('tunerPanelTitle')
+  document.getElementById('tunerFormError').classList.remove('is-shown')
+  if (!id) {
+    titleEl.textContent = 'Add tuner'
+    document.getElementById('tunerForm').reset()
+    document.getElementById('t-active').checked = true
+  } else {
+    const t = allTuners.find(x => x.id === id)
+    if (!t) return
+    titleEl.textContent = `Edit ${t.name}`
+    document.getElementById('t-name').value   = t.name || ''
+    document.getElementById('t-email').value  = t.email || ''
+    document.getElementById('t-phone').value  = t.phone || ''
+    document.getElementById('t-suburb').value = t.suburb || ''
+    document.getElementById('t-notes').value  = t.notes || ''
+    document.getElementById('t-active').checked = !!t.active
+  }
+  openSlidePanel('tunerPanel')
+}
+
+async function saveTuner() {
+  const errEl = document.getElementById('tunerFormError')
+  errEl.classList.remove('is-shown')
+
+  const payload = {
+    name:   document.getElementById('t-name').value.trim(),
+    email:  document.getElementById('t-email').value.trim(),
+    phone:  document.getElementById('t-phone').value.trim(),
+    suburb: document.getElementById('t-suburb').value.trim() || null,
+    notes:  document.getElementById('t-notes').value.trim() || null,
+    active: document.getElementById('t-active').checked,
+  }
+  if (!payload.name || !payload.email || !payload.phone) {
+    errEl.textContent = 'Name, email and phone are required.'
+    errEl.classList.add('is-shown')
+    return
+  }
+
+  const btn = document.getElementById('saveTunerBtn')
+  btn.disabled = true; btn.textContent = 'Saving…'
+  try {
+    let result
+    if (editingTunerId) {
+      result = await adminSupabase.from('tuners').update(payload).eq('id', editingTunerId)
+    } else {
+      result = await adminSupabase.from('tuners').insert(payload)
+    }
+    if (result.error) throw result.error
+    closeSlidePanel('tunerPanel')
+    await loadTuners()
+  } catch (err) {
+    console.error('[tuners] save failed', err)
+    errEl.textContent = err.message || "Couldn't save — please try again."
+    errEl.classList.add('is-shown')
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save tuner'
+  }
+}
+
+async function updateTunerActive(id, active) {
+  try {
+    const { error } = await adminSupabase
+      .from('tuners')
+      .update({ active, updated_at: new Date().toISOString() })
+      .eq('id', id)
+    if (error) throw error
+    await loadTuners()
+  } catch (err) {
+    console.error('[tuners] toggle active failed', err)
+    alert("Couldn't update tuner — please try again.")
   }
 }
 </script>

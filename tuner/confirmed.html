@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booking confirmed — Signature Pianos</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, system-ui, 'Segoe UI', Arial, sans-serif;
+    background: #f8f7f5;
+    color: #1a1917;
+    margin: 0;
+    padding: 40px 20px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card {
+    background: #fff;
+    max-width: 480px;
+    width: 100%;
+    border-radius: 8px;
+    padding: 44px 32px;
+    border: 1px solid #e8e4dd;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .logo {
+    font-size: 18px;
+    color: #b8935a;
+    letter-spacing: 0.08em;
+    font-style: italic;
+    margin-bottom: 28px;
+  }
+  .tick {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #e8f5ee;
+    color: #1a7f4b;
+    font-size: 40px;
+    margin-bottom: 22px;
+  }
+  h1 {
+    color: #1a1917;
+    font-size: 24px;
+    margin: 0 0 12px;
+    font-weight: 500;
+  }
+  p {
+    color: #6b6760;
+    font-size: 14px;
+    line-height: 1.7;
+    margin: 0 0 14px;
+  }
+  p.muted {
+    color: #9a9590;
+    font-size: 12.5px;
+    margin-top: 24px;
+  }
+  a.support {
+    color: #b8935a;
+    text-decoration: none;
+  }
+  a.support:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">Signature Pianos</div>
+  <div class="tick">&#10003;</div>
+  <h1>Booking confirmed.</h1>
+  <p id="thanks">Thank you. The customer has been notified.</p>
+  <p>You'll receive a reminder closer to the visit. When the tuning is done, use the completion link from the email we sent you to mark the job as complete — the customer will automatically be emailed too.</p>
+  <p class="muted">
+    Need to reschedule? Email
+    <a class="support" href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a>
+    and we'll sort it out.
+  </p>
+</div>
+
+<script>
+  // Personalise the thank-you line if ?name= is in the URL.
+  const name = new URLSearchParams(window.location.search).get('name')
+  if (name) {
+    document.getElementById('thanks').textContent =
+      `Thanks ${name}. The customer has been notified.`
+  }
+</script>
+
+</body>
+</html>

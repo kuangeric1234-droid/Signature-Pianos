@@ -144,3 +144,12 @@ create policy "Admin full access — admin_users"
   to authenticated
   using (is_admin())
   with check (is_admin());
+
+-- ----- tuners (created by supabase/tuners_table.sql) -----
+-- Same policy is also defined in tuners_table.sql; safe to apply twice.
+drop policy if exists "Admin full access — tuners" on tuners;
+create policy "Admin full access — tuners"
+  on tuners for all
+  to authenticated
+  using (is_admin())
+  with check (is_admin());
