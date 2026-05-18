@@ -1195,6 +1195,7 @@ function renderContractSection(plan) {
 }
 
 async function downloadSignedContract(planId) {
+  console.log('[diag] downloadSignedContract called', planId)
   try {
     const { data: plan, error } = await adminSupabase
       .from('payment_plans')
@@ -1206,16 +1207,30 @@ async function downloadSignedContract(planId) {
       showToast('No signed contract on file', 'warning')
       return
     }
+
+    // Use Supabase's `download` option so the signed URL is served
+    // with Content-Disposition: attachment. The HTML `download`
+    // attribute on a detached <a> is IGNORED for cross-origin
+    // responses (the signed URL points at *.supabase.co, not us),
+    // so without the server-side header the browser just opens
+    // the PNG inline — or does nothing if the anchor isn't in the
+    // DOM. Forcing the header is the only reliable cross-origin path.
     const { data, error: sErr } = await adminSupabase.storage
       .from('contracts')
-      .createSignedUrl(plan.contract_url, 300)
+      .createSignedUrl(plan.contract_url, 300, {
+        download: `Signature-Pianos-Contract-${plan.plan_number}.png`,
+      })
     if (sErr) throw sErr
-    if (data?.signedUrl) {
-      const a = document.createElement('a')
-      a.href = data.signedUrl
-      a.download = `Signature-Pianos-Contract-${plan.plan_number}.png`
-      a.click()
-    }
+    if (!data?.signedUrl) throw new Error('No signed URL returned')
+
+    // Anchor must be in the DOM for some browsers to honour the click.
+    const a = document.createElement('a')
+    a.href = data.signedUrl
+    a.rel  = 'noopener'
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   } catch (err) {
     console.error('[payment-plans] download signed contract failed', err)
     showToast('Could not download signed contract.', 'error')
@@ -1229,6 +1244,7 @@ async function downloadSignedContract(planId) {
    block it. We redirect that placeholder window to the signed URL
    once the async fetch resolves. */
 async function viewIDDocument(planId) {
+  console.log('[diag] viewIDDocument called', planId)
   const newWindow = window.open('about:blank', '_blank')
   try {
     const { data: plan, error: pErr } = await adminSupabase
