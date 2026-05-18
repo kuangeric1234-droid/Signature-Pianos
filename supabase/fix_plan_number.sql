@@ -1,6 +1,14 @@
 -- =============================================================================
 -- Signature Pianos — fix generate_plan_number() RPC
 -- -----------------------------------------------------------------------------
+-- Run AFTER supabase/payment_plans.sql. The function body references the
+-- payment_plans table; PL/pgSQL doesn't validate that reference at CREATE
+-- time, but it WILL error when the function is called if the table is
+-- missing. Run order:
+--   1. supabase/payment_plans.sql       (creates payment_plans + RPC)
+--   2. supabase/fix_plan_number.sql     (this file — rebuilds RPC clean)
+--   3. supabase/payment_plans_upgrade.sql (adds new columns + buckets)
+--
 -- The "Could not find the function public.generate_plan_number without
 -- parameters" error means PostgREST's schema cache is out of date or the
 -- function is missing. Drop both possible signatures and recreate clean.
@@ -42,5 +50,6 @@ grant execute on function public.generate_plan_number() to authenticated;
 grant execute on function public.generate_plan_number() to anon;
 grant execute on function public.generate_plan_number() to service_role;
 
--- Sanity check — should return PP-YYYY-NNNNN
-select public.generate_plan_number();
+-- Manual sanity check (run separately, only after payment_plans.sql has
+-- created the table — otherwise this errors with 42P01):
+--   select public.generate_plan_number();
