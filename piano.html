@@ -840,7 +840,7 @@
 
 <!-- ============ BREADCRUMB ============ -->
 <div class="breadcrumb">
-  <a href="instruments.html">All instruments</a> · <a href="#" id="breadcrumbCat">Pianos</a> · <span id="breadcrumbName">Loading…</span>
+  <a href="instruments/index.html">All instruments</a> · <a href="#" id="breadcrumbCat">Pianos</a> · <span id="breadcrumbName">Loading…</span>
 </div>
 
 <!-- ============ PRODUCT HERO ============ -->
@@ -972,7 +972,7 @@
   <div class="related-inner">
     <div class="related-header">
       <h2 class="related-title">Other <em id="relatedCategory">pianos</em> you might like</h2>
-      <a href="instruments.html" class="related-cta">View all instruments <i class="ti ti-arrow-right"></i></a>
+      <a href="instruments/index.html" class="related-cta">View all instruments <i class="ti ti-arrow-right"></i></a>
     </div>
     <div class="related-grid" id="relatedGrid"></div>
   </div>
@@ -987,7 +987,7 @@
     </div>
     <div class="footer-col">
       <div class="footer-col-title">Explore</div>
-      <a href="instruments.html" class="footer-link">Instruments</a>
+      <a href="instruments/index.html" class="footer-link">Instruments</a>
       <a href="index.html#matcher" class="footer-link">Find my piano</a>
       <a href="teachers.html" class="footer-link">Teachers</a>
       <a href="teachers-match.html" class="footer-link">Find a teacher</a>
@@ -1101,7 +1101,7 @@
 
     // Product header
     document.getElementById('productCategory').textContent = formatType(piano.type)
-    document.getElementById('productName').textContent = `${piano.model} Upright Piano`
+    document.getElementById('productName').textContent = `Yamaha ${piano.model} Upright Piano`
     document.getElementById('productBrand').textContent = `Yamaha · Model ${piano.model}`
 
     // Condition — new A+/B+ grading, styled as a pill
@@ -1256,10 +1256,8 @@
       </div>
     `
 
-    // Stripe initialisation
-    // TODO: replace 'YOUR_STRIPE_PUBLIC_KEY' with the real STRIPE_PUBLIC_KEY
-    // (or move it onto window.SP_CONFIG in /js/config.js once we add it).
-    const stripe = Stripe('YOUR_STRIPE_PUBLIC_KEY')
+    // Stripe initialisation — STRIPE_PUBLIC_KEY is exported from /js/config.js
+    const stripe = Stripe(STRIPE_PUBLIC_KEY)
 
     async function initiateCheckout(type) {
       const btn = type === 'full_purchase'
