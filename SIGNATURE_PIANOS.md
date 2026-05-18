@@ -925,14 +925,17 @@ STRIPE_SECRET_KEY
 ◯ Driver flow                 delivery/[token].html
 ✓ Admin back office           admin/  — login, dashboard, enquiries,
                                        inventory (+ XLS import + service
-                                       log badge), piano-detail (cost
-                                       breakdown + service log CRUD +
-                                       sales history), orders (+ PDF
-                                       invoices + inline HTML preview +
-                                       edit/void/overdue-reminder),
+                                       log badge + cost column),
+                                       piano-detail (cost breakdown +
+                                       service log CRUD + sales history),
+                                       orders (+ PDF invoices + inline
+                                       HTML preview + edit/void/overdue-
+                                       reminder + discreet auto-margin),
                                        customers, deliveries (+ partners
                                        tab + customer preferences),
-                                       teachers, settings
+                                       teachers, financials (P&L +
+                                       revenue chart + XLSX export),
+                                       settings
 ✓ Customer delivery prefs    delivery-preferences.html (public, token)
 ```
 
@@ -1167,6 +1170,125 @@ Run order:          1. supabase/update_orders.sql in the SQL editor
                     2. Refresh admin/orders.html
                     3. Test a full sale — PDF should download
                        automatically on Create order.
+```
+
+### Financial reporting (admin/financials.html)
+```
+Date range:         Quick range pills (This month / Last month / This
+                    quarter / This financial year / All time) + custom
+                    From/To inputs. AU financial year = 1 July → 30 June.
+                    Defaults to the current calendar month on load.
+
+Metric cards:       Total revenue (inc GST, gold), Gross profit (green
+                    if ≥ 0, red otherwise), Gross margin % (green if
+                    ≥ 30%, amber otherwise), GST collected (blue).
+                    Secondary row: Revenue ex GST + Cost of goods sold.
+
+Revenue chart:      Chart.js bar chart — revenue + gross profit grouped
+                    by YYYY-MM. Destroys and recreates on every range
+                    change so we never leak a duplicate canvas. Loaded
+                    from Chart.js 4.4.0 CDN.
+
+P&L summary:        Stacked table — revenue (inc GST) → less GST → ex
+                    GST subtotal → COGS → gross profit + margin →
+                    sale count + average sale price.
+
+Transactions:       Per-sale row — date / invoice / customer / piano /
+                    total / cost / profit / margin / status. Margin pill
+                    is green at ≥ 30%, amber below. Empty state when
+                    no orders fall in the period.
+
+XLSX export:        SheetJS via CDN (already on inventory.html).
+                    4 sheets:
+                      Summary           — P&L overview
+                      Transactions      — every sale + GST breakdown
+                      GST Report        — totals row for BAS lodgement
+                      Piano Performance — per-piano profit + margin
+                    Filename: Signature-Pianos-Financials-
+                              YYYYMMDD-YYYYMMDD.xlsx
+                    Button is disabled while the range has no orders;
+                    toast on success or failure.
+
+Data source:        orders (where voided = false) joined to
+                    customer:customer_id(first_name,last_name,email)
+                    and piano:piano_id(cost_price,model,year,
+                    serial_number,brand,condition). No new tables.
+```
+
+### Invoice & order emails
+```
+Send invoice:       Mail-forward icon on every non-voided order row
+                    in admin/orders.html. Confirms before sending,
+                    POSTs `send_invoice` to /api/send-email, which
+                    fires the branded HTML invoice to the customer
+                    and a "sent" notification to Eric. Toast on
+                    success / failure.
+
+POS acoustic:       admin/orders.html — on Create order, after the
+                    order insert succeeds, an auto-delivery row is
+                    written (status=scheduled, auto_created=true,
+                    fresh preference_token), and the customer gets
+                    BOTH a warm confirmation email (with the
+                    preference link) AND a separate invoice email.
+
+POS digital:        Same Create order path, but no delivery row is
+                    created. Customer gets a collection-confirmation
+                    email and a separate invoice email. Eric is
+                    notified that the customer is collecting from
+                    the showroom.
+
+Stripe webhook:     api/stripe-webhook.js now branches on
+                    piano.type. Acoustic full purchases keep the
+                    existing delivery + purchase_confirmation flow
+                    and ALSO POST send_invoice. Digital full
+                    purchases skip the delivery insert and POST
+                    digital_order_confirmation (which bundles the
+                    invoice). Deposits keep the existing flow.
+                    Internal sale notification carries an
+                    `is_acoustic` flag so the delivery summary line
+                    is accurate.
+
+Shared templates:   api/send-email.js defines four shared template
+                    functions, each used by multiple dispatch types:
+                      generateInvoiceEmailHTML       — invoice card
+                      posOrderConfirmationEmail      — warm "thanks"
+                                                       + preference CTA
+                      digitalOrderConfirmationEmail  — collection CTA
+                      deliveryConfirmedEmail         — date locked
+                    Never duplicated — every email type pulls these
+                    from a single place.
+```
+
+### Delivery type rule
+```
+acoustic_upright    → delivery record created, preference link sent
+acoustic_grand      → delivery record created, preference link sent
+digital             → no delivery record, collection email sent
+
+Applied identically in admin/orders.html (POS create) and
+api/stripe-webhook.js (online checkout).
+```
+
+### Delivery confirmation
+```
+Trigger:            admin/deliveries.html — Confirm date & notify
+                    customer button. Gold filled, full width,
+                    rendered inside the delivery detail panel
+                    only when scheduled_date is set on the row.
+                    Always preceded by a window.confirm dialog so
+                    a stray click can't email the customer.
+
+What it sends:      delivery_confirmed POST to /api/send-email.
+                    Customer email: branded card with the date,
+                    time window, optional notes, and a "what
+                    happens next" box. Date format DD/MM/YYYY.
+                    Eric email: internal copy with the same date
+                    and a pointer to who was notified.
+
+Side effect:        Forces delivery.status back to 'scheduled' so
+                    the row can't be left in pickup_pending after
+                    a partial edit. Reloads the deliveries table
+                    on success so the row reflects the change.
 ```
 
 ---

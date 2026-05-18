@@ -37,20 +37,29 @@
     font-size: 15px;
   }
 
-  /* Cost price input — visually marked as internal-only */
-  .cost-price-wrap {
-    margin-top: 14px;
-    padding: 12px 14px;
-    border: 1px dashed var(--admin-border-dark);
-    border-radius: 4px;
-    background: #faf8f5;
-  }
-  .cost-price-wrap .hint {
+  /* Discreet margin readout — sits below the piano dropdown.
+     Intentionally low-contrast so it doesn't catch a customer's eye if
+     they're sitting next to Eric while he fills out the form. */
+  .margin-readout {
+    display: none;
+    margin-top: 8px;
+    padding: 4px 2px;
     font-size: 11px;
     color: var(--admin-text-faint);
-    margin: 6px 0 0;
-    line-height: 1.5;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
   }
+  .margin-readout.is-shown { display: block; }
+  .margin-readout .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: 1px;
+    background: var(--admin-text-faint);
+  }
+  .margin-readout.is-low .dot { background: var(--admin-amber); }
+  .margin-readout.is-healthy .dot { background: var(--admin-green); }
 
   /* Business-fields section — animated reveal */
   #businessFields {
@@ -320,6 +329,7 @@
       <a href="customers.html"  class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
       <a href="deliveries.html" class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
       <a href="teachers.html"   class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+      <a href="financials.html" class="admin-nav-item" data-page="financials"><i class="ti ti-chart-bar"></i> Financials</a>
       <a href="settings.html"   class="admin-nav-item" data-page="settings"><i class="ti ti-settings"></i> Settings</a>
     </nav>
     <div class="admin-sidebar-footer">
@@ -482,23 +492,9 @@
       </select>
       <div id="pianoMeta" class="piano-meta"></div>
 
-      <div class="cost-price-wrap">
-        <label class="admin-label" for="costPrice" style="margin-bottom:4px;">
-          Cost price
-          <span style="color:var(--admin-text-faint);text-transform:none;letter-spacing:0;font-weight:400;">
-            (internal — not shown on invoice)
-          </span>
-        </label>
-        <input type="number" id="costPrice" class="admin-input" placeholder="e.g. 3873" step="0.01">
-        <p class="hint">
-          Enter your total cost price (inc. GST quarantine + shipping + repairs) to see your margin.
-          Never shown to the customer.
-        </p>
-      </div>
-
-      <div id="marginDisplay"
-        style="display:none;margin-top:8px;padding:10px 14px;border-radius:4px;border:1px solid;transition:all 0.2s ease;">
-      </div>
+      <!-- Discreet margin readout — pulls cost from inventory automatically.
+           Designed to be glanceable for Eric without drawing customer attention. -->
+      <div id="marginDisplay" class="margin-readout"></div>
     </div>
 
     <!-- Section D — Sale price -->
@@ -713,7 +709,7 @@ const DEFAULT_LINE_ITEMS = [
   document.getElementById('addLineItemBtn').addEventListener('click', addLineItem)
 
   document.getElementById('o-piano').addEventListener('change', onPianoChange)
-  document.getElementById('costPrice').addEventListener('input', updateMargin)
+  document.getElementById('salePrice').addEventListener('input', updateMargin)
   document.getElementById('salePrice').addEventListener('input', updateTotals)
   document.getElementById('discountAmount').addEventListener('input', updateTotals)
   document.getElementById('discountType').addEventListener('change', updateTotals)
@@ -826,6 +822,10 @@ function renderOrders() {
     const voidBtn = !isVoided
       ? `<button class="icon-btn is-red" data-action="void" title="Void invoice"><i class="ti ti-trash"></i></button>`
       : ''
+    // Email button is hidden on voided rows — we never want to email a void.
+    const sendBtn = !isVoided
+      ? `<button class="icon-btn" data-action="send" title="Send invoice by email"><i class="ti ti-mail-forward"></i></button>`
+      : ''
 
     return `
       <tr data-id="${esc(o.id)}" data-invoice="${esc(o.invoice_number || '')}"${isVoided ? ' style="opacity:0.65;"' : ''}>
@@ -840,6 +840,7 @@ function renderOrders() {
             <button class="icon-btn" data-action="view" title="View invoice"><i class="ti ti-eye"></i></button>
             ${editBtn}
             <button class="icon-btn" data-action="invoice" title="Download PDF"><i class="ti ti-download"></i></button>
+            ${sendBtn}
             ${remindBtn}
             ${voidBtn}
           </div>
@@ -850,6 +851,9 @@ function renderOrders() {
 
   body.querySelectorAll('[data-action="invoice"]').forEach(btn => {
     btn.addEventListener('click', (e) => { e.stopPropagation(); generateInvoice(btn.closest('tr').dataset.id) })
+  })
+  body.querySelectorAll('[data-action="send"]').forEach(btn => {
+    btn.addEventListener('click', (e) => { e.stopPropagation(); sendInvoiceEmail(btn.closest('tr').dataset.id, btn) })
   })
   body.querySelectorAll('[data-action="view"]').forEach(btn => {
     btn.addEventListener('click', (e) => { e.stopPropagation(); viewInvoice(btn.closest('tr').dataset.id) })
@@ -883,7 +887,7 @@ async function openOrderPanel() {
     'o-addr1','o-addr2','o-suburb','o-postcode',
     'o-business-name','o-abn',
     'o-payment-ref','o-notes',
-    'costPrice','salePrice','discountAmount',
+    'salePrice','discountAmount',
   ].forEach(id => { const el = document.getElementById(id); if (el) el.value = '' })
 
   document.getElementById('o-state').value = 'VIC'
@@ -893,7 +897,8 @@ async function openOrderPanel() {
   document.getElementById('isBusinessCustomer').checked = false
   document.getElementById('businessFields').classList.remove('is-open')
   document.getElementById('pianoMeta').style.display = 'none'
-  document.getElementById('marginDisplay').style.display = 'none'
+  document.getElementById('marginDisplay').classList.remove('is-shown', 'is-low', 'is-healthy')
+  document.getElementById('marginDisplay').innerHTML = ''
   document.getElementById('orderError').classList.remove('is-shown')
   document.getElementById('salePriceExGst').textContent = 'Ex GST: —'
 
@@ -906,7 +911,7 @@ async function openOrderPanel() {
   try {
     const { data, error } = await adminSupabase
       .from('pianos')
-      .select('id, brand, model, year, serial_number, condition, sale_price')
+      .select('id, brand, model, year, serial_number, condition, sale_price, cost_price, type')
       .eq('stock_status', 'available')
       .order('brand', { ascending: true })
     if (error) throw error
@@ -941,38 +946,32 @@ function onPianoChange(e) {
     document.getElementById('salePrice').value = ''
     meta.style.display = 'none'
   }
+  updateMargin()
   updateTotals()
 }
 
-/* ---------- Margin calculator ---------- */
+/* ---------- Margin calculator ----------
+   Pulls cost_price from the selected piano in inventory (never typed into
+   the form, never shown as a dollar amount) and renders just a small
+   percentage so a customer sitting alongside Eric can't read off the cost.
+*/
 function updateMargin() {
-  const cost = parseFloat(document.getElementById('costPrice').value) || 0
-  const sale = parseFloat(document.getElementById('salePrice').value) || 0
   const el = document.getElementById('marginDisplay')
-  if (!cost || !sale) { el.style.display = 'none'; return }
+  const piano = availablePianos.find(p => p.id === selectedPianoId)
+  const cost = piano ? Number(piano.cost_price || 0) : 0
+  const sale = parseFloat(document.getElementById('salePrice').value) || 0
+
+  el.classList.remove('is-low', 'is-healthy')
+  if (!cost || !sale) {
+    el.classList.remove('is-shown')
+    el.innerHTML = ''
+    return
+  }
 
   const marginPct = ((sale - cost) / sale) * 100
-  const profit = sale - cost
   const healthy = marginPct >= 30
-
-  el.style.display = 'block'
-  el.style.background = healthy ? 'var(--admin-green-light)' : 'var(--admin-amber-light)'
-  el.style.borderColor = healthy ? 'var(--admin-green)' : 'var(--admin-amber)'
-
-  el.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <i class="ti ti-chart-bar" style="font-size:16px;color:${healthy ? 'var(--admin-green)' : 'var(--admin-amber)'};"></i>
-        <span style="font-size:13px;font-weight:500;color:${healthy ? 'var(--admin-green)' : 'var(--admin-amber)'};">
-          ${marginPct.toFixed(1)}% margin
-        </span>
-      </div>
-      <span style="font-size:12px;color:${healthy ? 'var(--admin-green)' : 'var(--admin-amber)'};">
-        ${fmtAUD2(profit)} profit
-      </span>
-    </div>
-    ${!healthy ? `<p style="font-size:11px;margin:6px 0 0;color:var(--admin-amber);">Below your 30% target margin — consider adjusting the sale price</p>` : ''}
-  `
+  el.classList.add('is-shown', healthy ? 'is-healthy' : 'is-low')
+  el.innerHTML = `<span class="dot"></span>${marginPct.toFixed(1)}%`
 }
 
 /* ---------- Line items ---------- */
@@ -1199,6 +1198,11 @@ async function createOrder() {
     // Auto-generate + download the PDF invoice
     await buildInvoicePdf(order)
 
+    // -- Auto-delivery + customer email by piano type ---------------------
+    // Acoustic uprights and grands get a delivery record + preference link.
+    // Digital pianos are collected from the showroom — no delivery row.
+    await sendPosFollowupEmail(order, piano, { ...customerPayload, id: customerId })
+
     closeSlidePanel('orderPanel')
     await loadOrders()
   } catch (err) {
@@ -1208,6 +1212,178 @@ async function createOrder() {
   } finally {
     btn.disabled = false
     btn.innerHTML = '<i class="ti ti-check"></i> Create order &amp; generate invoice'
+  }
+}
+
+/* ============================================================================
+   POS FOLLOW-UP — auto delivery + customer emails
+   ----------------------------------------------------------------------------
+   Fires after a successful order insert. Acoustic uprights + grands get a
+   delivery row (with preference_token) and a confirmation email with the
+   preference link. Digital pianos get a collection confirmation only.
+   ========================================================================= */
+
+function generateDeliveryToken() {
+  return Math.random().toString(36).substring(2) +
+         Date.now().toString(36) +
+         Math.random().toString(36).substring(2)
+}
+
+async function sendPosFollowupEmail(order, piano, customer) {
+  const isAcoustic = piano?.type === 'acoustic_upright' || piano?.type === 'acoustic_grand'
+
+  const settings = await getCompanySettings()
+  // Trim the order payload to just what the email templates need.
+  const orderForEmail = {
+    invoice_number:    order.invoice_number,
+    order_number:      order.order_number,
+    total:             order.total,
+    subtotal:          order.subtotal,
+    discount:          order.discount,
+    payment_method:    order.payment_method,
+    payment_reference: order.payment_reference,
+    status:            order.status,
+    created_at:        order.created_at,
+    line_items:        order.line_items || [],
+    notes:             order.notes,
+  }
+
+  if (isAcoustic) {
+    const preferenceToken = generateDeliveryToken()
+    const { data: delivery, error: deliveryError } = await adminSupabase
+      .from('deliveries')
+      .insert({
+        order_id:                        order.id,
+        status:                          'scheduled',
+        auto_created:                    true,
+        preference_token:                preferenceToken,
+        customer_notified_pickup:        false,
+        customer_notified_delivery:      false,
+      })
+      .select()
+      .single()
+    if (deliveryError) {
+      console.error('[orders] auto-delivery insert failed', deliveryError)
+      // Don't fail the sale — the order is the source of truth.
+    }
+
+    // Prefer the DB-stamped token (since the column has a default trigger)
+    // and fall back to the locally minted one if the insert errored.
+    const token = delivery?.preference_token || preferenceToken
+    const preferenceUrl = `${window.location.origin}/delivery-preferences.html?token=${encodeURIComponent(token)}`
+
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'pos_order_confirmation',
+          customer, piano, order: orderForEmail, settings, preferenceUrl,
+        }),
+      })
+      const result = await res.json().catch(() => ({}))
+      if (!res.ok || !result.success) {
+        console.error('[orders] pos_order_confirmation email failed', result)
+      }
+    } catch (err) {
+      console.error('[orders] pos_order_confirmation fetch failed', err)
+    }
+  } else {
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'digital_order_confirmation',
+          customer, piano, order: orderForEmail, settings,
+        }),
+      })
+      const result = await res.json().catch(() => ({}))
+      if (!res.ok || !result.success) {
+        console.error('[orders] digital_order_confirmation email failed', result)
+      }
+    } catch (err) {
+      console.error('[orders] digital_order_confirmation fetch failed', err)
+    }
+  }
+}
+
+/* Manual resend from the orders table. Confirms with the admin first so a
+   missed click can't dump an invoice into the customer's inbox. */
+async function sendInvoiceEmail(orderId, btn) {
+  let order
+  try {
+    const { data, error } = await adminSupabase
+      .from('orders')
+      .select('*, customers(*), pianos(*)')
+      .eq('id', orderId)
+      .single()
+    if (error) throw error
+    order = data
+  } catch (err) {
+    console.error('[orders] send-invoice fetch failed', err)
+    showToast('Could not load order — see console.', 'error')
+    return
+  }
+
+  const customer = order.customers
+  const piano    = order.pianos
+  if (!customer?.email) {
+    showToast('No customer email on this order', 'error')
+    return
+  }
+
+  const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim()
+  if (!window.confirm(`Send invoice ${order.invoice_number} to ${fullName} (${customer.email})?`)) {
+    return
+  }
+
+  const originalHTML = btn?.innerHTML
+  if (btn) {
+    btn.innerHTML = '<i class="ti ti-loader"></i>'
+    btn.disabled = true
+  }
+
+  try {
+    const settings = await getCompanySettings()
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'send_invoice',
+        customer,
+        piano,
+        order: {
+          invoice_number:    order.invoice_number,
+          order_number:      order.order_number,
+          total:             order.total,
+          subtotal:          order.subtotal,
+          discount:          order.discount,
+          payment_method:    order.payment_method,
+          payment_reference: order.payment_reference,
+          status:            order.status,
+          created_at:        order.created_at,
+          line_items:        order.line_items || [],
+          notes:             order.notes,
+        },
+        settings,
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      showToast(`Invoice sent to ${customer.email}`, 'success')
+    } else {
+      console.error('[orders] send-invoice failed', result)
+      showToast('Failed to send invoice — check console', 'error')
+    }
+  } catch (err) {
+    console.error('[orders] send-invoice fetch failed', err)
+    showToast('Failed to send invoice — check console', 'error')
+  } finally {
+    if (btn) {
+      btn.innerHTML = originalHTML
+      btn.disabled = false
+    }
   }
 }
 

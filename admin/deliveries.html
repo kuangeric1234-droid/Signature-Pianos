@@ -59,6 +59,7 @@
       <a href="customers.html"  class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
       <a href="deliveries.html" class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
       <a href="teachers.html"   class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+      <a href="financials.html" class="admin-nav-item" data-page="financials"><i class="ti ti-chart-bar"></i> Financials</a>
       <a href="settings.html"   class="admin-nav-item" data-page="settings"><i class="ti ti-settings"></i> Settings</a>
     </nav>
     <div class="admin-sidebar-footer">
@@ -466,6 +467,26 @@ function openDelivery(id) {
         <input type="text" id="dlv-window" class="admin-input" placeholder="e.g. 9am–11am" value="${esc(d.scheduled_time_window || '')}">
       </div>
     </div>
+    ${d.scheduled_date ? `
+      <div class="admin-form-row">
+        <button type="button"
+                data-action="confirm-delivery"
+                style="width:100%;background:var(--admin-gold);color:#000;
+                       border:none;border-radius:4px;padding:10px;
+                       font-size:13px;font-weight:500;cursor:pointer;
+                       display:flex;align-items:center;justify-content:center;gap:6px;">
+          <i class="ti ti-mail-check"></i>
+          Confirm date &amp; notify customer
+        </button>
+        <div style="font-size:11px;color:var(--admin-text-faint);margin-top:6px;line-height:1.5;">
+          Sends a branded email to the customer with the confirmed delivery date and time window. Save any field changes first.
+        </div>
+      </div>
+    ` : `
+      <div class="admin-form-row" style="font-size:12px;color:var(--admin-text-faint);background:var(--admin-bg);border-radius:4px;padding:10px 12px;">
+        Set a scheduled date and save to enable the customer-notification button.
+      </div>
+    `}
     <div class="admin-form-row">
       <label class="admin-label" for="dlv-status">Status</label>
       <select id="dlv-status" class="admin-select">
@@ -508,6 +529,12 @@ function openDelivery(id) {
 
   document.getElementById('copyPickupBtn').addEventListener('click',   () => copyToClipboard(pickupUrl))
   document.getElementById('copyDeliveryBtn').addEventListener('click', () => copyToClipboard(deliveryUrl))
+
+  // Confirm date + notify customer — only rendered when scheduled_date is set.
+  const confirmBtn = document.querySelector('[data-action="confirm-delivery"]')
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', () => confirmDeliveryDate(d.id, confirmBtn))
+  }
 
   // Wire the tuner assignment form
   const assignBtn = document.getElementById('assignTunerBtn')
@@ -554,6 +581,109 @@ async function saveDelivery() {
   } finally {
     btn.disabled = false
     btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save'
+  }
+}
+
+/* ---------- Confirm delivery date + notify customer ----------
+   Loads the delivery with its joined order/customer/piano, prompts the
+   admin to confirm, then POSTs delivery_confirmed to /api/send-email.
+   The button is only rendered when scheduled_date is set on the row. */
+async function confirmDeliveryDate(deliveryId, btn) {
+  let delivery
+  try {
+    const { data, error } = await adminSupabase
+      .from('deliveries')
+      .select(`
+        *,
+        orders:order_id (
+          *,
+          customers ( * ),
+          pianos    ( * )
+        )
+      `)
+      .eq('id', deliveryId)
+      .single()
+    if (error) throw error
+    delivery = data
+  } catch (err) {
+    console.error('[deliveries] confirm fetch failed', err)
+    showToast("Couldn't load delivery — see console.", 'error')
+    return
+  }
+
+  if (!delivery?.scheduled_date) {
+    showToast('Please set a delivery date first', 'error')
+    return
+  }
+  const customer = delivery.orders?.customers
+  const piano    = delivery.orders?.pianos
+  if (!customer?.email) {
+    showToast('No customer email on this order', 'error')
+    return
+  }
+
+  const [y, m, day] = String(delivery.scheduled_date).split('T')[0].split('-')
+  const dateAU = (y && m && day) ? `${day}/${m}/${y}` : delivery.scheduled_date
+  const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim()
+  const windowStr = delivery.scheduled_time_window ? ' ' + delivery.scheduled_time_window : ''
+  if (!window.confirm(`Confirm delivery on ${dateAU}${windowStr} and notify ${fullName}?`)) {
+    return
+  }
+
+  const originalHTML = btn?.innerHTML
+  if (btn) { btn.innerHTML = '<i class="ti ti-loader"></i> Sending…'; btn.disabled = true }
+
+  try {
+    // Lock the row into scheduled status — covers cases where it had drifted
+    // back to pickup_pending after a partial edit.
+    const { error: updErr } = await adminSupabase
+      .from('deliveries')
+      .update({ status: 'scheduled' })
+      .eq('id', deliveryId)
+    if (updErr) console.error('[deliveries] status update failed', updErr)
+
+    // Pull company settings for the email footer. Missing row is non-fatal.
+    let settings = null
+    try {
+      const { data: s } = await adminSupabase
+        .from('company_settings')
+        .select('*')
+        .limit(1)
+        .maybeSingle()
+      settings = s || null
+    } catch (err) {
+      console.warn('[deliveries] settings load fell back', err)
+    }
+
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'delivery_confirmed',
+        customer,
+        piano,
+        delivery: {
+          scheduled_date:        delivery.scheduled_date,
+          scheduled_time_window: delivery.scheduled_time_window,
+          notes:                 delivery.notes,
+        },
+        settings,
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (res.ok && result.success) {
+      showToast(`Delivery confirmed — ${customer.first_name || 'customer'} notified by email`, 'success')
+      closeSlidePanel('deliveryPanel')
+      loadDeliveries()
+    } else {
+      console.error('[deliveries] confirm email failed', result)
+      showToast('Email failed — check console', 'error')
+    }
+  } catch (err) {
+    console.error('[deliveries] confirm fetch failed', err)
+    showToast('Email failed — check console', 'error')
+  } finally {
+    if (btn) { btn.innerHTML = originalHTML; btn.disabled = false }
   }
 }
 

@@ -129,6 +129,7 @@
       <a href="customers.html"  class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
       <a href="deliveries.html" class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
       <a href="teachers.html"   class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+      <a href="financials.html" class="admin-nav-item" data-page="financials"><i class="ti ti-chart-bar"></i> Financials</a>
       <a href="settings.html"   class="admin-nav-item" data-page="settings"><i class="ti ti-settings"></i> Settings</a>
     </nav>
     <div class="admin-sidebar-footer">
@@ -181,6 +182,7 @@
               <th>Serial</th>
               <th>Year</th>
               <th>Condition</th>
+              <th>Cost</th>
               <th>Price</th>
               <th>Status</th>
               <th>Featured</th>
@@ -188,7 +190,7 @@
             </tr>
           </thead>
           <tbody id="pianoTableBody">
-            <tr><td colspan="8"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
+            <tr><td colspan="9"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -413,7 +415,7 @@ async function loadPianos() {
   } catch (err) {
     console.error('[inventory] load failed', err)
     document.getElementById('pianoTableBody').innerHTML =
-      `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load pianos.</p></div></td></tr>`
+      `<tr><td colspan="9"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load pianos.</p></div></td></tr>`
   }
 }
 
@@ -434,7 +436,7 @@ function renderTable() {
   }
 
   if (!rows.length) {
-    body.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-package-off"></i><p>No pianos match this filter.</p></div></td></tr>`
+    body.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="ti ti-package-off"></i><p>No pianos match this filter.</p></div></td></tr>`
     return
   }
 
@@ -450,6 +452,7 @@ function renderTable() {
         <td class="mono">${esc(p.serial_number || '—')}</td>
         <td>${esc(p.year ?? '—')}</td>
         <td><span class="${condClass}">${esc(p.condition || '—')}</span></td>
+        <td style="color:var(--admin-text-muted);">${fmtMoney(p.cost_price)}</td>
         <td>${fmtMoney(p.sale_price)}</td>
         <td><span class="${statusPillClass(p.stock_status)}">${esc(p.stock_status || '')}</span></td>
         <td>

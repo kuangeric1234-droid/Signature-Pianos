@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financials — Signature Pianos Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="admin.css">
+<style>
+  /* ---------- Sticky date-range bar ---------- */
+  .range-bar {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 73px; /* topbar height — keeps the range bar visible while scrolling */
+    z-index: 10;
+  }
+  .range-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .range-pill {
+    background: none;
+    border: 1px solid var(--admin-border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--admin-text-muted);
+    transition: all 0.15s ease;
+  }
+  .range-pill:hover {
+    border-color: var(--admin-gold);
+    color: var(--admin-gold);
+  }
+  .range-pill.active {
+    background: var(--admin-gold);
+    border-color: var(--admin-gold);
+    color: #000;
+    font-weight: 500;
+  }
+  .range-custom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+  .range-custom label {
+    font-size: 12px;
+    color: var(--admin-text-muted);
+  }
+  .range-custom input[type="date"] {
+    padding: 6px 10px;
+    border: 1px solid var(--admin-border-dark);
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--admin-text);
+    background: var(--admin-surface);
+  }
+  .range-custom button.apply {
+    background: var(--admin-gold);
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 7px 16px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .range-custom button.apply:hover { background: #a07f4a; }
+
+  /* ---------- Metric grid ---------- */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 960px) { .metric-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .metric-grid { grid-template-columns: 1fr; } }
+
+  /* Per-card accent tints — left border is overridden by these */
+  .metric-card.is-gold  { border-left-color: var(--admin-gold); }
+  .metric-card.is-green { border-left-color: var(--admin-green); }
+  .metric-card.is-red   { border-left-color: var(--admin-red); }
+  .metric-card.is-amber { border-left-color: var(--admin-amber); }
+  .metric-card.is-blue  { border-left-color: var(--admin-blue); }
+
+  .metric-card .icon-row.is-green { color: var(--admin-green); }
+  .metric-card .icon-row.is-red   { color: var(--admin-red); }
+  .metric-card .icon-row.is-amber { color: var(--admin-amber); }
+  .metric-card .icon-row.is-blue  { color: var(--admin-blue); }
+
+  .metric-card .number.is-green { color: var(--admin-green); }
+  .metric-card .number.is-red   { color: var(--admin-red); }
+  .metric-card .number.is-amber { color: var(--admin-amber); }
+  .metric-card .number.is-blue  { color: var(--admin-blue); }
+
+  /* ---------- Secondary metrics row ---------- */
+  .secondary-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 600px) { .secondary-row { grid-template-columns: 1fr; } }
+  .secondary-stat {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 4px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .secondary-stat .label {
+    font-size: 12px;
+    color: var(--admin-text-muted);
+    letter-spacing: 0.04em;
+  }
+  .secondary-stat .value {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--admin-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- Chart card ---------- */
+  .chart-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .chart-card h2 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--admin-text);
+    margin: 0 0 14px;
+  }
+  .chart-wrap {
+    height: 300px;
+    position: relative;
+  }
+
+  /* ---------- P&L table card ---------- */
+  .pl-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .pl-card h2 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--admin-text);
+    margin: 0 0 14px;
+  }
+  .pl-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- Transactions card ---------- */
+  .tx-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .tx-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--admin-border);
+  }
+  .tx-card-header h2 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--admin-text);
+    margin: 0;
+  }
+  .tx-count-badge {
+    background: var(--admin-gold-light);
+    color: var(--admin-gold);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 10px;
+    border-radius: 20px;
+  }
+
+  /* Margin pill in tx table */
+  .margin-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .margin-pill.is-healthy {
+    background: var(--admin-green-light);
+    color: var(--admin-green);
+  }
+  .margin-pill.is-low {
+    background: var(--admin-amber-light);
+    color: var(--admin-amber);
+  }
+
+  /* ---------- Export button in topbar ---------- */
+  .export-btn {
+    background: var(--admin-gold);
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 20px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .export-btn:hover { background: #a07f4a; }
+  .export-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <span style="font-family:'DM Sans';font-size:13px;font-weight:500;color:#b8935a;letter-spacing:0.1em;">SIGNATURE</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.15em;display:block;margin-top:2px;">ADMIN</span>
+    </div>
+    <nav class="admin-nav">
+      <a href="dashboard.html"  class="admin-nav-item" data-page="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="enquiries.html"  class="admin-nav-item" data-page="enquiries"><i class="ti ti-mail"></i> Enquiries <span class="nav-badge" id="enquiriesBadge"></span></a>
+      <a href="inventory.html"  class="admin-nav-item" data-page="inventory"><i class="ti ti-piano"></i> Inventory</a>
+      <a href="orders.html"     class="admin-nav-item" data-page="orders"><i class="ti ti-receipt"></i> Orders &amp; POS</a>
+      <a href="customers.html"  class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
+      <a href="deliveries.html" class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
+      <a href="teachers.html"   class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+      <a href="financials.html" class="admin-nav-item" data-page="financials"><i class="ti ti-chart-bar"></i> Financials</a>
+      <a href="settings.html"   class="admin-nav-item" data-page="settings"><i class="ti ti-settings"></i> Settings</a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="https://signaturepianos.com.au/" target="_blank" style="font-size:12px;color:rgba(255,255,255,0.4);text-decoration:none;display:flex;align-items:center;gap:6px;">
+        <i class="ti ti-external-link" style="font-size:13px;"></i> View live site
+      </a>
+      <button onclick="adminSignOut()" style="font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;margin-top:8px;">
+        <i class="ti ti-logout" style="font-size:13px;"></i> Sign out
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;">
+        <button class="admin-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+        <h1 class="admin-page-title">Financials</h1>
+      </div>
+      <div class="admin-topbar-right">
+        <button id="exportBtn" class="export-btn" onclick="exportFinancials()" disabled>
+          <i class="ti ti-download"></i> Export XLSX
+        </button>
+        <span style="font-size:13px;color:var(--admin-text-muted);" data-admin-name>—</span>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- Section A — Date range selector -->
+      <div class="range-bar">
+        <div class="range-pills" id="rangePills">
+          <button class="range-pill active" data-range="this_month" onclick="setQuickRange('this_month')">This month</button>
+          <button class="range-pill"        data-range="last_month" onclick="setQuickRange('last_month')">Last month</button>
+          <button class="range-pill"        data-range="this_quarter" onclick="setQuickRange('this_quarter')">This quarter</button>
+          <button class="range-pill"        data-range="this_year" onclick="setQuickRange('this_year')">This financial year</button>
+          <button class="range-pill"        data-range="all_time" onclick="setQuickRange('all_time')">All time</button>
+        </div>
+
+        <div class="range-custom">
+          <label for="dateFrom">From</label>
+          <input type="date" id="dateFrom">
+          <label for="dateTo">To</label>
+          <input type="date" id="dateTo">
+          <button class="apply" onclick="applyCustomRange()">Apply</button>
+        </div>
+
+        <div style="font-size:12px;color:var(--admin-text-faint);width:100%;" id="dateRangeLabel">—</div>
+      </div>
+
+      <!-- Section B — Key metric cards -->
+      <div class="metric-grid">
+        <div class="metric-card is-gold">
+          <div class="icon-row"><i class="ti ti-cash"></i> Total revenue</div>
+          <div class="number" id="mRevenue">—</div>
+          <div class="sub">Inc GST · all non-voided sales</div>
+        </div>
+        <div class="metric-card is-green" id="mGrossProfitCard">
+          <div class="icon-row is-green" id="mGrossProfitIcon"><i class="ti ti-trending-up"></i> Gross profit</div>
+          <div class="number is-green" id="mGrossProfit">—</div>
+          <div class="sub">Revenue − cost of goods sold</div>
+        </div>
+        <div class="metric-card is-green" id="mGrossMarginCard">
+          <div class="icon-row is-green" id="mGrossMarginIcon"><i class="ti ti-percentage"></i> Gross margin</div>
+          <div class="number is-green" id="mGrossMargin">—</div>
+          <div class="sub">Target ≥ 30%</div>
+        </div>
+        <div class="metric-card is-blue">
+          <div class="icon-row is-blue"><i class="ti ti-receipt-tax"></i> GST collected</div>
+          <div class="number is-blue" id="mGstCollected">—</div>
+          <div class="sub">Revenue ÷ 11</div>
+        </div>
+      </div>
+
+      <!-- Secondary metrics -->
+      <div class="secondary-row">
+        <div class="secondary-stat">
+          <span class="label">Revenue ex GST</span>
+          <span class="value" id="mRevenueExGst">—</span>
+        </div>
+        <div class="secondary-stat">
+          <span class="label">Cost of goods sold</span>
+          <span class="value" id="mCogs">—</span>
+        </div>
+      </div>
+
+      <!-- Section C — Revenue chart -->
+      <div class="chart-card">
+        <h2>Revenue by month</h2>
+        <div class="chart-wrap">
+          <canvas id="revenueChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Section D — P&L summary -->
+      <div class="pl-card">
+        <h2>Profit &amp; loss summary</h2>
+        <table class="pl-table">
+          <tbody id="plTable">
+            <tr><td colspan="2" style="padding:24px;color:var(--admin-text-faint);text-align:center;font-size:13px;">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Section E — Transactions table -->
+      <div class="tx-card">
+        <div class="tx-card-header">
+          <h2>Transactions</h2>
+          <span class="tx-count-badge" id="txCountBadge">0</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Invoice #</th>
+                <th>Customer</th>
+                <th>Piano</th>
+                <th style="text-align:right;">Total</th>
+                <th style="text-align:right;">Cost</th>
+                <th style="text-align:right;">Profit</th>
+                <th>Margin</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="txTableBody">
+              <tr><td colspan="9"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-nav.js"></script>
+<script>
+/* ============================================================================
+   Signature Pianos — Financials
+   ----------------------------------------------------------------------------
+   Reads non-voided orders inside a date range, derives a P&L breakdown
+   (revenue, GST, COGS via piano.cost_price, gross profit / margin), draws
+   a monthly revenue + profit bar chart, and exports a 4-sheet XLSX
+   (Summary / Transactions / GST Report / Piano Performance).
+   ============================================================================ */
+
+let revenueChart = null
+let exportOrders = []
+let exportFromDate = ''
+let exportToDate = ''
+
+;(async function init() {
+  const admin = await checkAdminAuth()
+  if (!admin) return
+  // Default range — current month
+  setQuickRange('this_month')
+})()
+
+/* ---------- Quick range pills ----------
+   Sets the From / To inputs and reloads. The Australian financial year
+   runs 1 July → 30 June, so "This financial year" picks the FY whose
+   1 July is most recent (or earlier in the current year if before July). */
+function setQuickRange(range, evt) {
+  const now = new Date()
+  let from, to
+
+  if (range === 'this_month') {
+    from = new Date(now.getFullYear(), now.getMonth(), 1)
+    to   = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  } else if (range === 'last_month') {
+    from = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    to   = new Date(now.getFullYear(), now.getMonth(), 0)
+  } else if (range === 'this_quarter') {
+    const q = Math.floor(now.getMonth() / 3)
+    from = new Date(now.getFullYear(), q * 3, 1)
+    to   = new Date(now.getFullYear(), q * 3 + 3, 0)
+  } else if (range === 'this_year') {
+    const fyStart = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1
+    from = new Date(fyStart, 6, 1)
+    to   = new Date(fyStart + 1, 5, 30)
+  } else if (range === 'all_time') {
+    from = new Date('2020-01-01')
+    to   = now
+  } else {
+    return
+  }
+
+  document.getElementById('dateFrom').value = toISODate(from)
+  document.getElementById('dateTo').value   = toISODate(to)
+
+  document.querySelectorAll('.range-pill').forEach(p => p.classList.remove('active'))
+  const target = (evt && evt.target) ||
+    document.querySelector(`.range-pill[data-range="${range}"]`)
+  if (target) target.classList.add('active')
+
+  loadFinancials()
+}
+
+function applyCustomRange() {
+  // Custom dates clear the quick-range active state.
+  document.querySelectorAll('.range-pill').forEach(p => p.classList.remove('active'))
+  loadFinancials()
+}
+
+function toISODate(d) {
+  // Local-date YYYY-MM-DD (avoids UTC shifting "this month" back a day in AEST).
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+/* ---------- Load + render ---------- */
+async function loadFinancials() {
+  const from = document.getElementById('dateFrom').value
+  const to   = document.getElementById('dateTo').value
+  if (!from || !to) return
+
+  document.getElementById('dateRangeLabel').textContent =
+    `Showing: ${formatDateAU(from)} — ${formatDateAU(to)}`
+
+  // Reset tables to loading
+  document.getElementById('plTable').innerHTML =
+    `<tr><td colspan="2" style="padding:24px;color:var(--admin-text-faint);text-align:center;font-size:13px;">Loading…</td></tr>`
+  document.getElementById('txTableBody').innerHTML =
+    `<tr><td colspan="9"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>`
+
+  let orders = []
+  try {
+    const { data, error } = await adminSupabase
+      .from('orders')
+      .select(`
+        id, order_number, invoice_number, total, status, voided,
+        payment_method, created_at,
+        customer:customer_id(first_name, last_name, email),
+        piano:piano_id(cost_price, model, year, serial_number, brand, condition)
+      `)
+      .eq('voided', false)
+      .gte('created_at', from + 'T00:00:00')
+      .lte('created_at', to + 'T23:59:59')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    orders = data || []
+  } catch (err) {
+    console.error('[financials] load failed', err)
+    document.getElementById('txTableBody').innerHTML =
+      `<tr><td colspan="9"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load orders.</p></div></td></tr>`
+    return
+  }
+
+  // Calculate metrics
+  const revenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0)
+  const cogs    = orders.reduce((sum, o) => sum + Number(o.piano?.cost_price || 0), 0)
+  const grossProfit = revenue - cogs
+  const grossMargin = revenue > 0 ? ((grossProfit / revenue) * 100) : 0
+  const gstCollected = revenue / 11
+  const revenueExGST = revenue - gstCollected
+
+  renderMetrics({ revenue, cogs, grossProfit, grossMargin, gstCollected, revenueExGST })
+  renderPLTable({ revenue, cogs, grossProfit, grossMargin, gstCollected, revenueExGST, orders })
+  renderChart(orders, from, to)
+  renderTransactions(orders)
+  updateExportData(orders, from, to)
+}
+
+/* ---------- Section B — metric cards ---------- */
+function renderMetrics({ revenue, cogs, grossProfit, grossMargin, gstCollected, revenueExGST }) {
+  document.getElementById('mRevenue').textContent      = formatCurrency(revenue)
+  document.getElementById('mGstCollected').textContent = formatCurrency(gstCollected)
+  document.getElementById('mRevenueExGst').textContent = formatCurrency(revenueExGST)
+  document.getElementById('mCogs').textContent         = formatCurrency(cogs)
+
+  // Gross profit — green if > 0, red if < 0
+  const profitPositive = grossProfit >= 0
+  const profitCls   = profitPositive ? 'is-green' : 'is-red'
+  const profitCard  = document.getElementById('mGrossProfitCard')
+  const profitIcon  = document.getElementById('mGrossProfitIcon')
+  const profitNum   = document.getElementById('mGrossProfit')
+  profitCard.classList.remove('is-green', 'is-red'); profitCard.classList.add(profitCls)
+  profitIcon.classList.remove('is-green', 'is-red'); profitIcon.classList.add(profitCls)
+  profitNum.classList.remove('is-green', 'is-red');  profitNum.classList.add(profitCls)
+  profitNum.textContent = formatCurrency(grossProfit)
+
+  // Gross margin — green if ≥ 30%, amber otherwise
+  const marginHealthy = grossMargin >= 30
+  const marginCls   = marginHealthy ? 'is-green' : 'is-amber'
+  const marginCard  = document.getElementById('mGrossMarginCard')
+  const marginIcon  = document.getElementById('mGrossMarginIcon')
+  const marginNum   = document.getElementById('mGrossMargin')
+  marginCard.classList.remove('is-green', 'is-amber'); marginCard.classList.add(marginCls)
+  marginIcon.classList.remove('is-green', 'is-amber'); marginIcon.classList.add(marginCls)
+  marginNum.classList.remove('is-green', 'is-amber');  marginNum.classList.add(marginCls)
+  marginNum.textContent = revenue > 0 ? grossMargin.toFixed(1) + '%' : '—'
+}
+
+/* ---------- Section C — Chart ---------- */
+function renderChart(orders, from, to) {
+  const monthlyData = {}
+  orders.forEach(order => {
+    const month = order.created_at.substring(0, 7) // YYYY-MM
+    if (!monthlyData[month]) {
+      monthlyData[month] = { revenue: 0, profit: 0, count: 0 }
+    }
+    monthlyData[month].revenue += Number(order.total || 0)
+    monthlyData[month].profit  += Number(order.total || 0) - Number(order.piano?.cost_price || 0)
+    monthlyData[month].count++
+  })
+
+  const months = Object.keys(monthlyData).sort()
+  const labels = months.map(m => {
+    const [year, month] = m.split('-')
+    return new Date(year, month - 1).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' })
+  })
+  const revenueData = months.map(m => Math.round(monthlyData[m].revenue * 100) / 100)
+  const profitData  = months.map(m => Math.round(monthlyData[m].profit  * 100) / 100)
+
+  const ctx = document.getElementById('revenueChart').getContext('2d')
+  if (revenueChart) revenueChart.destroy()
+
+  revenueChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Revenue',
+          data: revenueData,
+          backgroundColor: 'rgba(184,147,90,0.3)',
+          borderColor: '#b8935a',
+          borderWidth: 1,
+          borderRadius: 4
+        },
+        {
+          label: 'Gross profit',
+          data: profitData,
+          backgroundColor: 'rgba(26,127,75,0.2)',
+          borderColor: '#1a7f4b',
+          borderWidth: 1,
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: $${ctx.raw.toLocaleString('en-AU', {minimumFractionDigits:2})}`
+          }
+        }
+      },
+      scales: {
+        y: {
+          ticks: {
+            callback: val => '$' + val.toLocaleString('en-AU', {minimumFractionDigits:0})
+          }
+        }
+      }
+    }
+  })
+}
+
+/* ---------- Section D — P&L summary table ---------- */
+function renderPLTable({ revenue, cogs, grossProfit, grossMargin, gstCollected, revenueExGST, orders }) {
+  const rows = [
+    { label: 'Sales revenue (inc GST)', value: revenue, style: 'normal' },
+    { label: 'Less: GST collected',     value: -gstCollected, style: 'muted' },
+    { label: 'Sales revenue (ex GST)',  value: revenueExGST, style: 'subtotal' },
+    { label: '', value: null, style: 'spacer' },
+    { label: 'Cost of goods sold',      value: -cogs, style: 'normal' },
+    { label: '', value: null, style: 'spacer' },
+    { label: 'Gross profit', value: grossProfit, style: grossProfit >= 0 ? 'positive' : 'negative' },
+    { label: 'Gross margin', value: null,
+      display: revenue > 0 ? grossMargin.toFixed(1) + '%' : '—',
+      style: grossMargin >= 30 ? 'positive' : 'warning' },
+    { label: '', value: null, style: 'spacer' },
+    { label: 'Number of sales', value: null,
+      display: orders.length + ' ' + (orders.length === 1 ? 'piano' : 'pianos'),
+      style: 'muted' },
+    { label: 'Average sale price', value: null,
+      display: orders.length > 0
+        ? '$' + (revenue / orders.length).toLocaleString('en-AU', {minimumFractionDigits:2})
+        : '—',
+      style: 'muted' },
+  ]
+
+  document.getElementById('plTable').innerHTML = rows.map(row => {
+    if (row.style === 'spacer') {
+      return '<tr><td colspan="2" style="padding:4px;"></td></tr>'
+    }
+
+    const valueDisplay = row.display ||
+      (row.value !== null
+        ? '$' + Math.abs(row.value).toLocaleString('en-AU', {minimumFractionDigits:2})
+        : '—')
+
+    const valueColor = {
+      positive: 'var(--admin-green)',
+      negative: 'var(--admin-red)',
+      warning:  'var(--admin-amber)',
+      subtotal: 'var(--admin-text)',
+      muted:    'var(--admin-text-muted)',
+      normal:   'var(--admin-text)'
+    }[row.style] || 'var(--admin-text)'
+
+    const prefix = row.value !== null && row.value < 0 ? '−' : ''
+    const fontWeight = ['subtotal', 'positive', 'negative'].includes(row.style) ? '500' : '400'
+    const borderBottom = row.style === 'subtotal'
+      ? 'border-bottom:2px solid var(--admin-border-dark);'
+      : 'border-bottom:1px solid var(--admin-border);'
+
+    return `
+      <tr>
+        <td style="padding:10px 12px;${borderBottom}font-size:13px;color:var(--admin-text-muted);">
+          ${esc(row.label)}
+        </td>
+        <td style="padding:10px 12px;${borderBottom}text-align:right;font-size:13px;font-weight:${fontWeight};color:${valueColor};">
+          ${prefix}${valueDisplay}
+        </td>
+      </tr>
+    `
+  }).join('')
+}
+
+/* ---------- Section E — Transactions table ---------- */
+function renderTransactions(orders) {
+  document.getElementById('txCountBadge').textContent = orders.length
+
+  const body = document.getElementById('txTableBody')
+  if (!orders.length) {
+    body.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="ti ti-receipt-off"></i><p>No transactions in this period.</p></div></td></tr>`
+    return
+  }
+
+  body.innerHTML = orders.map(o => {
+    const total  = Number(o.total || 0)
+    const cost   = Number(o.piano?.cost_price || 0)
+    const profit = total - cost
+    const margin = total > 0 ? ((profit / total) * 100) : 0
+    const marginHealthy = margin >= 30
+    const profitColor = profit >= 0 ? 'var(--admin-green)' : 'var(--admin-red)'
+
+    const customerName = `${o.customer?.first_name || ''} ${o.customer?.last_name || ''}`.trim() || '—'
+    const pianoLabel = [
+      o.piano?.brand || '',
+      o.piano?.model || '',
+      o.piano?.year ? '· ' + o.piano.year : ''
+    ].filter(Boolean).join(' ').trim() || '—'
+
+    return `
+      <tr>
+        <td>${formatDateAU(o.created_at)}</td>
+        <td class="mono">${esc(o.invoice_number || o.order_number || '—')}</td>
+        <td class="name-cell">${esc(customerName)}</td>
+        <td>${esc(pianoLabel)}</td>
+        <td style="text-align:right;color:var(--admin-gold);font-weight:500;">${formatCurrency(total)}</td>
+        <td style="text-align:right;color:var(--admin-text-muted);">${formatCurrency(cost)}</td>
+        <td style="text-align:right;color:${profitColor};font-weight:500;">${formatCurrency(profit)}</td>
+        <td><span class="margin-pill ${marginHealthy ? 'is-healthy' : 'is-low'}">${margin.toFixed(1)}%</span></td>
+        <td><span class="${statusPillClass(o.status)}">${esc(o.status || '')}</span></td>
+      </tr>
+    `
+  }).join('')
+}
+
+/* ---------- Section F — XLSX export ---------- */
+function updateExportData(orders, from, to) {
+  exportOrders = orders
+  exportFromDate = from
+  exportToDate = to
+  document.getElementById('exportBtn').disabled = orders.length === 0
+}
+
+function exportFinancials() {
+  if (!exportOrders.length) {
+    showToast('No data to export', 'warning')
+    return
+  }
+
+  const btn = document.getElementById('exportBtn')
+  const originalHtml = btn.innerHTML
+  btn.innerHTML = '<i class="ti ti-loader"></i> Generating…'
+  btn.disabled = true
+
+  try {
+    const wb = XLSX.utils.book_new()
+
+    const revenue = exportOrders.reduce((s, o) => s + Number(o.total || 0), 0)
+    const cogs    = exportOrders.reduce((s, o) => s + Number(o.piano?.cost_price || 0), 0)
+    const grossProfit = revenue - cogs
+    const gst   = revenue / 11
+    const exGST = revenue - gst
+
+    // ----- Sheet 1: Summary -----
+    const summaryData = [
+      ['Signature Pianos — Financial Summary'],
+      [`Period: ${formatDateAU(exportFromDate)} to ${formatDateAU(exportToDate)}`],
+      [`Generated: ${formatDateAU(new Date().toISOString().split('T')[0])}`],
+      [],
+      ['Metric', 'Amount (AUD)'],
+      ['Sales revenue (inc GST)', formatCurrency(revenue)],
+      ['Less: GST collected',     formatCurrency(-gst)],
+      ['Sales revenue (ex GST)',  formatCurrency(exGST)],
+      [],
+      ['Cost of goods sold',      formatCurrency(-cogs)],
+      [],
+      ['Gross profit',            formatCurrency(grossProfit)],
+      ['Gross margin %',          revenue > 0 ? ((grossProfit / revenue) * 100).toFixed(1) + '%' : '0%'],
+      [],
+      ['Number of sales',         exportOrders.length],
+      ['Average sale price',      exportOrders.length > 0 ? formatCurrency(revenue / exportOrders.length) : '$0.00'],
+    ]
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData)
+    wsSummary['!cols'] = [{ wch: 30 }, { wch: 20 }]
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary')
+
+    // ----- Sheet 2: Transactions -----
+    const txHeaders = [
+      'Date', 'Invoice #', 'Order #', 'Customer name',
+      'Customer email', 'Piano', 'Serial', 'Year',
+      'Total (inc GST)', 'Ex GST', 'GST',
+      'Cost price', 'Gross profit', 'Gross margin %',
+      'Payment method', 'Status'
+    ]
+    const txRows = exportOrders.map(o => {
+      const total = Number(o.total || 0)
+      const cost  = Number(o.piano?.cost_price || 0)
+      const profit = total - cost
+      const margin = total > 0 ? ((profit / total) * 100).toFixed(1) : '0'
+      const gstAmt = total / 11
+      const exGstAmt = total - gstAmt
+      return [
+        formatDateAU(o.created_at.split('T')[0]),
+        o.invoice_number || '',
+        o.order_number || '',
+        `${o.customer?.first_name || ''} ${o.customer?.last_name || ''}`.trim(),
+        o.customer?.email || '',
+        `${o.piano?.brand || ''} ${o.piano?.model || ''} ${o.piano?.year || ''}`.trim(),
+        o.piano?.serial_number || '',
+        o.piano?.year || '',
+        formatCurrency(total),
+        formatCurrency(exGstAmt),
+        formatCurrency(gstAmt),
+        formatCurrency(cost),
+        formatCurrency(profit),
+        margin + '%',
+        o.payment_method || '',
+        o.status || ''
+      ]
+    })
+    const txWidths = [12, 14, 12, 22, 28, 24, 12, 6, 14, 14, 12, 14, 14, 12, 16, 12]
+    const wsTransactions = XLSX.utils.aoa_to_sheet([txHeaders, ...txRows])
+    wsTransactions['!cols'] = txHeaders.map((h, i) => ({ wch: txWidths[i] || 14 }))
+    XLSX.utils.book_append_sheet(wb, wsTransactions, 'Transactions')
+
+    // ----- Sheet 3: GST Report -----
+    const gstHeaders = ['Date', 'Invoice #', 'Customer', 'Total (inc GST)', 'GST collected', 'Total (ex GST)']
+    const gstRows = exportOrders.map(o => {
+      const total = Number(o.total || 0)
+      const gstAmt = total / 11
+      return [
+        formatDateAU(o.created_at.split('T')[0]),
+        o.invoice_number || '',
+        `${o.customer?.first_name || ''} ${o.customer?.last_name || ''}`.trim(),
+        formatCurrency(total),
+        formatCurrency(gstAmt),
+        formatCurrency(total - gstAmt)
+      ]
+    })
+    const totalGST = exportOrders.reduce((s, o) => s + Number(o.total || 0) / 11, 0)
+    const totalRev = exportOrders.reduce((s, o) => s + Number(o.total || 0), 0)
+    gstRows.push([])
+    gstRows.push(['TOTAL', '', '', formatCurrency(totalRev), formatCurrency(totalGST), formatCurrency(totalRev - totalGST)])
+    const wsGST = XLSX.utils.aoa_to_sheet([gstHeaders, ...gstRows])
+    wsGST['!cols'] = [{ wch: 12 }, { wch: 14 }, { wch: 24 }, { wch: 16 }, { wch: 16 }, { wch: 16 }]
+    XLSX.utils.book_append_sheet(wb, wsGST, 'GST Report')
+
+    // ----- Sheet 4: Piano Performance -----
+    const perfHeaders = [
+      'Piano', 'Serial', 'Year', 'Condition',
+      'Cost price', 'Sale price', 'Gross profit',
+      'Margin %', 'Sale date', 'Customer'
+    ]
+    const perfRows = exportOrders.map(o => {
+      const total = Number(o.total || 0)
+      const cost  = Number(o.piano?.cost_price || 0)
+      const profit = total - cost
+      const margin = total > 0 ? ((profit / total) * 100).toFixed(1) : '0'
+      return [
+        `${o.piano?.brand || ''} ${o.piano?.model || ''}`.trim(),
+        o.piano?.serial_number || '',
+        o.piano?.year || '',
+        o.piano?.condition || '',
+        formatCurrency(cost),
+        formatCurrency(total),
+        formatCurrency(profit),
+        margin + '%',
+        formatDateAU(o.created_at.split('T')[0]),
+        `${o.customer?.first_name || ''} ${o.customer?.last_name || ''}`.trim()
+      ]
+    })
+    const wsPerf = XLSX.utils.aoa_to_sheet([perfHeaders, ...perfRows])
+    wsPerf['!cols'] = perfHeaders.map(() => ({ wch: 16 }))
+    XLSX.utils.book_append_sheet(wb, wsPerf, 'Piano Performance')
+
+    // Filename — Signature-Pianos-Financials-YYYYMMDD-YYYYMMDD.xlsx
+    const fromStr = exportFromDate.replace(/-/g, '')
+    const toStr   = exportToDate.replace(/-/g, '')
+    const filename = `Signature-Pianos-Financials-${fromStr}-${toStr}.xlsx`
+
+    XLSX.writeFile(wb, filename)
+    showToast('Exported successfully')
+  } catch (err) {
+    console.error('[financials] export failed', err)
+    showToast('Export failed — please try again.', 'error')
+  } finally {
+    btn.innerHTML = originalHtml
+    btn.disabled = exportOrders.length === 0
+  }
+}
+
+/* ---------- Format helpers ---------- */
+function formatCurrency(val) {
+  // Always 2 dp, en-AU. Negative numbers are rendered without the sign here;
+  // the P&L table prepends '−' from the row's value.
+  return '$' + Math.abs(Number(val || 0)).toLocaleString('en-AU', {
+    minimumFractionDigits: 2, maximumFractionDigits: 2
+  })
+}
+
+function formatDateAU(dateStr) {
+  if (!dateStr) return '—'
+  const [y, m, d] = String(dateStr).split('T')[0].split('-')
+  if (!y || !m || !d) return dateStr
+  return `${d}/${m}/${y}`
+}
+</script>
+
+</body>
+</html>
