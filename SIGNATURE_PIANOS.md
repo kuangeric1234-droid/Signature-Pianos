@@ -978,6 +978,15 @@ GST:                10% — always show ex and inc GST on invoices
 SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
 RESEND_API_KEY, BUSINESS_EMAIL
 
+### Supabase schema notes
+```
+Piano pricing:    sale_price only — single listed retail price
+                  Discounts applied manually in admin portal at point of sale
+Piano condition:  A+ = near mint or fully refurbished
+                  B+ = very good, age-consistent wear
+Inventory:        16 Yamaha acoustic uprights loaded May 2026
+```
+
 ---
 
 *Last updated: May 2025*

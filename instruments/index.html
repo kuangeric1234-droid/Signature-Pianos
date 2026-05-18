@@ -339,6 +339,7 @@
     gap: 28px;
   }
   .piano-card {
+    position: relative;
     background: var(--bg-2);
     border: 1px solid rgba(184, 147, 90, 0.18);
     border-radius: 4px;
@@ -350,10 +351,33 @@
   }
   .piano-card:hover { border-color: var(--gold); transform: translateY(-3px); }
   .piano-card .card-image {
+    position: relative;
     width: 100%;
     height: 200px;
     background: var(--bg-2);
     overflow: hidden;
+  }
+  /* Condition pill (A+ / B+) overlaying the top-right of each card image. */
+  .card-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+    padding: 6px 12px;
+    background: rgba(184, 147, 90, 0.15);
+    border: 1px solid rgba(184, 147, 90, 0.3);
+    color: var(--gold);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .card-badge--aplus {
+    background: rgba(212, 180, 131, 0.22);
+    border-color: rgba(212, 180, 131, 0.55);
+    color: var(--gold-light);
   }
   .piano-card .card-image img {
     width: 100%;
@@ -578,10 +602,12 @@
 
 <!-- ============ FILTERS ============ -->
 <div class="ins-filters-wrap">
-  <div class="ins-filters" role="tablist" aria-label="Filter pianos by type">
-    <button class="ins-filter-btn is-active" data-filter-type="all" type="button">All pianos</button>
-    <button class="ins-filter-btn" data-filter-type="acoustic_upright" type="button">Uprights</button>
-    <button class="ins-filter-btn" data-filter-type="acoustic_grand" type="button">Grands</button>
+  <div class="ins-filters" role="tablist" aria-label="Filter pianos">
+    <button class="ins-filter-btn is-active" data-filter="all" type="button">All</button>
+    <button class="ins-filter-btn" data-filter-condition="A+" type="button">A+ Grade</button>
+    <button class="ins-filter-btn" data-filter-condition="B+" type="button">B+ Grade</button>
+    <button class="ins-filter-btn" data-filter-type="acoustic_upright" type="button">Upright</button>
+    <button class="ins-filter-btn" data-filter-type="acoustic_grand" type="button">Grand</button>
     <button class="ins-filter-btn" data-filter-type="digital" type="button">Digital</button>
   </div>
 </div>
@@ -683,7 +709,8 @@
         .order('created_at', { ascending: false })
 
       if (filters.type) query = query.eq('type', filters.type)
-      if (filters.maxPrice) query = query.lte('price', filters.maxPrice)
+      if (filters.condition) query = query.eq('condition', filters.condition)
+      if (filters.maxPrice) query = query.lte('sale_price', filters.maxPrice)
 
       const { data, error } = await query
 
@@ -698,33 +725,36 @@
         return
       }
 
-      grid.innerHTML = data.map(piano => `
+      grid.innerHTML = data.map(piano => {
+        const badgeClass = piano.condition === 'A+' ? 'card-badge--aplus' : ''
+        const subtitle = piano.description_short
+          || (piano.year ? `${piano.year}${piano.condition ? ' · ' + piano.condition + ' condition' : ''}` : '')
+        return `
         <div class="piano-card" onclick="window.location='../piano.html?id=${piano.id}'">
-          <div class="card-image" style="background:#1a1a18;height:200px;overflow:hidden;">
+          <div class="card-image">
             <img src="${piano.images?.[0] || '/assets/piano-placeholder.jpg'}"
                  alt="${piano.brand} ${piano.model || ''}"
                  style="width:100%;height:100%;object-fit:cover;"
                  onerror="this.src='/assets/piano-placeholder.jpg'">
+            ${piano.condition ? `<div class="card-badge ${badgeClass}">${piano.condition}</div>` : ''}
           </div>
-          <div class="card-body" style="padding:20px;">
+          <div class="card-body">
             <span class="card-tag">${formatType(piano.type)}</span>
-            <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;margin:8px 0 4px;">
+            <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;margin:8px 0 6px;">
               ${piano.brand} ${piano.model || ''}
             </h3>
-            <p style="color:#9a9590;font-size:13px;margin-bottom:12px;">
-              ${piano.year ? piano.year + ' · ' : ''}${formatCondition(piano.condition)}
+            <p style="color:#9a9590;font-size:13px;line-height:1.55;margin:0 0 18px;">
+              ${subtitle}
             </p>
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <span style="color:#b8935a;font-size:18px;font-family:'Cormorant Garamond',serif;">
-                $${Number(piano.price).toLocaleString()}
-              </span>
-              <span style="font-size:11px;color:#6b6760;letter-spacing:0.08em;">
-                10 YR WARRANTY
-              </span>
+            <div style="color:#b8935a;font-size:22px;font-family:'Cormorant Garamond',serif;line-height:1;">
+              $${Number(piano.sale_price).toLocaleString()}
+            </div>
+            <div style="margin-top:6px;font-size:11px;color:#6b6760;letter-spacing:0.12em;text-transform:uppercase;">
+              10 YR WARRANTY${piano.condition ? ` · CONDITION ${piano.condition}` : ''}
             </div>
           </div>
-        </div>
-      `).join('')
+        </div>`
+      }).join('')
     } catch (err) {
       console.error('[instruments] loadPianos threw', err)
       grid.innerHTML = '<p style="color:#9a9590;text-align:center;padding:40px 0;">No pianos available right now — check back soon.</p>'
@@ -736,18 +766,18 @@
     return map[type] || type
   }
 
-  function formatCondition(condition) {
-    const map = { excellent: 'Excellent condition', good: 'Good condition', fair: 'Fair condition' }
-    return map[condition] || condition || ''
-  }
-
-  // Wire up filter chips: clicking toggles the active state + reloads the grid
-  document.querySelectorAll('[data-filter-type]').forEach(btn => {
+  // Wire up filter chips: one chip active at a time. Each chip carries
+  // either data-filter-type or data-filter-condition (or data-filter="all"
+  // for the reset). Click reads whichever attribute is present and
+  // re-queries Supabase with the matching filter.
+  document.querySelectorAll('.ins-filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-filter-type]').forEach(b => b.classList.remove('is-active'))
+      document.querySelectorAll('.ins-filter-btn').forEach(b => b.classList.remove('is-active'))
       btn.classList.add('is-active')
-      const type = btn.dataset.filterType
-      loadPianos(type === 'all' ? {} : { type })
+      const filters = {}
+      if (btn.dataset.filterType) filters.type = btn.dataset.filterType
+      if (btn.dataset.filterCondition) filters.condition = btn.dataset.filterCondition
+      loadPianos(filters)
     })
   })
 
