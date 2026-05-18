@@ -44,9 +44,15 @@
      * Final state mentions warranty + tuner booking
    ============================================================================ */
 
+// Vercel server rewrites do not expose the destination's query params to
+// the browser (window.location.search stays empty for /delivery/drop/{token}),
+// so the path segment is the reliable source. Fall back to ?token= in case
+// the page is ever opened directly with the token as a query string.
 const params = new URLSearchParams(window.location.search)
-const token = params.get('token')
-if (!token) { window.location.replace('/index.html') }
+const token  = params.get('token') || window.location.pathname.split('/').pop()
+if (!token || token === 'dropoff.html' || token === 'drop') {
+  window.location.replace('/index.html')
+}
 
 let currentDelivery = null
 let selectedPhotos = []
