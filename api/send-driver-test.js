@@ -28,9 +28,11 @@ module.exports = async (req, res) => {
 
   const isPickup = type === 'pickup'
 
+  // Match the real public routing: pickup → /delivery/{token},
+  // delivery (dropoff) → /delivery/drop/{token}.
   const tokenUrl = isPickup
     ? `${SITE_URL}/delivery/TEST_PICKUP_TOKEN`
-    : `${SITE_URL}/delivery/TEST_DELIVERY_TOKEN`
+    : `${SITE_URL}/delivery/drop/TEST_DELIVERY_TOKEN`
 
   const customer = {
     first_name:    'Jane',

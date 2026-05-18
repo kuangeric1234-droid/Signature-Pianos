@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Piano Pickup — Signature Pianos</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0e0e0d;
+      color: #f5f0e8;
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+</head>
+<body>
+
+<div id="pageContent">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;">
+    <div style="text-align:center;">
+      <div style="font-size:20px;color:#b8935a;font-style:italic;margin-bottom:16px;">Signature Pianos</div>
+      <div style="font-size:13px;color:#6b6760;">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script>
+/* ============================================================================
+   Signature Pianos — driver pickup photo flow (public, token based)
+   ----------------------------------------------------------------------------
+   Loads the delivery by pickup_link_token (anon SELECT permitted by RLS),
+   has the driver upload >=3 photos directly to the delivery-photos bucket,
+   then POSTs the photo URLs + notes to /api/driver-pickup-confirm which
+   does the row update + customer email + Eric notification under service
+   role. Token verification happens server-side inside the API.
+   ============================================================================ */
+
+const params = new URLSearchParams(window.location.search)
+const token = params.get('token')
+if (!token) { window.location.replace('/index.html') }
+
+let currentDelivery = null
+let selectedPhotos = []
+
+;(async function loadPickupPage() {
+  try {
+    const { data: delivery, error } = await _supabase
+      .from('deliveries')
+      .select(`
+        *,
+        order:order_id (
+          *,
+          customer:customer_id ( * ),
+          piano:piano_id ( * )
+        )
+      `)
+      .eq('pickup_link_token', token)
+      .maybeSingle()
+
+    if (error) throw error
+    if (!delivery) return showError('This link is invalid or has expired.')
+
+    if (['picked_up', 'in_transit', 'delivered'].includes(delivery.status)) {
+      return showAlreadyConfirmed('pickup')
+    }
+    currentDelivery = delivery
+    renderPickupPage(delivery)
+  } catch (err) {
+    console.error('[pickup] load failed', err)
+    showError('We could not load this pickup. Please try again or contact Signature Pianos.')
+  }
+})()
+
+function esc(s) {
+  if (s == null) return ''
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+
+function renderPickupPage(delivery) {
+  const piano    = delivery.order?.piano    || {}
+  const customer = delivery.order?.customer || {}
+  const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
+
+  const pickupAddress = [
+    customer.address_line1, customer.suburb, customer.state, customer.postcode,
+  ].filter(Boolean).join(', ')
+
+  document.getElementById('pageContent').innerHTML = `
+
+    <div style="background:#1a1917;padding:20px 24px;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(184,147,90,0.2);">
+      <div style="font-size:16px;color:#b8935a;font-style:italic;">Signature Pianos</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Piano pickup — photo confirmation</div>
+    </div>
+
+    <div style="padding:24px;max-width:480px;margin:0 auto;">
+
+      <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;margin-bottom:24px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-bottom:8px;">Piano to collect</div>
+        <div style="font-size:20px;font-family:'Cormorant Garamond',serif;color:#f5f0e8;font-style:italic;margin-bottom:4px;">${esc(pianoLabel)}</div>
+        <div style="font-size:12px;color:#6b6760;">
+          ${piano.serial_number ? 'Serial: ' + esc(piano.serial_number) : ''}
+          ${piano.condition ? ' · Condition: ' + esc(piano.condition) : ''}
+        </div>
+        ${pickupAddress ? `
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-top:14px;margin-bottom:4px;">Pickup from</div>
+          <div style="font-size:13px;color:#9a9590;line-height:1.6;">${esc(pickupAddress)}</div>
+        ` : ''}
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <div style="font-size:14px;font-weight:500;color:#f5f0e8;margin-bottom:12px;">Before you move this piano:</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${[
+            'Inspect the piano carefully for any existing damage',
+            'Photograph all 4 sides of the piano',
+            'Photograph the keys and any existing marks or scratches',
+            'Take at least 3 photos minimum',
+            'Upload all photos using the button below',
+          ].map((step, i) => `
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="background:#b8935a;color:#000;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;margin-top:1px;">${i + 1}</div>
+              <div style="font-size:14px;color:#9a9590;line-height:1.5;padding-top:3px;">${esc(step)}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div style="background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.3);border-radius:4px;padding:14px;margin-bottom:24px;">
+        <div style="font-size:13px;color:#e74c3c;font-weight:500;margin-bottom:4px;">Do not move the piano until photos are uploaded</div>
+        <div style="font-size:12px;color:rgba(231,76,60,0.85);line-height:1.5;">These photos protect you and Signature Pianos if any damage is claimed during transit.</div>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <div style="font-size:14px;font-weight:500;color:#f5f0e8;margin-bottom:12px;">Upload photos</div>
+
+        <div id="uploadArea" onclick="document.getElementById('photoInput').click()"
+          style="border:2px dashed rgba(184,147,90,0.3);border-radius:4px;padding:32px 20px;text-align:center;cursor:pointer;transition:border-color 0.2s ease;margin-bottom:12px;">
+          <div style="font-size:36px;margin-bottom:8px;">📷</div>
+          <div style="font-size:14px;color:#9a9590;">Tap to take photos or choose from camera roll</div>
+          <div style="font-size:12px;color:#6b6760;margin-top:4px;">Minimum 3 photos required</div>
+        </div>
+
+        <input type="file" id="photoInput"
+          accept="image/*" multiple capture="environment"
+          style="display:none"
+          onchange="handlePhotoSelect(event)">
+
+        <div id="photoPreview" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;"></div>
+        <div id="photoCount" style="font-size:12px;color:#6b6760;margin-top:8px;text-align:center;"></div>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <label style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Notes (optional)</label>
+        <textarea id="pickupNotes" rows="3"
+          placeholder="Any existing damage, marks, or notes about the piano condition..."
+          style="width:100%;padding:12px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;color:#f5f0e8;font-size:14px;resize:vertical;box-sizing:border-box;font-family:'DM Sans',sans-serif;"></textarea>
+      </div>
+
+      <button id="submitBtn" onclick="submitPickupPhotos()" disabled
+        style="width:100%;background:#444;color:#888;border:none;border-radius:4px;padding:18px;font-size:15px;font-weight:500;letter-spacing:0.05em;cursor:not-allowed;transition:all 0.2s ease;font-family:'DM Sans',sans-serif;">
+        ADD AT LEAST 3 PHOTOS TO CONTINUE
+      </button>
+
+      <div id="submitError" style="display:none;margin-top:12px;padding:12px;background:rgba(192,57,43,0.1);border-radius:4px;font-size:13px;color:#e74c3c;text-align:center;"></div>
+
+    </div>
+  `
+}
+
+/* ---------- Photo selection ---------- */
+function handlePhotoSelect(e) {
+  const files = Array.from(e.target.files || [])
+  if (!files.length) return
+  files.forEach(file => {
+    if (!file.type.startsWith('image/')) return
+    if (selectedPhotos.length >= 10) return // hard cap
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      selectedPhotos.push({ file, dataUrl: ev.target.result, name: file.name })
+      renderPhotoPreview()
+    }
+    reader.readAsDataURL(file)
+  })
+  // Reset so picking the same image twice still fires onchange.
+  e.target.value = ''
+}
+
+function renderPhotoPreview() {
+  const preview = document.getElementById('photoPreview')
+  const count   = document.getElementById('photoCount')
+  const btn     = document.getElementById('submitBtn')
+
+  preview.innerHTML = selectedPhotos.map((photo, i) => `
+    <div style="position:relative;aspect-ratio:1;border-radius:4px;overflow:hidden;">
+      <img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;">
+      <button onclick="removePhoto(${i})"
+        style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+    </div>
+  `).join('')
+
+  const n = selectedPhotos.length
+  count.textContent = `${n} photo${n !== 1 ? 's' : ''} selected`
+  count.style.color = n >= 3 ? '#1D9E75' : '#6b6760'
+
+  if (n >= 3) {
+    btn.disabled = false
+    btn.style.background = '#b8935a'
+    btn.style.color = '#000'
+    btn.style.cursor = 'pointer'
+    btn.textContent = `CONFIRM PICKUP — ${n} PHOTO${n !== 1 ? 'S' : ''}`
+  } else {
+    btn.disabled = true
+    btn.style.background = '#444'
+    btn.style.color = '#888'
+    btn.style.cursor = 'not-allowed'
+    btn.textContent = 'ADD AT LEAST 3 PHOTOS TO CONTINUE'
+  }
+}
+
+function removePhoto(i) {
+  selectedPhotos.splice(i, 1)
+  renderPhotoPreview()
+}
+
+/* ---------- Upload + submit ---------- */
+async function submitPickupPhotos() {
+  if (selectedPhotos.length < 3) return
+  const btn     = document.getElementById('submitBtn')
+  const errorEl = document.getElementById('submitError')
+  btn.disabled = true
+  errorEl.style.display = 'none'
+
+  try {
+    const uploadedUrls = []
+    const deliveryId = currentDelivery.id
+
+    for (let i = 0; i < selectedPhotos.length; i++) {
+      btn.textContent = `UPLOADING ${i + 1} OF ${selectedPhotos.length}…`
+      const photo = selectedPhotos[i]
+      const blob = await (await fetch(photo.dataUrl)).blob()
+      const filename = `${deliveryId}/pickup/${Date.now()}-${i + 1}.jpg`
+      const { error: upErr } = await _supabase.storage
+        .from('delivery-photos')
+        .upload(filename, blob, { contentType: 'image/jpeg', upsert: false })
+      if (upErr) throw upErr
+      const { data: urlData } = _supabase.storage
+        .from('delivery-photos')
+        .getPublicUrl(filename)
+      uploadedUrls.push(urlData.publicUrl)
+    }
+
+    btn.textContent = 'CONFIRMING…'
+    const res = await fetch('/api/driver-pickup-confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token,
+        photo_urls:  uploadedUrls,
+        photo_count: uploadedUrls.length,
+        notes:       document.getElementById('pickupNotes').value.trim() || null,
+      }),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (!res.ok || !result.success) {
+      console.error('[pickup] confirm API failed', result)
+      throw new Error(result.error || 'Confirm failed')
+    }
+
+    showPickupSuccess(uploadedUrls.length)
+  } catch (err) {
+    console.error('[pickup] upload failed', err)
+    btn.disabled = false
+    btn.textContent = 'TRY AGAIN'
+    btn.style.background = '#c0392b'
+    btn.style.color = '#fff'
+    errorEl.style.display = 'block'
+    errorEl.textContent = 'Upload failed — please check your connection and try again.'
+  }
+}
+
+function showPickupSuccess(count) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <div style="font-size:72px;margin-bottom:24px;color:#1D9E75;">✓</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 16px;">Pickup confirmed.</h2>
+        <p style="font-size:14px;color:#9a9590;line-height:1.7;margin:0 0 24px;">
+          ${count} photos uploaded successfully. The customer has been notified that their piano is on its way.
+        </p>
+        <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;font-size:13px;color:#6b6760;text-align:left;">
+          <div style="margin-bottom:6px;">✓ Photos saved to Signature Pianos</div>
+          <div style="margin-bottom:6px;">✓ Customer notified</div>
+          <div>✓ Delivery status updated</div>
+        </div>
+      </div>
+    </div>
+  `
+}
+
+function showAlreadyConfirmed() {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <div style="font-size:48px;margin-bottom:16px;color:#1D9E75;">✓</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Pickup already confirmed</h2>
+        <p style="font-size:13px;color:#9a9590;line-height:1.7;">This has already been submitted. Contact Signature Pianos if you need help.</p>
+      </div>
+    </div>
+  `
+}
+
+function showError(message) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <div style="font-size:48px;margin-bottom:16px;color:#b8935a;">✗</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Link not found</h2>
+        <p style="font-size:13px;color:#9a9590;line-height:1.7;">${esc(message)}</p>
+      </div>
+    </div>
+  `
+}
+</script>
+
+</body>
+</html>

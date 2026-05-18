@@ -922,7 +922,10 @@ STRIPE_SECRET_KEY
 ✓ Checkout success            checkout-success.html
 ◯ Customer portal             portal/index.html
 ◯ Teacher dashboard           portal/teacher.html
-◯ Driver flow                 delivery/[token].html
+✓ Driver pickup flow          delivery/pickup.html  (public, token)
+✓ Driver delivery flow        delivery/dropoff.html (public, token)
+✓ Driver pickup API           api/driver-pickup-confirm.js
+✓ Driver delivery API         api/driver-delivery-confirm.js
 ✓ Admin back office           admin/  — login, dashboard, enquiries,
                                        inventory (+ XLS import + service
                                        log badge + cost column),
@@ -1445,6 +1448,81 @@ Shared template:   buildDriverLiveEmail() in api/send-email.js is
                    in api/send-driver-test.js. Same layout, no
                    test banner, with scheduled date/time rows
                    added when present.
+```
+
+### Driver photo flow (pickup + delivery)
+```
+Public routes:    /delivery/{pickup_link_token}        → delivery/pickup.html
+                  /delivery/drop/{delivery_link_token} → delivery/dropoff.html
+                  Both wired in vercel.json as rewrites that pass the
+                  path segment through as ?token=... so the existing
+                  page code reads it the same way as
+                  delivery-preferences.html and payment-plan-sign.html.
+
+Pages:            Mobile-first dark/gold aesthetic. Inspect → photograph →
+                  upload. Minimum 3 photos enforced client-side (submit
+                  button is disabled until met), hard cap 10. Photo input
+                  uses accept="image/*" capture="environment" so phones
+                  open the back camera straight away. Photo grid preview
+                  with × remove buttons. Free-text notes field. Both
+                  pages handle already-confirmed and invalid-token states
+                  gracefully.
+
+Upload path:      Client uploads directly to Supabase Storage with the
+                  anon key via the new "Anon upload delivery photos"
+                  policy. Files land at:
+                    {delivery_id}/pickup/{ts}-{n}.jpg
+                    {delivery_id}/delivery/{ts}-{n}.jpg
+                  Bucket: 'delivery-photos'. Visibility: PUBLIC (override
+                  of the spec's false — the admin renders photos via
+                  plain <img src=publicUrl>, which requires public reads).
+                  Storage path is UUID-scoped so URLs aren't easily
+                  guessable.
+
+Confirm APIs:     api/driver-pickup-confirm.js and
+                  api/driver-delivery-confirm.js. Both verify the token
+                  against deliveries via service role, do the row
+                  update under the service role (bypassing the
+                  deliveries_anon_guard trigger that otherwise blocks
+                  status changes from anon), and fire the customer +
+                  Eric emails.
+
+On pickup:        deliveries.status='picked_up'
+                  + pickup_photos / pickup_notes / pickup_confirmed_at
+                  + customer email "your piano is on its way"
+                  + Eric notification with photo count + driver notes
+
+On delivery:      deliveries.status='delivered'
+                  + delivery_photos / delivery_notes / delivered_at
+                  + warranties row inserted (WRT-YYYY-XXXXX, 10 years)
+                  + tuner_bookings row inserted (auto_booked=true,
+                    proposed_date = today + 25 days, with
+                    confirmation + completion tokens minted)
+                  + 2 customer emails: arrival + warranty certificate
+                  + Eric notification w/ "Action: assign tuner" prompt
+                  + warranty.certificate_sent flipped after cert email
+
+Admin display:    admin/deliveries.html detail panel now renders both
+                  pickup and delivery photo grids via renderDeliveryPhotos().
+                  Sections only show when photos exist. Each photo is an
+                  <a target="_blank"> so admin can pop the full size.
+                  Pickup / delivery notes shown italicised below their
+                  grid when present. The Copy pickup link / Copy delivery
+                  link buttons in the same panel now hardcode the public
+                  host so URLs work from the admin.signaturepianos.com.au
+                  subdomain too.
+
+Run order:        1. supabase/driver_flow.sql in SQL editor (adds
+                     pickup_notes / delivery_notes columns + bucket +
+                     RLS — idempotent).
+                  2. Confirm storage bucket 'delivery-photos' is PUBLIC
+                     in the Supabase dashboard. SQL sets this; if it
+                     was created earlier as private the SQL flips it.
+                  3. Smoke test: assign a delivery partner with an
+                     email → Send pickup photo link → click in email →
+                     upload 3 photos → check Storage + photos appear
+                     in admin → repeat for delivery → verify the
+                     warranty + tuner_booking rows + 2 customer emails.
 ```
 
 ---
