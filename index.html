@@ -55,20 +55,20 @@
     position: fixed;
     inset: 0 0 auto 0;
     z-index: 100;
-    padding: 22px 40px;
+    padding: 18px 32px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: transparent;
-    transition: background 0.35s ease, backdrop-filter 0.35s ease, padding 0.35s ease, border-color 0.35s ease;
-    border-bottom: 1px solid transparent;
+    gap: 32px;
+    background: rgba(14, 14, 13, 0.88);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    transition: padding 0.35s ease, background 0.35s ease;
   }
   nav.scrolled {
-    background: rgba(14, 14, 13, 0.92);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
-    padding: 14px 40px;
-    border-bottom-color: var(--border);
+    background: rgba(14, 14, 13, 0.96);
+    padding: 12px 32px;
   }
 
   .logo {
@@ -77,36 +77,210 @@
     font-size: 24px;
     letter-spacing: 0.01em;
     color: var(--text-1);
+    flex-shrink: 0;
   }
   .logo span { color: var(--gold); font-style: italic; font-weight: 400; }
 
   .nav-links {
     display: flex;
     align-items: center;
-    gap: 38px;
+    gap: 32px;
   }
-  .nav-links a {
+
+  /* Plain (non-dropdown) link in the nav row */
+  .nav-link-plain {
+    font-family: 'DM Sans', sans-serif;
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--text-2);
     transition: color 0.25s ease;
-    position: relative;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
   }
-  .nav-links a::after {
+  .nav-link-plain:hover { color: var(--text-1); }
+
+  /* Dropdown trigger (Pianos / Services / Teachers) — matches the plain nav link
+     typography so the row reads as one consistent set. */
+  .nav-item--dropdown { position: relative; }
+  .nav-link-trigger {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    background: transparent;
+    border: 0;
+    padding: 6px 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.25s ease;
+  }
+  .nav-link-trigger:hover,
+  .nav-item--open .nav-link-trigger { color: var(--text-1); }
+  .nav-chevron {
+    font-size: 14px;
+    color: var(--gold);
+    transition: transform 0.25s ease;
+    opacity: 0.8;
+  }
+  .nav-item--open .nav-chevron { transform: rotate(180deg); }
+
+  /* Dropdown panel — dark, rounded, subtle gold border */
+  .nav-dropdown {
+    position: absolute;
+    top: calc(100% + 14px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    background: #14140f;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    display: grid;
+    gap: 4px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.85);
+    transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
+    z-index: 110;
+  }
+  .nav-item--open .nav-dropdown {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+  /* Invisible bridge so the cursor can travel from trigger to panel without closing */
+  .nav-dropdown::before {
     content: '';
     position: absolute;
-    left: 0; right: 0; bottom: -6px;
-    height: 1px;
-    background: var(--gold);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.3s ease;
+    top: -14px; left: 0; right: 0;
+    height: 14px;
   }
-  .nav-links a:hover { color: var(--text-1); }
-  .nav-links a:hover::after { transform: scaleX(1); }
 
+  .nav-dropdown--pianos {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    width: clamp(520px, 38vw, 620px);
+    gap: 6px 12px;
+  }
+  .nav-dropdown--services {
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    width: clamp(620px, 44vw, 720px);
+    gap: 6px 8px;
+  }
+  .nav-dropdown--teachers {
+    grid-template-columns: 1fr;
+    width: clamp(540px, 40vw, 640px);
+    gap: 0;
+    padding: 14px;
+  }
+
+  .nav-dd-section { padding: 8px 4px; }
+  .nav-dd-section + .nav-dd-section {
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+    padding-top: 16px;
+  }
+  .nav-dd-section-label {
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin: 2px 14px 12px;
+  }
+  .nav-dd-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+
+  .nav-dd-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s ease;
+  }
+  .nav-dd-item:hover { background: rgba(184, 147, 90, 0.07); }
+  .nav-dd-icon {
+    font-size: 20px;
+    color: var(--gold);
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .nav-dd-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .nav-dd-text h4 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-1);
+    margin: 0;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.3;
+  }
+  .nav-dd-text p {
+    font-size: 12px;
+    color: var(--text-3);
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  /* Right-side CTA cluster: account icon + Book a visit */
+  .nav-ctas {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  /* Circular person-icon trigger for the account dropdown */
+  .nav-account-trigger {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--gold);
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+  .nav-account-trigger:hover,
+  .nav-item--account.nav-item--open .nav-account-trigger {
+    border-color: var(--gold);
+    background: rgba(184, 147, 90, 0.10);
+  }
+
+  /* Account dropdown is right-aligned to the icon (overrides the centered
+     transform from the base .nav-dropdown rule). */
+  .nav-dropdown--account {
+    grid-template-columns: 1fr;
+    width: clamp(320px, 26vw, 420px);
+    left: auto;
+    right: 0;
+    transform: translateY(-6px);
+    gap: 2px;
+  }
+  .nav-item--open .nav-dropdown--account {
+    transform: translateY(0);
+  }
+
+  /* Restored original gold-bordered "Book a visit" pill */
   .nav-cta {
     border: 1px solid var(--gold);
     color: var(--gold);
@@ -714,6 +888,10 @@
     background: var(--bg-2);
     padding: 120px 40px;
     position: relative;
+    /* Sit above the detached zoom canvas (z-index 5) and form overlay
+       (z-index 6) so the matcher slides up directly under the buyer's
+       guide / piano keys with no visible page-background gap. */
+    z-index: 10;
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
   }
@@ -850,88 +1028,176 @@
   }
   .find-btn:hover { background: var(--gold-light); transform: translateY(-1px); }
 
-  /* ============ FEATURED INSTRUMENTS ============ */
+  /* ============ TRUST & STORY (§2) ============ */
+  .trust {
+    padding: 140px 40px;
+    background: var(--bg-1);
+    border-top: 1px solid var(--border);
+  }
+  .trust-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 5fr 6fr;
+    gap: clamp(40px, 6vw, 96px);
+    align-items: center;
+  }
+  .trust-photo {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(184, 147, 90, 0.18), transparent 60%),
+      linear-gradient(180deg, #1f1812, #0a0807);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .trust-photo-placeholder {
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .trust-body {
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--text-2);
+    margin: 0 0 48px 0;
+    max-width: 560px;
+  }
+  .trust-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    padding-top: 36px;
+    border-top: 1px solid var(--border);
+  }
+  .trust-stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(36px, 4vw, 52px);
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .trust-stat-label {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  /* ============ FEATURED PIANOS (§3) ============ */
   .featured {
     padding: 120px 40px;
-    background: var(--bg-1);
+    background: var(--bg-2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
   }
   .featured-inner {
     max-width: 1400px;
     margin: 0 auto;
   }
+  .featured-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 64px;
+  }
+  .featured-header-text { max-width: 720px; }
   .piano-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 28px;
-    margin-top: 56px;
-    margin-bottom: 36px;
+    gap: 32px;
   }
   .piano-card {
-    background: var(--bg-2);
+    background: var(--bg-1);
     border: 1px solid var(--border);
-    cursor: pointer;
-    will-change: transform;
-    transform-style: preserve-3d;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
     display: block;
     color: inherit;
+    transition: border-color 0.3s ease, transform 0.4s ease, box-shadow 0.4s ease;
   }
   .piano-card:hover {
     border-color: var(--border-hover);
-    box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.6);
+    transform: translateY(-4px);
+    box-shadow: 0 30px 50px -25px rgba(0, 0, 0, 0.8);
   }
   .piano-card-image {
     position: relative;
-    height: 260px;
+    aspect-ratio: 4 / 3;
     overflow: hidden;
   }
-  .piano-card-image--grand {
+  .piano-card-image--a {
     background:
-      radial-gradient(ellipse at 30% 60%, rgba(184, 147, 90, 0.25), transparent 60%),
+      radial-gradient(ellipse at 30% 60%, rgba(184, 147, 90, 0.28), transparent 60%),
       linear-gradient(135deg, #1f1812, #0a0807);
   }
-  .piano-card-image--upright {
+  .piano-card-image--b {
     background:
-      radial-gradient(ellipse at 60% 40%, rgba(184, 147, 90, 0.20), transparent 55%),
+      radial-gradient(ellipse at 60% 40%, rgba(184, 147, 90, 0.22), transparent 55%),
       linear-gradient(160deg, #1a1714, #0c0a09);
   }
-  .piano-card-image--digital {
+  .piano-card-image--c {
     background:
-      radial-gradient(ellipse at 50% 70%, rgba(184, 147, 90, 0.15), transparent 50%),
+      radial-gradient(ellipse at 50% 70%, rgba(184, 147, 90, 0.18), transparent 50%),
       linear-gradient(180deg, #1a1a18, #0e0e0d);
   }
-  .piano-card-tag {
+  .piano-card-grade {
     position: absolute;
-    top: 18px;
-    left: 20px;
+    top: 16px;
+    right: 18px;
     font-size: 10px;
-    letter-spacing: 0.24em;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     color: var(--gold);
     font-weight: 500;
+    padding: 6px 10px;
+    border: 1px solid var(--gold);
+    background: rgba(14, 14, 13, 0.55);
   }
   .piano-card-body {
     padding: 28px 28px 30px;
+  }
+  .piano-card-brand {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin: 0 0 10px 0;
   }
   .piano-card-name {
     font-family: 'Cormorant Garamond', serif;
     font-weight: 400;
     font-size: 28px;
     line-height: 1.2;
-    margin: 0 0 8px 0;
+    margin: 0 0 22px 0;
     color: var(--text-1);
   }
-  .piano-card-brand {
-    font-size: 13px;
-    color: var(--text-2);
-    margin: 0 0 20px 0;
-  }
   .piano-card-price {
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .piano-card-price-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 22px;
     color: var(--gold);
-    margin: 0;
+  }
+  .piano-card-arrow {
+    font-size: 18px;
+    color: var(--text-3);
+    transition: color 0.3s ease, transform 0.3s ease;
+  }
+  .piano-card:hover .piano-card-arrow {
+    color: var(--gold);
+    transform: translateX(4px);
   }
   .featured-cta-link {
     font-size: 12px;
@@ -946,69 +1212,323 @@
   }
   .featured-cta-link:hover { color: var(--gold); gap: 16px; }
 
-  /* ============ WHY SIGNATURE ============ */
-  .why {
+  /* ============ THE FULL JOURNEY (§4) ============ */
+  .journey {
+    padding: 140px 40px;
+    background: var(--bg-1);
+  }
+  .journey-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .journey-header { max-width: 720px; margin: 0 auto 80px; }
+  .journey-header .section-h2 { margin-left: auto; margin-right: auto; }
+  .journey-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    position: relative;
+  }
+  .journey-steps::before {
+    content: '';
+    position: absolute;
+    top: 48px;
+    left: 18%;
+    right: 18%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border) 20%, var(--border) 80%, transparent);
+  }
+  .journey-step {
+    background: transparent;
+    padding: 0 20px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    border: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease;
+  }
+  .journey-step:hover { transform: translateY(-4px); }
+  .journey-step-icon-wrap {
+    width: 96px;
+    height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    border-radius: 50%;
+    margin-bottom: 28px;
+    font-size: 36px;
+    color: var(--gold);
+    transition: border-color 0.3s ease, background 0.3s ease;
+    position: relative;
+    z-index: 1;
+  }
+  .journey-step:hover .journey-step-icon-wrap {
+    border-color: var(--gold);
+    background: var(--bg-3);
+  }
+  .journey-step-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 26px;
+    margin: 0 0 8px 0;
+    color: var(--text-1);
+  }
+  .journey-step-hint {
+    font-size: 13px;
+    color: var(--text-3);
+    margin: 0;
+  }
+
+  /* ============ HOW IT WORKS / DELIVERY FLOW (§5) ============ */
+  .flow {
     padding: 120px 40px;
     background: var(--bg-2);
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
   }
-  .why-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-  .features-grid {
+  .flow-inner { max-width: 1400px; margin: 0 auto; }
+  .flow-header { max-width: 720px; margin-bottom: 64px; }
+  .flow-steps {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 1px;
-    margin-top: 56px;
     background: var(--border);
+    border: 1px solid var(--border);
   }
-  .feature {
-    background: var(--bg-2);
-    padding: 48px 44px;
+  .flow-step {
+    background: var(--bg-1);
+    padding: 40px 32px 44px;
+    display: flex;
+    flex-direction: column;
     transition: background 0.3s ease;
   }
-  .feature:hover { background: var(--bg-3); }
-  .feature-icon {
-    font-size: 32px;
+  .flow-step:hover { background: var(--bg-3); }
+  .flow-step-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
     color: var(--gold);
-    margin-bottom: 20px;
+    letter-spacing: 0.22em;
+    margin-bottom: 24px;
+  }
+  .flow-step-icon {
+    font-size: 34px;
+    color: var(--gold);
+    margin-bottom: 24px;
     display: block;
   }
-  .feature-title {
+  .flow-step-title {
     font-family: 'Cormorant Garamond', serif;
     font-weight: 400;
-    font-size: 28px;
-    margin: 0 0 14px 0;
+    font-size: 24px;
+    margin: 0 0 10px 0;
     color: var(--text-1);
   }
-  .feature-body {
-    font-size: 15px;
+  .flow-step-hint {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  /* ============ TEACHER MARKETPLACE (§6) ============ */
+  .teachers-band {
+    padding: 140px 40px;
+    background: var(--bg-1);
+  }
+  .teachers-band-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: 32px;
+    align-items: stretch;
+  }
+  .tb-student { padding: 0; }
+  .tb-search-row {
+    display: flex;
+    gap: 12px;
+    margin: 28px 0 36px;
+    max-width: 520px;
+  }
+  .tb-search-input {
+    flex: 1;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    color: var(--text-1);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 18px 22px;
+    outline: none;
+    transition: border-color 0.25s ease;
+  }
+  .tb-search-input::placeholder { color: var(--text-3); }
+  .tb-search-input:focus { border-color: var(--gold); }
+  .tb-search-btn {
+    background: var(--gold);
+    color: var(--bg-1);
+    border: 0;
+    padding: 0 28px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease;
+  }
+  .tb-search-btn:hover { background: var(--gold-light); }
+  .tb-teacher-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .tb-teacher-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    padding: 20px 22px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+  .tb-teacher-card:hover { border-color: var(--border-hover); background: var(--bg-3); }
+  .tb-teacher-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(184, 147, 90, 0.5), transparent 70%),
+      linear-gradient(135deg, #2a2520, #0e0e0d);
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+  .tb-teacher-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 18px;
+    margin: 0 0 2px 0;
+    color: var(--text-1);
+  }
+  .tb-teacher-meta {
+    font-size: 12px;
+    color: var(--text-3);
+    margin: 0;
+  }
+  .tb-pro {
+    background:
+      radial-gradient(ellipse at 80% 0%, rgba(184, 147, 90, 0.18), transparent 60%),
+      var(--bg-3);
+    border: 1px solid var(--gold);
+    padding: 44px 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 28px;
+  }
+  .tb-pro-label {
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .tb-pro-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(28px, 2.4vw, 36px);
+    line-height: 1.15;
+    color: var(--text-1);
+    margin: 18px 0 14px 0;
+  }
+  .tb-pro-headline em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .tb-pro-body {
+    font-size: 14px;
     line-height: 1.7;
     color: var(--text-2);
     margin: 0;
-    max-width: 480px;
   }
+  .tb-pro-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 24px;
+    background: var(--gold);
+    color: var(--bg-1);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    transition: background 0.25s ease;
+    border: 0;
+    cursor: pointer;
+  }
+  .tb-pro-cta:hover { background: var(--gold-light); }
 
-  /* ============ TESTIMONIALS ============ */
-  .testimonials {
+  /* ============ SOCIAL PROOF (§7) ============ */
+  .proof {
     padding: 120px 40px;
-    background: var(--bg-1);
+    background: var(--bg-2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
   }
-  .testimonials-inner {
-    max-width: 1400px;
-    margin: 0 auto;
+  .proof-inner { max-width: 1400px; margin: 0 auto; }
+  .proof-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 40px;
+    align-items: end;
+    margin-bottom: 56px;
+  }
+  .proof-google {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    border: 1px solid var(--border);
+    padding: 20px 24px;
+    background: var(--bg-1);
+    justify-self: end;
+    min-width: 240px;
+  }
+  .proof-google-row { display: flex; align-items: baseline; gap: 12px; }
+  .proof-google-stars {
+    font-size: 16px;
+    color: var(--gold);
+    letter-spacing: 2px;
+  }
+  .proof-google-rating {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    color: var(--text-1);
+    line-height: 1;
+  }
+  .proof-google-meta {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .proof-body {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+    align-items: stretch;
   }
   .testimonial-cards {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
-    margin-top: 56px;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-content: start;
   }
   .testimonial {
-    background: var(--bg-2);
-    padding: 36px 32px;
+    background: var(--bg-1);
+    padding: 32px 28px;
     border-left: 2px solid var(--gold);
     margin: 0;
   }
@@ -1016,59 +1536,52 @@
     font-family: 'Cormorant Garamond', serif;
     font-style: italic;
     font-weight: 400;
-    font-size: 22px;
+    font-size: 19px;
     line-height: 1.5;
     color: var(--text-1);
-    margin: 0 0 28px 0;
+    margin: 0 0 24px 0;
   }
   .testimonial cite {
     font-style: normal;
     font-size: 11px;
-    letter-spacing: 0.20em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--text-3);
   }
-
-  /* ============ CTA BANNER ============ */
-  .cta-banner {
-    padding: 120px 40px;
-    background: var(--bg-2);
-    text-align: center;
-    border-top: 1px solid var(--border);
+  .testimonial--feature { grid-column: span 2; }
+  .proof-photo {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    background:
+      radial-gradient(ellipse at 30% 30%, rgba(184, 147, 90, 0.18), transparent 60%),
+      linear-gradient(180deg, #1f1812, #0a0807);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: end;
+    padding: 24px;
+    overflow: hidden;
   }
-  .cta-inner {
-    max-width: 720px;
-    margin: 0 auto;
-  }
-  .cta-headline {
+  .proof-photo-caption {
     font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-size: clamp(36px, 4vw, 56px);
-    line-height: 1.1;
-    margin: 0 0 20px 0;
-    color: var(--text-1);
-  }
-  .cta-headline em { font-style: italic; color: var(--gold); font-weight: 400; }
-  .cta-sub {
-    font-size: 16px;
-    line-height: 1.7;
+    font-style: italic;
+    font-size: 14px;
     color: var(--text-2);
-    margin: 0 0 36px 0;
+    max-width: 220px;
   }
 
-  /* ============ FOOTER ============ */
+  /* ============ FOOTER (§8) ============ */
   .footer {
     background: var(--bg-1);
-    padding: 80px 40px 0;
+    padding: 96px 40px 0;
     border-top: 1px solid var(--border);
   }
   .footer-inner {
     max-width: 1400px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 64px;
-    padding-bottom: 56px;
+    grid-template-columns: 1.6fr repeat(4, 1fr);
+    gap: 48px;
+    padding-bottom: 64px;
   }
   .footer-brand .logo { font-size: 26px; }
   .footer-tagline {
@@ -1077,7 +1590,7 @@
     font-size: 18px;
     color: var(--text-2);
     margin: 18px 0 0 0;
-    max-width: 320px;
+    max-width: 280px;
   }
   .footer-col-title {
     font-size: 10px;
@@ -1098,7 +1611,7 @@
   .footer-contact {
     font-size: 14px;
     color: var(--text-2);
-    margin: 0 0 12px 0;
+    margin: 14px 0 0 0;
     line-height: 1.6;
   }
   .footer-socials {
@@ -1136,14 +1649,28 @@
   }
   .footer-bottom a:hover { color: var(--text-1); }
 
-  /* Mobile adjustments for all new sections */
+  /* Mobile adjustments for all bottom sections */
   @media (max-width: 960px) {
-    .featured, .why, .testimonials, .cta-banner { padding: 80px 24px; }
-    .piano-cards, .testimonial-cards { grid-template-columns: 1fr; }
-    .features-grid { grid-template-columns: 1fr; }
-    .feature { padding: 36px 28px; }
+    .trust, .featured, .journey, .flow, .teachers-band, .proof { padding: 80px 24px; }
+    .trust-inner { grid-template-columns: 1fr; gap: 40px; }
+    .trust-stats { gap: 20px; }
+    .featured-header { flex-direction: column; align-items: flex-start; }
+    .piano-cards { grid-template-columns: 1fr; }
+    .journey-header { margin-bottom: 48px; }
+    .journey-steps { grid-template-columns: 1fr; gap: 36px; }
+    .journey-steps::before { display: none; }
+    .flow-steps { grid-template-columns: 1fr; }
+    .teachers-band-inner { grid-template-columns: 1fr; }
+    .tb-teacher-cards { grid-template-columns: 1fr; }
+    .tb-pro { padding: 36px 28px; }
+    .proof-header { grid-template-columns: 1fr; gap: 28px; }
+    .proof-google { justify-self: start; }
+    .proof-body { grid-template-columns: 1fr; }
+    .testimonial-cards { grid-template-columns: 1fr; }
+    .testimonial--feature { grid-column: span 1; }
     .footer { padding: 60px 24px 0; }
-    .footer-inner { grid-template-columns: 1fr; gap: 40px; }
+    .footer-inner { grid-template-columns: 1fr 1fr; gap: 36px; }
+    .footer-brand { grid-column: span 2; }
   }
 
   /* ============ MATCH POPUP ============ */
@@ -1231,7 +1758,7 @@
   @media (max-width: 960px) {
     nav { padding: 18px 24px; }
     nav.scrolled { padding: 12px 24px; }
-    .nav-links, .nav-cta { display: none; }
+    .nav-links, .nav-ctas { display: none; }
     .nav-burger { display: inline-flex; }
 
     .hero { padding: 120px 24px 0; }
@@ -1270,12 +1797,149 @@
 <nav id="nav">
   <a href="#" class="logo">Signature <span>Pianos</span></a>
   <div class="nav-links">
-    <a href="instruments.html">Instruments</a>
-    <a href="#matcher">Find My Piano</a>
-    <a href="teachers.html">Teachers</a>
-    <a href="#">Our Story</a>
+
+    <!-- Pianos dropdown — products only -->
+    <div class="nav-item nav-item--dropdown">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Pianos <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--pianos" role="menu">
+        <a href="instruments.html?cat=upright" class="nav-dd-item">
+          <i class="ti ti-bookmark nav-dd-icon"></i>
+          <div class="nav-dd-text">
+            <h4>Used Japanese uprights</h4>
+            <p>Hand-selected, imported direct from Japan</p>
+          </div>
+        </a>
+        <a href="instruments.html?cat=grand" class="nav-dd-item">
+          <i class="ti ti-crown nav-dd-icon"></i>
+          <div class="nav-dd-text">
+            <h4>Used Japanese grands</h4>
+            <p>Concert &amp; baby grands, fully restored</p>
+          </div>
+        </a>
+        <a href="instruments.html?cat=digital" class="nav-dd-item">
+          <i class="ti ti-music nav-dd-icon"></i>
+          <div class="nav-dd-text">
+            <h4>Digital pianos</h4>
+            <p>Modern instruments for any space</p>
+          </div>
+        </a>
+        <a href="instruments.html?cat=books" class="nav-dd-item">
+          <i class="ti ti-book nav-dd-icon"></i>
+          <div class="nav-dd-text">
+            <h4>Sheet music &amp; books</h4>
+            <p>For students and teachers alike</p>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Services dropdown — clean & focused -->
+    <div class="nav-item nav-item--dropdown">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Services <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--services" role="menu">
+        <a href="services/delivery-warranty.html" class="nav-dd-item">
+          <i class="ti ti-truck-delivery nav-dd-icon"></i>
+          <div class="nav-dd-text">
+            <h4>Delivery &amp; warranty</h4>
+            <p>White glove delivery, tracked end to end</p>
+          </div>
+        </a>
+        <a href="#" class="nav-dd-item">
+          <i class="ti ti-calendar-event nav-dd-icon"></i>
+          <div class="nav-dd-text">
+            <h4>Book a viewing</h4>
+            <p>Visit our showroom, try before you buy</p>
+          </div>
+        </a>
+        <a href="#" class="nav-dd-item">
+          <i class="ti ti-tool nav-dd-icon"></i>
+          <div class="nav-dd-text">
+            <h4>Tuning &amp; servicing</h4>
+            <p>Keep your piano in perfect condition</p>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Teachers dropdown — two audiences, one click -->
+    <div class="nav-item nav-item--dropdown">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Teachers <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--teachers" role="menu">
+        <div class="nav-dd-section">
+          <div class="nav-dd-section-label">For students</div>
+          <div class="nav-dd-grid">
+            <a href="teachers.html" class="nav-dd-item">
+              <i class="ti ti-search nav-dd-icon"></i>
+              <div class="nav-dd-text">
+                <h4>Find a teacher</h4>
+                <p>Browse local piano teachers by suburb</p>
+              </div>
+            </a>
+            <a href="teachers.html?nearby=1" class="nav-dd-item">
+              <i class="ti ti-map-pin nav-dd-icon"></i>
+              <div class="nav-dd-text">
+                <h4>Teachers near me</h4>
+                <p>Use your location to find teachers close by</p>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="nav-dd-section">
+          <div class="nav-dd-section-label">For teachers</div>
+          <div class="nav-dd-grid">
+            <a href="teachers.html#signup" class="nav-dd-item">
+              <i class="ti ti-list-details nav-dd-icon"></i>
+              <div class="nav-dd-text">
+                <h4>List your studio</h4>
+                <p>Free listing, reach new students instantly</p>
+              </div>
+            </a>
+            <a href="teachers.html#dashboard" class="nav-dd-item">
+              <i class="ti ti-layout-grid nav-dd-icon"></i>
+              <div class="nav-dd-text">
+                <h4>Teacher dashboard</h4>
+                <p>Manage bookings, students &amp; your schedule</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <a href="#story" class="nav-link-plain">About</a>
   </div>
-  <button class="nav-cta">Book a visit</button>
+
+  <div class="nav-ctas">
+    <!-- Account dropdown — circular person icon, right-aligned panel -->
+    <div class="nav-item nav-item--dropdown nav-item--account">
+      <button class="nav-account-trigger" type="button" aria-expanded="false" aria-haspopup="true" aria-label="Account">
+        <i class="ti ti-user"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--account" role="menu">
+        <a href="#" class="nav-dd-item">
+          <i class="ti ti-user nav-dd-icon"></i>
+          <div class="nav-dd-text">
+            <h4>Customer portal</h4>
+            <p>Track delivery, view purchases, manage warranty</p>
+          </div>
+        </a>
+        <a href="teachers.html#dashboard" class="nav-dd-item">
+          <i class="ti ti-music nav-dd-icon"></i>
+          <div class="nav-dd-text">
+            <h4>Teacher dashboard</h4>
+            <p>Manage bookings, students &amp; your studio</p>
+          </div>
+        </a>
+      </div>
+    </div>
+    <button class="nav-cta">Book a visit</button>
+  </div>
   <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
 </nav>
 
@@ -1458,116 +2122,244 @@
   </div>
 </section>
 
-<!-- ============ FEATURED INSTRUMENTS ============ -->
+<!-- ============ §2 TRUST & STORY ============ -->
+<section class="trust" id="story">
+  <div class="trust-inner">
+    <div class="trust-photo reveal">
+      <span class="trust-photo-placeholder">Owner / Workshop photo</span>
+    </div>
+    <div class="trust-copy">
+      <div class="section-label reveal">Why Japanese pianos</div>
+      <h2 class="section-h2 reveal">Built in Hamamatsu. <em>Tuned</em> for your home.</h2>
+      <p class="trust-body reveal">For over a decade we've hand-picked Yamaha, Kawai and Shigeru Kawai instruments straight from Japan's certified rebuild houses — then quality-checked every one in our Melbourne workshop before it earns the Signature badge.</p>
+      <div class="trust-stats reveal-stagger">
+        <div class="trust-stat">
+          <div class="trust-stat-num">12</div>
+          <div class="trust-stat-label">Years in Melbourne</div>
+        </div>
+        <div class="trust-stat">
+          <div class="trust-stat-num">800+</div>
+          <div class="trust-stat-label">Pianos placed</div>
+        </div>
+        <div class="trust-stat">
+          <div class="trust-stat-num">4.9★</div>
+          <div class="trust-stat-label">Customer rating</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §3 FEATURED PIANOS ============ -->
 <section class="featured" id="instruments">
   <div class="featured-inner">
-    <div class="section-label reveal">Our collection</div>
-    <h2 class="section-h2 reveal">Pianos for every <em>journey</em>.</h2>
-    <p class="section-body reveal">New, pre-loved, acoustic and digital — curated for Melbourne homes and studios.</p>
-
+    <div class="featured-header">
+      <div class="featured-header-text">
+        <div class="section-label reveal">This week's collection</div>
+        <h2 class="section-h2 reveal">Three pianos. <em>Hand-picked</em> for you.</h2>
+      </div>
+      <a href="instruments.html" class="featured-cta-link reveal">View all pianos <i class="ti ti-arrow-right"></i></a>
+    </div>
     <div class="piano-cards reveal-stagger">
-      <a href="instruments.html?category=grand" class="piano-card">
-        <div class="piano-card-image piano-card-image--grand">
-          <span class="piano-card-tag">Grand Piano</span>
+      <a href="instruments.html" class="piano-card">
+        <div class="piano-card-image piano-card-image--a">
+          <span class="piano-card-grade">Grade A</span>
         </div>
         <div class="piano-card-body">
-          <h3 class="piano-card-name">Concert & salon grands</h3>
-          <p class="piano-card-brand">Yamaha · Kawai · Shigeru Kawai</p>
-          <p class="piano-card-price">From $18,000</p>
+          <p class="piano-card-brand">Yamaha · C3X</p>
+          <h3 class="piano-card-name">Conservatory grand</h3>
+          <div class="piano-card-price">
+            <span class="piano-card-price-value">$32,800</span>
+            <i class="ti ti-arrow-right piano-card-arrow"></i>
+          </div>
         </div>
       </a>
-
-      <a href="instruments.html?category=upright" class="piano-card">
-        <div class="piano-card-image piano-card-image--upright">
-          <span class="piano-card-tag">Upright</span>
+      <a href="instruments.html" class="piano-card">
+        <div class="piano-card-image piano-card-image--b">
+          <span class="piano-card-grade">Grade A+</span>
         </div>
         <div class="piano-card-body">
-          <h3 class="piano-card-name">Upright pianos</h3>
-          <p class="piano-card-brand">Yamaha · Kawai & more</p>
-          <p class="piano-card-price">From $4,200</p>
+          <p class="piano-card-brand">Shigeru Kawai · SK-2</p>
+          <h3 class="piano-card-name">Salon grand</h3>
+          <div class="piano-card-price">
+            <span class="piano-card-price-value">$58,400</span>
+            <i class="ti ti-arrow-right piano-card-arrow"></i>
+          </div>
         </div>
       </a>
-
-      <a href="instruments.html?category=digital" class="piano-card">
-        <div class="piano-card-image piano-card-image--digital">
-          <span class="piano-card-tag">Digital</span>
+      <a href="instruments.html" class="piano-card">
+        <div class="piano-card-image piano-card-image--c">
+          <span class="piano-card-grade">Grade B+</span>
         </div>
         <div class="piano-card-body">
-          <h3 class="piano-card-name">Digital pianos</h3>
-          <p class="piano-card-brand">Roland · Kawai · Casio</p>
-          <p class="piano-card-price">From $899</p>
+          <p class="piano-card-brand">Kawai · K-500</p>
+          <h3 class="piano-card-name">Studio upright</h3>
+          <div class="piano-card-price">
+            <span class="piano-card-price-value">$6,900</span>
+            <i class="ti ti-arrow-right piano-card-arrow"></i>
+          </div>
         </div>
       </a>
-    </div>
-
-    <a href="instruments.html" class="featured-cta-link reveal">View full collection <i class="ti ti-arrow-right"></i></a>
-  </div>
-</section>
-
-<!-- ============ WHY SIGNATURE ============ -->
-<section class="why">
-  <div class="why-inner">
-    <div class="section-label reveal">Why Signature</div>
-    <h2 class="section-h2 reveal">Built for the way you'll <em>actually</em> use it.</h2>
-
-    <div class="features-grid reveal-stagger">
-      <div class="feature">
-        <i class="ti ti-sparkles feature-icon"></i>
-        <h3 class="feature-title">AI piano matching</h3>
-        <p class="feature-body">Answer 3 questions. Our AI matches you to in-stock pianos based on your level, space, and budget — no pushy upsells.</p>
-      </div>
-      <div class="feature">
-        <i class="ti ti-calendar-event feature-icon"></i>
-        <h3 class="feature-title">Post-sale care hub</h3>
-        <p class="feature-body">Book tuning, get care reminders, and access your piano's full history — all from your personal owner dashboard.</p>
-      </div>
-      <div class="feature">
-        <i class="ti ti-users feature-icon"></i>
-        <h3 class="feature-title">Piano teacher matching</h3>
-        <p class="feature-body">Once you have your piano, we connect you with verified Melbourne teachers matched to your style and goals.</p>
-      </div>
-      <div class="feature">
-        <i class="ti ti-truck-delivery feature-icon"></i>
-        <h3 class="feature-title">White-glove delivery</h3>
-        <p class="feature-body">Professional delivery and in-home placement anywhere in greater Melbourne. Followed by a complimentary first tuning.</p>
-      </div>
     </div>
   </div>
 </section>
 
-<!-- ============ TESTIMONIALS ============ -->
-<section class="testimonials">
-  <div class="testimonials-inner">
-    <div class="section-label reveal">From buyers</div>
-    <h2 class="section-h2 reveal">Quiet rooms. <em>Loud praise</em>.</h2>
-
-    <div class="testimonial-cards reveal-stagger">
-      <blockquote class="testimonial">
-        <p>The matching tool sent me straight to the right piano. I was in and out in 40 minutes with a Kawai I love.</p>
-        <cite>Sarah M. · Fitzroy</cite>
-      </blockquote>
-      <blockquote class="testimonial">
-        <p>No other piano shop in Melbourne feels this modern. They even matched me to a teacher the same week.</p>
-        <cite>James T. · South Yarra</cite>
-      </blockquote>
-      <blockquote class="testimonial">
-        <p>The post-sale portal is genuinely useful. My tuning reminders just appear — I've never missed one.</p>
-        <cite>Elena K. · Brunswick</cite>
-      </blockquote>
+<!-- ============ §4 THE FULL JOURNEY ============ -->
+<section class="journey">
+  <div class="journey-inner">
+    <div class="journey-header">
+      <div class="section-label reveal">Your full journey</div>
+      <h2 class="section-h2 reveal">We support your entire <em>musical journey</em>.</h2>
+    </div>
+    <div class="journey-steps reveal-stagger">
+      <a href="#matcher" class="journey-step">
+        <div class="journey-step-icon-wrap"><i class="ti ti-music"></i></div>
+        <h3 class="journey-step-title">Find your piano</h3>
+        <p class="journey-step-hint">Match in 90 seconds</p>
+      </a>
+      <a href="#teachers" class="journey-step">
+        <div class="journey-step-icon-wrap"><i class="ti ti-user-star"></i></div>
+        <h3 class="journey-step-title">Find a teacher</h3>
+        <p class="journey-step-hint">80+ verified locals</p>
+      </a>
+      <a href="instruments.html" class="journey-step">
+        <div class="journey-step-icon-wrap"><i class="ti ti-sparkles"></i></div>
+        <h3 class="journey-step-title">Start playing</h3>
+        <p class="journey-step-hint">From day one</p>
+      </a>
     </div>
   </div>
 </section>
 
-<!-- ============ CTA BANNER ============ -->
-<section class="cta-banner">
-  <div class="cta-inner reveal">
-    <h2 class="cta-headline">Ready to find your <em>piano</em>?</h2>
-    <p class="cta-sub">Come into our Melbourne showroom or start online. No pressure. Just great pianos and honest advice.</p>
-    <button class="btn-primary">Book a showroom visit</button>
+<!-- ============ §5 HOW IT WORKS (DELIVERY FLOW) ============ -->
+<section class="flow">
+  <div class="flow-inner">
+    <div class="flow-header">
+      <div class="section-label reveal">How it works</div>
+      <h2 class="section-h2 reveal">Your piano. <em>Delivered, tuned, tracked</em>.</h2>
+      <p class="section-body reveal">No other Melbourne shop shows you exactly what happens after you buy. We do — because we built the system ourselves.</p>
+    </div>
+    <div class="flow-steps reveal-stagger">
+      <div class="flow-step">
+        <div class="flow-step-num">01</div>
+        <i class="ti ti-credit-card flow-step-icon"></i>
+        <h3 class="flow-step-title">Purchase</h3>
+        <p class="flow-step-hint">Secure online or in-showroom. A deposit holds your instrument while we prep it.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">02</div>
+        <i class="ti ti-calendar-event flow-step-icon"></i>
+        <h3 class="flow-step-title">Schedule delivery</h3>
+        <p class="flow-step-hint">Pick a window that suits you. We confirm same-day and prep the route.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">03</div>
+        <i class="ti ti-map-pin flow-step-icon"></i>
+        <h3 class="flow-step-title">Track your piano</h3>
+        <p class="flow-step-hint">Live location updates from our workshop to your front door — no guessing.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">04</div>
+        <i class="ti ti-shield-check flow-step-icon"></i>
+        <h3 class="flow-step-title">Warranty + tuner</h3>
+        <p class="flow-step-hint">5-year cover and your first complimentary tuning auto-booked for week six.</p>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- ============ FOOTER ============ -->
+<!-- ============ §6 TEACHER MARKETPLACE ============ -->
+<section class="teachers-band" id="teachers">
+  <div class="teachers-band-inner">
+    <div class="tb-student">
+      <div class="section-label reveal">For students</div>
+      <h2 class="section-h2 reveal">Find a teacher <em>near you</em>.</h2>
+      <p class="section-body reveal">Search by suburb. Filter by style and level. Book a trial lesson in minutes.</p>
+      <form class="tb-search-row reveal" onsubmit="event.preventDefault(); window.location.href='teachers.html';">
+        <input type="text" class="tb-search-input" placeholder="Enter suburb or postcode" aria-label="Suburb or postcode" />
+        <button type="submit" class="tb-search-btn">Search</button>
+      </form>
+      <div class="tb-teacher-cards reveal-stagger">
+        <a href="teachers.html" class="tb-teacher-card">
+          <div class="tb-teacher-avatar"></div>
+          <div>
+            <h4 class="tb-teacher-name">Mei L.</h4>
+            <p class="tb-teacher-meta">Carlton · Classical · 12 yrs</p>
+          </div>
+        </a>
+        <a href="teachers.html" class="tb-teacher-card">
+          <div class="tb-teacher-avatar"></div>
+          <div>
+            <h4 class="tb-teacher-name">Daniel R.</h4>
+            <p class="tb-teacher-meta">St Kilda · Jazz · 8 yrs</p>
+          </div>
+        </a>
+        <a href="teachers.html" class="tb-teacher-card">
+          <div class="tb-teacher-avatar"></div>
+          <div>
+            <h4 class="tb-teacher-name">Priya K.</h4>
+            <p class="tb-teacher-meta">Hawthorn · Beginner · 6 yrs</p>
+          </div>
+        </a>
+        <a href="teachers.html" class="tb-teacher-card">
+          <div class="tb-teacher-avatar"></div>
+          <div>
+            <h4 class="tb-teacher-name">Owen T.</h4>
+            <p class="tb-teacher-meta">Brunswick · Contemporary · 10 yrs</p>
+          </div>
+        </a>
+      </div>
+    </div>
+    <aside class="tb-pro">
+      <div>
+        <div class="tb-pro-label">For teachers</div>
+        <h3 class="tb-pro-headline">List your <em>studio</em>. Free.</h3>
+        <p class="tb-pro-body">Reach students actively searching in your suburb. Manage bookings, payments and your roster from one dashboard. No monthly fee. No commission lock-in.</p>
+      </div>
+      <a href="teachers.html" class="tb-pro-cta">Create your profile <i class="ti ti-arrow-right"></i></a>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ §7 SOCIAL PROOF ============ -->
+<section class="proof">
+  <div class="proof-inner">
+    <div class="proof-header">
+      <div>
+        <div class="section-label reveal">From buyers</div>
+        <h2 class="section-h2 reveal">Quiet rooms. <em>Loud praise</em>.</h2>
+      </div>
+      <div class="proof-google reveal">
+        <div class="proof-google-row">
+          <span class="proof-google-stars" aria-hidden="true">★★★★★</span>
+          <span class="proof-google-rating">4.9</span>
+        </div>
+        <span class="proof-google-meta">312 Google reviews</span>
+      </div>
+    </div>
+    <div class="proof-body">
+      <div class="testimonial-cards reveal-stagger">
+        <blockquote class="testimonial">
+          <p>The matching tool sent me straight to the right piano. In and out in 40 minutes with a Kawai I love.</p>
+          <cite>Sarah M. · Fitzroy</cite>
+        </blockquote>
+        <blockquote class="testimonial">
+          <p>No other piano shop in Melbourne feels this modern. They even matched me to a teacher the same week.</p>
+          <cite>James T. · South Yarra</cite>
+        </blockquote>
+        <blockquote class="testimonial testimonial--feature">
+          <p>The live delivery tracking was actually a delight. We watched our Shigeru roll out of the workshop and into our living room — and the first tuning was already booked.</p>
+          <cite>Elena K. · Brunswick</cite>
+        </blockquote>
+      </div>
+      <div class="proof-photo reveal">
+        <span class="proof-photo-caption">A Yamaha C3X, placed in a Hawthorn home — November 2026.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §8 FOOTER ============ -->
 <footer class="footer">
   <div class="footer-inner">
     <div class="footer-col footer-brand">
@@ -1575,30 +2367,34 @@
       <p class="footer-tagline">Find the piano that moves you.</p>
     </div>
     <div class="footer-col">
-      <div class="footer-col-title">Explore</div>
-      <a href="instruments.html" class="footer-link">Instruments</a>
-      <a href="#matcher" class="footer-link">Find my piano</a>
-      <a href="teachers.html" class="footer-link">Teachers</a>
-      <a href="teachers-match.html" class="footer-link">Find a teacher</a>
-      <a href="#" class="footer-link">Our story</a>
+      <div class="footer-col-title">Shop</div>
+      <a href="instruments.html" class="footer-link">Shop</a>
+      <a href="instruments.html?filter=brands" class="footer-link">Brands</a>
+      <a href="#" class="footer-link">Book viewing</a>
     </div>
     <div class="footer-col">
-      <div class="footer-col-title">Visit</div>
-      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
-      <a href="tel:+61300000000" class="footer-link">+61 3 0000 0000</a>
-      <a href="mailto:hello@signaturepianos.com" class="footer-link">hello@signaturepianos.com</a>
+      <div class="footer-col-title">Teachers</div>
+      <a href="teachers.html" class="footer-link">Teacher platform</a>
+      <a href="teachers.html#signup" class="footer-link">Sign up</a>
+      <a href="teachers.html#login" class="footer-link">Log in</a>
     </div>
     <div class="footer-col">
-      <div class="footer-col-title">Follow</div>
+      <div class="footer-col-title">Company</div>
+      <a href="#story" class="footer-link">About</a>
+      <a href="#" class="footer-link">Blog</a>
+      <a href="mailto:hello@signaturepianos.com" class="footer-link">Contact</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Find us</div>
       <div class="footer-socials">
         <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
-        <a href="#" class="footer-social" aria-label="YouTube"><i class="ti ti-brand-youtube"></i></a>
         <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
       </div>
+      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
     </div>
   </div>
   <div class="footer-bottom">
-    <p>© 2025 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
+    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
   </div>
 </footer>
 
@@ -1906,6 +2702,44 @@
     onLeaveBack: () => document.getElementById('nav').classList.remove('scrolled')
   });
 
+  /* -------- NAV DROPDOWNS --------
+     Open on hover (desktop) and click. Close on outside-click or Esc. The
+     invisible "bridge" pseudo-element above each panel keeps the menu open
+     while the cursor travels from trigger to panel. */
+  (function setupNavDropdowns() {
+    const items = document.querySelectorAll('.nav-item--dropdown');
+    const TRIGGER_SEL = '.nav-link-trigger, .nav-account-trigger';
+    const closeAll = (except) => {
+      items.forEach(it => {
+        if (it === except) return;
+        it.classList.remove('nav-item--open');
+        it.querySelector(TRIGGER_SEL)?.setAttribute('aria-expanded', 'false');
+      });
+    };
+    items.forEach(item => {
+      const trigger = item.querySelector(TRIGGER_SEL);
+      if (!trigger) return;
+      const open  = () => { item.classList.add('nav-item--open'); trigger.setAttribute('aria-expanded', 'true'); closeAll(item); };
+      const close = () => { item.classList.remove('nav-item--open'); trigger.setAttribute('aria-expanded', 'false'); };
+
+      item.addEventListener('mouseenter', open);
+      item.addEventListener('mouseleave', close);
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        item.classList.contains('nav-item--open') ? close() : open();
+      });
+      /* Clicking inside the panel (on an actual link) should close it so the
+         link navigates without the panel lingering. */
+      item.querySelectorAll('.nav-dd-item').forEach(link => {
+        link.addEventListener('click', close);
+      });
+    });
+    document.addEventListener('click', () => closeAll(null));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAll(null);
+    });
+  })();
+
   /* -------- HERO ENTRANCE -------- */
   gsap.timeline({ delay: 0.2 })
     .from('.hero-eyebrow', { opacity: 0, y: 20, duration: 0.6, ease: 'power2.out' })
@@ -1962,8 +2796,14 @@
     //     frame. CTA + clickable keys are layered over the still-visible
     //     zoom canvas. User can play.
     // After 100%: matcher comes into view normally.
-    const PHASE1_END = 0.38;
-    const PHASE2_END = 0.69;
+    // Phase thresholds in scroll-progress space.
+    // Pin total = 2400px (see ScrollTrigger.end below). Phase 3 is kept
+    // intentionally short so the page can flow into the matcher/buyer's
+    // guide section right after the playable overlay appears, rather
+    // than parking the user in dead pinned scroll.
+    const PHASE1_END = 0.65;   // 0.00 → 0.65 (1560px): 3 text scenes + piano stages
+    const PHASE2_END = 0.90;   // 0.65 → 0.90  (600px): zoom 1:1 → full-bleed auto-plays
+    //                            0.90 → 1.00  (240px): playable keys overlay, then auto-scroll
     const heroCopy = document.querySelector('.hero-copy');
     const playableKeys = null; // hero keys removed
     const zoom = document.getElementById('zoomCanvas');
@@ -1990,148 +2830,355 @@
       };
     }
 
+    // ========================================================
+    // Hero scroll = state machine, not scrubber.
+    // --------------------------------------------------------
+    // Old model: every animation (text opacity, piano frame index,
+    //   zoom canvas rect) was scrubbed proportionally to scroll
+    //   position. That meant scrolling slowly exposed half-finished
+    //   states (two headlines overlapping, piano mid-frame).
+    // New model: scroll position only decides WHICH stage is active.
+    //   Crossing a stage threshold fires a self-completing GSAP
+    //   animation. User scrolls less; animations always play in full.
+    // --------------------------------------------------------
+    //   3 text/piano scenes in Phase 1 (closed → fallboard → lid up),
+    //   then Phase 2 zoom (1:1 → full bleed) auto-plays once,
+    //   then Phase 3 playable overlay.
+    // ========================================================
+
+    const sceneEls = document.querySelectorAll('.hero-copy-scene');
+
+    // Frame indices the piano "lands on" at each scene. Roughly aligns
+    // with the 3 source clips: closed → fallboard open → full lid up.
+    // Tune these if visual rest points don't match headline changes.
+    // Frame indices are 0-based here; the source webp filenames are
+    // 1-based, so frame index 65 == frame_066.webp.
+    const PIANO_STAGE_FRAMES = [0, 65, 119];
+    /* Text + piano share the same duration so they start AND finish in
+       sync — previously piano was 1.2s, twice the text's 0.55s, so the
+       piano always felt like it was catching up after the text settled. */
+    const SCENE_FADE_DUR     = 0.55;
+    const PIANO_STAGE_DUR    = 0.55;
+    const ZOOM_FORWARD_DUR   = 1.40;
+    const ZOOM_REVERSE_DUR   = 0.80;
+
+    // State — single source of truth for what's currently displayed.
+    let currentSceneIdx = 0;
+    let currentPhase    = 1;
+    const pianoFrameProxy = { f: 0 };   // tweened, drives drawFrame
+    const zoomProxy       = { t: 0 };   // 0 = right column 1:1, 1 = full bleed
+
+    // ---- Text scene crossfade (unchanged from previous step) ----
+    function goToScene(targetIdx) {
+      if (targetIdx === currentSceneIdx) return;
+      const dir = targetIdx > currentSceneIdx ? 1 : -1;
+      const outgoing = sceneEls[currentSceneIdx];
+      const incoming = sceneEls[targetIdx];
+      currentSceneIdx = targetIdx;
+      gsap.killTweensOf([outgoing, incoming]);
+      outgoing.style.pointerEvents = 'none';
+      incoming.style.pointerEvents = 'auto';
+      gsap.to(outgoing, {
+        opacity: 0, y: -24 * dir,
+        duration: SCENE_FADE_DUR, ease: 'power2.out',
+      });
+      gsap.fromTo(incoming,
+        { opacity: 0, y: 24 * dir },
+        { opacity: 1, y: 0, duration: SCENE_FADE_DUR, ease: 'power2.out' }
+      );
+    }
+
+    // ---- Piano stage autoplay ----
+    // Tweens the frame index from current to the target stage. GSAP
+    // kills any in-flight tween so changing direction mid-animation
+    // picks up smoothly from wherever the piano currently is.
+    function goToPianoStage(stageIdx) {
+      const target = PIANO_STAGE_FRAMES[stageIdx];
+      gsap.killTweensOf(pianoFrameProxy);
+      gsap.to(pianoFrameProxy, {
+        f: target,
+        duration: PIANO_STAGE_DUR,
+        ease: 'power2.inOut',
+        onUpdate: () => drawFrame(pianoFrameProxy.f),
+      });
+    }
+
+    // ---- Zoom canvas autoplay ----
+    // The zoom canvas grows from the hero's right-column rect to the
+    // 16:9 stage rect while playing through Clip D frames. We tween
+    // a single scalar `t` and re-render the canvas on every tick.
+    function drawZoomState(t) {
+      if (!zoom || !canvas) return;
+      const heroBox = canvas.getBoundingClientRect();
+      const target = stageRect();
+      const SEEDANCE_Y_NUDGE = -28;
+      const yNudge = SEEDANCE_Y_NUDGE * (1 - t);
+      const top    = heroBox.top    + (target.top    - heroBox.top)    * t + yNudge;
+      const left   = heroBox.left   + (target.left   - heroBox.left)   * t;
+      const width  = heroBox.width  + (target.width  - heroBox.width)  * t;
+      const height = heroBox.height + (target.height - heroBox.height) * t;
+      zoom.style.top    = top + 'px';
+      zoom.style.left   = left + 'px';
+      zoom.style.width  = width + 'px';
+      zoom.style.height = height + 'px';
+      const frameIdx = t * (window.__ZOOM_FRAME_COUNT - 1);
+      if (window.__resizeAndDrawZoom) {
+        window.__resizeAndDrawZoom(width, height, frameIdx);
+      }
+    }
+    function playZoomTo(targetT, duration, onComplete) {
+      gsap.killTweensOf(zoomProxy);
+      gsap.to(zoomProxy, {
+        t: targetT,
+        duration,
+        ease: 'power2.inOut',
+        onUpdate: () => drawZoomState(zoomProxy.t),
+        onComplete,
+      });
+    }
+
+    /* The buyer's guide form + "TAP A KEY / PLAY" labels live in this
+       overlay. We reveal it the instant the zoom animation completes —
+       NOT when scroll crosses the Phase 3 threshold. That way a slow
+       scroller never sees a gap between "zoom finished visually" and
+       "form appeared". Idempotent: safe to call multiple times. */
+    function revealPlayable() {
+      if (!playableOverlay) return;
+      if (playableOverlay.classList.contains('show')) return;
+      playableOverlay.classList.add('show');
+      playWelcomeWithVisual();
+    }
+
+    /* ----------------------------------------------------------------
+       detachToFlow / reattachToFixed
+       ----------------------------------------------------------------
+       The zoom canvas and form overlay are position:fixed during the
+       hero pin so the zoom animation can size them against the viewport.
+       But fixed elements never move when the user scrolls past, which
+       creates "stuck" content above the next section. So when the pin
+       releases, we pin each element at its current document Y as an
+       ABSOLUTE element. From there it scrolls naturally up out of view
+       as the user continues toward the matcher — just like a normal
+       page section.
+
+       Two gotchas this code handles:
+        1. The overlay's CSS uses `inset: 0` (shorthand for top/right/
+           bottom/left = 0). If we only set `top` inline, the right/
+           bottom/left stay 0, which on a static-positioned body makes
+           the absolute element stretch to the full document. Set all
+           four sides explicitly.
+        2. The zoom canvas lives inside .hero which has `overflow:hidden`.
+           An absolute child positioned past hero's box would be clipped.
+           So we MOVE the canvas to body on detach and back to hero on
+           reattach.
+       ---------------------------------------------------------------- */
+    const heroEl = document.querySelector('.hero');
+    function detachToFlow() {
+      if (zoom && zoom.dataset.detached !== '1') {
+        const rect = zoom.getBoundingClientRect();
+        zoom.dataset.detached = '1';
+        document.body.appendChild(zoom);   /* escape hero's overflow:hidden */
+        zoom.style.position = 'absolute';
+        zoom.style.top    = (rect.top + window.scrollY) + 'px';
+        zoom.style.left   = rect.left + 'px';
+        zoom.style.right  = 'auto';
+        zoom.style.bottom = 'auto';
+        zoom.style.width  = rect.width + 'px';
+        zoom.style.height = rect.height + 'px';
+      }
+      if (playableOverlay && playableOverlay.dataset.detached !== '1') {
+        const rect = playableOverlay.getBoundingClientRect();
+        playableOverlay.dataset.detached = '1';
+        playableOverlay.style.position = 'absolute';
+        playableOverlay.style.top    = (rect.top + window.scrollY) + 'px';
+        playableOverlay.style.left   = rect.left + 'px';
+        playableOverlay.style.right  = 'auto';
+        playableOverlay.style.bottom = 'auto';
+        playableOverlay.style.width  = rect.width + 'px';
+        playableOverlay.style.height = rect.height + 'px';
+      }
+    }
+    function reattachToFixed() {
+      if (zoom && zoom.dataset.detached === '1') {
+        delete zoom.dataset.detached;
+        if (heroEl) heroEl.insertBefore(zoom, heroEl.firstChild);
+        zoom.style.position = '';
+        zoom.style.top      = '';
+        zoom.style.left     = '';
+        zoom.style.right    = '';
+        zoom.style.bottom   = '';
+        zoom.style.width    = '';
+        zoom.style.height   = '';
+      }
+      if (playableOverlay && playableOverlay.dataset.detached === '1') {
+        delete playableOverlay.dataset.detached;
+        playableOverlay.style.position = '';
+        playableOverlay.style.top      = '';
+        playableOverlay.style.left     = '';
+        playableOverlay.style.right    = '';
+        playableOverlay.style.bottom   = '';
+        playableOverlay.style.width    = '';
+        playableOverlay.style.height   = '';
+      }
+    }
+
+
+    // ---- Phase entry handlers ----
+    // Called once per phase transition (forward or backward). Each one
+    // snaps things to a known-good state before kicking off whatever
+    // animation belongs to that phase, so partial states from rapid
+    // scroll never strand the UI in something unreadable.
+
+    function enterPhase1() {
+      currentPhase = 1;
+      if (playableOverlay) playableOverlay.classList.remove('show');
+      // Kill any in-flight fades on heroCopy/canvas/zoom from a previous
+      // phase transition so we don't fight ourselves.
+      gsap.killTweensOf([heroCopy, canvas, zoom]);
+      if (heroCopy) gsap.to(heroCopy, { opacity: 1, duration: 0.4, ease: 'power2.out' });
+      if (canvas)   gsap.to(canvas,   { opacity: 1, duration: 0.4, ease: 'power2.out' });
+      // If we're coming back from Phase 2/3, reverse the zoom.
+      if (zoomProxy.t > 0.001) {
+        playZoomTo(0, ZOOM_REVERSE_DUR);
+        if (zoom) gsap.to(zoom, { opacity: 0, duration: ZOOM_REVERSE_DUR, ease: 'power2.inOut' });
+      }
+    }
+
+    function enterPhase2() {
+      const fromPhase = currentPhase;
+      currentPhase = 2;
+      // Only hide the overlay if we arrived from Phase 1 (forward).
+      // Coming back from Phase 3, the overlay should stay visible — we're
+      // still looking at the zoomed-in piano with form on the music desk.
+      if (fromPhase === 1 && playableOverlay) {
+        playableOverlay.classList.remove('show');
+      }
+      // Force last scene + last piano frame instantly — user may have
+      // skipped past the in-between scenes via a fast scroll, and we
+      // don't want intermediate states left over when they scroll back.
+      const lastIdx = sceneEls.length - 1;
+      gsap.killTweensOf([sceneEls, pianoFrameProxy, heroCopy, canvas, zoom]);
+      sceneEls.forEach((sc, i) => {
+        sc.style.opacity = (i === lastIdx) ? '1' : '0';
+        sc.style.transform = 'translateY(0)';
+        sc.style.pointerEvents = (i === lastIdx) ? 'auto' : 'none';
+      });
+      currentSceneIdx = lastIdx;
+      pianoFrameProxy.f = PIANO_STAGE_FRAMES[lastIdx];
+      drawFrame(pianoFrameProxy.f);
+      // Fade hero text + hero canvas out, fade zoom in, then auto-play zoom.
+      if (heroCopy) gsap.to(heroCopy, { opacity: 0, duration: 0.45, ease: 'power2.out' });
+      if (zoom)     zoom.style.opacity = 1;
+      if (canvas)   gsap.to(canvas, { opacity: 0, duration: 0.45, delay: 0.15, ease: 'power2.out' });
+      // If we re-entered Phase 2 from Phase 3 (scroll back), zoom is
+      // already at t=1 — reveal immediately. Otherwise forward-play the
+      // zoom and reveal the overlay the instant it completes.
+      if (zoomProxy.t >= 0.999) {
+        drawZoomState(1);
+        revealPlayable();
+      } else {
+        playZoomTo(1, ZOOM_FORWARD_DUR, revealPlayable);
+      }
+    }
+
+    function enterPhase3() {
+      currentPhase = 3;
+      // Snap scenes + piano + hero text/canvas. These are fast-fade things
+      // (≤ 0.5s) so snapping when the user has scrolled past doesn't look
+      // jarring. ZOOM is different — handled separately below.
+      const lastIdx = sceneEls.length - 1;
+      gsap.killTweensOf([sceneEls, pianoFrameProxy, heroCopy, canvas]);
+      sceneEls.forEach((sc, i) => {
+        sc.style.opacity = (i === lastIdx) ? '1' : '0';
+        sc.style.transform = 'translateY(0)';
+        sc.style.pointerEvents = 'none';
+      });
+      currentSceneIdx = lastIdx;
+      pianoFrameProxy.f = PIANO_STAGE_FRAMES[lastIdx];
+      drawFrame(pianoFrameProxy.f);
+      if (canvas)   canvas.style.opacity = 0;
+      if (zoom)     zoom.style.opacity = 1;
+      if (heroCopy) heroCopy.style.opacity = 0;
+
+      // Overlay reveal is now driven by zoom completion (enterPhase2's
+      // playZoomTo onComplete), so we only need to handle two edge cases:
+      //   (a) zoom is already finished → reveal immediately
+      //   (b) we got here without enterPhase2 ever running (page reload
+      //       deep in Phase 3, or scroll skipped Phase 2 entirely
+      //       between two onUpdate ticks) → kick off the zoom now
+      if (zoomProxy.t >= 0.999) {
+        drawZoomState(1);
+        revealPlayable();
+      } else if (!gsap.isTweening(zoomProxy)) {
+        playZoomTo(1, ZOOM_FORWARD_DUR, revealPlayable);
+      }
+      /* else: zoom from enterPhase2 is in flight; its onComplete will reveal. */
+    }
+
+    // ---- Initialize hero state explicitly (don't trust CSS for non-defaults) ----
+    sceneEls.forEach((sc, i) => {
+      sc.style.opacity = (i === 0) ? '1' : '0';
+      sc.style.transform = 'translateY(0)';
+      sc.style.pointerEvents = (i === 0) ? 'auto' : 'none';
+    });
+
     ScrollTrigger.create({
       trigger: '.hero',
       start: 'top top',
-      end: '+=4900',
+      end: '+=2400',          /* shrunk further — Phase 3 is brief so the matcher
+                                  section follows the playable overlay almost
+                                  immediately on the next scroll input */
       pin: true,
       pinSpacing: true,
-      scrub: 0.6,
+      scrub: 0.2,             /* lighter smoothing so phase-change detection
+                                  fires promptly when scroll crosses a threshold */
       anticipatePin: 1,
-      // When user scrolls past the entire hero pin, CROSSFADE to the next
-      // hero scene (Browse): keep zoom canvas visible while auto-scrolling,
-      // then fade it out so the new hero dissolves into view.
-      onLeave: () => {
-        if (playableOverlay) playableOverlay.classList.remove('show');
-        gsap.set('.scroll-cue', { opacity: 0 });
-        gsap.to(window, {
-          scrollTo: { y: '#matcher', autoKill: true },
-          duration: 0.9,
-          ease: 'power2.inOut'
-        });
-        if (zoom) {
-          gsap.to(zoom, {
-            opacity: 0,
-            duration: 0.9,
-            ease: 'power2.inOut'
-          });
-        }
-      },
-      onEnter: () => {
-        // Hide the "scroll to explore" cue once they've engaged
-        gsap.set('.scroll-cue', { opacity: 0 });
-      },
+      // When the pin releases, "lock" the zoom canvas and form overlay
+      // at their final viewport positions by converting them to absolute
+      // elements pinned to the current document Y. From there they
+      // scroll naturally upward as the user keeps scrolling — like any
+      // other section of the page — and the matcher comes in directly
+      // below with no fade, no gap, no snap.
+      onLeave:     () => { gsap.set('.scroll-cue', { opacity: 0 }); detachToFlow(); },
+      onEnter:     () => { gsap.set('.scroll-cue', { opacity: 0 }); },
       onEnterBack: () => {
-        if (zoom) zoom.style.opacity = 1;
+        // User scrolled back up into the hero pin range. Restore the
+        // zoom canvas + overlay to position:fixed so the pin animation
+        // (in reverse) can take over again, and re-show Phase 3 visuals.
+        reattachToFixed();
+        if (zoom) {
+          gsap.killTweensOf(zoom, 'opacity');
+          zoom.style.opacity = 1;
+        }
+        if (zoomProxy.t >= 0.999) {
+          enterPhase3();
+        }
       },
       onUpdate: self => {
         const p = self.progress;
+        const phase = p <= PHASE1_END ? 1 : (p <= PHASE2_END ? 2 : 3);
 
-        if (p <= PHASE1_END) {
-          // -------- Phase 1: opening (right-column canvas + text rotates) --------
+        if (phase !== currentPhase) {
+          if (phase === 1)      enterPhase1();
+          else if (phase === 2) enterPhase2();
+          else                  enterPhase3();
+        }
+
+        // Inside Phase 1:
+        //   - Piano: scroll-scrubbed frame index (every tick draws the
+        //     frame corresponding to current scroll position — the feel
+        //     of scrubbing the source clip with your wheel).
+        //   - Text: still snap-to-active-scene with autonomous crossfade,
+        //     so headlines never overlap mid-transition.
+        // Within Phase 2 and Phase 3, the autoplays from enterPhaseN
+        // handle everything; scroll position doesn't matter.
+        if (phase === 1) {
           const phase1Progress = p / PHASE1_END;
           drawFrame(phase1Progress * (FRAME_COUNT - 1));
-          if (canvas) { canvas.style.opacity = 1; }
-          if (zoom) { zoom.style.opacity = 0; }
-          if (heroCopy) { heroCopy.style.opacity = 1; }
-          if (playableKeys) { playableKeys.style.opacity = 1; }
-          if (playableOverlay) playableOverlay.classList.remove('show');
-
-          // Cycle through the 3 text scenes inside Phase 1.
-          // Each scene gets ~1/3 of Phase 1 with crossfade transitions
-          // between them. While text rotates, the piano keeps opening
-          // in the background — adds depth to the same scroll distance.
-          const scenes = document.querySelectorAll('.hero-copy-scene');
-          const N = scenes.length;
-          const fade = 0.10;  // % of Phase 1 used for each crossfade
-          scenes.forEach((sc, i) => {
-            const start = i / N;
-            const end = (i + 1) / N;
-            let opacity = 0;
-            let translateY = 24;
-            if (phase1Progress < start - fade) {
-              opacity = 0; translateY = 24;
-            } else if (phase1Progress < start) {
-              const t = (phase1Progress - (start - fade)) / fade;
-              opacity = t; translateY = 24 * (1 - t);
-            } else if (phase1Progress < end - fade) {
-              opacity = 1; translateY = 0;
-            } else if (phase1Progress < end) {
-              const t = (phase1Progress - (end - fade)) / fade;
-              opacity = 1 - t; translateY = -24 * t;
-            } else {
-              opacity = 0; translateY = -24;
-            }
-            // Scene 0 stays visible until fade-out begins (no fade-in)
-            if (i === 0 && phase1Progress < (1/N) - fade) {
-              opacity = 1; translateY = 0;
-            }
-            sc.style.opacity = opacity;
-            sc.style.transform = 'translateY(' + translateY + 'px)';
-            sc.style.pointerEvents = opacity > 0.5 ? 'auto' : 'none';
-          });
-
-        } else if (p <= PHASE2_END) {
-          // -------- Phase 2: zoom (1:1 right column → 16:9 full bleed) --------
-          const phase2Progress = (p - PHASE1_END) / (PHASE2_END - PHASE1_END);
-
-          drawFrame(FRAME_COUNT - 1);
-          if (canvas) { canvas.style.opacity = 0; }
-
-          const heroBox = canvas ? canvas.getBoundingClientRect() : null;
-          if (zoom && heroBox) {
-            zoom.style.opacity = 1;
-            const SEEDANCE_Y_NUDGE = -28;
-            // Target the 16:9 stage (NOT the full viewport) so on
-            // ultrawides the canvas stays bound to the same aspect as
-            // the click targets — no distortion, consistent across
-            // resolutions.
-            const target = stageRect();
-            const t = phase2Progress;
-            const yNudge = SEEDANCE_Y_NUDGE * (1 - t);
-            const top = heroBox.top + (target.top - heroBox.top) * t + yNudge;
-            const left = heroBox.left + (target.left - heroBox.left) * t;
-            const width = heroBox.width + (target.width - heroBox.width) * t;
-            const height = heroBox.height + (target.height - heroBox.height) * t;
-            zoom.style.top = top + 'px';
-            zoom.style.left = left + 'px';
-            zoom.style.width = width + 'px';
-            zoom.style.height = height + 'px';
-
-            const frameIdx = phase2Progress * (window.__ZOOM_FRAME_COUNT - 1);
-            if (window.__resizeAndDrawZoom) {
-              window.__resizeAndDrawZoom(width, height, frameIdx);
-            }
-          }
-
-          const fadeOut = Math.min(1, phase2Progress / 0.2);
-          const heroOpacity = 1 - fadeOut;
-          if (heroCopy) { heroCopy.style.opacity = heroOpacity; }
-          if (playableKeys) { playableKeys.style.opacity = heroOpacity; }
-          if (playableOverlay) playableOverlay.classList.remove('show');
-
-        } else {
-          // -------- Phase 3: playable (overlay ON the last zoom frame) --------
-          // Hold the zoom canvas at its full-bleed last frame and reveal
-          // the click overlay + CTA on top. User can play the keys.
-          if (canvas) { canvas.style.opacity = 0; }
-          if (zoom) {
-            zoom.style.opacity = 1;
-            // Snap canvas to the 16:9 stage rect (matches click targets)
-            const r = stageRect();
-            zoom.style.top = r.top + 'px';
-            zoom.style.left = r.left + 'px';
-            zoom.style.width = r.width + 'px';
-            zoom.style.height = r.height + 'px';
-            if (window.__resizeAndDrawZoom) {
-              window.__resizeAndDrawZoom(r.width, r.height, window.__ZOOM_FRAME_COUNT - 1);
-            }
-          }
-          if (heroCopy) { heroCopy.style.opacity = 0; }
-          if (playableKeys) { playableKeys.style.opacity = 0; }
-          if (playableOverlay) {
-            playableOverlay.classList.add('show');
-            playWelcomeWithVisual();
+          const N = sceneEls.length;
+          const targetIdx = Math.min(N - 1, Math.max(0, Math.floor(phase1Progress * N)));
+          if (targetIdx !== currentSceneIdx) {
+            goToScene(targetIdx);
           }
         }
       }
@@ -2140,6 +3187,7 @@
     // (The playable phase is handled as Phase 3 of the hero pin above —
     // no separate ScrollTrigger needed. The overlay shows when the hero's
     // pin progress crosses PHASE2_END.)
+
   }
 
   /* -------- HERO ZOOM CANVAS (Phase 2) — Clip D frames -------- */
