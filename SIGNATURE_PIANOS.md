@@ -835,6 +835,151 @@ Use Tabler Icons (free, consistent, clean):
 
 ---
 
+## 15. TECH STACK & FILE STRUCTURE
+
+```
+Platform:       Flat HTML — no framework
+File pattern:   services/delivery-warranty.html
+                services/book-a-viewing.html
+                services/tuning-servicing.html
+                instruments/index.html
+                teachers/index.html
+                about.html
+Internal links: Always use sibling .html references
+Icons:          Tabler icons via @tabler/icons-webfont CDN only
+                Never Lucide — Tabler throughout
+Animations:     IntersectionObserver on sub-pages
+                GSAP only on homepage
+Database:       Supabase — single project for entire platform
+Auth:           Supabase vanilla JS auth via CDN
+Storage:        Supabase Storage for driver photos
+Email:          Resend via Vercel serverless /api folder
+Payments:       Stripe vanilla JS
+Deployment:     Vercel — GitHub auto-deploy on push to main
+```
+
+---
+
+## 16. SUPABASE SCHEMA
+
+### Tables
+```
+customers           — every buyer, viewer, account holder
+pianos              — full inventory, all types
+orders              — every piano sale
+deliveries          — delivery tracking + driver flow
+warranties          — auto-generated post delivery
+tuner_bookings      — auto-booked post warranty
+viewing_bookings    — showroom visit requests
+teachers            — all registered teachers
+teacher_listings    — public teacher profile cards
+teacher_bookings    — student lesson bookings
+teacher_students    — full SaaS student roster
+teacher_invoices    — teacher-generated student invoices
+admin_users         — internal back office team
+```
+
+### Key conventions
+```
+Primary keys:     uuid, gen_random_uuid()
+Timestamps:       created_at, updated_at (auto-update trigger)
+Enums:            Created as Postgres CREATE TYPE
+RLS:              Enabled on every table
+Order numbers:    SP-YYYY-XXXXX format
+Invoice numbers:  INV-YYYY-XXXXX format
+Warranty numbers: WRT-YYYY-XXXXX format
+Driver tokens:    Random 32 char URL-safe string
+```
+
+---
+
+## 17. ENVIRONMENT VARIABLES
+
+```
+SUPABASE_URL
+SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+BUSINESS_EMAIL
+RESEND_API_KEY
+STRIPE_PUBLIC_KEY
+STRIPE_SECRET_KEY
+```
+
+---
+
+## 18. PAGES BUILT
+
+```
+✓ Homepage                    index.html
+✓ Header nav                  shared component
+✓ Instruments page            instruments/index.html
+✓ Find a teacher              teachers/index.html
+✓ Delivery & warranty         services/delivery-warranty.html
+◯ Book a viewing              services/book-a-viewing.html
+◯ Tuning & servicing          services/tuning-servicing.html
+◯ About                       about.html
+◯ Individual piano listing    instruments/[slug].html
+◯ Checkout                    checkout.html
+◯ Customer portal             portal/index.html
+◯ Teacher dashboard           portal/teacher.html
+◯ Driver flow                 delivery/[token].html
+◯ Admin back office           admin/index.html
+```
+
+---
+
+## 19. SESSION START INSTRUCTIONS
+
+Every Claude Code session must begin with:
+
+> "Read SIGNATURE_PIANOS.md fully before writing any code. Match every existing pattern exactly — file naming, icon library, colour palette, animation approach, and Supabase table names."
+
+---
+
+## 20. KEY BUSINESS RULES
+
+```
+Warranty:           10 years on every piano
+Tuner booking:      Auto-scheduled 3-4 weeks post delivery
+Driver flow:        Photo required on pickup AND delivery
+Delivery region:    Melbourne + regional Victoria
+Warranty cert:      Auto-emailed after delivery confirmed
+Piano condition:    Graded excellent / good / fair
+Currency:           AUD throughout
+GST:                10% — always show ex and inc GST on invoices
+```
+
+---
+
+## 22. SUPABASE & BACKEND STATUS
+
+### Wired pages
+- services/book-a-viewing.html → viewing_bookings table ✓
+- services/tuning-servicing.html → service_requests table ✓
+- instruments/index.html → pianos table ✓
+
+### Serverless functions
+- api/send-email.js → handles all transactional emails via Resend ✓
+
+### Shared files
+- js/config.js → Supabase client init, imported on all DB pages ✓
+- vercel.json → API routing + security headers ✓
+- package.json → resend dependency ✓
+
+### Pages still needing Supabase wiring
+- instruments/piano.html (individual listing — not built yet)
+- checkout.html (not built yet)
+- portal/index.html (not built yet)
+- portal/teacher.html (not built yet)
+- delivery/[token].html (not built yet)
+- admin/index.html (not built yet)
+
+### Environment variables needed in Vercel dashboard
+SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
+RESEND_API_KEY, BUSINESS_EMAIL
+
+---
+
 *Last updated: May 2025*
 *Brief version: 1.0*
 *Owner: Signature Pianos Melbourne*

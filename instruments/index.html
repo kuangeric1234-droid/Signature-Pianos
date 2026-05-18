@@ -1,0 +1,759 @@
+<!--
+  Signature Pianos — Instruments catalogue (dynamic)
+  --------------------------------------------------
+  Pulls every available piano from the Supabase `pianos` table on load.
+  Filter chips re-query by `type` (acoustic_upright / acoustic_grand / digital).
+  See supabase/schema.sql for the table shape.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Instruments — Signature Pianos Melbourne</title>
+<meta name="description" content="Browse our current collection of hand-selected Japanese pianos. Uprights, grands and digital pianos — every instrument backed by a 10-year warranty." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+<style>
+  :root {
+    --bg-1: #0e0e0d;
+    --bg-2: #1a1a18;
+    --bg-3: #242422;
+    --gold: #b8935a;
+    --gold-light: #d4b483;
+    --text-1: #f5f0e8;
+    --text-2: #9a9590;
+    --text-3: #6b6760;
+    --border: rgba(184, 147, 90, 0.15);
+    --border-hover: rgba(184, 147, 90, 0.4);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-1);
+    color: var(--text-1);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; }
+  ::selection { background: var(--gold); color: var(--bg-1); }
+
+  /* ============ NAV (matches sibling pages) ============ */
+  nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 100;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    background: rgba(14, 14, 13, 0.88);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    transition: padding 0.35s ease, background 0.35s ease;
+  }
+  nav.scrolled { background: rgba(14, 14, 13, 0.96); padding: 12px 32px; }
+
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 24px;
+    letter-spacing: 0.01em;
+    color: var(--text-1);
+    flex-shrink: 0;
+  }
+  .logo span { color: var(--gold); font-style: italic; font-weight: 400; }
+
+  .nav-links { display: flex; align-items: center; gap: 32px; }
+
+  .nav-link-plain {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    transition: color 0.25s ease;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .nav-link-plain:hover { color: var(--text-1); }
+
+  .nav-item--dropdown { position: relative; }
+  .nav-link-trigger {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    background: transparent;
+    border: 0;
+    padding: 6px 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.25s ease;
+  }
+  .nav-link-trigger:hover,
+  .nav-item--open .nav-link-trigger { color: var(--text-1); }
+  .nav-item--active .nav-link-trigger { color: var(--text-1); }
+  .nav-chevron { font-size: 14px; color: var(--gold); transition: transform 0.25s ease; opacity: 0.8; }
+  .nav-item--open .nav-chevron { transform: rotate(180deg); }
+
+  .nav-dropdown {
+    position: absolute;
+    top: calc(100% + 14px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    background: #14140f;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    display: grid;
+    gap: 4px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.85);
+    transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
+    z-index: 110;
+  }
+  .nav-item--open .nav-dropdown {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+  .nav-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -14px; left: 0; right: 0;
+    height: 14px;
+  }
+  .nav-dropdown--pianos {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    width: clamp(520px, 38vw, 620px);
+    gap: 6px 12px;
+  }
+  .nav-dropdown--services {
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    width: clamp(620px, 44vw, 720px);
+    gap: 6px 8px;
+  }
+  .nav-dropdown--teachers {
+    grid-template-columns: 1fr;
+    width: clamp(540px, 40vw, 640px);
+    gap: 0;
+    padding: 14px;
+  }
+  .nav-dd-section { padding: 8px 4px; }
+  .nav-dd-section + .nav-dd-section {
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+    padding-top: 16px;
+  }
+  .nav-dd-section-label {
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin: 2px 14px 12px;
+  }
+  .nav-dd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .nav-dd-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s ease;
+  }
+  .nav-dd-item:hover { background: rgba(184, 147, 90, 0.07); }
+  .nav-dd-icon { font-size: 20px; color: var(--gold); margin-top: 2px; flex-shrink: 0; }
+  .nav-dd-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .nav-dd-text h4 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-1);
+    margin: 0;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.3;
+  }
+  .nav-dd-text p { font-size: 12px; color: var(--text-3); margin: 0; line-height: 1.4; }
+  .nav-ctas { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  .nav-account-trigger {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--gold);
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+  .nav-account-trigger:hover,
+  .nav-item--account.nav-item--open .nav-account-trigger {
+    border-color: var(--gold);
+    background: rgba(184, 147, 90, 0.10);
+  }
+  .nav-dropdown--account {
+    grid-template-columns: 1fr;
+    width: clamp(320px, 26vw, 420px);
+    left: auto;
+    right: 0;
+    transform: translateY(-6px);
+    gap: 2px;
+  }
+  .nav-item--open .nav-dropdown--account { transform: translateY(0); }
+  .nav-cta {
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    background: transparent;
+    padding: 11px 22px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .nav-cta:hover { background: var(--gold); color: var(--bg-1); }
+  .nav-burger { display: none; background: none; border: 0; color: var(--text-1); font-size: 24px; cursor: pointer; }
+
+  /* ============ HERO ============ */
+  .ins-hero {
+    padding: 180px 40px 80px;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(184, 147, 90, 0.12), transparent 60%),
+      var(--bg-1);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+  .ins-hero-inner { max-width: 920px; margin: 0 auto; }
+  .ins-hero-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+  .ins-hero-h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(44px, 6vw, 76px);
+    line-height: 1.05;
+    margin: 0 0 24px 0;
+    color: var(--text-1);
+  }
+  .ins-hero-h1 em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .ins-hero-sub {
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: 1.7;
+    color: var(--text-2);
+    margin: 0 auto;
+    max-width: 620px;
+  }
+
+  /* ============ FILTERS ============ */
+  .ins-filters-wrap {
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--border);
+    padding: 32px 40px;
+    position: sticky;
+    top: 72px;
+    z-index: 20;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    background: rgba(14, 14, 13, 0.94);
+  }
+  .ins-filters {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+  }
+  .ins-filter-btn {
+    background: transparent;
+    color: var(--text-2);
+    border: 1px solid rgba(184, 147, 90, 0.3);
+    border-radius: 0;
+    padding: 11px 22px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
+  }
+  .ins-filter-btn:hover { border-color: var(--gold); color: var(--text-1); }
+  .ins-filter-btn.is-active {
+    background: var(--gold);
+    color: var(--bg-1);
+    border-color: var(--gold);
+  }
+
+  /* ============ GRID ============ */
+  .ins-grid-section {
+    padding: 64px 40px 120px;
+    background: var(--bg-1);
+  }
+  #piano-grid {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+  .piano-card {
+    background: var(--bg-2);
+    border: 1px solid rgba(184, 147, 90, 0.18);
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .piano-card:hover { border-color: var(--gold); transform: translateY(-3px); }
+  .piano-card .card-image {
+    width: 100%;
+    height: 200px;
+    background: var(--bg-2);
+    overflow: hidden;
+  }
+  .piano-card .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  .piano-card:hover .card-image img { transform: scale(1.04); }
+  .piano-card .card-body { padding: 20px; }
+  .piano-card .card-tag {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    background: var(--bg-1);
+    padding: 96px 40px 0;
+    border-top: 1px solid var(--border);
+  }
+  .footer-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.6fr repeat(4, 1fr);
+    gap: 48px;
+    padding-bottom: 64px;
+  }
+  .footer-brand .logo { font-size: 26px; }
+  .footer-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-2);
+    margin: 18px 0 0 0;
+    max-width: 280px;
+  }
+  .footer-col-title {
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 22px;
+    font-weight: 500;
+  }
+  .footer-link {
+    display: block;
+    font-size: 14px;
+    color: var(--text-2);
+    margin-bottom: 12px;
+    transition: color 0.2s ease;
+  }
+  .footer-link:hover { color: var(--text-1); }
+  .footer-contact {
+    font-size: 14px;
+    color: var(--text-2);
+    margin: 14px 0 0 0;
+    line-height: 1.6;
+  }
+  .footer-socials { display: flex; gap: 12px; }
+  .footer-social {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-size: 18px;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .footer-social:hover { border-color: var(--gold); color: var(--gold); }
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    text-align: center;
+  }
+  .footer-bottom p { font-size: 12px; color: var(--text-3); margin: 0; }
+  .footer-bottom a { color: var(--text-3); transition: color 0.2s ease; }
+  .footer-bottom a:hover { color: var(--text-1); }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 960px) {
+    nav { padding: 14px 22px; }
+    .nav-links, .nav-ctas { display: none; }
+    .nav-burger { display: inline-flex; }
+    .ins-hero { padding: 140px 22px 56px; }
+    .ins-filters-wrap { padding: 24px 22px; top: 64px; }
+    .ins-grid-section { padding: 48px 22px 80px; }
+    #piano-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .footer { padding: 60px 22px 0; }
+    .footer-inner { grid-template-columns: 1fr 1fr; gap: 36px; }
+    .footer-brand { grid-column: span 2; }
+  }
+  @media (max-width: 560px) {
+    #piano-grid { grid-template-columns: 1fr; }
+    .ins-filters { gap: 8px; }
+    .ins-filter-btn { padding: 9px 16px; font-size: 11px; letter-spacing: 0.12em; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav id="nav">
+  <a href="../index.html" class="logo">Signature <span>Pianos</span></a>
+  <div class="nav-links">
+
+    <div class="nav-item nav-item--dropdown nav-item--active">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Pianos <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--pianos" role="menu">
+        <a href="index.html" class="nav-dd-item">
+          <i class="ti ti-bookmark nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Used Japanese uprights</h4><p>Hand-selected, imported direct from Japan</p></div>
+        </a>
+        <a href="index.html" class="nav-dd-item">
+          <i class="ti ti-crown nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Used Japanese grands</h4><p>Concert &amp; baby grands, fully restored</p></div>
+        </a>
+        <a href="index.html" class="nav-dd-item">
+          <i class="ti ti-music nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Modern instruments for any space</p></div>
+        </a>
+        <a href="index.html" class="nav-dd-item">
+          <i class="ti ti-book nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Sheet music &amp; books</h4><p>For students and teachers alike</p></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="nav-item nav-item--dropdown">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Services <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--services" role="menu">
+        <a href="../services/delivery-warranty.html" class="nav-dd-item">
+          <i class="ti ti-truck-delivery nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White glove delivery, tracked end to end</p></div>
+        </a>
+        <a href="../services/book-a-viewing.html" class="nav-dd-item">
+          <i class="ti ti-calendar-event nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Book a viewing</h4><p>Visit our showroom, try before you buy</p></div>
+        </a>
+        <a href="../services/tuning-servicing.html" class="nav-dd-item">
+          <i class="ti ti-tool nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Keep your piano in perfect condition</p></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="nav-item nav-item--dropdown">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Teachers <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--teachers" role="menu">
+        <div class="nav-dd-section">
+          <div class="nav-dd-section-label">For students</div>
+          <div class="nav-dd-grid">
+            <a href="../teachers.html" class="nav-dd-item">
+              <i class="ti ti-search nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Browse local piano teachers by suburb</p></div>
+            </a>
+            <a href="../teachers.html?nearby=1" class="nav-dd-item">
+              <i class="ti ti-map-pin nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>Teachers near me</h4><p>Use your location to find teachers close by</p></div>
+            </a>
+          </div>
+        </div>
+        <div class="nav-dd-section">
+          <div class="nav-dd-section-label">For teachers</div>
+          <div class="nav-dd-grid">
+            <a href="../teachers.html#signup" class="nav-dd-item">
+              <i class="ti ti-list-details nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>List your studio</h4><p>Free listing, reach new students instantly</p></div>
+            </a>
+            <a href="../teachers.html#dashboard" class="nav-dd-item">
+              <i class="ti ti-layout-grid nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your schedule</p></div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <a href="../about.html" class="nav-link-plain">About</a>
+  </div>
+
+  <div class="nav-ctas">
+    <div class="nav-item nav-item--dropdown nav-item--account">
+      <button class="nav-account-trigger" type="button" aria-expanded="false" aria-haspopup="true" aria-label="Account">
+        <i class="ti ti-user"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--account" role="menu">
+        <a href="#" class="nav-dd-item">
+          <i class="ti ti-user nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track delivery, view purchases, manage warranty</p></div>
+        </a>
+        <a href="../teachers.html#dashboard" class="nav-dd-item">
+          <i class="ti ti-music nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your studio</p></div>
+        </a>
+      </div>
+    </div>
+    <a href="../services/book-a-viewing.html" class="nav-cta">Book a visit</a>
+  </div>
+  <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="ins-hero">
+  <div class="ins-hero-inner">
+    <div class="ins-hero-eyebrow">Our collection</div>
+    <h1 class="ins-hero-h1">Every piano, <em>personally selected</em>.</h1>
+    <p class="ins-hero-sub">Hand-picked Japanese uprights and grands, plus a curated range of digital pianos. Every instrument is backed by our 10-year warranty.</p>
+  </div>
+</section>
+
+<!-- ============ FILTERS ============ -->
+<div class="ins-filters-wrap">
+  <div class="ins-filters" role="tablist" aria-label="Filter pianos by type">
+    <button class="ins-filter-btn is-active" data-filter-type="all" type="button">All pianos</button>
+    <button class="ins-filter-btn" data-filter-type="acoustic_upright" type="button">Uprights</button>
+    <button class="ins-filter-btn" data-filter-type="acoustic_grand" type="button">Grands</button>
+    <button class="ins-filter-btn" data-filter-type="digital" type="button">Digital</button>
+  </div>
+</div>
+
+<!-- ============ GRID ============ -->
+<section class="ins-grid-section">
+  <div id="piano-grid"></div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-col footer-brand">
+      <a href="../index.html" class="logo">Signature <span>Pianos</span></a>
+      <p class="footer-tagline">Find the piano that moves you.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Shop</div>
+      <a href="index.html" class="footer-link">Shop</a>
+      <a href="index.html" class="footer-link">Brands</a>
+      <a href="../services/book-a-viewing.html" class="footer-link">Book viewing</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Teachers</div>
+      <a href="../teachers.html" class="footer-link">Teacher platform</a>
+      <a href="../teachers.html#signup" class="footer-link">Sign up</a>
+      <a href="../teachers.html#dashboard" class="footer-link">Log in</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Company</div>
+      <a href="../about.html" class="footer-link">About</a>
+      <a href="#" class="footer-link">Blog</a>
+      <a href="mailto:hello@signaturepianos.com" class="footer-link">Contact</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Find us</div>
+      <div class="footer-socials">
+        <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
+        <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
+      </div>
+      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
+  </div>
+</footer>
+
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Shared config — always load after Supabase JS -->
+<script src="/js/config.js"></script>
+
+<script>
+  /* -------- NAV: scrolled-state + dropdowns -------- */
+  (function setupNav() {
+    const nav = document.getElementById('nav');
+    if (nav) {
+      const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 60);
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    }
+    const items = document.querySelectorAll('.nav-item--dropdown');
+    const TRIGGER_SEL = '.nav-link-trigger, .nav-account-trigger';
+    const closeAll = (except) => {
+      items.forEach(it => {
+        if (it === except) return;
+        it.classList.remove('nav-item--open');
+        it.querySelector(TRIGGER_SEL)?.setAttribute('aria-expanded', 'false');
+      });
+    };
+    items.forEach(item => {
+      const trigger = item.querySelector(TRIGGER_SEL);
+      if (!trigger) return;
+      const open  = () => { item.classList.add('nav-item--open'); trigger.setAttribute('aria-expanded', 'true'); closeAll(item); };
+      const close = () => { item.classList.remove('nav-item--open'); trigger.setAttribute('aria-expanded', 'false'); };
+      item.addEventListener('mouseenter', open);
+      item.addEventListener('mouseleave', close);
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        item.classList.contains('nav-item--open') ? close() : open();
+      });
+      item.querySelectorAll('.nav-dd-item').forEach(link => link.addEventListener('click', close));
+    });
+    document.addEventListener('click', () => closeAll(null));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(null); });
+  })();
+
+  /* -------- PIANO GRID: load from Supabase + filter by type -------- */
+  async function loadPianos(filters = {}) {
+    const grid = document.querySelector('#piano-grid')
+    grid.innerHTML = '<p style="color:#9a9590;text-align:center;padding:40px 0;">Loading pianos...</p>'
+
+    try {
+      let query = _supabase
+        .from('pianos')
+        .select('*')
+        .eq('stock_status', 'available')
+        .order('created_at', { ascending: false })
+
+      if (filters.type) query = query.eq('type', filters.type)
+      if (filters.maxPrice) query = query.lte('price', filters.maxPrice)
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('[instruments] supabase query failed', error)
+        grid.innerHTML = '<p style="color:#9a9590;text-align:center;padding:40px 0;">No pianos available right now — check back soon.</p>'
+        return
+      }
+
+      if (!data.length) {
+        grid.innerHTML = '<p style="color:#9a9590;text-align:center;padding:40px 0;">No pianos available right now — check back soon.</p>'
+        return
+      }
+
+      grid.innerHTML = data.map(piano => `
+        <div class="piano-card" onclick="window.location='../piano.html?id=${piano.id}'">
+          <div class="card-image" style="background:#1a1a18;height:200px;overflow:hidden;">
+            <img src="${piano.images?.[0] || '/assets/piano-placeholder.jpg'}"
+                 alt="${piano.brand} ${piano.model || ''}"
+                 style="width:100%;height:100%;object-fit:cover;"
+                 onerror="this.src='/assets/piano-placeholder.jpg'">
+          </div>
+          <div class="card-body" style="padding:20px;">
+            <span class="card-tag">${formatType(piano.type)}</span>
+            <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;margin:8px 0 4px;">
+              ${piano.brand} ${piano.model || ''}
+            </h3>
+            <p style="color:#9a9590;font-size:13px;margin-bottom:12px;">
+              ${piano.year ? piano.year + ' · ' : ''}${formatCondition(piano.condition)}
+            </p>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="color:#b8935a;font-size:18px;font-family:'Cormorant Garamond',serif;">
+                $${Number(piano.price).toLocaleString()}
+              </span>
+              <span style="font-size:11px;color:#6b6760;letter-spacing:0.08em;">
+                10 YR WARRANTY
+              </span>
+            </div>
+          </div>
+        </div>
+      `).join('')
+    } catch (err) {
+      console.error('[instruments] loadPianos threw', err)
+      grid.innerHTML = '<p style="color:#9a9590;text-align:center;padding:40px 0;">No pianos available right now — check back soon.</p>'
+    }
+  }
+
+  function formatType(type) {
+    const map = { acoustic_upright: 'Upright Piano', acoustic_grand: 'Grand Piano', digital: 'Digital Piano' }
+    return map[type] || type
+  }
+
+  function formatCondition(condition) {
+    const map = { excellent: 'Excellent condition', good: 'Good condition', fair: 'Fair condition' }
+    return map[condition] || condition || ''
+  }
+
+  // Wire up filter chips: clicking toggles the active state + reloads the grid
+  document.querySelectorAll('[data-filter-type]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-filter-type]').forEach(b => b.classList.remove('is-active'))
+      btn.classList.add('is-active')
+      const type = btn.dataset.filterType
+      loadPianos(type === 'all' ? {} : { type })
+    })
+  })
+
+  // Initial load
+  loadPianos()
+</script>
+
+</body>
+</html>

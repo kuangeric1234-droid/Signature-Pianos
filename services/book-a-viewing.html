@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Book a Viewing — Signature Pianos Melbourne</title>
+<meta name="description" content="Book a private piano viewing at the Signature Pianos Melbourne showroom. Take your time, play every piano, ask anything — no pressure, no obligation." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+<style>
+  :root {
+    --bg-1: #0e0e0d;
+    --bg-2: #1a1a18;
+    --bg-3: #242422;
+    --gold: #b8935a;
+    --gold-light: #d4b483;
+    --text-1: #f5f0e8;
+    --text-2: #9a9590;
+    --text-3: #6b6760;
+    --border: rgba(184, 147, 90, 0.15);
+    --border-hover: rgba(184, 147, 90, 0.4);
+    --error: rgba(220, 80, 80, 0.6);
+    --error-text: #e89696;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-1);
+    color: var(--text-1);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; }
+  ::selection { background: var(--gold); color: var(--bg-1); }
+
+  /* ============ SHARED HEADINGS ============ */
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+  .section-h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(36px, 4.5vw, 56px);
+    line-height: 1.1;
+    margin: 0 0 24px 0;
+    max-width: 760px;
+  }
+  .section-h2 em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .section-body {
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--text-2);
+    margin: 0;
+    max-width: 640px;
+  }
+
+  /* ============ NAV (matches other pages) ============ */
+  nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 100;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    background: rgba(14, 14, 13, 0.88);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    transition: padding 0.35s ease, background 0.35s ease;
+  }
+  nav.scrolled { background: rgba(14, 14, 13, 0.96); padding: 12px 32px; }
+
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 24px;
+    letter-spacing: 0.01em;
+    color: var(--text-1);
+    flex-shrink: 0;
+  }
+  .logo span { color: var(--gold); font-style: italic; font-weight: 400; }
+
+  .nav-links { display: flex; align-items: center; gap: 32px; }
+
+  .nav-link-plain {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    transition: color 0.25s ease;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .nav-link-plain:hover { color: var(--text-1); }
+
+  .nav-item--dropdown { position: relative; }
+  .nav-link-trigger {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    background: transparent;
+    border: 0;
+    padding: 6px 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.25s ease;
+  }
+  .nav-link-trigger:hover,
+  .nav-item--open .nav-link-trigger { color: var(--text-1); }
+  /* Active page state: persistent white text on the dropdown trigger */
+  .nav-item--active .nav-link-trigger { color: var(--text-1); }
+  .nav-chevron { font-size: 14px; color: var(--gold); transition: transform 0.25s ease; opacity: 0.8; }
+  .nav-item--open .nav-chevron { transform: rotate(180deg); }
+
+  .nav-dropdown {
+    position: absolute;
+    top: calc(100% + 14px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    background: #14140f;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    display: grid;
+    gap: 4px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.85);
+    transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
+    z-index: 110;
+  }
+  .nav-item--open .nav-dropdown {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+  .nav-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -14px; left: 0; right: 0;
+    height: 14px;
+  }
+
+  .nav-dropdown--pianos {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    width: clamp(520px, 38vw, 620px);
+    gap: 6px 12px;
+  }
+  .nav-dropdown--services {
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    width: clamp(620px, 44vw, 720px);
+    gap: 6px 8px;
+  }
+  .nav-dropdown--teachers {
+    grid-template-columns: 1fr;
+    width: clamp(540px, 40vw, 640px);
+    gap: 0;
+    padding: 14px;
+  }
+
+  .nav-dd-section { padding: 8px 4px; }
+  .nav-dd-section + .nav-dd-section {
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+    padding-top: 16px;
+  }
+  .nav-dd-section-label {
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin: 2px 14px 12px;
+  }
+  .nav-dd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+
+  .nav-dd-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s ease;
+  }
+  .nav-dd-item:hover { background: rgba(184, 147, 90, 0.07); }
+  /* Active page state inside the dropdown */
+  .nav-dd-item.is-current { background: rgba(184, 147, 90, 0.10); }
+  .nav-dd-item.is-current h4 { color: var(--gold); }
+  .nav-dd-icon { font-size: 20px; color: var(--gold); margin-top: 2px; flex-shrink: 0; }
+  .nav-dd-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .nav-dd-text h4 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-1);
+    margin: 0;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.3;
+  }
+  .nav-dd-text p { font-size: 12px; color: var(--text-3); margin: 0; line-height: 1.4; }
+
+  .nav-ctas { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  .nav-account-trigger {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--gold);
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+  .nav-account-trigger:hover,
+  .nav-item--account.nav-item--open .nav-account-trigger {
+    border-color: var(--gold);
+    background: rgba(184, 147, 90, 0.10);
+  }
+  .nav-dropdown--account {
+    grid-template-columns: 1fr;
+    width: clamp(320px, 26vw, 420px);
+    left: auto;
+    right: 0;
+    transform: translateY(-6px);
+    gap: 2px;
+  }
+  .nav-item--open .nav-dropdown--account { transform: translateY(0); }
+
+  .nav-cta {
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    background: transparent;
+    padding: 11px 22px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .nav-cta:hover { background: var(--gold); color: var(--bg-1); }
+
+  .nav-burger { display: none; background: none; border: 0; color: var(--text-1); font-size: 24px; cursor: pointer; }
+
+  /* ============ §1 HERO ============ */
+  .bv-hero {
+    padding: 180px 40px 120px;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(184, 147, 90, 0.12), transparent 60%),
+      var(--bg-1);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+  .bv-hero-inner { max-width: 980px; margin: 0 auto; }
+  .bv-hero-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 28px;
+  }
+  .bv-hero-h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(44px, 6vw, 84px);
+    line-height: 1.05;
+    margin: 0 0 28px 0;
+    color: var(--text-1);
+  }
+  .bv-hero-h1 em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .bv-hero-sub {
+    font-size: clamp(16px, 1.4vw, 19px);
+    line-height: 1.7;
+    color: var(--text-2);
+    margin: 0 auto 64px;
+    max-width: 680px;
+  }
+  .bv-trust-icons {
+    display: flex;
+    justify-content: center;
+    gap: clamp(40px, 8vw, 96px);
+    flex-wrap: wrap;
+  }
+  .bv-trust {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    max-width: 180px;
+  }
+  .bv-trust i { font-size: 38px; color: var(--gold); }
+  .bv-trust span {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    text-align: center;
+  }
+
+  /* ============ §2 WHAT TO EXPECT ============ */
+  .bv-steps {
+    padding: 140px 40px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .bv-steps-inner { max-width: 1400px; margin: 0 auto; }
+  .bv-section-header { margin: 0 auto 80px; max-width: 760px; text-align: center; }
+  .bv-section-header .section-h2 { margin-left: auto; margin-right: auto; }
+  .bv-section-header .section-body { margin-left: auto; margin-right: auto; }
+
+  .bv-steps-track {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    position: relative;
+  }
+  /* Subtle gold dashed line connecting all step icons on desktop */
+  .bv-steps-track::before {
+    content: '';
+    position: absolute;
+    top: 76px;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    border-top: 1px dashed var(--border);
+    z-index: 0;
+  }
+
+  .bv-step {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0 4px;
+  }
+  .bv-step-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: 0.22em;
+    margin-bottom: 18px;
+  }
+  .bv-step-icon-wrap {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    background: var(--bg-1);
+    border-radius: 50%;
+    margin-bottom: 22px;
+    transition: border-color 0.3s ease, background 0.3s ease;
+  }
+  .bv-step:hover .bv-step-icon-wrap { border-color: var(--gold); background: var(--bg-3); }
+  .bv-step-icon-wrap i { font-size: 24px; color: var(--gold); }
+  .bv-step-title {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.35;
+    margin: 0 0 12px 0;
+    color: var(--text-1);
+  }
+  .bv-step-body {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  /* ============ §3 BOOKING FORM ============ */
+  .bv-form-section {
+    padding: 140px 40px;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(184, 147, 90, 0.06), transparent 60%),
+      var(--bg-1);
+    border-bottom: 1px solid var(--border);
+  }
+  .bv-form-inner { max-width: 760px; margin: 0 auto; }
+  .bv-form-header { text-align: center; margin-bottom: 56px; }
+  .bv-form-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(36px, 4.5vw, 56px);
+    line-height: 1.1;
+    margin: 0 0 16px 0;
+    color: var(--text-1);
+  }
+  .bv-form-header h2 em { color: var(--gold); }
+  .bv-form-header p {
+    font-size: 16px;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  .bv-card {
+    background: var(--bg-2);
+    border: 1px solid rgba(184, 147, 90, 0.3);
+    border-radius: 4px;
+    padding: clamp(28px, 5vw, 56px);
+    box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.9);
+  }
+
+  .bv-form-row { margin-bottom: 28px; }
+  .bv-form-row--split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin-bottom: 28px;
+  }
+  .bv-form-row--split > .bv-form-row { margin-bottom: 0; }
+
+  .bv-label {
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin-bottom: 10px;
+  }
+  .bv-label-optional {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 12px;
+    color: var(--text-3);
+    margin-left: 6px;
+    font-weight: 300;
+  }
+
+  .bv-input,
+  .bv-select,
+  .bv-textarea {
+    width: 100%;
+    background: var(--bg-2);
+    border: 1px solid rgba(184, 147, 90, 0.15);
+    color: var(--text-1);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 300;
+    padding: 14px 16px;
+    border-radius: 0;
+    outline: none;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .bv-input::placeholder,
+  .bv-textarea::placeholder { color: var(--text-3); }
+  .bv-input:focus,
+  .bv-select:focus,
+  .bv-textarea:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(184, 147, 90, 0.15);
+  }
+  .bv-input::-webkit-calendar-picker-indicator {
+    filter: invert(0.7) sepia(0.6) saturate(2) hue-rotate(-10deg);
+    cursor: pointer;
+    opacity: 0.9;
+  }
+
+  /* Custom chevron for select */
+  .bv-select-wrap { position: relative; }
+  .bv-select { padding-right: 44px; cursor: pointer; }
+  .bv-select-wrap::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 18px;
+    width: 8px;
+    height: 8px;
+    border-right: 1.5px solid var(--gold);
+    border-bottom: 1.5px solid var(--gold);
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+
+  .bv-textarea {
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.6;
+  }
+
+  /* Pills */
+  .bv-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .bv-pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border: 1px solid rgba(184, 147, 90, 0.3);
+    background: transparent;
+    color: var(--text-2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+  .bv-pill:hover { border-color: var(--gold); color: var(--text-1); }
+  .bv-pill input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+  }
+  .bv-pill .bv-pill-tick {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    font-size: 12px;
+    color: transparent;
+    transition: color 0.2s ease;
+  }
+  .bv-pill:has(input:checked) {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--bg-1);
+  }
+  .bv-pill:has(input:checked) .bv-pill-tick { color: var(--bg-1); }
+
+  /* Field error state */
+  .bv-input.has-error,
+  .bv-select.has-error,
+  .bv-textarea.has-error,
+  .bv-pills.has-error {
+    border-color: var(--error);
+  }
+  .bv-pills.has-error .bv-pill { border-color: var(--error); }
+  .bv-error {
+    display: none;
+    font-size: 11px;
+    color: var(--error-text);
+    margin-top: 8px;
+    letter-spacing: 0.02em;
+  }
+  .bv-error.is-shown { display: block; }
+
+  .bv-submit {
+    width: 100%;
+    background: var(--gold);
+    color: var(--bg-1);
+    border: 1px solid var(--gold);
+    padding: 18px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 0;
+    transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+    margin-top: 12px;
+  }
+  .bv-submit:hover:not(:disabled) {
+    background: var(--gold-light);
+    border-color: var(--gold-light);
+    transform: translateY(-1px);
+  }
+  .bv-submit:disabled {
+    opacity: 0.7;
+    cursor: progress;
+    transform: none;
+  }
+
+  .bv-form-error {
+    display: none;
+    margin-top: 18px;
+    padding: 14px 16px;
+    border: 1px solid var(--error);
+    background: rgba(220, 80, 80, 0.06);
+    color: var(--error-text);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .bv-form-error.is-shown { display: block; }
+
+  /* Success state replaces the form */
+  .bv-success {
+    display: none;
+    text-align: center;
+    padding: 24px 8px 8px;
+  }
+  .bv-success.is-shown { display: block; }
+  .bv-success-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-size: 36px;
+    margin-bottom: 28px;
+    background: rgba(184, 147, 90, 0.06);
+  }
+  .bv-success h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(32px, 4vw, 44px);
+    line-height: 1.15;
+    margin: 0 0 16px 0;
+    color: var(--text-1);
+  }
+  .bv-success h3 em { color: var(--gold); }
+  .bv-success p {
+    font-size: 16px;
+    color: var(--text-2);
+    margin: 0 auto;
+    max-width: 460px;
+    line-height: 1.7;
+  }
+
+  /* ============ §4 SHOWROOM DETAILS ============ */
+  .bv-find {
+    padding: 140px 40px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .bv-find-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: clamp(40px, 8vw, 96px);
+    align-items: start;
+  }
+  .bv-find-text { max-width: 540px; }
+  .bv-find-list {
+    list-style: none;
+    margin: 36px 0 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .bv-find-list li {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .bv-find-list i {
+    font-size: 22px;
+    color: var(--gold);
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .bv-find-list .bv-find-row-label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 6px;
+  }
+  .bv-find-list .bv-find-row-value {
+    font-size: 16px;
+    color: var(--text-1);
+    line-height: 1.6;
+  }
+
+  .bv-map {
+    background: var(--bg-2);
+    border: 1px solid rgba(184, 147, 90, 0.3);
+    border-radius: 4px;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    color: var(--text-3);
+    padding: 32px;
+    text-align: center;
+  }
+  .bv-map i { font-size: 40px; color: var(--text-3); }
+  .bv-map span {
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* ============ §5 REASSURANCE STRIP ============ */
+  .bv-strip {
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+    padding: 64px 40px;
+  }
+  .bv-strip-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+  }
+  .bv-strip-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+  }
+  .bv-strip-item i { font-size: 26px; color: var(--gold); }
+  .bv-strip-item span {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.5;
+  }
+
+  /* ============ §6 BOTTOM CTA ============ */
+  .bv-cta {
+    padding: 160px 40px;
+    background:
+      radial-gradient(ellipse at 50% 100%, rgba(184, 147, 90, 0.14), transparent 60%),
+      var(--bg-1);
+    text-align: center;
+  }
+  .bv-cta-inner { max-width: 760px; margin: 0 auto; }
+  .bv-cta-h {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 1.1;
+    margin: 0 0 24px 0;
+    color: var(--text-1);
+  }
+  .bv-cta-h em { color: var(--gold); }
+  .bv-cta-sub {
+    font-size: 17px;
+    color: var(--text-2);
+    margin: 0 0 44px 0;
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 16px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 0;
+  }
+  .btn-outline:hover { background: var(--gold); color: var(--bg-1); }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    background: var(--bg-1);
+    padding: 96px 40px 0;
+    border-top: 1px solid var(--border);
+  }
+  .footer-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.6fr repeat(4, 1fr);
+    gap: 48px;
+    padding-bottom: 64px;
+  }
+  .footer-brand .logo { font-size: 26px; }
+  .footer-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-2);
+    margin: 18px 0 0 0;
+    max-width: 280px;
+  }
+  .footer-col-title {
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 22px;
+    font-weight: 500;
+  }
+  .footer-link {
+    display: block;
+    font-size: 14px;
+    color: var(--text-2);
+    margin-bottom: 12px;
+    transition: color 0.2s ease;
+  }
+  .footer-link:hover { color: var(--text-1); }
+  .footer-contact {
+    font-size: 14px;
+    color: var(--text-2);
+    margin: 14px 0 0 0;
+    line-height: 1.6;
+  }
+  .footer-socials { display: flex; gap: 12px; }
+  .footer-social {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-size: 18px;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .footer-social:hover { border-color: var(--gold); color: var(--gold); }
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    text-align: center;
+  }
+  .footer-bottom p { font-size: 12px; color: var(--text-3); margin: 0; }
+  .footer-bottom a { color: var(--text-3); transition: color 0.2s ease; }
+  .footer-bottom a:hover { color: var(--text-1); }
+
+  /* ============ REVEAL ANIMATIONS ============ */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.is-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-stagger > * {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal-stagger.is-in > * { opacity: 1; transform: translateY(0); }
+  .reveal-stagger.is-in > *:nth-child(1) { transition-delay: 0.00s; }
+  .reveal-stagger.is-in > *:nth-child(2) { transition-delay: 0.10s; }
+  .reveal-stagger.is-in > *:nth-child(3) { transition-delay: 0.20s; }
+  .reveal-stagger.is-in > *:nth-child(4) { transition-delay: 0.30s; }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 1024px) {
+    .bv-steps-track { grid-template-columns: repeat(2, 1fr); row-gap: 56px; }
+    .bv-steps-track::before { display: none; }
+    .bv-find-inner { grid-template-columns: 1fr; gap: 56px; }
+    .bv-find-text { max-width: 100%; }
+  }
+
+  @media (max-width: 960px) {
+    nav { padding: 14px 22px; }
+    .nav-links, .nav-ctas { display: none; }
+    .nav-burger { display: inline-flex; }
+
+    .bv-hero { padding: 140px 22px 84px; }
+    .bv-steps, .bv-form-section, .bv-find, .bv-cta { padding: 88px 22px; }
+    .bv-strip { padding: 48px 22px; }
+
+    /* Vertical step stack on mobile with a connecting gold dashed line on the left */
+    .bv-steps-track {
+      grid-template-columns: 1fr;
+      row-gap: 0;
+      position: relative;
+      padding-left: 72px;
+    }
+    .bv-steps-track::before {
+      display: block;
+      top: 12px;
+      bottom: 12px;
+      left: 31px;
+      right: auto;
+      width: 0;
+      height: auto;
+      border-top: 0;
+      border-left: 1px dashed var(--border);
+    }
+    .bv-step {
+      position: relative;
+      padding: 12px 0 36px;
+    }
+    .bv-step-num {
+      position: absolute;
+      top: 18px;
+      right: calc(100% + 24px);
+      margin-bottom: 0;
+      display: none;
+    }
+    .bv-step-icon-wrap {
+      position: absolute;
+      left: -68px;
+      top: -2px;
+      width: 40px;
+      height: 40px;
+      margin-bottom: 0;
+    }
+    .bv-step-icon-wrap i { font-size: 18px; }
+
+    .bv-strip-inner { grid-template-columns: 1fr 1fr; gap: 28px; }
+
+    .bv-form-row--split { grid-template-columns: 1fr; gap: 28px; }
+
+    .footer { padding: 60px 22px 0; }
+    .footer-inner { grid-template-columns: 1fr 1fr; gap: 36px; }
+    .footer-brand { grid-column: span 2; }
+  }
+
+  @media (max-width: 560px) {
+    .bv-trust-icons { gap: 28px; }
+    .bv-trust { max-width: 110px; }
+    .bv-card { padding: 24px 20px; }
+    .bv-strip-inner { gap: 24px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal, .reveal-stagger > * { transition: none; opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav id="nav">
+  <a href="../index.html" class="logo">Signature <span>Pianos</span></a>
+  <div class="nav-links">
+
+    <div class="nav-item nav-item--dropdown">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Pianos <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--pianos" role="menu">
+        <a href="../instruments.html?cat=upright" class="nav-dd-item">
+          <i class="ti ti-bookmark nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Used Japanese uprights</h4><p>Hand-selected, imported direct from Japan</p></div>
+        </a>
+        <a href="../instruments.html?cat=grand" class="nav-dd-item">
+          <i class="ti ti-crown nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Used Japanese grands</h4><p>Concert &amp; baby grands, fully restored</p></div>
+        </a>
+        <a href="../instruments.html?cat=digital" class="nav-dd-item">
+          <i class="ti ti-music nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Modern instruments for any space</p></div>
+        </a>
+        <a href="../instruments.html?cat=books" class="nav-dd-item">
+          <i class="ti ti-book nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Sheet music &amp; books</h4><p>For students and teachers alike</p></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="nav-item nav-item--dropdown nav-item--active">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Services <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--services" role="menu">
+        <a href="delivery-warranty.html" class="nav-dd-item">
+          <i class="ti ti-truck-delivery nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White glove delivery, tracked end to end</p></div>
+        </a>
+        <a href="book-a-viewing.html" class="nav-dd-item is-current" aria-current="page">
+          <i class="ti ti-calendar-event nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Book a viewing</h4><p>Visit our showroom, try before you buy</p></div>
+        </a>
+        <a href="tuning-servicing.html" class="nav-dd-item">
+          <i class="ti ti-tool nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Keep your piano in perfect condition</p></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="nav-item nav-item--dropdown">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Teachers <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--teachers" role="menu">
+        <div class="nav-dd-section">
+          <div class="nav-dd-section-label">For students</div>
+          <div class="nav-dd-grid">
+            <a href="../teachers.html" class="nav-dd-item">
+              <i class="ti ti-search nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Browse local piano teachers by suburb</p></div>
+            </a>
+            <a href="../teachers.html?nearby=1" class="nav-dd-item">
+              <i class="ti ti-map-pin nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>Teachers near me</h4><p>Use your location to find teachers close by</p></div>
+            </a>
+          </div>
+        </div>
+        <div class="nav-dd-section">
+          <div class="nav-dd-section-label">For teachers</div>
+          <div class="nav-dd-grid">
+            <a href="../teachers.html#signup" class="nav-dd-item">
+              <i class="ti ti-list-details nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>List your studio</h4><p>Free listing, reach new students instantly</p></div>
+            </a>
+            <a href="../teachers.html#dashboard" class="nav-dd-item">
+              <i class="ti ti-layout-grid nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your schedule</p></div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <a href="../about.html" class="nav-link-plain">About</a>
+  </div>
+
+  <div class="nav-ctas">
+    <div class="nav-item nav-item--dropdown nav-item--account">
+      <button class="nav-account-trigger" type="button" aria-expanded="false" aria-haspopup="true" aria-label="Account">
+        <i class="ti ti-user"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--account" role="menu">
+        <a href="#" class="nav-dd-item">
+          <i class="ti ti-user nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track delivery, view purchases, manage warranty</p></div>
+        </a>
+        <a href="../teachers.html#dashboard" class="nav-dd-item">
+          <i class="ti ti-music nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your studio</p></div>
+        </a>
+      </div>
+    </div>
+    <a href="#booking-form" class="nav-cta">Book a visit</a>
+  </div>
+  <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+</nav>
+
+<!-- ============ §1 HERO ============ -->
+<section class="bv-hero">
+  <div class="bv-hero-inner">
+    <div class="bv-hero-eyebrow reveal">Book a viewing</div>
+    <h1 class="bv-hero-h1 reveal">Come and play before you decide.</h1>
+    <p class="bv-hero-sub reveal">There's nothing like sitting down at a piano and feeling it under your fingers. Book a private viewing at our showroom and take as long as you need — no pressure, no rush.</p>
+    <div class="bv-trust-icons reveal-stagger">
+      <div class="bv-trust">
+        <i class="ti ti-lock"></i>
+        <span>Private viewing</span>
+      </div>
+      <div class="bv-trust">
+        <i class="ti ti-mood-smile"></i>
+        <span>Any experience level</span>
+      </div>
+      <div class="bv-trust">
+        <i class="ti ti-hand-stop"></i>
+        <span>No obligation</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §2 WHAT TO EXPECT ============ -->
+<section class="bv-steps">
+  <div class="bv-steps-inner">
+    <div class="bv-section-header">
+      <div class="section-label reveal">What to expect</div>
+      <h2 class="section-h2 reveal">What happens when you <em>visit</em>.</h2>
+    </div>
+
+    <div class="bv-steps-track reveal-stagger">
+      <div class="bv-step">
+        <div class="bv-step-num">01</div>
+        <div class="bv-step-icon-wrap"><i class="ti ti-adjustments"></i></div>
+        <h3 class="bv-step-title">We prepare for you</h3>
+        <p class="bv-step-body">Before your visit we'll have the pianos you're interested in tuned, positioned and ready to play. Your time here is focused entirely on finding the right instrument.</p>
+      </div>
+      <div class="bv-step">
+        <div class="bv-step-num">02</div>
+        <div class="bv-step-icon-wrap"><i class="ti ti-music"></i></div>
+        <h3 class="bv-step-title">Play at your own pace</h3>
+        <p class="bv-step-body">Whether you're a beginner or an advanced player, take as long as you need. We're here to answer questions, not to sell you.</p>
+      </div>
+      <div class="bv-step">
+        <div class="bv-step-num">03</div>
+        <div class="bv-step-icon-wrap"><i class="ti ti-messages"></i></div>
+        <h3 class="bv-step-title">Ask us anything</h3>
+        <p class="bv-step-body">From the history of each piano to its restoration, regulation and touch — we'll walk you through everything you want to know.</p>
+      </div>
+      <div class="bv-step">
+        <div class="bv-step-num">04</div>
+        <div class="bv-step-icon-wrap"><i class="ti ti-star"></i></div>
+        <h3 class="bv-step-title">Leave with confidence</h3>
+        <p class="bv-step-body">Whether you buy on the day or need time to think, you'll leave knowing exactly what you're considering.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §3 BOOKING FORM ============ -->
+<section class="bv-form-section" id="booking-form">
+  <div class="bv-form-inner">
+    <div class="bv-form-header">
+      <h2 class="reveal">Reserve your <em>viewing</em>.</h2>
+      <p class="reveal">Tell us a little about you and the pianos you'd like to play.</p>
+    </div>
+
+    <div class="bv-card reveal">
+
+      <!-- The form. noValidate so browser doesn't render its own messaging. -->
+      <form id="viewing-form" novalidate>
+
+        <div class="bv-form-row">
+          <label class="bv-label" for="bv-name">Full name</label>
+          <input type="text" id="bv-name" name="full_name" class="bv-input" autocomplete="name" required />
+        </div>
+
+        <div class="bv-form-row--split">
+          <div class="bv-form-row">
+            <label class="bv-label" for="bv-phone">Phone number</label>
+            <input type="tel" id="bv-phone" name="phone" class="bv-input" autocomplete="tel" inputmode="tel" required />
+          </div>
+          <div class="bv-form-row">
+            <label class="bv-label" for="bv-email">Email address</label>
+            <input type="email" id="bv-email" name="email" class="bv-input" autocomplete="email" inputmode="email" required />
+          </div>
+        </div>
+
+        <div class="bv-form-row--split">
+          <div class="bv-form-row">
+            <label class="bv-label" for="bv-date">Preferred date</label>
+            <input type="date" id="bv-date" name="preferred_date" class="bv-input" required />
+          </div>
+          <div class="bv-form-row">
+            <label class="bv-label" for="bv-time">Preferred time</label>
+            <div class="bv-select-wrap">
+              <select id="bv-time" name="preferred_time" class="bv-select" required>
+                <option value="" disabled selected>Choose a time</option>
+                <option value="morning">Morning (9am–12pm)</option>
+                <option value="afternoon">Afternoon (12pm–4pm)</option>
+                <option value="late_afternoon">Late afternoon (4pm–6pm)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="bv-form-row">
+          <label class="bv-label">Which pianos are you interested in</label>
+          <div class="bv-pills" data-pills-group="pianos_interested">
+            <label class="bv-pill">
+              <input type="checkbox" name="pianos_interested" value="Japanese upright pianos" />
+              <span class="bv-pill-tick"><i class="ti ti-check"></i></span>
+              Japanese upright pianos
+            </label>
+            <label class="bv-pill">
+              <input type="checkbox" name="pianos_interested" value="Japanese grand pianos" />
+              <span class="bv-pill-tick"><i class="ti ti-check"></i></span>
+              Japanese grand pianos
+            </label>
+            <label class="bv-pill">
+              <input type="checkbox" name="pianos_interested" value="Digital pianos" />
+              <span class="bv-pill-tick"><i class="ti ti-check"></i></span>
+              Digital pianos
+            </label>
+            <label class="bv-pill">
+              <input type="checkbox" name="pianos_interested" value="Not sure yet — happy to browse" />
+              <span class="bv-pill-tick"><i class="ti ti-check"></i></span>
+              Not sure yet — happy to browse
+            </label>
+          </div>
+        </div>
+
+        <div class="bv-form-row">
+          <label class="bv-label" for="bv-heard">How did you hear about us</label>
+          <div class="bv-select-wrap">
+            <select id="bv-heard" name="how_heard" class="bv-select" required>
+              <option value="" disabled selected>Choose one</option>
+              <option value="google">Google search</option>
+              <option value="instagram">Instagram</option>
+              <option value="facebook">Facebook</option>
+              <option value="word_of_mouth">Word of mouth</option>
+              <option value="drove_past">Drove past</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bv-form-row">
+          <label class="bv-label" for="bv-message">
+            Anything else you'd like us to know?
+            <span class="bv-label-optional">(optional)</span>
+          </label>
+          <textarea id="bv-message" name="message" class="bv-textarea" rows="4" placeholder="Anything that would help us prepare for your visit"></textarea>
+        </div>
+
+        <button type="submit" class="bv-submit" id="bv-submit">Request a viewing</button>
+        <div class="bv-form-error" id="form-error" style="display:none">Something went wrong — please try again or call us directly.</div>
+
+      </form>
+
+      <!-- Success state, swapped in after a successful insert -->
+      <div class="bv-success" id="form-success" style="display:none" aria-live="polite">
+        <div class="bv-success-icon"><i class="ti ti-circle-check"></i></div>
+        <h3>You're booked in, <em><span id="success-name">there</span></em>.</h3>
+        <p>We'll confirm your viewing within 24 hours via email and phone. We look forward to meeting you.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ §4 FIND US ============ -->
+<section class="bv-find">
+  <div class="bv-find-inner">
+    <div class="bv-find-text">
+      <div class="section-label reveal">Find us</div>
+      <h2 class="section-h2 reveal">Our Melbourne <em>showroom</em>.</h2>
+      <p class="section-body reveal">A quiet, considered space — not a shop floor. Drop in or book ahead and we'll have your favourites ready to play.</p>
+
+      <ul class="bv-find-list reveal-stagger">
+        <li>
+          <i class="ti ti-map-pin"></i>
+          <div>
+            <span class="bv-find-row-label">Address</span>
+            <span class="bv-find-row-value">
+              <!-- ADD SHOWROOM ADDRESS HERE -->
+              Showroom address — Melbourne, VIC
+            </span>
+          </div>
+        </li>
+        <li>
+          <i class="ti ti-clock"></i>
+          <div>
+            <span class="bv-find-row-label">Opening hours</span>
+            <span class="bv-find-row-value">
+              Monday to Saturday 9am–5pm<br>
+              Sunday by appointment
+            </span>
+          </div>
+        </li>
+        <li>
+          <i class="ti ti-phone"></i>
+          <div>
+            <span class="bv-find-row-label">Phone</span>
+            <span class="bv-find-row-value">
+              <!-- ADD PHONE NUMBER -->
+              Phone number coming soon
+            </span>
+          </div>
+        </li>
+        <li>
+          <i class="ti ti-mail"></i>
+          <div>
+            <span class="bv-find-row-label">Email</span>
+            <span class="bv-find-row-value">
+              <!-- ADD EMAIL -->
+              hello@signaturepianos.com
+            </span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="bv-map reveal" aria-label="Showroom map placeholder">
+      <!-- ADD GOOGLE MAPS EMBED HERE -->
+      <i class="ti ti-map"></i>
+      <span>Map coming soon</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §5 REASSURANCE STRIP ============ -->
+<section class="bv-strip">
+  <div class="bv-strip-inner reveal-stagger">
+    <div class="bv-strip-item">
+      <i class="ti ti-lock"></i>
+      <span>Private &amp; relaxed</span>
+    </div>
+    <div class="bv-strip-item">
+      <i class="ti ti-thumb-up"></i>
+      <span>No sales pressure</span>
+    </div>
+    <div class="bv-strip-item">
+      <i class="ti ti-users"></i>
+      <span>All levels welcome</span>
+    </div>
+    <div class="bv-strip-item">
+      <i class="ti ti-car"></i>
+      <!-- CONFIRM PARKING AVAILABILITY -->
+      <span>Free parking</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §6 BOTTOM CTA ============ -->
+<section class="bv-cta">
+  <div class="bv-cta-inner">
+    <h2 class="bv-cta-h reveal">Not ready to <em>visit yet</em>?</h2>
+    <p class="bv-cta-sub reveal">Browse our current inventory online and save the ones you'd like to try in person.</p>
+    <div class="reveal">
+      <a href="../instruments/index.html" class="btn-outline">Browse our pianos <i class="ti ti-arrow-right"></i></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-col footer-brand">
+      <a href="../index.html" class="logo">Signature <span>Pianos</span></a>
+      <p class="footer-tagline">Find the piano that moves you.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Shop</div>
+      <a href="../instruments.html" class="footer-link">Shop</a>
+      <a href="../instruments.html?filter=brands" class="footer-link">Brands</a>
+      <a href="book-a-viewing.html" class="footer-link">Book viewing</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Teachers</div>
+      <a href="../teachers.html" class="footer-link">Teacher platform</a>
+      <a href="../teachers.html#signup" class="footer-link">Sign up</a>
+      <a href="../teachers.html#dashboard" class="footer-link">Log in</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Company</div>
+      <a href="../index.html#story" class="footer-link">About</a>
+      <a href="#" class="footer-link">Blog</a>
+      <a href="mailto:hello@signaturepianos.com" class="footer-link">Contact</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Find us</div>
+      <div class="footer-socials">
+        <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
+        <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
+      </div>
+      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
+  </div>
+</footer>
+
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Shared config — always load after Supabase JS -->
+<script src="/js/config.js"></script>
+
+<script>
+  /* -------- NAV: scrolled-state + dropdowns (matches sister pages) -------- */
+  (function setupNav() {
+    const nav = document.getElementById('nav');
+    if (nav) {
+      const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 60);
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    }
+    const items = document.querySelectorAll('.nav-item--dropdown');
+    const TRIGGER_SEL = '.nav-link-trigger, .nav-account-trigger';
+    const closeAll = (except) => {
+      items.forEach(it => {
+        if (it === except) return;
+        it.classList.remove('nav-item--open');
+        it.querySelector(TRIGGER_SEL)?.setAttribute('aria-expanded', 'false');
+      });
+    };
+    items.forEach(item => {
+      const trigger = item.querySelector(TRIGGER_SEL);
+      if (!trigger) return;
+      const open  = () => { item.classList.add('nav-item--open'); trigger.setAttribute('aria-expanded', 'true'); closeAll(item); };
+      const close = () => { item.classList.remove('nav-item--open'); trigger.setAttribute('aria-expanded', 'false'); };
+      item.addEventListener('mouseenter', open);
+      item.addEventListener('mouseleave', close);
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        item.classList.contains('nav-item--open') ? close() : open();
+      });
+      item.querySelectorAll('.nav-dd-item').forEach(link => link.addEventListener('click', close));
+    });
+    document.addEventListener('click', () => closeAll(null));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(null); });
+  })();
+
+  /* -------- REVEAL: IntersectionObserver fade-in -------- */
+  (function setupReveals() {
+    const targets = document.querySelectorAll('.reveal, .reveal-stagger');
+    if (!('IntersectionObserver' in window) || !targets.length) {
+      targets.forEach(t => t.classList.add('is-in'));
+      return;
+    }
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-in');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+    targets.forEach(t => obs.observe(t));
+  })();
+
+  /* -------- DATE INPUT: clamp to today -------- */
+  (function setMinDate() {
+    const dateInput = document.getElementById('bv-date');
+    if (!dateInput) return;
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    dateInput.min = `${yyyy}-${mm}-${dd}`;
+  })();
+
+  /* -------- BOOKING FORM: validate, submit to viewing_bookings -------- */
+  document.querySelector('#viewing-form').addEventListener('submit', async (e) => {
+    e.preventDefault()
+
+    // Validate all required fields
+    let valid = true
+    const required = e.target.querySelectorAll('[required]')
+    required.forEach(field => {
+      field.style.borderColor = ''
+      const err = field.parentNode.querySelector('.field-error')
+      if (err) err.remove()
+      if (!field.value.trim()) {
+        valid = false
+        field.style.borderColor = 'rgba(220, 80, 80, 0.6)'
+        const msg = document.createElement('p')
+        msg.className = 'field-error'
+        msg.style.cssText = 'font-size:11px;color:rgba(220,80,80,0.8);margin-top:4px;'
+        msg.textContent = 'This field is required'
+        field.parentNode.appendChild(msg)
+      }
+    })
+    if (!valid) return
+
+    const btn = e.target.querySelector('[type="submit"]')
+    btn.disabled = true
+    btn.textContent = 'Sending...'
+
+    const fullName = e.target.full_name.value.trim()
+    const nameParts = fullName.split(' ')
+    const firstName = nameParts[0]
+    const lastName = nameParts.slice(1).join(' ') || ''
+
+    const pianos = Array.from(
+      e.target.querySelectorAll('input[name="pianos_interested"]:checked')
+    ).map(cb => cb.value)
+
+    const payload = {
+      first_name: firstName,
+      last_name: lastName,
+      email: e.target.email.value.trim(),
+      phone: e.target.phone.value.trim(),
+      preferred_date: e.target.preferred_date.value,
+      preferred_time: e.target.preferred_time.value,
+      pianos_interested: pianos,
+      how_heard: e.target.how_heard.value,
+      message: e.target.message.value.trim(),
+      status: 'pending',
+      notified: false
+    }
+
+    try {
+      const { error } = await _supabase
+        .from('viewing_bookings')
+        .insert(payload)
+
+      if (error) {
+        console.error('[viewing] supabase insert failed', error)
+        btn.disabled = false
+        btn.textContent = 'REQUEST A VIEWING'
+        const errEl = document.querySelector('#form-error')
+        if (errEl) errEl.style.display = 'block'
+        return
+      }
+
+      // Send confirmation email (fire-and-forget — booking is already saved)
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'viewing_booking', ...payload })
+        })
+      } catch (mailErr) {
+        console.error('[viewing] send-email failed', mailErr)
+      }
+
+      // Show success state
+      document.querySelector('#viewing-form').style.display = 'none'
+      document.querySelector('#form-success').style.display = 'block'
+      document.querySelector('#success-name').textContent = firstName
+    } catch (err) {
+      console.error('[viewing] submission threw', err)
+      btn.disabled = false
+      btn.textContent = 'REQUEST A VIEWING'
+      const errEl = document.querySelector('#form-error')
+      if (errEl) errEl.style.display = 'block'
+    }
+  })
+</script>
+
+</body>
+</html>

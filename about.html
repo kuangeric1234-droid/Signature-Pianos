@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>About — Signature Pianos Melbourne</title>
+<meta name="description" content="Signature Pianos was built on the idea that Melbourne families deserve access to exceptional Japanese pianos, honestly priced, with the support to enjoy them for life." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+<style>
+  :root {
+    --bg-1: #0e0e0d;
+    --bg-2: #1a1a18;
+    --bg-3: #242422;
+    --gold: #b8935a;
+    --gold-light: #d4b483;
+    --text-1: #f5f0e8;
+    --text-2: #9a9590;
+    --text-3: #6b6760;
+    --border: rgba(184, 147, 90, 0.15);
+    --border-hover: rgba(184, 147, 90, 0.4);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-1);
+    color: var(--text-1);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; }
+  ::selection { background: var(--gold); color: var(--bg-1); }
+
+  /* ============ SHARED HEADINGS ============ */
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+  .section-h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(36px, 4.5vw, 56px);
+    line-height: 1.1;
+    margin: 0 0 24px 0;
+    max-width: 760px;
+  }
+  .section-h2 em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .section-body {
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--text-2);
+    margin: 0;
+    max-width: 640px;
+  }
+
+  /* ============ NAV (matches sibling pages) ============ */
+  nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 100;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    background: rgba(14, 14, 13, 0.88);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    transition: padding 0.35s ease, background 0.35s ease;
+  }
+  nav.scrolled { background: rgba(14, 14, 13, 0.96); padding: 12px 32px; }
+
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 24px;
+    letter-spacing: 0.01em;
+    color: var(--text-1);
+    flex-shrink: 0;
+  }
+  .logo span { color: var(--gold); font-style: italic; font-weight: 400; }
+
+  .nav-links { display: flex; align-items: center; gap: 32px; }
+
+  .nav-link-plain {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    transition: color 0.25s ease;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .nav-link-plain:hover { color: var(--text-1); }
+  .nav-link-plain.is-active { color: var(--text-1); }
+
+  .nav-item--dropdown { position: relative; }
+  .nav-link-trigger {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    background: transparent;
+    border: 0;
+    padding: 6px 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.25s ease;
+  }
+  .nav-link-trigger:hover,
+  .nav-item--open .nav-link-trigger { color: var(--text-1); }
+  .nav-chevron { font-size: 14px; color: var(--gold); transition: transform 0.25s ease; opacity: 0.8; }
+  .nav-item--open .nav-chevron { transform: rotate(180deg); }
+
+  .nav-dropdown {
+    position: absolute;
+    top: calc(100% + 14px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    background: #14140f;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    display: grid;
+    gap: 4px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.85);
+    transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
+    z-index: 110;
+  }
+  .nav-item--open .nav-dropdown {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+  .nav-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -14px; left: 0; right: 0;
+    height: 14px;
+  }
+
+  .nav-dropdown--pianos {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    width: clamp(520px, 38vw, 620px);
+    gap: 6px 12px;
+  }
+  .nav-dropdown--services {
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    width: clamp(620px, 44vw, 720px);
+    gap: 6px 8px;
+  }
+  .nav-dropdown--teachers {
+    grid-template-columns: 1fr;
+    width: clamp(540px, 40vw, 640px);
+    gap: 0;
+    padding: 14px;
+  }
+
+  .nav-dd-section { padding: 8px 4px; }
+  .nav-dd-section + .nav-dd-section {
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+    padding-top: 16px;
+  }
+  .nav-dd-section-label {
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin: 2px 14px 12px;
+  }
+  .nav-dd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+
+  .nav-dd-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s ease;
+  }
+  .nav-dd-item:hover { background: rgba(184, 147, 90, 0.07); }
+  .nav-dd-icon { font-size: 20px; color: var(--gold); margin-top: 2px; flex-shrink: 0; }
+  .nav-dd-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .nav-dd-text h4 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-1);
+    margin: 0;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.3;
+  }
+  .nav-dd-text p { font-size: 12px; color: var(--text-3); margin: 0; line-height: 1.4; }
+
+  .nav-ctas { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  .nav-account-trigger {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--gold);
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+  .nav-account-trigger:hover,
+  .nav-item--account.nav-item--open .nav-account-trigger {
+    border-color: var(--gold);
+    background: rgba(184, 147, 90, 0.10);
+  }
+  .nav-dropdown--account {
+    grid-template-columns: 1fr;
+    width: clamp(320px, 26vw, 420px);
+    left: auto;
+    right: 0;
+    transform: translateY(-6px);
+    gap: 2px;
+  }
+  .nav-item--open .nav-dropdown--account { transform: translateY(0); }
+
+  .nav-cta {
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    background: transparent;
+    padding: 11px 22px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .nav-cta:hover { background: var(--gold); color: var(--bg-1); }
+
+  .nav-burger { display: none; background: none; border: 0; color: var(--text-1); font-size: 24px; cursor: pointer; }
+
+  /* ============ SHARED BUTTONS ============ */
+  .btn-primary {
+    background: var(--gold);
+    color: var(--bg-1);
+    border: 1px solid var(--gold);
+    padding: 16px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, transform 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 0;
+  }
+  .btn-primary:hover { background: var(--gold-light); border-color: var(--gold-light); transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 16px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 0;
+  }
+  .btn-outline:hover { background: var(--gold); color: var(--bg-1); }
+
+  /* ============ §1 HERO ============ */
+  .ab-hero {
+    padding: 180px 40px 120px;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(184, 147, 90, 0.12), transparent 60%),
+      var(--bg-1);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+  .ab-hero-inner { max-width: 1000px; margin: 0 auto; }
+  .ab-hero-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 28px;
+  }
+  .ab-hero-h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(44px, 6vw, 84px);
+    line-height: 1.05;
+    margin: 0 0 28px 0;
+    color: var(--text-1);
+  }
+  .ab-hero-h1 em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .ab-hero-sub {
+    font-size: clamp(16px, 1.4vw, 19px);
+    line-height: 1.7;
+    color: var(--text-2);
+    margin: 0 auto 64px;
+    max-width: 720px;
+  }
+  .ab-trust-icons {
+    display: flex;
+    justify-content: center;
+    gap: clamp(40px, 8vw, 96px);
+    flex-wrap: wrap;
+  }
+  .ab-trust {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    max-width: 200px;
+  }
+  .ab-trust i { font-size: 38px; color: var(--gold); }
+  .ab-trust span {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    text-align: center;
+  }
+
+  /* ============ §2 BRAND VIDEO ============ */
+  .ab-video-section {
+    padding: 140px 40px;
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--border);
+  }
+  .ab-video-inner { max-width: 1000px; margin: 0 auto; text-align: center; }
+  .ab-video-header { margin-bottom: 56px; }
+  .ab-video-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(36px, 4.5vw, 56px);
+    line-height: 1.1;
+    margin: 0;
+    color: var(--text-1);
+  }
+  .ab-video-header h2 em { font-style: italic; color: var(--gold); font-weight: 400; }
+
+  .ab-video-card {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--bg-2);
+    border: 1px solid rgba(184, 147, 90, 0.3);
+    border-radius: 4px;
+    padding: 14px;
+    box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.9);
+  }
+  .ab-video-wrap {
+    position: relative;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #000;
+  }
+  .ab-video {
+    width: 100%;
+    display: block;
+    border-radius: 4px;
+    aspect-ratio: 16 / 9;
+    background: #000;
+  }
+  .ab-video-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+  }
+  .ab-video-play {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: rgba(184, 147, 90, 0.92);
+    color: var(--bg-1);
+    font-size: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 4px; /* visually centre the play triangle */
+    box-shadow:
+      0 0 0 12px rgba(184, 147, 90, 0.10),
+      0 18px 40px rgba(0, 0, 0, 0.5);
+  }
+  /* Pure CSS — overlay hides once playback starts.
+     :paused is supported in Chromium 105+, Safari 15.4+, Firefox 124+.
+     If unsupported, overlay stays visible but pointer-events: none means
+     it never blocks the native controls. */
+  .ab-video:not(:paused) ~ .ab-video-overlay {
+    opacity: 0;
+  }
+
+  .ab-video-caption {
+    margin-top: 28px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-2);
+  }
+
+  /* ============ §3 ERIC'S STORY ============ */
+  .ab-story {
+    padding: 140px 40px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .ab-story-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: clamp(40px, 7vw, 96px);
+    align-items: flex-start;
+  }
+  .ab-story-copy { max-width: 640px; }
+  .ab-story-copy h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(34px, 4vw, 52px);
+    line-height: 1.1;
+    margin: 0 0 32px 0;
+    color: var(--text-1);
+  }
+  .ab-story-copy h2 em { color: var(--gold); }
+  .ab-story-copy p {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text-2);
+    margin: 0 0 22px 0;
+  }
+  .ab-story-copy p:last-child { margin-bottom: 0; }
+
+  .ab-founder-card {
+    background: var(--bg-2);
+    border: 1px solid rgba(184, 147, 90, 0.3);
+    border-radius: 4px;
+    padding: 32px;
+    text-align: center;
+    position: sticky;
+    top: 110px;
+  }
+  .ab-founder-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    background: rgba(184, 147, 90, 0.06);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    font-size: 30px;
+    margin: 0 auto 18px;
+  }
+  .ab-founder-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 24px;
+    color: var(--text-1);
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+  }
+  .ab-founder-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin: 0 0 24px 0;
+  }
+  .ab-founder-divider {
+    height: 1px;
+    background: rgba(184, 147, 90, 0.2);
+    margin: 0 0 24px 0;
+  }
+  .ab-founder-rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: left;
+  }
+  .ab-founder-rows li {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    font-size: 13.5px;
+    color: var(--text-1);
+    line-height: 1.5;
+  }
+  .ab-founder-rows i {
+    font-size: 18px;
+    color: var(--gold);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ============ §4 WHY JAPANESE PIANOS ============ */
+  .ab-japan {
+    padding: 140px 40px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .ab-japan-inner { max-width: 1280px; margin: 0 auto; }
+  .ab-japan-header { text-align: center; max-width: 760px; margin: 0 auto 72px; }
+  .ab-japan-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(36px, 4.5vw, 56px);
+    line-height: 1.1;
+    margin: 0 0 20px 0;
+    color: var(--text-1);
+  }
+  .ab-japan-header h2 em { color: var(--gold); }
+  .ab-japan-header p {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    color: var(--text-2);
+    margin: 0 auto;
+    max-width: 640px;
+    line-height: 1.7;
+  }
+  .ab-japan-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+  }
+  .ab-japan-card {
+    background: var(--bg-1);
+    border: 1px solid rgba(184, 147, 90, 0.3);
+    border-radius: 4px;
+    padding: 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+  }
+  .ab-japan-card:hover { border-color: var(--gold); transform: translateY(-3px); }
+  .ab-japan-card-icon {
+    width: 52px;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--bg-1);
+  }
+  .ab-japan-card-icon i { font-size: 22px; color: var(--gold); }
+  .ab-japan-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 18px;
+    margin: 0;
+    color: var(--text-1);
+    line-height: 1.3;
+  }
+  .ab-japan-card p {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  /* ============ §5 HOW WE SOURCE ============ */
+  .ab-source {
+    padding: 140px 40px;
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--border);
+  }
+  .ab-source-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(40px, 7vw, 96px);
+    align-items: flex-start;
+  }
+  .ab-source-copy { max-width: 600px; }
+  .ab-source-copy h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(32px, 4vw, 48px);
+    line-height: 1.15;
+    margin: 0 0 28px 0;
+    color: var(--text-1);
+  }
+  .ab-source-copy h2 em { color: var(--gold); }
+  .ab-source-copy p {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-2);
+    margin: 0 0 20px 0;
+  }
+  .ab-source-copy p:last-child { margin-bottom: 0; }
+
+  .ab-process {
+    position: relative;
+    list-style: none;
+    margin: 6px 0 0;
+    padding: 0 0 0 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .ab-process::before {
+    content: '';
+    position: absolute;
+    top: 22px;
+    bottom: 22px;
+    left: 23px;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, var(--gold) 8%, var(--gold) 92%, transparent);
+    opacity: 0.5;
+  }
+  .ab-process li {
+    position: relative;
+  }
+  .ab-process-num {
+    position: absolute;
+    left: -72px;
+    top: -2px;
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--gold);
+    background: var(--bg-1);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--gold);
+    letter-spacing: 0.06em;
+  }
+  .ab-process h5 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-1);
+    margin: 8px 0 6px;
+    letter-spacing: 0.04em;
+  }
+  .ab-process p {
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  /* ============ §6 SIGNATURE PROMISE ============ */
+  .ab-promise {
+    padding: 140px 40px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .ab-promise-inner { max-width: 1280px; margin: 0 auto; }
+  .ab-promise-header { text-align: center; margin: 0 auto 72px; max-width: 760px; }
+  .ab-promise-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(34px, 4.5vw, 56px);
+    line-height: 1.1;
+    margin: 0;
+    color: var(--text-1);
+  }
+  .ab-promise-header h2 em { color: var(--gold); }
+  .ab-promise-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px 48px;
+  }
+  .ab-promise-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .ab-promise-item > i {
+    font-size: 32px;
+    color: var(--gold);
+  }
+  .ab-promise-item h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 18px;
+    margin: 0;
+    color: var(--text-1);
+    line-height: 1.3;
+  }
+  .ab-promise-item p {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  /* ============ §7 BY THE NUMBERS ============ */
+  .ab-numbers {
+    padding: 140px 40px;
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--border);
+  }
+  .ab-numbers-inner { max-width: 1280px; margin: 0 auto; }
+  .ab-numbers-header { text-align: center; max-width: 760px; margin: 0 auto 72px; }
+  .ab-numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+  .ab-stat {
+    background: var(--bg-2);
+    border: 1px solid rgba(184, 147, 90, 0.3);
+    border-radius: 4px;
+    padding: 36px 28px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+  }
+  .ab-stat:hover { border-color: var(--gold); transform: translateY(-3px); }
+  .ab-stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 56px;
+    line-height: 1;
+    color: var(--gold);
+  }
+  .ab-stat-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+  .ab-stat-note {
+    margin-top: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-style: italic;
+    color: var(--text-3);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* ============ §8 SHOWROOM ============ */
+  .ab-showroom {
+    padding: 140px 40px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .ab-showroom-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: clamp(40px, 7vw, 96px);
+    align-items: flex-start;
+  }
+  .ab-showroom-copy { max-width: 540px; }
+  .ab-showroom-copy h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(34px, 4vw, 52px);
+    line-height: 1.1;
+    margin: 0 0 28px 0;
+    color: var(--text-1);
+  }
+  .ab-showroom-copy h2 em { color: var(--gold); }
+  .ab-showroom-copy p {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--text-2);
+    margin: 0 0 36px 0;
+  }
+  .ab-showroom-btns {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .ab-showroom-side {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .ab-map {
+    background: var(--bg-1);
+    border: 1px solid rgba(184, 147, 90, 0.3);
+    border-radius: 4px;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    color: var(--text-3);
+    padding: 32px;
+    text-align: center;
+  }
+  .ab-map i { font-size: 40px; color: var(--text-3); }
+  .ab-map span {
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .ab-detail-rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .ab-detail-rows li {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+  }
+  .ab-detail-rows i {
+    font-size: 22px;
+    color: var(--gold);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .ab-detail-rows .ab-detail-label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 4px;
+  }
+  .ab-detail-rows .ab-detail-value {
+    font-size: 15px;
+    color: var(--text-1);
+    line-height: 1.55;
+  }
+
+  /* ============ §9 BOTTOM CTA ============ */
+  .ab-cta {
+    padding: 160px 40px;
+    background:
+      radial-gradient(ellipse at 50% 100%, rgba(184, 147, 90, 0.14), transparent 60%),
+      var(--bg-1);
+    text-align: center;
+  }
+  .ab-cta-inner { max-width: 820px; margin: 0 auto; }
+  .ab-cta-h {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 1.15;
+    margin: 0 0 24px 0;
+    color: var(--text-1);
+  }
+  .ab-cta-h em { color: var(--gold); }
+  .ab-cta-sub {
+    font-size: 17px;
+    color: var(--text-2);
+    margin: 0 0 44px 0;
+  }
+  .ab-cta-btns {
+    display: inline-flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    background: var(--bg-1);
+    padding: 96px 40px 0;
+    border-top: 1px solid var(--border);
+  }
+  .footer-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.6fr repeat(4, 1fr);
+    gap: 48px;
+    padding-bottom: 64px;
+  }
+  .footer-brand .logo { font-size: 26px; }
+  .footer-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-2);
+    margin: 18px 0 0 0;
+    max-width: 280px;
+  }
+  .footer-col-title {
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 22px;
+    font-weight: 500;
+  }
+  .footer-link {
+    display: block;
+    font-size: 14px;
+    color: var(--text-2);
+    margin-bottom: 12px;
+    transition: color 0.2s ease;
+  }
+  .footer-link:hover { color: var(--text-1); }
+  .footer-contact {
+    font-size: 14px;
+    color: var(--text-2);
+    margin: 14px 0 0 0;
+    line-height: 1.6;
+  }
+  .footer-socials { display: flex; gap: 12px; }
+  .footer-social {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-size: 18px;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .footer-social:hover { border-color: var(--gold); color: var(--gold); }
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    text-align: center;
+  }
+  .footer-bottom p { font-size: 12px; color: var(--text-3); margin: 0; }
+  .footer-bottom a { color: var(--text-3); transition: color 0.2s ease; }
+  .footer-bottom a:hover { color: var(--text-1); }
+
+  /* ============ REVEAL ANIMATIONS ============ */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.is-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-stagger > * {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal-stagger.is-in > * { opacity: 1; transform: translateY(0); }
+  .reveal-stagger.is-in > *:nth-child(1) { transition-delay: 0.00s; }
+  .reveal-stagger.is-in > *:nth-child(2) { transition-delay: 0.08s; }
+  .reveal-stagger.is-in > *:nth-child(3) { transition-delay: 0.16s; }
+  .reveal-stagger.is-in > *:nth-child(4) { transition-delay: 0.24s; }
+  .reveal-stagger.is-in > *:nth-child(5) { transition-delay: 0.32s; }
+  .reveal-stagger.is-in > *:nth-child(6) { transition-delay: 0.40s; }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 1024px) {
+    .ab-story-inner { grid-template-columns: 1fr; gap: 48px; }
+    .ab-founder-card { position: static; max-width: 480px; }
+    .ab-source-inner { grid-template-columns: 1fr; gap: 56px; }
+    .ab-promise-grid { grid-template-columns: repeat(2, 1fr); gap: 36px 32px; }
+    .ab-showroom-inner { grid-template-columns: 1fr; gap: 48px; }
+    .ab-numbers-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 960px) {
+    nav { padding: 14px 22px; }
+    .nav-links, .nav-ctas { display: none; }
+    .nav-burger { display: inline-flex; }
+
+    .ab-hero { padding: 140px 22px 84px; }
+    .ab-video-section, .ab-story, .ab-japan, .ab-source,
+    .ab-promise, .ab-numbers, .ab-showroom, .ab-cta { padding: 88px 22px; }
+
+    .ab-japan-grid { grid-template-columns: 1fr; }
+    .ab-process { padding-left: 64px; }
+    .ab-process-num { left: -64px; width: 42px; height: 42px; font-size: 14px; }
+    .ab-process::before { left: 20px; }
+  }
+
+  @media (max-width: 560px) {
+    .ab-trust-icons { gap: 28px; }
+    .ab-trust { max-width: 120px; }
+    .ab-founder-card { padding: 26px 22px; }
+    .ab-stat-num { font-size: 44px; }
+    .ab-promise-grid { grid-template-columns: 1fr; gap: 32px; }
+    .ab-showroom-btns .btn-primary,
+    .ab-showroom-btns .btn-outline { width: 100%; justify-content: center; }
+    .ab-cta-btns { flex-direction: column; width: 100%; }
+    .ab-cta-btns .btn-primary, .ab-cta-btns .btn-outline { width: 100%; justify-content: center; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal, .reveal-stagger > * { transition: none; opacity: 1; transform: none; }
+    .ab-video-overlay { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav id="nav">
+  <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+  <div class="nav-links">
+
+    <div class="nav-item nav-item--dropdown">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Pianos <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--pianos" role="menu">
+        <a href="instruments.html?cat=upright" class="nav-dd-item">
+          <i class="ti ti-bookmark nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Used Japanese uprights</h4><p>Hand-selected, imported direct from Japan</p></div>
+        </a>
+        <a href="instruments.html?cat=grand" class="nav-dd-item">
+          <i class="ti ti-crown nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Used Japanese grands</h4><p>Concert &amp; baby grands, fully restored</p></div>
+        </a>
+        <a href="instruments.html?cat=digital" class="nav-dd-item">
+          <i class="ti ti-music nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Modern instruments for any space</p></div>
+        </a>
+        <a href="instruments.html?cat=books" class="nav-dd-item">
+          <i class="ti ti-book nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Sheet music &amp; books</h4><p>For students and teachers alike</p></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="nav-item nav-item--dropdown">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Services <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--services" role="menu">
+        <a href="services/delivery-warranty.html" class="nav-dd-item">
+          <i class="ti ti-truck-delivery nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White glove delivery, tracked end to end</p></div>
+        </a>
+        <a href="services/book-a-viewing.html" class="nav-dd-item">
+          <i class="ti ti-calendar-event nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Book a viewing</h4><p>Visit our showroom, try before you buy</p></div>
+        </a>
+        <a href="services/tuning-servicing.html" class="nav-dd-item">
+          <i class="ti ti-tool nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Keep your piano in perfect condition</p></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="nav-item nav-item--dropdown">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Teachers <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--teachers" role="menu">
+        <div class="nav-dd-section">
+          <div class="nav-dd-section-label">For students</div>
+          <div class="nav-dd-grid">
+            <a href="teachers.html" class="nav-dd-item">
+              <i class="ti ti-search nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Browse local piano teachers by suburb</p></div>
+            </a>
+            <a href="teachers.html?nearby=1" class="nav-dd-item">
+              <i class="ti ti-map-pin nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>Teachers near me</h4><p>Use your location to find teachers close by</p></div>
+            </a>
+          </div>
+        </div>
+        <div class="nav-dd-section">
+          <div class="nav-dd-section-label">For teachers</div>
+          <div class="nav-dd-grid">
+            <a href="teachers.html#signup" class="nav-dd-item">
+              <i class="ti ti-list-details nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>List your studio</h4><p>Free listing, reach new students instantly</p></div>
+            </a>
+            <a href="teachers.html#dashboard" class="nav-dd-item">
+              <i class="ti ti-layout-grid nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your schedule</p></div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <a href="about.html" class="nav-link-plain is-active" aria-current="page">About</a>
+  </div>
+
+  <div class="nav-ctas">
+    <div class="nav-item nav-item--dropdown nav-item--account">
+      <button class="nav-account-trigger" type="button" aria-expanded="false" aria-haspopup="true" aria-label="Account">
+        <i class="ti ti-user"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--account" role="menu">
+        <a href="#" class="nav-dd-item">
+          <i class="ti ti-user nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track delivery, view purchases, manage warranty</p></div>
+        </a>
+        <a href="teachers.html#dashboard" class="nav-dd-item">
+          <i class="ti ti-music nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your studio</p></div>
+        </a>
+      </div>
+    </div>
+    <a href="services/book-a-viewing.html" class="nav-cta">Book a visit</a>
+  </div>
+  <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+</nav>
+
+<!-- ============ §1 HERO ============ -->
+<section class="ab-hero">
+  <div class="ab-hero-inner">
+    <div class="ab-hero-eyebrow reveal">Our story</div>
+    <h1 class="ab-hero-h1 reveal">We believe every home deserves a great piano.</h1>
+    <p class="ab-hero-sub reveal">Signature Pianos was built on a simple idea — that Melbourne families deserve access to exceptional instruments, honestly priced, with the support to enjoy them for life.</p>
+    <div class="ab-trust-icons reveal-stagger">
+      <div class="ab-trust">
+        <i class="ti ti-map-pin"></i>
+        <span>Based in Melbourne</span>
+      </div>
+      <div class="ab-trust">
+        <i class="ti ti-ship"></i>
+        <span>Imported direct from Japan</span>
+      </div>
+      <div class="ab-trust">
+        <i class="ti ti-heart"></i>
+        <span>Built for music lovers</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §2 BRAND VIDEO ============ -->
+<!-- TODO: REPLACE VIDEO SRC WITH YOUR BRAND VIDEO FILE PATH -->
+<!-- Recommended: compress to MP4 H.264, max 50MB for fast load -->
+<!-- Add a poster thumbnail for the preview frame -->
+<section class="ab-video-section">
+  <div class="ab-video-inner">
+    <div class="ab-video-header reveal">
+      <h2>Hear it from <em>Eric</em>.</h2>
+    </div>
+
+    <div class="ab-video-card reveal">
+      <div class="ab-video-wrap">
+        <video
+          class="ab-video"
+          controls
+          playsinline
+          preload="metadata"
+          poster=""
+          src="">
+          <!-- TODO: ADD VIDEO THUMBNAIL IMAGE PATH to the `poster` attribute above -->
+          <!-- TODO: ADD VIDEO FILE PATH to the `src` attribute above -->
+          Your browser does not support the video tag.
+        </video>
+        <div class="ab-video-overlay" aria-hidden="true">
+          <span class="ab-video-play"><i class="ti ti-player-play-filled"></i></span>
+        </div>
+      </div>
+    </div>
+
+    <p class="ab-video-caption reveal">Eric Kuang — Founder, Signature Pianos</p>
+  </div>
+</section>
+
+<!-- ============ §3 ERIC'S STORY ============ -->
+<section class="ab-story">
+  <div class="ab-story-inner">
+    <div class="ab-story-copy">
+      <h2 class="reveal">Why I started <em>Signature Pianos</em>.</h2>
+      <p class="reveal">Over the past few years I've watched families across Melbourne struggle to find a quality piano at a fair price. The options were limited — new instruments with eye-watering markups, or second-hand pianos with no history, no support, and no guarantees.</p>
+      <p class="reveal">Japan has some of the finest pre-loved pianos in the world. Instruments maintained to an exceptional standard, stored in climate-controlled facilities, from households where music was taken seriously. I started importing them directly so Melbourne families could access that quality without the traditional dealer premium.</p>
+      <p class="reveal">Signature Pianos isn't just a shop. It's a promise — that when you buy from us, you're supported before, during, and long after the sale. From finding the right instrument to booking your first tuner, we're here for the whole journey.</p>
+    </div>
+
+    <aside class="ab-founder-card reveal" aria-label="About Eric Kuang">
+      <!-- TODO: ADD ERIC'S PHOTO — replace the placeholder avatar below with an <img> -->
+      <div class="ab-founder-avatar" aria-hidden="true">
+        <i class="ti ti-user"></i>
+      </div>
+      <h3 class="ab-founder-name">Eric Kuang</h3>
+      <p class="ab-founder-title">Founder &amp; Director</p>
+      <div class="ab-founder-divider"></div>
+      <ul class="ab-founder-rows">
+        <li>
+          <i class="ti ti-map-pin"></i>
+          <span>Melbourne, Victoria</span>
+        </li>
+        <li>
+          <i class="ti ti-piano"></i>
+          <span>3–5 years importing Japanese pianos</span>
+        </li>
+        <li>
+          <i class="ti ti-certificate"></i>
+          <span>Every piano personally selected</span>
+        </li>
+      </ul>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ §4 WHY JAPANESE PIANOS ============ -->
+<section class="ab-japan">
+  <div class="ab-japan-inner">
+    <div class="ab-japan-header">
+      <h2 class="reveal">Why Japanese <em>pianos</em>?</h2>
+      <p class="reveal">Japan has a unique piano culture — and it produces some of the finest pre-loved instruments in the world.</p>
+    </div>
+
+    <div class="ab-japan-grid reveal-stagger">
+      <article class="ab-japan-card">
+        <div class="ab-japan-card-icon"><i class="ti ti-home"></i></div>
+        <h3>Exceptional home care</h3>
+        <p>Japanese households treat their pianos with extraordinary care. Instruments are regularly tuned, kept in climate-controlled rooms, and rarely played heavily — meaning internal components stay in remarkable condition.</p>
+      </article>
+      <article class="ab-japan-card">
+        <div class="ab-japan-card-icon"><i class="ti ti-building"></i></div>
+        <h3>World-class manufacturers</h3>
+        <p>Japan is home to Yamaha and Kawai — two of the world's most respected piano makers. Their Japanese-market instruments are often built to a higher specification than export models.</p>
+      </article>
+      <article class="ab-japan-card">
+        <div class="ab-japan-card-icon"><i class="ti ti-temperature"></i></div>
+        <h3>Climate and storage</h3>
+        <p>Japan's strict humidity control culture means pianos are stored and maintained in near-ideal conditions. When we source instruments, we inspect storage history as carefully as the piano itself.</p>
+      </article>
+      <article class="ab-japan-card">
+        <div class="ab-japan-card-icon"><i class="ti ti-trending-down"></i></div>
+        <h3>Exceptional value</h3>
+        <p>A 20-year-old Japanese Yamaha upright, properly maintained, can outperform a brand new budget piano at twice the price. That's the value proposition — quality without the new instrument premium.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §5 HOW WE SOURCE ============ -->
+<section class="ab-source">
+  <div class="ab-source-inner">
+    <div class="ab-source-copy">
+      <div class="section-label reveal">How we source</div>
+      <h2 class="reveal">Every piano is <em>personally selected</em>.</h2>
+      <p class="reveal">We don't buy in bulk from auction. Every instrument in our collection has been individually inspected — either by Eric directly or by our trusted partners in Japan who know exactly what we look for.</p>
+      <p class="reveal">We check the soundboard, the action, the strings, the hammers, the cabinet, and the pedal mechanism. We play every note across the full range. If it doesn't meet our standard, we don't bring it to Melbourne.</p>
+      <p class="reveal">Once an instrument arrives, it goes through a local inspection and any necessary preparation before it's listed on our site. What you see is what's ready to play.</p>
+    </div>
+
+    <ol class="ab-process reveal-stagger" aria-label="Our sourcing process">
+      <li>
+        <span class="ab-process-num">01</span>
+        <h5>Sourced in Japan</h5>
+        <p>Identified through trusted partner networks and direct inspection.</p>
+      </li>
+      <li>
+        <span class="ab-process-num">02</span>
+        <h5>Individually inspected</h5>
+        <p>Full mechanical and acoustic assessment before purchase.</p>
+      </li>
+      <li>
+        <span class="ab-process-num">03</span>
+        <h5>Shipped to Melbourne</h5>
+        <p>Professional piano freight with climate considerations.</p>
+      </li>
+      <li>
+        <span class="ab-process-num">04</span>
+        <h5>Local preparation</h5>
+        <p>Any tuning, regulation or cosmetic work completed here.</p>
+      </li>
+      <li>
+        <span class="ab-process-num">05</span>
+        <h5>Ready for you</h5>
+        <p>Listed only when the piano meets our standard.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ §6 SIGNATURE PROMISE ============ -->
+<section class="ab-promise">
+  <div class="ab-promise-inner">
+    <div class="ab-promise-header">
+      <h2 class="reveal">What you get when you buy <em>from us</em>.</h2>
+    </div>
+
+    <div class="ab-promise-grid reveal-stagger">
+      <div class="ab-promise-item">
+        <i class="ti ti-certificate"></i>
+        <h4>10-year warranty</h4>
+        <p>Every piano backed by our decade-long guarantee. Unmatched in the Melbourne market.</p>
+      </div>
+      <div class="ab-promise-item">
+        <i class="ti ti-truck-delivery"></i>
+        <h4>White-glove delivery</h4>
+        <p>Professional delivery and in-home placement across Melbourne and regional Victoria.</p>
+      </div>
+      <div class="ab-promise-item">
+        <i class="ti ti-music"></i>
+        <h4>First tuning included</h4>
+        <p>A certified tuner visits 3–4 weeks after delivery. Automatically booked — you don't have to do a thing.</p>
+      </div>
+      <div class="ab-promise-item">
+        <i class="ti ti-device-mobile"></i>
+        <h4>Live delivery tracking</h4>
+        <p>Know exactly where your piano is from the moment it leaves our warehouse.</p>
+      </div>
+      <div class="ab-promise-item">
+        <i class="ti ti-users"></i>
+        <h4>Teacher matching</h4>
+        <p>We connect you with verified Melbourne piano teachers matched to your goals.</p>
+      </div>
+      <div class="ab-promise-item">
+        <i class="ti ti-headset"></i>
+        <h4>Ongoing support</h4>
+        <p>Your customer portal keeps your piano's full history, reminders, and service records in one place — for life.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §7 BY THE NUMBERS ============ -->
+<section class="ab-numbers">
+  <div class="ab-numbers-inner">
+    <div class="ab-numbers-header">
+      <div class="section-label reveal">By the numbers</div>
+      <h2 class="section-h2 reveal" style="text-align:center;margin-left:auto;margin-right:auto;">A standard you can <em>measure</em>.</h2>
+    </div>
+
+    <div class="ab-numbers-grid reveal-stagger">
+      <div class="ab-stat">
+        <div class="ab-stat-num">10</div>
+        <div class="ab-stat-label">Year warranty</div>
+      </div>
+      <div class="ab-stat">
+        <div class="ab-stat-num">100%</div>
+        <div class="ab-stat-label">Personally selected</div>
+      </div>
+      <div class="ab-stat">
+        <div class="ab-stat-num">3–5</div>
+        <div class="ab-stat-label">Years importing</div>
+      </div>
+      <div class="ab-stat">
+        <div class="ab-stat-num">0</div>
+        <div class="ab-stat-label">Unsupported sales</div>
+        <div class="ab-stat-note">Every customer has our number.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §8 SHOWROOM ============ -->
+<section class="ab-showroom" id="showroom-map">
+  <div class="ab-showroom-inner">
+
+    <div class="ab-showroom-copy">
+      <div class="section-label reveal">Showroom</div>
+      <h2 class="reveal">Come and <em>see us</em>.</h2>
+      <p class="reveal">Our Melbourne showroom is open six days a week. Every piano is tuned, playable, and waiting for you. Bring the kids. Stay as long as you like. There's no pressure and no script — just great instruments and honest advice.</p>
+      <div class="ab-showroom-btns reveal">
+        <a href="services/book-a-viewing.html" class="btn-primary">Book a viewing <i class="ti ti-arrow-right"></i></a>
+        <a href="#showroom-map" class="btn-outline">Get directions</a>
+      </div>
+    </div>
+
+    <div class="ab-showroom-side reveal">
+      <div class="ab-map" aria-label="Showroom map placeholder">
+        <!-- TODO: ADD GOOGLE MAPS EMBED HERE -->
+        <i class="ti ti-map"></i>
+        <span>Map coming soon</span>
+      </div>
+
+      <ul class="ab-detail-rows">
+        <li>
+          <i class="ti ti-map-pin"></i>
+          <div>
+            <span class="ab-detail-label">Address</span>
+            <span class="ab-detail-value">
+              <!-- TODO: ADD SHOWROOM ADDRESS -->
+              Showroom address — Melbourne, VIC
+            </span>
+          </div>
+        </li>
+        <li>
+          <i class="ti ti-clock"></i>
+          <div>
+            <span class="ab-detail-label">Opening hours</span>
+            <span class="ab-detail-value">Monday to Saturday 9am–5pm · Sunday by appointment</span>
+          </div>
+        </li>
+        <li>
+          <i class="ti ti-phone"></i>
+          <div>
+            <span class="ab-detail-label">Phone</span>
+            <span class="ab-detail-value">
+              <!-- TODO: ADD PHONE -->
+              Phone number coming soon
+            </span>
+          </div>
+        </li>
+        <li>
+          <i class="ti ti-mail"></i>
+          <div>
+            <span class="ab-detail-label">Email</span>
+            <span class="ab-detail-value">
+              <!-- TODO: ADD EMAIL -->
+              hello@signaturepianos.com
+            </span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ §9 BOTTOM CTA ============ -->
+<section class="ab-cta">
+  <div class="ab-cta-inner">
+    <h2 class="ab-cta-h reveal">Ready to find your <em>piano</em>?</h2>
+    <p class="ab-cta-sub reveal">Browse our current collection of hand-selected Japanese pianos — or come in and play them yourself.</p>
+    <div class="ab-cta-btns reveal">
+      <a href="instruments/index.html" class="btn-primary">Browse our pianos <i class="ti ti-arrow-right"></i></a>
+      <a href="services/book-a-viewing.html" class="btn-outline">Book a showroom visit</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-col footer-brand">
+      <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+      <p class="footer-tagline">Find the piano that moves you.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Shop</div>
+      <a href="instruments.html" class="footer-link">Shop</a>
+      <a href="instruments.html?filter=brands" class="footer-link">Brands</a>
+      <a href="services/book-a-viewing.html" class="footer-link">Book viewing</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Teachers</div>
+      <a href="teachers.html" class="footer-link">Teacher platform</a>
+      <a href="teachers.html#signup" class="footer-link">Sign up</a>
+      <a href="teachers.html#dashboard" class="footer-link">Log in</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Company</div>
+      <a href="about.html" class="footer-link">About</a>
+      <a href="#" class="footer-link">Blog</a>
+      <a href="mailto:hello@signaturepianos.com" class="footer-link">Contact</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Find us</div>
+      <div class="footer-socials">
+        <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
+        <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
+      </div>
+      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
+  </div>
+</footer>
+
+<script>
+  /* -------- NAV: scrolled-state + dropdowns -------- */
+  (function setupNav() {
+    const nav = document.getElementById('nav');
+    if (nav) {
+      const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 60);
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    }
+    const items = document.querySelectorAll('.nav-item--dropdown');
+    const TRIGGER_SEL = '.nav-link-trigger, .nav-account-trigger';
+    const closeAll = (except) => {
+      items.forEach(it => {
+        if (it === except) return;
+        it.classList.remove('nav-item--open');
+        it.querySelector(TRIGGER_SEL)?.setAttribute('aria-expanded', 'false');
+      });
+    };
+    items.forEach(item => {
+      const trigger = item.querySelector(TRIGGER_SEL);
+      if (!trigger) return;
+      const open  = () => { item.classList.add('nav-item--open'); trigger.setAttribute('aria-expanded', 'true'); closeAll(item); };
+      const close = () => { item.classList.remove('nav-item--open'); trigger.setAttribute('aria-expanded', 'false'); };
+      item.addEventListener('mouseenter', open);
+      item.addEventListener('mouseleave', close);
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        item.classList.contains('nav-item--open') ? close() : open();
+      });
+      item.querySelectorAll('.nav-dd-item').forEach(link => link.addEventListener('click', close));
+    });
+    document.addEventListener('click', () => closeAll(null));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(null); });
+  })();
+
+  /* -------- REVEAL: IntersectionObserver fade-in -------- */
+  (function setupReveals() {
+    const targets = document.querySelectorAll('.reveal, .reveal-stagger');
+    if (!('IntersectionObserver' in window) || !targets.length) {
+      targets.forEach(t => t.classList.add('is-in'));
+      return;
+    }
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-in');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+    targets.forEach(t => obs.observe(t));
+  })();
+</script>
+
+</body>
+</html>

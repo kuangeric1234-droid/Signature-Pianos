@@ -1,0 +1,8 @@
+{
+  "name": "signature-pianos",
+  "version": "1.0.0",
+  "description": "Signature Pianos Melbourne",
+  "dependencies": {
+    "resend": "^3.0.0"
+  }
+}

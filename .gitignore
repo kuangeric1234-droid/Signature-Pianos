@@ -18,7 +18,11 @@ desktop.ini
 npm-debug.log*
 node_modules/
 
-# Local env
+# Vercel build output / link
+.vercel/
+
+# Local env (never commit secrets — Vercel manages env vars via its dashboard)
 .env
 .env.local
+.env.production
 .env.*.local

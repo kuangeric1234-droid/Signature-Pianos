@@ -1,0 +1,16 @@
+<!--
+  Signature Pianos — shared script include (reference snippet)
+  ------------------------------------------------------------
+  Not a standalone page. Copy-paste this block into any HTML page that
+  needs to talk to Supabase, just before the closing </body> tag.
+
+  Load order matters:
+    1. Supabase CDN must run first so window.supabase exists
+    2. /js/config.js then creates _supabase from the shared credentials
+    3. Any page-specific <script> follows and can reference _supabase
+-->
+
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Shared config — always load after Supabase JS -->
+<script src="/js/config.js"></script>
