@@ -1117,6 +1117,7 @@ function upsertSeoMeta(title, desc){
     // Page meta
     document.title = `Yamaha ${piano.model} ${piano.year} — Signature Pianos Melbourne`
     document.getElementById('docDesc')?.setAttribute('content', piano.description_short || piano.description || '')
+    upsertSeoMeta(document.title, piano.description_short || piano.description || '')
 
     // Breadcrumb
     document.getElementById('breadcrumbCat').textContent = 'Upright Pianos'
