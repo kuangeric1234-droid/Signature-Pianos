@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketing — Signature Pianos Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="admin.css">
+<style>
+  .tabs { display:flex; gap:8px; border-bottom:1px solid var(--admin-border); margin-bottom:24px; }
+  .tab { padding:10px 16px; font-size:14px; color:var(--admin-text-muted); background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; }
+  .tab.active { color:var(--admin-text); border-bottom-color:var(--admin-gold); font-weight:500; }
+  .pane { display:none; }
+  .pane.active { display:block; }
+
+  .score-row { display:flex; gap:16px; margin:16px 0 24px; flex-wrap:wrap; }
+  .score { flex:1; min-width:120px; text-align:center; border:1px solid var(--admin-border); border-radius:8px; padding:18px; }
+  .score .num { font-size:34px; font-weight:500; }
+  .score .lbl { font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--admin-text-faint); }
+  .finding { border:1px solid var(--admin-border); border-radius:6px; padding:12px 14px; margin-bottom:10px; }
+  .finding .ttl { font-weight:500; font-size:14px; }
+  .finding .rec { font-size:13px; color:var(--admin-text-muted); margin-top:4px; }
+
+  .post-row { display:grid; grid-template-columns:1fr auto auto auto; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--admin-border); }
+  .post-row .t { font-weight:500; font-size:14px; }
+  .post-row .s { font-size:12px; color:var(--admin-text-faint); margin-top:2px; }
+  .post-actions button { margin-left:6px; }
+  textarea.admin-input { font-family:inherit; min-height:90px; resize:vertical; }
+  .hint { font-size:12px; color:var(--admin-text-faint); margin-top:4px; }
+  .spinner { display:inline-block; animation:spin 0.8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <span style="font-family:'DM Sans';font-size:13px;font-weight:500;color:#b8935a;letter-spacing:0.1em;">SIGNATURE</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.15em;display:block;margin-top:2px;">ADMIN</span>
+    </div>
+    <nav class="admin-nav">
+      <a href="dashboard.html"  class="admin-nav-item" data-page="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="enquiries.html"  class="admin-nav-item" data-page="enquiries"><i class="ti ti-mail"></i> Enquiries <span class="nav-badge" id="enquiriesBadge"></span></a>
+      <a href="inventory.html"  class="admin-nav-item" data-page="inventory"><i class="ti ti-piano"></i> Inventory</a>
+      <a href="orders.html"     class="admin-nav-item" data-page="orders"><i class="ti ti-receipt"></i> Orders &amp; POS</a>
+      <a href="payment-plans.html" class="admin-nav-item" data-page="payment-plans"><i class="ti ti-credit-card"></i> Payment plans</a>
+      <a href="customers.html"  class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
+      <a href="deliveries.html" class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
+      <a href="teachers.html"   class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+      <a href="marketing.html"  class="admin-nav-item" data-page="marketing"><i class="ti ti-speakerphone"></i> Marketing</a>
+      <a href="financials.html" class="admin-nav-item" data-page="financials"><i class="ti ti-chart-bar"></i> Financials</a>
+      <a href="settings.html"   class="admin-nav-item" data-page="settings"><i class="ti ti-settings"></i> Settings</a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="https://signaturepianos.com.au/blog" target="_blank" style="font-size:12px;color:rgba(255,255,255,0.4);text-decoration:none;display:flex;align-items:center;gap:6px;">
+        <i class="ti ti-external-link" style="font-size:13px;"></i> View live blog
+      </a>
+      <button onclick="adminSignOut()" style="font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;margin-top:8px;">
+        <i class="ti ti-logout" style="font-size:13px;"></i> Sign out
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;">
+        <button class="admin-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+        <h1 class="admin-page-title">Marketing</h1>
+      </div>
+      <div class="admin-topbar-right">
+        <span style="font-size:13px;color:var(--admin-text-muted);" data-admin-name>—</span>
+      </div>
+    </div>
+    <div class="admin-content">
+
+      <div class="tabs">
+        <button class="tab active" data-tab="blog">Blog</button>
+        <button class="tab" data-tab="audit">Website audit</button>
+        <button class="tab" data-tab="loop">Auto-writer</button>
+      </div>
+
+      <!-- ============ BLOG ============ -->
+      <section class="pane active" data-pane="blog">
+        <div class="admin-card">
+          <h2 class="admin-card-title">Write a new post</h2>
+          <div class="admin-form-row">
+            <label class="admin-label" for="topic">Topic or brief</label>
+            <textarea id="topic" class="admin-input" placeholder="e.g. A buyer's guide to the Yamaha U1 vs U3 for Melbourne students"></textarea>
+            <div class="hint">Be as specific as you like. The AI writes an SEO + AI-search optimised draft you can review before publishing.</div>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--admin-text-muted);margin-bottom:12px;">
+            <input type="checkbox" id="useResearch" checked> Research current facts first (web search — best for new releases)
+          </label>
+          <button class="btn-gold" id="genBtn" onclick="generatePost()"><i class="ti ti-sparkles"></i> Generate draft</button>
+        </div>
+
+        <div class="admin-card">
+          <h2 class="admin-card-title">Posts</h2>
+          <div id="postList"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></div>
+        </div>
+      </section>
+
+      <!-- ============ AUDIT ============ -->
+      <section class="pane" data-pane="audit">
+        <div class="admin-card">
+          <h2 class="admin-card-title">Audit a page</h2>
+          <div class="admin-form-row">
+            <label class="admin-label" for="auditUrl">Page URL</label>
+            <input id="auditUrl" class="admin-input" type="url" placeholder="https://signaturepianos.com.au/">
+            <div class="hint">Checks traditional SEO and AI-search readiness, with specific fixes.</div>
+          </div>
+          <button class="btn-gold" id="auditBtn" onclick="runAudit()"><i class="ti ti-search"></i> Run audit</button>
+        </div>
+        <div id="auditResult"></div>
+      </section>
+
+      <!-- ============ AUTO-WRITER ============ -->
+      <section class="pane" data-pane="loop">
+        <div class="admin-card">
+          <h2 class="admin-card-title">Automatic blog writer</h2>
+          <p style="font-size:14px;color:var(--admin-text-muted);line-height:1.7;">
+            A scheduled job runs <strong>Monday, Wednesday &amp; Friday</strong>. Each run researches new
+            Yamaha &amp; digital piano releases and trending buyer questions, then writes a full,
+            SEO + AI-search optimised article and saves it here as a <strong>draft</strong>.
+            Nothing goes live until you review it on the <strong>Blog</strong> tab and hit Publish.
+          </p>
+          <p style="font-size:13px;color:var(--admin-text-faint);margin-top:12px;">
+            To change the schedule, edit <code>vercel.json</code>. To run one now for testing, use the button below.
+          </p>
+          <button class="btn-outline" id="runLoopBtn" onclick="runLoopNow()"><i class="ti ti-player-play"></i> Generate one now</button>
+          <div class="hint" id="loopNote" style="margin-top:10px;"></div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- Edit drawer -->
+<div class="slide-panel-overlay" id="editPanelOverlay" onclick="closeSlidePanel('editPanel')"></div>
+<aside class="slide-panel" id="editPanel" aria-hidden="true" style="max-width:680px;">
+  <div class="slide-panel-header">
+    <h2 class="slide-panel-title" id="editTitle">Edit post</h2>
+    <button onclick="closeSlidePanel('editPanel')" class="slide-panel-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body" style="padding:20px;">
+    <input type="hidden" id="editId">
+    <div class="admin-form-row"><label class="admin-label">Title</label><input id="fTitle" class="admin-input"></div>
+    <div class="admin-form-row"><label class="admin-label">Slug</label><input id="fSlug" class="admin-input"><div class="hint">URL: /blog/<span id="slugPreview"></span></div></div>
+    <div class="admin-form-row"><label class="admin-label">Meta description</label><textarea id="fMeta" class="admin-input" style="min-height:60px;"></textarea></div>
+    <div class="admin-form-row"><label class="admin-label">Excerpt</label><textarea id="fExcerpt" class="admin-input" style="min-height:60px;"></textarea></div>
+    <div class="admin-form-row"><label class="admin-label">Body (HTML)</label><textarea id="fBody" class="admin-input" style="min-height:320px;font-family:monospace;font-size:12px;"></textarea></div>
+    <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
+      <button class="btn-gold" onclick="saveEdit()"><i class="ti ti-device-floppy"></i> Save</button>
+      <button class="btn-outline" id="pubToggle" onclick="togglePublish()"></button>
+      <a class="btn-outline" id="previewLink" href="#" target="_blank"><i class="ti ti-external-link"></i> Preview</a>
+    </div>
+  </div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-nav.js"></script>
+<script>
+let currentPost = null
+
+;(async function init() {
+  const admin = await checkAdminAuth()
+  if (!admin) return
+  loadPosts()
+})()
+
+/* ---- tabs ---- */
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'))
+  document.querySelectorAll('.pane').forEach(x => x.classList.remove('active'))
+  t.classList.add('active')
+  document.querySelector(`.pane[data-pane="${t.dataset.tab}"]`).classList.add('active')
+}))
+
+/* ---- authed fetch to our API routes ---- */
+async function apiPost(path, body) {
+  const { data: { session } } = await adminSupabase.auth.getSession()
+  const r = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+    body: JSON.stringify(body || {}),
+  })
+  const json = await r.json().catch(() => ({}))
+  if (!r.ok) throw new Error(json.error || `Request failed (${r.status})`)
+  return json
+}
+
+/* ============ BLOG ============ */
+async function loadPosts() {
+  const list = document.getElementById('postList')
+  try {
+    const { data: posts, error } = await adminSupabase
+      .from('blog_posts')
+      .select('id, title, slug, status, source, created_at, published_at')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    if (!posts.length) {
+      list.innerHTML = `<div class="empty-state"><i class="ti ti-article"></i><p>No posts yet. Write your first one above.</p></div>`
+      return
+    }
+    list.innerHTML = posts.map(p => `
+      <div class="post-row">
+        <div>
+          <div class="t">${esc(p.title)}</div>
+          <div class="s">${p.source === 'auto' ? 'Auto · ' : ''}${fmtDate(p.created_at)}</div>
+        </div>
+        <span class="${p.status === 'published' ? 'pill pill--green' : 'pill pill--amber'}">${p.status}</span>
+        <span class="post-actions">
+          <button class="btn-outline" onclick="editPost('${p.id}')"><i class="ti ti-edit"></i> Edit</button>
+        </span>
+        <span class="post-actions">
+          <button class="btn-outline" onclick="deletePost('${p.id}', this)"><i class="ti ti-trash"></i></button>
+        </span>
+      </div>`).join('')
+  } catch (err) {
+    console.error(err)
+    list.innerHTML = `<div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load posts.</p></div>`
+  }
+}
+
+async function generatePost() {
+  const btn = document.getElementById('genBtn')
+  const topic = document.getElementById('topic').value.trim()
+  if (!topic) { showToast('Enter a topic first', 'warning'); return }
+  const research = document.getElementById('useResearch').checked
+  const original = btn.innerHTML
+  btn.disabled = true
+  btn.innerHTML = `<i class="ti ti-loader spinner"></i> Writing… (this can take ~30s)`
+  try {
+    const { post } = await apiPost('/api/blog-generate', { topic, research })
+    document.getElementById('topic').value = ''
+    showToast('Draft created — review it below', 'success')
+    await loadPosts()
+    editPost(post.id)
+  } catch (err) {
+    showToast(err.message, 'error')
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = original
+  }
+}
+
+async function editPost(id) {
+  const { data: p } = await adminSupabase.from('blog_posts').select('*').eq('id', id).single()
+  if (!p) return
+  currentPost = p
+  document.getElementById('editId').value = p.id
+  document.getElementById('fTitle').value = p.title || ''
+  document.getElementById('fSlug').value = p.slug || ''
+  document.getElementById('fMeta').value = p.meta_description || ''
+  document.getElementById('fExcerpt').value = p.excerpt || ''
+  document.getElementById('fBody').value = p.body_html || ''
+  document.getElementById('slugPreview').textContent = p.slug || ''
+  document.getElementById('previewLink').href = `/blog/${p.slug}`
+  updatePubToggle(p.status)
+  document.getElementById('fSlug').oninput = e => document.getElementById('slugPreview').textContent = e.target.value
+  openSlidePanel('editPanel')
+}
+
+function updatePubToggle(status) {
+  const btn = document.getElementById('pubToggle')
+  btn.innerHTML = status === 'published'
+    ? '<i class="ti ti-eye-off"></i> Unpublish'
+    : '<i class="ti ti-rocket"></i> Publish'
+}
+
+async function saveEdit() {
+  const id = document.getElementById('editId').value
+  const patch = {
+    title: document.getElementById('fTitle').value.trim(),
+    slug: document.getElementById('fSlug').value.trim(),
+    meta_description: document.getElementById('fMeta').value.trim(),
+    excerpt: document.getElementById('fExcerpt').value.trim(),
+    body_html: document.getElementById('fBody').value,
+  }
+  const { error } = await adminSupabase.from('blog_posts').update(patch).eq('id', id)
+  if (error) { showToast(error.message, 'error'); return }
+  showToast('Saved', 'success')
+  loadPosts()
+}
+
+async function togglePublish() {
+  const id = document.getElementById('editId').value
+  const publishing = currentPost.status !== 'published'
+  const patch = publishing
+    ? { status: 'published', published_at: currentPost.published_at || new Date().toISOString() }
+    : { status: 'draft' }
+  const { error } = await adminSupabase.from('blog_posts').update(patch).eq('id', id)
+  if (error) { showToast(error.message, 'error'); return }
+  currentPost.status = patch.status
+  currentPost.published_at = patch.published_at || currentPost.published_at
+  updatePubToggle(currentPost.status)
+  showToast(publishing ? 'Published — it\'s live!' : 'Moved to draft', 'success')
+  loadPosts()
+}
+
+async function deletePost(id, btn) {
+  if (!confirm('Delete this post permanently?')) return
+  const { error } = await adminSupabase.from('blog_posts').delete().eq('id', id)
+  if (error) { showToast(error.message, 'error'); return }
+  showToast('Deleted', 'success')
+  loadPosts()
+}
+
+/* ============ AUDIT ============ */
+async function runAudit() {
+  const btn = document.getElementById('auditBtn')
+  const url = document.getElementById('auditUrl').value.trim()
+  if (!url) { showToast('Enter a URL', 'warning'); return }
+  const out = document.getElementById('auditResult')
+  const original = btn.innerHTML
+  btn.disabled = true
+  btn.innerHTML = `<i class="ti ti-loader spinner"></i> Auditing…`
+  out.innerHTML = ''
+  try {
+    const { result } = await apiPost('/api/marketing-audit', { url })
+    out.innerHTML = renderAudit(result)
+  } catch (err) {
+    showToast(err.message, 'error')
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = original
+  }
+}
+
+function renderAudit(r) {
+  const findings = (arr) => (arr || []).map(f => `
+    <div class="finding">
+      <div class="ttl"><span class="pill pill--${({high:'red',medium:'amber',low:'grey'})[f.severity]}">${f.severity}</span> ${esc(f.title)}</div>
+      <div class="rec">${esc(f.recommendation)}</div>
+    </div>`).join('') || '<p class="hint">No issues found.</p>'
+  return `
+    <div class="admin-card">
+      <div class="score-row">
+        <div class="score"><div class="num">${r.scores.overall}</div><div class="lbl">Overall</div></div>
+        <div class="score"><div class="num">${r.scores.seo}</div><div class="lbl">SEO</div></div>
+        <div class="score"><div class="num">${r.scores.aeo}</div><div class="lbl">AI search</div></div>
+      </div>
+      <p style="font-size:14px;color:var(--admin-text-muted);">${esc(r.summary)}</p>
+    </div>
+    <div class="admin-card"><h2 class="admin-card-title">SEO findings</h2>${findings(r.seo_findings)}</div>
+    <div class="admin-card"><h2 class="admin-card-title">AI-search findings</h2>${findings(r.aeo_findings)}</div>
+    <div class="admin-card"><h2 class="admin-card-title">Quick wins</h2>
+      <ul>${(r.quick_wins || []).map(q => `<li>${esc(q)}</li>`).join('')}</ul>
+    </div>`
+}
+
+/* ============ AUTO-WRITER ============ */
+async function runLoopNow() {
+  const btn = document.getElementById('runLoopBtn')
+  const note = document.getElementById('loopNote')
+  const original = btn.innerHTML
+  btn.disabled = true
+  btn.innerHTML = `<i class="ti ti-loader spinner"></i> Researching & writing…`
+  note.textContent = ''
+  try {
+    const json = await apiPost('/api/run-blog-writer', {})
+    note.innerHTML = `Created draft: <strong>${esc(json.created)}</strong>. Check the Blog tab.`
+    showToast('Draft created', 'success')
+  } catch (err) {
+    note.textContent = ''
+    showToast(err.message, 'error')
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = original
+  }
+}
+</script>
+
+</body>
+</html>

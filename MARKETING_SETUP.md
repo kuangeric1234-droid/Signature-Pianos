@@ -1,0 +1,88 @@
+# Marketing & Blog engine — setup
+
+AI-powered website auditing + SEO/AI-search blog writing, built into the admin
+dashboard, with a public blog on the site.
+
+## What you get
+
+- **Admin → Marketing** tab with three tools:
+  - **Blog** — write an SEO + AI-search optimised draft from any topic, edit it,
+    publish/unpublish, delete. Posts appear at `/blog`.
+  - **Website audit** — paste a URL, get scored SEO + AI-search (AEO) findings with fixes.
+  - **Auto-writer** — info + a "Generate one now" test button.
+- **Auto-loop**: a cron job (Mon/Wed/Fri) researches new Yamaha / digital piano
+  releases via web search and writes a full post **as a draft** for you to review.
+  Nothing auto-publishes.
+- **Public blog**: `/blog` (index) and `/blog/<slug>` (articles), server-rendered
+  with full SEO meta + JSON-LD (BlogPosting + FAQPage), plus `/sitemap.xml` and
+  `/llms.txt` for AI crawlers. A "Blog" link is in the homepage nav.
+
+## 1. Run the database migration
+
+In the Supabase SQL editor (project `ernwymzmwhscsjgrnouv`), run:
+
+- `supabase/blog.sql`  — creates `blog_posts`, `content_audits`, `blog_topics` + RLS.
+
+(Run `supabase/missing_tables.sql` first if you haven't — `blog.sql` needs its
+`is_admin()` / `set_updated_at()` helpers.)
+
+## 2. Add environment variables in Vercel
+
+Project → Settings → Environment Variables:
+
+| Variable | Required | Notes |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | **Yes** | Create at https://console.anthropic.com → API Keys. This powers everything. |
+| `AI_MODEL` | No | Defaults to `claude-sonnet-4-6` (cheap, fast — ~$3/$15 per 1M tokens). Set to `claude-opus-4-8` for higher quality at higher cost. |
+
+These should already exist (used elsewhere) — confirm they're set:
+`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SITE_URL`, `CRON_SECRET`.
+
+> `CRON_SECRET` is what protects the auto-writer endpoint — Vercel attaches it
+> automatically to cron requests. The delivery-reminder cron already uses it.
+
+## 3. Deploy
+
+Push to the branch Vercel builds. No new npm dependencies were added — the
+Anthropic calls use `fetch`, so nothing to install.
+
+After deploy:
+- `/blog` is live (empty until you publish a post).
+- The auto-writer runs **Mon/Wed/Fri at 23:00 UTC** (~9–10am Melbourne). Change
+  the schedule in `vercel.json` (`crons` → `/api/cron-blog-writer`).
+
+> **Vercel plan note:** there are now 2 cron jobs (delivery + blog). The Hobby
+> plan allows 2 crons at once-per-day frequency — this fits. If you add more,
+> you may need the Pro plan.
+
+## 4. Use it
+
+Admin → **Marketing**:
+- **Blog tab** → type a topic → *Generate draft* → review in the editor → *Publish*.
+- **Website audit tab** → paste a URL → *Run audit*.
+- **Auto-writer tab** → *Generate one now* to test the research-and-write loop.
+
+## Cost (rough)
+
+With the default Sonnet model: a blog post ≈ a few cents to ~20¢; an audit ≈ a few
+cents. At 2–3 auto posts/week that's a few dollars a month plus whatever you
+generate/audit by hand. Switching `AI_MODEL` to Opus roughly doubles per-call cost.
+
+## Files added
+
+```
+supabase/blog.sql              # tables + RLS
+lib/ai.js                      # Claude (fetch) + admin guard + service client
+lib/blog.js                    # post schema, generation, draft save
+lib/blog-render.js             # public HTML shell
+api/marketing-audit.js         # POST audit (admin)
+api/blog-generate.js           # POST generate draft (admin)
+api/run-blog-writer.js         # POST run auto-writer now (admin)
+api/cron-blog-writer.js        # auto-loop (cron, Mon/Wed/Fri)
+api/blog.js                    # GET /blog index
+api/blog-post.js               # GET /blog/:slug
+api/sitemap.js                 # GET /sitemap.xml
+api/llms.js                    # GET /llms.txt
+admin/marketing.html           # admin UI
+```
+Plus a "Marketing" link in the admin sidebar and a "Blog" link in the site nav.

@@ -9,6 +9,22 @@
 
 /* ---------- Sidebar active-state + mobile burger ---------- */
 (function () {
+  // Ensure the Marketing nav item exists on every admin page (pages other
+  // than marketing.html ship with a static nav that predates it). Insert it
+  // before Teachers/Financials/Settings so it lands mid-list, not at the end.
+  const nav = document.querySelector('.admin-nav')
+  if (nav && !nav.querySelector('[data-page="marketing"]')) {
+    const link = document.createElement('a')
+    link.href = 'marketing.html'
+    link.className = 'admin-nav-item'
+    link.dataset.page = 'marketing'
+    link.innerHTML = '<i class="ti ti-speakerphone"></i> Marketing'
+    const anchor = nav.querySelector('[data-page="financials"]')
+      || nav.querySelector('[data-page="settings"]')
+    if (anchor) anchor.before(link)
+    else nav.appendChild(link)
+  }
+
   const file = window.location.pathname.split('/').pop().replace('.html', '')
   document.querySelectorAll('.admin-nav-item').forEach(item => {
     if (item.dataset.page === file) item.classList.add('active')
