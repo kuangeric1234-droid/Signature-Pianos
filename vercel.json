@@ -39,10 +39,10 @@
     "api/stripe-webhook.js": {
       "maxDuration": 20
     },
-    "api/marketing-audit.js": { "maxDuration": 60 },
-    "api/blog-generate.js": { "maxDuration": 60 },
-    "api/run-blog-writer.js": { "maxDuration": 60 },
-    "api/cron-blog-writer.js": { "maxDuration": 60 }
+    "api/marketing-audit.js": { "maxDuration": 300 },
+    "api/blog-generate.js": { "maxDuration": 300 },
+    "api/run-blog-writer.js": { "maxDuration": 300 },
+    "api/cron-blog-writer.js": { "maxDuration": 300 }
   },
   "headers": [
     {
