@@ -133,6 +133,19 @@
           <button class="btn-outline" id="runLoopBtn" onclick="runLoopNow()"><i class="ti ti-player-play"></i> Generate one now</button>
           <div class="hint" id="loopNote" style="margin-top:10px;"></div>
         </div>
+
+        <div class="admin-card" style="margin-top:18px;">
+          <h2 class="admin-card-title">What people are Googling</h2>
+          <p style="font-size:14px;color:var(--admin-text-muted);line-height:1.7;">
+            Real search queries from <strong>Google Search Console</strong> — the actual terms people use to
+            find the site. The writer prioritises the <strong>opportunity</strong> queries (real demand where
+            we rank poorly or get few clicks) when choosing what to write next.
+          </p>
+          <button class="btn-outline" id="insightsBtn" onclick="loadInsights()" style="margin-top:6px;">
+            <i class="ti ti-trending-up"></i> Load top searches
+          </button>
+          <div id="insightsResult" style="margin-top:14px;"></div>
+        </div>
       </section>
 
     </div>
@@ -235,19 +248,41 @@ async function generatePost() {
   const research = document.getElementById('useResearch').checked
   const original = btn.innerHTML
   btn.disabled = true
-  btn.innerHTML = `<i class="ti ti-loader spinner"></i> Writing… (this can take ~30s)`
+  btn.innerHTML = `<i class="ti ti-loader spinner"></i> ${research ? 'Researching & writing…' : 'Writing…'}`
   try {
-    const { post } = await apiPost('/api/blog-generate', { topic, research })
+    const { jobId } = await apiPost('/api/blog-generate', { topic, research })
+    const job = await pollBlogJob(jobId)
     document.getElementById('topic').value = ''
     showToast('Draft created — review it below', 'success')
     await loadPosts()
-    editPost(post.id)
+    if (job.post_id) editPost(job.post_id)
   } catch (err) {
     showToast(err.message, 'error')
   } finally {
     btn.disabled = false
     btn.innerHTML = original
   }
+}
+
+/*
+ * Poll a background blog-generation job until it finishes. The work runs
+ * server-side (Vercel waitUntil), so the browser never holds a long request
+ * open — it just checks the job status every few seconds.
+ */
+async function pollBlogJob(jobId, { timeoutMs = 5 * 60 * 1000 } = {}) {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 3000))
+    let job
+    try {
+      job = await apiPost('/api/blog-job-status', { id: jobId })
+    } catch (_) {
+      continue // transient network hiccup — keep polling
+    }
+    if (job.status === 'done') return job
+    if (job.status === 'error') throw new Error(job.error || 'Generation failed')
+  }
+  throw new Error('Still working in the background — check the Blog tab in a minute.')
 }
 
 async function editPost(id) {
@@ -364,9 +399,11 @@ async function runLoopNow() {
   btn.innerHTML = `<i class="ti ti-loader spinner"></i> Researching & writing…`
   note.textContent = ''
   try {
-    const json = await apiPost('/api/run-blog-writer', {})
-    note.innerHTML = `Created draft: <strong>${esc(json.created)}</strong>. Check the Blog tab.`
+    const { jobId } = await apiPost('/api/run-blog-writer', {})
+    const job = await pollBlogJob(jobId)
+    note.innerHTML = `Created draft: <strong>${esc(job.title || 'Untitled')}</strong>. Check the Blog tab.`
     showToast('Draft created', 'success')
+    await loadPosts()
   } catch (err) {
     note.textContent = ''
     showToast(err.message, 'error')
@@ -374,6 +411,53 @@ async function runLoopNow() {
     btn.disabled = false
     btn.innerHTML = original
   }
+}
+
+/* ---- top searches (Google Search Console) ---- */
+async function loadInsights() {
+  const btn = document.getElementById('insightsBtn')
+  const out = document.getElementById('insightsResult')
+  const original = btn.innerHTML
+  btn.disabled = true
+  btn.innerHTML = `<i class="ti ti-loader spinner"></i> Loading…`
+  try {
+    const json = await apiPost('/api/search-insights', { days: 90 })
+    if (!json.configured) {
+      out.innerHTML = `<div class="hint">Google Search Console isn't connected yet. Add the
+        <code>GSC_SERVICE_ACCOUNT_EMAIL</code>, <code>GSC_PRIVATE_KEY</code> and
+        <code>GSC_SITE_URL</code> environment variables (see MARKETING_SETUP.md) to see real data here.</div>`
+      return
+    }
+    out.innerHTML = renderInsights(json)
+  } catch (err) {
+    out.innerHTML = ''
+    showToast(err.message, 'error')
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = original
+  }
+}
+
+function insightsTable(rows) {
+  if (!rows.length) return `<div class="hint">No queries in this window yet.</div>`
+  const head = `<tr style="text-align:left;color:var(--admin-text-faint);font-size:12px;">
+    <th>Query</th><th>Impr.</th><th>Clicks</th><th>CTR</th><th>Pos.</th></tr>`
+  const body = rows.map(r => `<tr style="border-top:1px solid var(--admin-border);">
+    <td style="padding:6px 8px 6px 0;">${esc(r.query)}</td>
+    <td>${r.impressions}</td>
+    <td>${r.clicks}</td>
+    <td>${(r.ctr * 100).toFixed(1)}%</td>
+    <td>${r.position.toFixed(1)}</td></tr>`).join('')
+  return `<table style="width:100%;border-collapse:collapse;font-size:13px;">${head}${body}</table>`
+}
+
+function renderInsights(json) {
+  return `<p style="font-size:13px;color:var(--admin-text-faint);">
+      ${json.property} · last ${json.days} days · ${json.total} queries</p>
+    <h3 style="margin:14px 0 6px;font-size:15px;">SEO opportunities (writer targets these)</h3>
+    ${insightsTable(json.opportunities)}
+    <h3 style="margin:18px 0 6px;font-size:15px;">Top queries overall</h3>
+    ${insightsTable(json.top)}`
 }
 </script>
 

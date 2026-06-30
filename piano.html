@@ -11,6 +11,30 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
+<!-- Self-referencing canonical + social preview, set once the piano loads (added from SEO audit) -->
+<script>
+function upsertSeoMeta(title, desc){
+  var url = location.origin + location.pathname + location.search;
+  function meta(attr, key, val){
+    var el = document.head.querySelector('meta['+attr+'="'+key+'"]');
+    if(!el){ el = document.createElement('meta'); el.setAttribute(attr, key); document.head.appendChild(el); }
+    el.setAttribute('content', val);
+  }
+  var link = document.head.querySelector('link[rel="canonical"]');
+  if(!link){ link = document.createElement('link'); link.setAttribute('rel','canonical'); document.head.appendChild(link); }
+  link.setAttribute('href', url);
+  meta('property','og:type','website');
+  meta('property','og:site_name','Signature Pianos');
+  meta('property','og:locale','en_AU');
+  meta('property','og:url',url);
+  meta('property','og:title',title || 'Signature Pianos');
+  meta('property','og:description',desc || '');
+  meta('name','twitter:card','summary');
+  meta('name','twitter:title',title || 'Signature Pianos');
+  meta('name','twitter:description',desc || '');
+}
+</script>
+
 <style>
   :root {
     --bg-1: #0e0e0d;

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Signature Pianos Melbourne",
   "dependencies": {
+    "@vercel/functions": "^3.7.4",
     "resend": "^3.0.0",
     "stripe": "^14.0.0",
     "@supabase/supabase-js": "^2.0.0",

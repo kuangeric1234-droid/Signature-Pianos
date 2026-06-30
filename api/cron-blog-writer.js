@@ -12,6 +12,7 @@
 
 const { research, supabaseAdmin } = require('../lib/ai')
 const { generatePost, savePostDraft } = require('../lib/blog')
+const { insightsBlock } = require('../lib/search-console')
 
 module.exports = async (req, res) => {
   const expected = process.env.CRON_SECRET
@@ -28,12 +29,20 @@ module.exports = async (req, res) => {
       .from('blog_posts').select('title').order('created_at', { ascending: false }).limit(40)
     const avoidTitles = (recent || []).map((r) => r.title)
 
+    // 0. Pull REAL search demand from Google Search Console (null if not set up).
+    const gsc = await insightsBlock({ days: 90 })
+    const demandBlock = gsc
+      ? `\n\nPRIORITISE these real searches our own site already gets impressions for
+(prefer a topic that directly answers one of the opportunity queries):
+${gsc.text}\n`
+      : ''
+
     // 1. Research the landscape and choose a topic.
     const notes = await research(
       `Research recent and upcoming Yamaha pianos and digital pianos (acoustic uprights,
 grands, Clavinova, P-series, Arius, hybrid pianos) and trending questions Australian
 piano buyers are asking in ${new Date().getFullYear()}. Identify NEW model releases and
-noteworthy comparisons worth writing about. Summarise concrete facts and sources.
+noteworthy comparisons worth writing about. Summarise concrete facts and sources.${demandBlock}
 
 We have already published about these — suggest a DIFFERENT angle:
 ${avoidTitles.map((t) => '- ' + t).join('\n') || '(nothing yet)'}

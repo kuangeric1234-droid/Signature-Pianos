@@ -32,11 +32,45 @@ Project → Settings → Environment Variables:
 
 | Variable | Required | Notes |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | **Yes** | Create at https://console.anthropic.com → API Keys. This powers everything. |
+| `ANTHROPIC_API_KEY` | **Yes** | Create at https://console.anthropic.com → API Keys. Value starts with `sk-ant-`. This powers everything. |
 | `AI_MODEL` | No | Defaults to `claude-sonnet-4-6` (cheap, fast — ~$3/$15 per 1M tokens). Set to `claude-opus-4-8` for higher quality at higher cost. |
+| `GSC_SERVICE_ACCOUNT_EMAIL` | No | Connects **real Google search data**. See "Connect Google Search Console" below. |
+| `GSC_PRIVATE_KEY` | No | The service-account private key (PEM block). Paste the whole thing. |
+| `GSC_SITE_URL` | No | The property as it appears in Search Console. Defaults to `SITE_URL`. |
 
 These should already exist (used elsewhere) — confirm they're set:
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SITE_URL`, `CRON_SECRET`.
+
+## Connect Google Search Console (real search data) — optional but recommended
+
+Without this, the writer *guesses* trending topics via web search. With it, the
+writer sees the **actual queries people use to find signaturepianos.com.au** and
+prioritises the "opportunity" terms (real demand where you rank poorly). You can
+also view them in **Admin → Marketing → Auto-writer → Load top searches**.
+
+One-time setup:
+
+1. **Verify the site in Search Console** (https://search.google.com/search-console)
+   if you haven't — domain property `signaturepianos.com.au` is ideal.
+2. **Create a service account** in Google Cloud Console
+   (https://console.cloud.google.com → IAM & Admin → Service Accounts → Create).
+   Enable the **Search Console API** for the project (APIs & Services → Library).
+3. **Make a JSON key** for that service account (Keys → Add key → JSON). It
+   downloads a file containing `client_email` and `private_key`.
+4. In **Search Console → Settings → Users and permissions → Add user**, add the
+   service account's `client_email` with **Full** (or Restricted) access.
+5. In Vercel set:
+   - `GSC_SERVICE_ACCOUNT_EMAIL` = the `client_email` from the JSON.
+   - `GSC_PRIVATE_KEY` = the `private_key` from the JSON (paste the whole
+     `-----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY-----` block; literal
+     `\n` in the value are handled automatically).
+   - `GSC_SITE_URL` = the property exactly as shown in Search Console:
+     - domain property → `sc-domain:signaturepianos.com.au`
+     - URL-prefix property → `https://signaturepianos.com.au/`
+
+It can take a day or two after verification before Search Console has query data.
+If the vars are absent or the call fails, the writer simply falls back to its old
+web-search-only behaviour — nothing breaks.
 
 > `CRON_SECRET` is what protects the auto-writer endpoint — Vercel attaches it
 > automatically to cron requests. The delivery-reminder cron already uses it.

@@ -1,13 +1,18 @@
 /*
- * Signature Pianos — Generate a blog draft (manual)
- * -------------------------------------------------
- * POST { topic, research?: boolean }  (admin only)
+ * Signature Pianos — Generate a blog draft (manual, async)
+ * --------------------------------------------------------
+ * POST { topic, research?: boolean }  (admin only)  → 202 { jobId }
  *
  * Writes one SEO/AEO-optimised post from the given topic and saves it as a
  * DRAFT. If research=true, gathers current facts via web search first.
- * Returns the saved draft for review in the admin.
+ *
+ * Because research + writing can take minutes (too long to hold an HTTP
+ * request open without a 504), this endpoint returns immediately with a job
+ * id and finishes the work in the background via Vercel's waitUntil. The admin
+ * UI polls /api/blog-job-status until the job is `done`.
  */
 
+const { waitUntil } = require('@vercel/functions')
 const { requireAdmin, research, supabaseAdmin } = require('../lib/ai')
 const { generatePost, savePostDraft } = require('../lib/blog')
 
@@ -24,7 +29,31 @@ module.exports = async (req, res) => {
   if (!topic) return res.status(400).json({ error: 'Please provide a topic or brief.' })
   const doResearch = req.body?.research === true
 
+  // Record the job up front so the client has something to poll.
+  const { data: job, error: jobErr } = await supabaseAdmin
+    .from('blog_jobs')
+    .insert({ status: 'pending', kind: 'manual', topic, research: doResearch })
+    .select('id')
+    .single()
+  if (jobErr) {
+    console.error('[blog-generate] could not create job', jobErr)
+    return res.status(500).json({ error: 'Could not start generation.' })
+  }
+
+  // Do the heavy lifting AFTER responding. waitUntil keeps the function alive
+  // until the promise settles (bounded by this route's maxDuration).
+  waitUntil(runJob(job.id, { topic, doResearch }))
+
+  return res.status(202).json({ jobId: job.id })
+}
+
+async function runJob(jobId, { topic, doResearch }) {
+  const set = (fields) =>
+    supabaseAdmin.from('blog_jobs').update(fields).eq('id', jobId)
+
   try {
+    await set({ status: 'running' })
+
     // Avoid repeating recent titles.
     const { data: recent } = await supabaseAdmin
       .from('blog_posts').select('title').order('created_at', { ascending: false }).limit(25)
@@ -41,9 +70,9 @@ module.exports = async (req, res) => {
 
     const post = await generatePost({ topic, research: notes, avoidTitles })
     const saved = await savePostDraft(post, 'manual')
-    return res.status(200).json({ post: saved })
+    await set({ status: 'done', post_id: saved.id, title: saved.title })
   } catch (err) {
-    console.error('[blog-generate] failed', err)
-    return res.status(502).json({ error: err.message || 'Generation failed' })
+    console.error('[blog-generate] job failed', err)
+    await set({ status: 'error', error: String(err?.message || err).slice(0, 500) })
   }
 }
