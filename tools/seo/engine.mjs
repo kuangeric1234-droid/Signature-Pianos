@@ -115,11 +115,14 @@ function printChecks(r) {
   for (const w of r.warnings || []) console.log(`⚠ ${w}`)
 }
 
+// Failures set exitCode rather than calling process.exit(): exiting while
+// fetch's connection is still closing trips a libuv assertion on Windows.
 function finish(r, ok) {
   if (r && r.__error) {
     console.log(`✗ ${r.__error}`)
     if (r.details) printChecks(r.details)
-    process.exit(1)
+    process.exitCode = 1
+    return
   }
   ok(r)
 }
@@ -176,8 +179,8 @@ const commands = {
     finish(r, (res) => {
       console.log(`check: ${draft.slug}`)
       printChecks(res)
-      if (res.failures.length) process.exit(1)
-      console.log('\nmechanical checks pass. That is not the gate: Eric reads it next.')
+      if (res.failures.length) process.exitCode = 1
+      else console.log('\nmechanical checks pass. That is not the gate: Eric reads it next.')
     })
   },
 
@@ -188,7 +191,7 @@ const commands = {
     finish(r, (res) => {
       console.log(`check-update: ${u.slug}`)
       printChecks(res)
-      if (res.failures.length) process.exit(1)
+      if (res.failures.length) process.exitCode = 1
     })
   },
 
