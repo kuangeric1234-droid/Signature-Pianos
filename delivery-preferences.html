@@ -8,21 +8,21 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
 <style>
   :root {
-    --bg-1: #0e0e0d; --bg-2: #1a1a18; --bg-3: #242422;
-    --gold: #b8935a; --gold-light: #d4b483;
-    --text-1: #f5f0e8; --text-2: #9a9590; --text-3: #6b6760;
-    --border: rgba(184, 147, 90, 0.15);
-    --border-strong: rgba(184, 147, 90, 0.4);
+    --bg-1: #F3F0E9; --bg-2: #E9E5DB; --bg-3: #DCE6ED;
+    --gold: #16222E; --gold-light: #3A4855;
+    --text-1: #16222E; --text-2: #3A4855; --text-3: #3A4855;
+    --border: rgba(22, 34, 46, 0.15);
+    --border-strong: rgba(22, 34, 46, 0.4);
   }
   *, *::before, *::after { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0; background: var(--bg-1); color: var(--text-1);
-    font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7;
+    font-family: var(--font-body); font-weight: 300; line-height: 1.7;
     -webkit-font-smoothing: antialiased;
   }
   .wrap {
@@ -31,7 +31,7 @@
     padding: 64px 24px 80px;
   }
   .logo {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-size: 24px; font-weight: 300; letter-spacing: 0.01em;
     text-align: center; margin: 0 0 8px;
   }
@@ -42,7 +42,7 @@
     color: var(--text-3); margin: 0 0 48px;
   }
   h1 {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 300; font-size: 36px; line-height: 1.2;
     margin: 0 0 12px;
   }
@@ -114,7 +114,7 @@
     color: var(--bg-1);
     border: 0;
     padding: 16px 20px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.16em;
@@ -169,6 +169,10 @@
   }
   .submitted-summary .row:last-child { border-bottom: 0; }
 </style>
+<link rel="stylesheet" href="/css/signature-theme.css" />
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/media/brand/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
 </head>
 <body>
 

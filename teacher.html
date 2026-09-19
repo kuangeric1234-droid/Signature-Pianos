@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title id="docTitle">Loading… — Signature Pianos</title>
-<meta name="description" id="docDesc" content="" />
+<title id="docTitle">Piano teacher in Melbourne | Signature Pianos</title>
+<meta name="description" id="docDesc" content="A Melbourne piano teacher listed on TeachMusic, the sister platform of Signature Pianos." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
 <!-- Self-referencing canonical + social preview, set once the teacher loads (added from SEO audit) -->
@@ -36,32 +36,19 @@ function upsertSeoMeta(title, desc){
 </script>
 
 <style>
-  :root {
-    --bg-1: #0e0e0d;
-    --bg-2: #1a1a18;
-    --bg-3: #242422;
-    --gold: #b8935a;
-    --gold-light: #d4b483;
-    --text-1: #f5f0e8;
-    --text-2: #9a9590;
-    --text-3: #6b6760;
-    --border: rgba(184, 147, 90, 0.15);
-    --border-hover: rgba(184, 147, 90, 0.4);
-  }
-
   *, *::before, *::after { box-sizing: border-box; }
+
   html, body {
     margin: 0; padding: 0;
     background: var(--bg-1);
     color: var(--text-1);
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 300;
+    font-family: var(--font-body);
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
   a { color: inherit; text-decoration: none; }
   button { font-family: inherit; }
-  ::selection { background: var(--gold); color: var(--bg-1); }
 
   /* ============ NAV ============ */
   nav {
@@ -73,16 +60,16 @@ function upsertSeoMeta(title, desc){
     align-items: center;
     justify-content: space-between;
     gap: 32px;
-    background: rgba(14, 14, 13, 0.88);
+    background: rgba(243, 240, 233, 0.88);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     transition: padding 0.35s ease, background 0.35s ease;
   }
-  nav.scrolled { background: rgba(14, 14, 13, 0.96); padding: 12px 32px; }
+  nav.scrolled { background: rgba(243, 240, 233, 0.96); padding: 12px 32px; }
 
   .logo {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 300;
     font-size: 24px;
     letter-spacing: 0.01em;
@@ -94,7 +81,7 @@ function upsertSeoMeta(title, desc){
   .nav-links { display: flex; align-items: center; gap: 32px; }
 
   .nav-link-plain {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -110,7 +97,7 @@ function upsertSeoMeta(title, desc){
 
   .nav-item--dropdown { position: relative; }
   .nav-link-trigger {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -135,7 +122,7 @@ function upsertSeoMeta(title, desc){
     top: calc(100% + 14px);
     left: 50%;
     transform: translateX(-50%) translateY(-6px);
-    background: #14140f;
+    background: #FFFFFF;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 18px;
@@ -144,7 +131,7 @@ function upsertSeoMeta(title, desc){
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.85);
+    box-shadow: 0 30px 60px -20px rgba(22, 34, 46, 0.34);
     transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
     z-index: 110;
   }
@@ -203,11 +190,11 @@ function upsertSeoMeta(title, desc){
     color: inherit;
     transition: background 0.2s ease;
   }
-  .nav-dd-item:hover { background: rgba(184, 147, 90, 0.07); }
+  .nav-dd-item:hover { background: rgba(22, 34, 46, 0.07); }
   .nav-dd-icon { font-size: 20px; color: var(--gold); margin-top: 2px; flex-shrink: 0; }
   .nav-dd-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .nav-dd-text h4 {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 14px;
     font-weight: 500;
     color: var(--text-1);
@@ -237,7 +224,7 @@ function upsertSeoMeta(title, desc){
   .nav-account-trigger:hover,
   .nav-item--account.nav-item--open .nav-account-trigger {
     border-color: var(--gold);
-    background: rgba(184, 147, 90, 0.10);
+    background: rgba(22, 34, 46, 0.10);
   }
   .nav-dropdown--account {
     grid-template-columns: 1fr;
@@ -265,497 +252,395 @@ function upsertSeoMeta(title, desc){
 
   .nav-burger { display: none; background: none; border: 0; color: var(--text-1); font-size: 24px; cursor: pointer; }
 
-  /* ============ BREADCRUMB ============ */
-  .breadcrumb {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 110px 40px 0;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-3);
+  /* ============ TEACHER CARD (markup from /js/teachmusic.js) ============
+     No box: photo, a hairline, the name in condensed capitals, one line of
+     facts, one action. The same block sits on teachers.html, teacher.html and
+     teachers-match.html. */
+  .tm-sr {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
   }
-  .breadcrumb a { transition: color 0.2s ease; }
-  .breadcrumb a:hover { color: var(--gold); }
-  .breadcrumb i { font-size: 10px; margin: 0 8px; }
-
-  /* ============ HERO (two-column: photo + info) ============ */
-  .profile-hero {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 32px 40px 80px;
-    display: grid;
-    grid-template-columns: 1fr 1.1fr;
-    gap: 64px;
-  }
-  .profile-photo {
-    position: sticky;
-    top: 100px;
-    align-self: start;
-    aspect-ratio: 4 / 5;
-    background:
-      radial-gradient(ellipse at 45% 40%, rgba(184, 147, 90, 0.35), transparent 60%),
-      linear-gradient(140deg, #1f1812, #0a0807);
-    border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .tm-card { display: flex; flex-direction: column; min-width: 0; }
+  .tm-card-photo {
     position: relative;
+    display: block;
+    aspect-ratio: 5 / 4;
     overflow: hidden;
+    background: var(--sp-ivory-deep);
   }
-  .profile-photo::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(circle at 50% 38%, rgba(184, 147, 90, 0.4), transparent 30%),
-      radial-gradient(circle at 50% 75%, rgba(184, 147, 90, 0.25), transparent 40%);
-    opacity: 0.5;
-    pointer-events: none;
+  .tm-card-photo img {
+    display: block;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s var(--sp-ease);
   }
-  .profile-photo-initials {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 300;
-    font-size: 140px;
-    color: rgba(245, 240, 232, 0.92);
-    z-index: 1;
-    letter-spacing: -0.02em;
-  }
-
-  .profile-info {
-    /* let the photo "stick" while this column scrolls */
-  }
-  .profile-suburb {
-    font-size: 11px;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin: 0 0 14px 0;
+  .tm-card:hover .tm-card-photo img { transform: scale(1.03); }
+  .tm-card-initials {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    font-family: var(--sp-font-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
     font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    font-size: 72px;
+    color: var(--sp-ink);
   }
-  .profile-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-size: clamp(36px, 4.5vw, 64px);
-    line-height: 1.05;
-    margin: 0 0 14px 0;
-  }
-  .profile-name em { font-style: italic; color: var(--gold); font-weight: 400; }
-  .profile-headline {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: clamp(18px, 1.3vw, 22px);
-    line-height: 1.5;
-    color: var(--text-2);
-    margin: 0 0 32px 0;
-  }
-
-  /* Quick stats row */
-  .profile-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
-    padding: 24px 0;
-    margin: 0 0 32px 0;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-  }
-  .profile-stat-label {
-    font-size: 10px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--text-3);
-    margin: 0 0 6px 0;
-    font-weight: 500;
-  }
-  .profile-stat-value {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 22px;
-    color: var(--text-1);
-    margin: 0;
-    line-height: 1.2;
-  }
-  .profile-stat-value em { font-style: italic; color: var(--gold); }
-
-  /* Section blocks within the right column */
-  .profile-section { margin-bottom: 40px; }
-  .profile-section-title {
-    font-size: 10px;
-    letter-spacing: 0.26em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin: 0 0 16px 0;
-    font-weight: 500;
-  }
-  .profile-section-body {
-    font-size: 15px;
-    line-height: 1.8;
-    color: var(--text-2);
-    margin: 0;
-  }
-  .profile-section-body p { margin: 0 0 14px 0; }
-  .profile-section-body p:last-child { margin: 0; }
-  .profile-philosophy {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: clamp(18px, 1.3vw, 22px);
-    line-height: 1.55;
-    color: var(--text-1);
-    margin: 0;
-    padding: 24px 28px;
-    background: var(--bg-2);
-    border-left: 2px solid var(--gold);
-  }
-
-  /* Specialties grid */
-  .specialties-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 22px 32px;
-  }
-  .specialty-block { }
-  .specialty-block-label {
-    font-size: 10px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--text-3);
-    margin: 0 0 8px 0;
-    font-weight: 500;
-  }
-  .specialty-block-value {
-    font-size: 14px;
-    color: var(--text-1);
-    margin: 0;
-    line-height: 1.55;
-  }
-  .specialty-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .specialty-tag {
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    color: var(--text-2);
-    padding: 5px 12px;
-    border: 1px solid var(--border);
-  }
-
-  /* Credentials list */
-  .credentials-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .credentials-list li {
-    font-size: 14px;
-    color: var(--text-1);
-    padding: 14px 0;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-  }
-  .credentials-list li:last-child { border-bottom: 0; }
-  .credentials-list li i {
-    color: var(--gold);
-    font-size: 18px;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-
-  /* ============ STICKY BOOK BAR ============ */
-  .book-card {
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    padding: 28px 28px 26px;
-    margin: 0 0 32px 0;
-  }
-  .book-card-rate {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin: 0 0 6px 0;
-    gap: 12px;
-  }
-  .book-card-price {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 30px;
-    color: var(--text-1);
-    margin: 0;
-  }
-  .book-card-price em { font-style: italic; color: var(--gold); }
-  .book-card-trial {
-    font-size: 13px;
-    color: var(--gold);
-    margin: 0 0 20px 0;
-    line-height: 1.5;
-  }
-  .book-card-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  .btn-primary, .btn-secondary {
-    width: 100%;
-    text-align: center;
-    padding: 15px 22px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
-    border: 1px solid var(--gold);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  .btn-primary {
-    background: var(--gold);
-    color: var(--bg-1);
-  }
-  .btn-primary:hover { background: var(--gold-light); border-color: var(--gold-light); }
-  .btn-secondary {
-    background: transparent;
-    color: var(--gold);
-  }
-  .btn-secondary:hover { background: rgba(184, 147, 90, 0.08); }
-  .book-card-note {
-    font-size: 12px;
-    color: var(--text-3);
-    text-align: center;
-    margin: 14px 0 0 0;
-    line-height: 1.5;
-  }
-
-  /* ============ RELATED TEACHERS ============ */
-  .related {
-    border-top: 1px solid var(--border);
-    padding: 80px 40px 100px;
-    background: var(--bg-1);
-  }
-  .related-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-  .related-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 40px;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-  .related-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-size: clamp(28px, 2.6vw, 44px);
-    line-height: 1.1;
-    margin: 0;
-  }
-  .related-title em { font-style: italic; color: var(--gold); font-weight: 400; }
-  .related-link {
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--gold);
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: gap 0.2s ease;
-  }
-  .related-link:hover { gap: 14px; color: var(--gold-light); }
-  .related-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-  }
-  /* Re-use the directory's teacher card visual language */
-  .teacher-card {
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    cursor: pointer;
-    transition: border-color 0.3s ease, transform 0.3s ease;
+  .tm-card-body {
     display: flex;
     flex-direction: column;
-    color: inherit;
+    flex: 1;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--sp-rule);
   }
-  .teacher-card:hover {
-    border-color: var(--border-hover);
-    transform: translateY(-4px);
-  }
-  .teacher-card-image {
-    position: relative;
-    aspect-ratio: 4 / 3;
-    background:
-      radial-gradient(ellipse at 40% 50%, rgba(184, 147, 90, 0.25), transparent 60%),
-      linear-gradient(140deg, #1f1812, #0a0807);
-    overflow: hidden;
-  }
-  .teacher-card-initials {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 300;
-    font-size: 60px;
-    color: rgba(245, 240, 232, 0.9);
-  }
-  .teacher-card-body { padding: 22px 22px 24px; }
-  .teacher-card-suburb {
-    font-size: 10px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin: 0 0 6px 0;
-    font-weight: 500;
-  }
-  .teacher-card-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 22px;
-    line-height: 1.2;
-    margin: 0 0 10px 0;
-  }
-  .teacher-card-headline {
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--text-2);
+  .tm-card-name {
     margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 0.95;
+    color: var(--sp-ink);
   }
-
-  /* ============ NOT-FOUND STATE ============ */
-  .not-found {
-    max-width: 600px;
-    margin: 180px auto;
-    padding: 0 40px;
-    text-align: center;
-  }
-  .not-found h1 {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 300;
-    font-size: 48px;
-    margin: 0 0 16px 0;
-  }
-  .not-found p { color: var(--text-2); margin: 0 0 32px 0; }
-  .not-found a {
-    color: var(--gold);
-    text-decoration: underline;
-  }
-
-  /* ============ FOOTER ============ */
-  .footer {
-    background: var(--bg-1);
-    padding: 80px 40px 0;
-    border-top: 1px solid var(--border);
-  }
-  .footer-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 64px;
-    padding-bottom: 56px;
-  }
-  .footer-brand .logo { font-size: 26px; }
-  .footer-tagline {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 18px;
-    color: var(--text-2);
-    margin: 18px 0 0 0;
-    max-width: 320px;
-  }
-  .footer-col-title {
-    font-size: 10px;
+  .tm-card-name a { transition: color 0.4s linear; }
+  .tm-card-name a:hover { color: var(--sp-ink-soft); }
+  .tm-card-facts { margin: 12px 0 0; font-size: 15px; line-height: 1.55; color: var(--sp-ink-soft); }
+  .tm-card-trial { margin: 2px 0 0; font-size: 14px; font-weight: 500; line-height: 1.55; color: var(--sp-felt); }
+  .tm-card-note {
+    margin: 10px 0 0;
+    font-size: 11px;
+    font-weight: 500;
     letter-spacing: 0.24em;
     text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 22px;
+    color: var(--sp-ink);
+  }
+  .tm-card-why { list-style: none; margin: 14px 0 0; padding: 0; }
+  .tm-card-why li {
+    position: relative;
+    padding: 5px 0 5px 20px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--sp-ink);
+  }
+  .tm-card-why li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.95em;
+    width: 10px; height: 1px;
+    background: var(--sp-ink);
+  }
+  .tm-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 20px;
+    margin-top: auto;
+    padding-top: 14px;
+  }
+  .tm-card-ext {
+    font-size: 13px;
+    color: var(--sp-ink-soft);
+    text-decoration: underline;
+    text-decoration-color: rgba(22, 34, 46, 0.3);
+    text-underline-offset: 4px;
+    transition: color 0.4s linear, text-decoration-color 0.4s linear;
+  }
+  .tm-card-ext:hover { color: var(--sp-ink); text-decoration-color: currentColor; }
+
+  /* Loading placeholders */
+  .tm-card--ghost .tm-card-photo { animation: tm-breathe 1.6s ease-in-out infinite; }
+  .tm-ghost-line { display: block; height: 14px; margin-top: 6px; background: var(--sp-ivory-deep); animation: tm-breathe 1.6s ease-in-out infinite; }
+  .tm-ghost-line:first-child { height: 26px; width: 70%; margin-top: 0; }
+  .tm-ghost-line--short { width: 45%; }
+  @keyframes tm-breathe { 50% { opacity: 0.55; } }
+
+  /* Text link: capitals, an arrow, a hairline that draws in */
+  .tm-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border: 0;
+    font-family: var(--font-body);
+    font-size: 12.5px;
     font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+    background: linear-gradient(currentColor, currentColor) 0 calc(100% - 4px) / 0 1px no-repeat;
+    cursor: pointer;
+    transition: background-size 0.6s var(--sp-ease);
   }
-  .footer-link {
-    display: block;
-    font-size: 14px;
-    color: var(--text-2);
-    margin-bottom: 12px;
-    transition: color 0.2s ease;
+  .tm-link:hover { background-size: 100% 1px; }
+  .tm-link i { font-size: 15px; transition: transform 0.6s var(--sp-ease); }
+  .tm-link:hover i { transform: translateX(6px); }
+
+  /* ============ PROFILE ============ */
+  .tp { padding-top: calc(var(--topbar-h) + 84px); }
+  .tp-label {
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--sp-ink-soft);
   }
-  .footer-link:hover { color: var(--text-1); }
-  .footer-contact {
-    font-size: 14px;
-    color: var(--text-2);
-    margin: 0 0 12px 0;
+  .tp-crumbs {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 28px 40px 0;
+    font-size: 13px;
+    color: var(--sp-ink-soft);
+  }
+  .tp-crumbs ol { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 0; padding: 0; list-style: none; }
+  .tp-crumbs li + li::before { content: '/'; margin-right: 10px; opacity: 0.5; }
+  .tp-crumbs a { color: var(--sp-ink); text-decoration: underline; text-decoration-color: var(--border-hover); text-underline-offset: 4px; }
+
+  /* Hero: the photo in an arch, the page's one Mist arch behind it */
+  .tp-hero {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: clamp(36px, 4vw, 64px) 40px clamp(64px, 7vw, 104px);
+    display: grid;
+    grid-template-columns: minmax(260px, 420px) minmax(0, 1fr);
+    gap: 56px clamp(48px, 7vw, 112px);
+    align-items: center;
+  }
+  .tp-portrait { position: relative; margin: 0; padding: 0 28px 28px 0; }
+  .tp-portrait::before {
+    content: '';
+    position: absolute;
+    left: 28px; top: 28px; right: 0; bottom: 0;
+    background: var(--sp-mist);
+    border-radius: 100vw 100vw 0 0;
+  }
+  .tp-arch {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: 100vw 100vw 0 0;
+    background: var(--sp-ivory-deep);
+  }
+  .tp-arch img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .tp-arch-initials {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    font-family: var(--sp-font-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: 120px;
+    color: var(--sp-ink);
+  }
+  .tp-name { margin: 20px 0 0; font-weight: 500; color: var(--sp-ink); }
+  .tp-name .sp-display { font-size: clamp(52px, 6.2vw, 108px); line-height: 0.88; overflow-wrap: anywhere; }
+  .tp-name .sp-script { font-size: clamp(60px, 5.6vw, 100px); padding-left: 1.2em; }
+  .tp-safe {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 22px 0 0;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+  }
+  .tp-safe::before { content: ''; flex: none; width: 22px; height: 2px; background: var(--sp-felt); }
+  .tp-headline {
+    margin: 22px 0 0;
+    max-width: 44ch;
+    font-size: clamp(18px, 1.5vw, 21px);
     line-height: 1.6;
+    color: var(--sp-ink-soft);
   }
-  .footer-socials { display: flex; gap: 12px; }
-  .footer-social {
-    width: 40px; height: 40px;
+  .tp-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0 28px;
+    margin: 30px 0 0;
+    padding: 0;
+    max-width: 720px;
+  }
+  .tp-facts div { padding: 14px 0; border-top: 1px solid var(--sp-rule); }
+  .tp-facts dt {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--sp-ink-soft);
+  }
+  .tp-facts dd { margin: 6px 0 0; font-size: 16px; line-height: 1.5; color: var(--sp-ink); }
+  .tp-facts dd.is-trial { color: var(--sp-felt); font-weight: 500; }
+  .tp-actions { margin-top: 32px; }
+  .tp-book {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--border);
-    color: var(--text-2);
-    font-size: 18px;
-    transition: border-color 0.2s ease, color 0.2s ease;
+    gap: 12px;
+    padding: 18px 32px 16px;
+    border: 1px solid var(--sp-ink);
+    background: var(--sp-ink);
+    color: #FFFFFF;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    transition: background 0.4s linear, color 0.4s linear;
   }
-  .footer-social:hover { border-color: var(--gold); color: var(--gold); }
-  .footer-bottom {
-    border-top: 1px solid var(--border);
-    padding: 24px 0;
-    text-align: center;
-  }
-  .footer-bottom p { font-size: 12px; color: var(--text-3); margin: 0; }
-  .footer-bottom a { color: var(--text-3); transition: color 0.2s ease; }
-  .footer-bottom a:hover { color: var(--text-1); }
+  .tp-book:hover { background: transparent; color: var(--sp-ink); }
+  .tp-book i { font-size: 16px; }
+  .tp-book-note { margin: 14px 0 0; max-width: 52ch; font-size: 14px; line-height: 1.6; color: var(--sp-ink-soft); }
 
-  /* ============ MOBILE ============ */
+  /* Body: about, then what they teach */
+  .tp-body {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 40px clamp(80px, 9vw, 128px);
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 64px clamp(48px, 7vw, 112px);
+    align-items: start;
+  }
+  .tp-h2 {
+    margin: 0;
+    padding-top: 18px;
+    border-top: 1px solid rgba(22, 34, 46, 0.3);
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--sp-ink);
+  }
+  .tp-bio { margin-top: 22px; max-width: 62ch; }
+  .tp-bio p { margin: 0 0 16px; font-size: 17px; line-height: 1.7; color: var(--sp-ink-soft); overflow-wrap: anywhere; }
+  .tp-bio-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .tp-bio.is-clamped .tp-bio-text { max-height: 21em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
+  .tp-gallery {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin: 30px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .tp-gallery li { aspect-ratio: 1; overflow: hidden; background: var(--sp-ivory-deep); }
+  .tp-gallery img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .tp-teach { margin: 22px 0 0; padding: 0; }
+  .tp-teach div { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 4px 24px; padding: 14px 0; border-top: 1px solid var(--sp-rule); }
+  .tp-teach div:first-child { border-top: 0; padding-top: 0; }
+  .tp-teach dt {
+    padding-top: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--sp-ink-soft);
+  }
+  .tp-teach dd { margin: 0; font-size: 16px; line-height: 1.6; color: var(--sp-ink); }
+  .tp-teach dd ul { margin: 0; padding: 0; list-style: none; }
+  .tp-teach dd li + li { margin-top: 4px; }
+  .tp-unclaimed { margin: 26px 0 0; padding-top: 18px; border-top: 1px solid var(--sp-rule); font-size: 14px; line-height: 1.65; color: var(--sp-ink-soft); }
+
+  /* A piano to practise on: Mist Light, quiet */
+  .tp-piano { background: var(--sp-mist-light); padding: clamp(64px, 7vw, 104px) 40px; }
+  .tp-piano-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px 96px;
+    align-items: end;
+  }
+  .tp-piano h2 { margin: 16px 0 0; font-size: clamp(40px, 4.4vw, 64px); font-weight: 500; line-height: 0.9; color: var(--sp-ink); }
+  .tp-piano p:not(.tp-label) { margin: 0; max-width: 46ch; font-size: 17px; line-height: 1.7; color: var(--sp-ink-soft); }
+  .tp-piano .tm-link { margin-top: 12px; }
+
+  /* Nearby teachers */
+  .tp-related { max-width: 1320px; margin: 0 auto; padding: clamp(80px, 9vw, 128px) 40px clamp(88px, 9vw, 128px); }
+  .tp-related-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px 32px; }
+  .tp-related-title { margin: 0; font-weight: 500; color: var(--sp-ink); }
+  .tp-related-title .sp-display { font-size: clamp(48px, 6vw, 104px); }
+  .tp-related-title .sp-script { font-size: clamp(56px, 5.6vw, 96px); padding-left: 1.4em; }
+  .tp-related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 56px 32px;
+    margin-top: 48px;
+  }
+
+  /* Loading, not found, and TeachMusic unreachable */
+  .tp-state {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: clamp(56px, 7vw, 104px) 40px clamp(96px, 10vw, 144px);
+  }
+  .tp-state h1 { margin: 20px 0 0; font-weight: 500; color: var(--sp-ink); }
+  .tp-state h1 .sp-display { font-size: clamp(52px, 7vw, 120px); }
+  .tp-state p:not(.tp-label) { margin: 26px 0 0; max-width: 52ch; font-size: 18px; line-height: 1.7; color: var(--sp-ink-soft); }
+  .tp-state-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px; margin-top: 24px; }
+  .tp-ghost { display: block; background: var(--sp-ivory-deep); animation: tm-breathe 1.6s ease-in-out infinite; }
+  .tp-ghost--name { height: 84px; width: min(560px, 90%); margin-top: 24px; }
+  .tp-ghost--line { height: 18px; width: min(420px, 80%); margin-top: 22px; }
+  .tp-ghost--line + .tp-ghost--line { width: min(300px, 60%); margin-top: 12px; }
+
+  @media (max-width: 1100px) {
+    .tp-related-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .tp-related-grid .tm-card:nth-child(3) { display: none; }
+  }
+  @media (max-width: 960px) {
+    .tp { padding-top: 62px; }
+    .tp-crumbs { padding: 22px 24px 0; }
+    .tp-hero { grid-template-columns: 1fr; padding: 28px 24px 64px; gap: 40px; }
+    .tp-portrait { width: min(100%, 340px); }
+    .tp-body { grid-template-columns: 1fr; padding: 0 24px 80px; }
+    .tp-piano { padding: 64px 24px; }
+    .tp-piano-inner { grid-template-columns: 1fr; }
+    .tp-related { padding: 72px 24px 88px; }
+    .tp-state { padding: 48px 24px 96px; }
+  }
+  @media (max-width: 640px) {
+    .tp-portrait { width: 72%; padding: 0 20px 20px 0; }
+    .tp-portrait::before { left: 20px; top: 20px; }
+    .tp-name .sp-script { padding-left: 0.8em; }
+    .tp-facts { grid-template-columns: 1fr 1fr; }
+    .tp-book { width: 100%; padding: 18px 16px 16px; letter-spacing: 0.16em; }
+    .tp-teach div { grid-template-columns: 1fr; }
+    .tp-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .tp-related-grid { grid-template-columns: 1fr; gap: 48px; }
+    .tp-related-grid .tm-card:nth-child(3) { display: flex; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tp-ghost, .tm-card--ghost .tm-card-photo, .tm-ghost-line { animation: none; }
+    .tp-book, .tm-card-photo img, .tm-link, .tm-link i { transition: none; }
+  }
+
   @media (max-width: 960px) {
     nav { padding: 18px 24px; }
     .nav-links, .nav-ctas { display: none; }
     .nav-burger { display: inline-flex; }
-
-    .breadcrumb { padding: 100px 24px 0; }
-    .profile-hero {
-      padding: 24px 24px 60px;
-      grid-template-columns: 1fr;
-      gap: 36px;
-    }
-    .profile-photo { position: static; max-width: 360px; margin: 0 auto; }
-    .profile-photo-initials { font-size: 100px; }
-    .profile-stats { grid-template-columns: 1fr 1fr; }
-    .specialties-grid { grid-template-columns: 1fr; }
-
-    .related { padding: 60px 24px 80px; }
-    .related-grid { grid-template-columns: 1fr; }
-
-    .footer { padding: 60px 24px 0; }
-    .footer-inner { grid-template-columns: 1fr; gap: 40px; }
   }
 </style>
+<link rel="stylesheet" href="/css/signature-theme.css" />
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/media/brand/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
 </head>
 <body>
 
 <!-- ============ NAV ============ -->
+<div class="sp-topbar" role="region" aria-label="Contact details">
+  <span>Pianos imported direct from Japan</span>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley</a>
+  <a class="sp-topbar-phone" href="tel:+61479128955">0479 128 955</a>
+</div>
+
 <nav id="nav">
-  <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+  <a href="/" class="logo" aria-label="Signature Pianos home">Signature <span>Pianos</span></a>
   <div class="nav-links">
 
     <div class="nav-item nav-item--dropdown">
@@ -763,21 +648,21 @@ function upsertSeoMeta(title, desc){
         Pianos <i class="ti ti-chevron-down nav-chevron"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--pianos" role="menu">
-        <a href="instruments/index.html?cat=upright" class="nav-dd-item">
+        <a href="/instruments/?cat=upright" class="nav-dd-item">
           <i class="ti ti-bookmark nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Used Japanese uprights</h4><p>Hand-selected, imported direct from Japan</p></div>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese uprights</h4><p>Hand-picked in Japan, checked in Melbourne</p></div>
         </a>
-        <a href="instruments/index.html?cat=grand" class="nav-dd-item">
+        <a href="/instruments/?cat=grand" class="nav-dd-item">
           <i class="ti ti-crown nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Used Japanese grands</h4><p>Concert &amp; baby grands, fully restored</p></div>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese grands</h4><p>Salon and concert grands from Yamaha and Kawai</p></div>
         </a>
-        <a href="instruments/index.html?cat=digital" class="nav-dd-item">
+        <a href="/instruments/?cat=digital" class="nav-dd-item">
           <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Modern instruments for any space</p></div>
+          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Roland, Kawai, Casio and Yamaha, coming soon</p></div>
         </a>
-        <a href="instruments/index.html?cat=books" class="nav-dd-item">
+        <a href="/blog" class="nav-dd-item">
           <i class="ti ti-book nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Sheet music &amp; books</h4><p>For students and teachers alike</p></div>
+          <div class="nav-dd-text"><h4>Buying advice</h4><p>Plain answers before you choose a piano</p></div>
         </a>
       </div>
     </div>
@@ -787,17 +672,17 @@ function upsertSeoMeta(title, desc){
         Services <i class="ti ti-chevron-down nav-chevron"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--services" role="menu">
-        <a href="services/delivery-warranty.html" class="nav-dd-item">
+        <a href="/services/delivery-warranty.html" class="nav-dd-item">
           <i class="ti ti-truck-delivery nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White glove delivery, tracked end to end</p></div>
+          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White-glove delivery and a 10-year warranty</p></div>
         </a>
-        <a href="services/book-a-viewing.html" class="nav-dd-item">
+        <a href="/services/book-a-viewing.html" class="nav-dd-item">
           <i class="ti ti-calendar-event nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Book a viewing</h4><p>Visit our showroom, try before you buy</p></div>
+          <div class="nav-dd-text"><h4>Book a visit</h4><p>Play the pianos in our Mount Waverley showroom</p></div>
         </a>
-        <a href="services/tuning-servicing.html" class="nav-dd-item">
+        <a href="/services/tuning-servicing.html" class="nav-dd-item">
           <i class="ti ti-tool nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Keep your piano in perfect condition</p></div>
+          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Tuning and care for pianos across Melbourne</p></div>
         </a>
       </div>
     </div>
@@ -810,33 +695,33 @@ function upsertSeoMeta(title, desc){
         <div class="nav-dd-section">
           <div class="nav-dd-section-label">For students</div>
           <div class="nav-dd-grid">
-            <a href="teachers.html" class="nav-dd-item">
+            <a href="/teachers.html" class="nav-dd-item">
               <i class="ti ti-search nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Browse local piano teachers by suburb</p></div>
+              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Piano teachers across Melbourne, via TeachMusic</p></div>
             </a>
-            <a href="teachers.html?nearby=1" class="nav-dd-item">
+            <a href="/teachers-match.html" class="nav-dd-item">
               <i class="ti ti-map-pin nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Teachers near me</h4><p>Use your location to find teachers close by</p></div>
+              <div class="nav-dd-text"><h4>Match me with a teacher</h4><p>A few quick questions, three suggestions</p></div>
             </a>
           </div>
         </div>
         <div class="nav-dd-section">
           <div class="nav-dd-section-label">For teachers</div>
           <div class="nav-dd-grid">
-            <a href="teachers.html#signup" class="nav-dd-item">
+            <a href="https://www.teachmusic.com.au/for-teachers" class="nav-dd-item" target="_blank" rel="noopener">
               <i class="ti ti-list-details nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>List your studio</h4><p>Free listing, reach new students instantly</p></div>
+              <div class="nav-dd-text"><h4>List your studio</h4><p>Reach new students on TeachMusic, our sister platform</p></div>
             </a>
-            <a href="teachers.html#dashboard" class="nav-dd-item">
+            <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
               <i class="ti ti-layout-grid nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your schedule</p></div>
+              <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
             </a>
           </div>
         </div>
       </div>
     </div>
 
-    <a href="about.html" class="nav-link-plain">About</a>
+    <a href="/about.html" class="nav-link-plain">About</a>
   </div>
 
   <div class="nav-ctas">
@@ -845,59 +730,59 @@ function upsertSeoMeta(title, desc){
         <i class="ti ti-user"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--account" role="menu">
-        <a href="#" class="nav-dd-item">
+        <a href="/portal" class="nav-dd-item">
           <i class="ti ti-user nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track delivery, view purchases, manage warranty</p></div>
+          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track your delivery and warranty</p></div>
         </a>
-        <a href="teachers.html#dashboard" class="nav-dd-item">
+        <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
           <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your studio</p></div>
+          <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
         </a>
       </div>
     </div>
-    <button class="nav-cta">Book a visit</button>
+    <a class="nav-cta" href="/services/book-a-viewing.html">Book a visit</a>
   </div>
   <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+  <a class="sp-nav-call" href="tel:+61479128955" aria-label="Call Signature Pianos on 0479 128 955"><i class="ti ti-phone" aria-hidden="true"></i></a>
 </nav>
 
-<div id="profileContent"><!-- rendered by JS --></div>
+<main class="tp" id="profile">
+  <!-- Filled from TeachMusic by the script below; this is the loading state -->
+  <section class="tp-state" aria-busy="true">
+    <p class="tp-label">Piano teacher</p>
+    <span class="tp-ghost tp-ghost--name" aria-hidden="true"></span>
+    <span class="tp-ghost tp-ghost--line" aria-hidden="true"></span>
+    <span class="tp-ghost tp-ghost--line" aria-hidden="true"></span>
+    <p class="tm-sr" role="status">Loading this teacher from TeachMusic</p>
+  </section>
+</main>
 
 <!-- ============ FOOTER ============ -->
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-col footer-brand">
-      <a href="index.html" class="logo">Signature <span>Pianos</span></a>
-      <p class="footer-tagline">Find the piano that moves you.</p>
+<footer class="sp-footer">
+  <div class="sp-footer-inner">
+    <a href="/" class="sp-footer-logo"><img src="/media/brand/logo-ink.svg" width="1542" height="592" alt="Signature Pianos"></a>
+    <p class="sp-footer-tagline">Pre-loved Japanese pianos, hand-picked in Japan and checked in Melbourne.</p>
+    <div class="sp-footer-links" role="navigation" aria-label="Footer">
+      <a href="/instruments/">Pianos</a>
+      <a href="/services/book-a-viewing.html">Book a visit</a>
+      <a href="/services/tuning-servicing.html">Tuning</a>
+      <a href="/services/delivery-warranty.html">Delivery &amp; warranty</a>
+      <a href="/teachers.html">Teachers</a>
+      <a href="/blog">Blog</a>
+      <a href="/about.html">About</a>
     </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Explore</div>
-      <a href="instruments/index.html" class="footer-link">Instruments</a>
-      <a href="index.html#matcher" class="footer-link">Find my piano</a>
-      <a href="teachers.html" class="footer-link">Teachers</a>
-      <a href="teachers-match.html" class="footer-link">Find a teacher</a>
-      <a href="#" class="footer-link">Our story</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Visit</div>
-      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
-      <a href="tel:+61300000000" class="footer-link">+61 3 0000 0000</a>
-      <a href="mailto:info@signaturepianos.com.au" class="footer-link">info@signaturepianos.com.au</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Follow</div>
-      <div class="footer-socials">
-        <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
-        <a href="#" class="footer-social" aria-label="YouTube"><i class="ti ti-brand-youtube"></i></a>
-        <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
-      </div>
+    <address class="sp-footer-contact">
+      <span class="sp-line"><a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="tel:+61479128955">0479 128 955</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></span>
+    </address>
+    <div class="sp-footer-socials">
+      <a href="#" aria-label="Instagram"><i class="ti ti-brand-instagram" aria-hidden="true"></i></a>
+      <a href="#" aria-label="Facebook"><i class="ti ti-brand-facebook" aria-hidden="true"></i></a>
     </div>
   </div>
-  <div class="footer-bottom">
-    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
-  </div>
+  <div class="sp-footer-bottom">© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></div>
 </footer>
 
-<script src="teachers-data.js"></script>
+<script src="/js/teachmusic.js"></script>
 <script>
   /* -------- NAV: scrolled-state + dropdowns -------- */
   (function setupNav() {
@@ -934,204 +819,268 @@ function upsertSeoMeta(title, desc){
   })();
 
   /* ============================================================
-     Teacher profile page
-     - Reads ?id=<slug> from the URL
-     - Renders 404 if not found
-     - Otherwise: breadcrumb → hero (photo + info + book card)
-       → related teachers row
+     Teacher profile: one TeachMusic listing, from ?slug=
+     States: loading (already in the HTML), the profile, not
+     found, and TeachMusic unreachable.
      ============================================================ */
+  (function profile() {
+    const TM = window.TeachMusic;
+    const esc = TM.esc;
+    const root = document.getElementById('profile');
+    const params = new URLSearchParams(location.search);
+    // ?id= was the old static directory's parameter; read it the same way
+    const slug = (params.get('slug') || params.get('id') || '').trim();
 
-  const container = document.getElementById('profileContent');
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
-  const teacher = id ? getTeacherById(id) : null;
+    function setMeta(title, desc, noindex) {
+      document.getElementById('docTitle').textContent = title;
+      document.getElementById('docDesc').setAttribute('content', desc);
+      upsertSeoMeta(title, desc);
+      let robots = document.head.querySelector('meta[name="robots"]');
+      if (noindex) {
+        if (!robots) {
+          robots = document.createElement('meta');
+          robots.setAttribute('name', 'robots');
+          document.head.appendChild(robots);
+        }
+        robots.setAttribute('content', 'noindex, follow');
+      } else if (robots) {
+        robots.remove();
+      }
+    }
 
-  if (!teacher) {
-    container.innerHTML = `
-      <div class="not-found">
-        <h1>Teacher not found</h1>
-        <p>The teacher you're looking for isn't in our directory. <a href="teachers.html">Browse all teachers</a>.</p>
-      </div>
-    `;
-    document.getElementById('docTitle').textContent = 'Teacher not found — Signature Pianos';
-  } else {
-    document.getElementById('docTitle').textContent = `${teacher.name} · Piano teacher in ${teacher.suburb} — Signature Pianos`;
-    document.getElementById('docDesc').setAttribute('content',
-      `${teacher.headline} Book a trial lesson with ${teacher.name} in ${teacher.suburb} from ${teacher.rateLabel}.`
-    );
-    upsertSeoMeta(document.getElementById('docTitle').textContent, document.getElementById('docDesc').getAttribute('content'));
+    function clip(text, max) {
+      const s = String(text || '').replace(/\s+/g, ' ').trim();
+      if (s.length <= max) return s;
+      return s.slice(0, s.lastIndexOf(' ', max - 1)).replace(/[,.;:]$/, '') + '…';
+    }
 
-    const initials = teacher.name.split(' ').map(s => s[0]).slice(0, 2).join('');
-    const ageLabels = teacher.studentAges.map(a => {
-      if (a === 'kids') return 'Kids (4–12)';
-      if (a === 'teens') return 'Teens (13–17)';
-      return 'Adults (18+)';
-    }).join(', ');
-    const formatLabels = teacher.formats.map(f =>
-      f === 'in-person' ? 'In-person' : 'Online'
-    ).join(' + ');
-    const availabilityLabels = teacher.availability.map(a => {
-      if (a === 'weekdays') return 'Weekday daytime';
-      if (a === 'evenings') return 'Evenings';
-      return 'Weekends';
-    }).join(' · ');
-    const skillLabels = teacher.skillLevels.map(s =>
-      s.charAt(0).toUpperCase() + s.slice(1)
-    ).join(' · ');
-    const styleTagsHtml = teacher.styles.map(s =>
-      `<span class="specialty-tag">${s}</span>`
-    ).join('');
-    const credentialsHtml = teacher.credentials.map(c =>
-      `<li><i class="ti ti-rosette"></i><span>${c}</span></li>`
-    ).join('');
+    /* ---------- Not found, and TeachMusic unreachable ---------- */
+    function showMissing(noSlug) {
+      setMeta('Teacher not found | Signature Pianos', 'Browse Melbourne piano teachers listed on TeachMusic, the sister platform of Signature Pianos.', true);
+      root.innerHTML =
+        '<section class="tp-state">' +
+          '<p class="tp-label">Piano teachers</p>' +
+          '<h1><span class="sp-display">We couldn’t find that teacher</span></h1>' +
+          '<p>' + (noSlug
+            ? 'This page shows one teacher at a time, and the link didn’t say which one.'
+            : 'There’s no Melbourne piano teacher at this link. They may have changed their listing on TeachMusic, or the link may be incomplete.') + '</p>' +
+          '<div class="tp-state-actions">' +
+            '<a class="tm-link" href="/teachers.html">See all piano teachers <i class="ti ti-arrow-right" aria-hidden="true"></i></a>' +
+            '<a class="tm-card-ext" href="' + TM.BROWSE_URL + '" target="_blank" rel="noopener">Search on TeachMusic</a>' +
+          '</div>' +
+        '</section>';
+    }
 
-    container.innerHTML = `
-      <div class="breadcrumb">
-        <a href="teachers.html">Teachers</a>
-        <i class="ti ti-chevron-right"></i>
-        <a href="teachers.html?suburb=${encodeURIComponent(teacher.suburb)}">${teacher.suburb}</a>
-        <i class="ti ti-chevron-right"></i>
-        <span>${teacher.name}</span>
-      </div>
+    function showError() {
+      setMeta('Piano teacher in Melbourne | Signature Pianos', 'A Melbourne piano teacher listed on TeachMusic, the sister platform of Signature Pianos.', false);
+      const profileUrl = TM.SITE + '/teachers/' + encodeURIComponent(slug);
+      root.innerHTML =
+        '<section class="tp-state" role="alert">' +
+          '<p class="tp-label">Piano teacher</p>' +
+          '<h1><span class="sp-display">TeachMusic isn’t answering just now</span></h1>' +
+          '<p>We couldn’t load this teacher. Try again in a moment, or open their profile on TeachMusic directly.</p>' +
+          '<div class="tp-state-actions">' +
+            '<button type="button" class="tm-link" id="retry">Try again <i class="ti ti-refresh" aria-hidden="true"></i></button>' +
+            '<a class="tm-card-ext" href="' + esc(profileUrl) + '" target="_blank" rel="noopener">Open on TeachMusic</a>' +
+            '<a class="tm-card-ext" href="/teachers.html">All piano teachers</a>' +
+          '</div>' +
+        '</section>';
+      document.getElementById('retry').addEventListener('click', start);
+    }
 
-      <section class="profile-hero">
-        <div class="profile-photo">
-          <span class="profile-photo-initials">${initials}</span>
-        </div>
+    /* ---------- The profile ---------- */
+    function sentenceList(items) {
+      return items.map((s, i) => (i ? s.charAt(0).toLowerCase() + s.slice(1) : s)).join(', ');
+    }
+    function whereText(t) {
+      const out = [];
+      if (t.modes.indexOf('studio') !== -1) out.push('At their studio');
+      if (t.modes.indexOf('mobile') !== -1) out.push('At your home' + (t.travelKm ? ' (up to ' + t.travelKm + ' km away)' : ''));
+      if (t.modes.indexOf('school') !== -1) out.push('At school');
+      if (t.modes.indexOf('online') !== -1) out.push('Online');
+      return sentenceList(out);
+    }
+    function names(ids) { return ids.map(TM.tagName).join(', '); }
 
-        <div class="profile-info">
-          <p class="profile-suburb">
-            <i class="ti ti-map-pin" style="font-size: 13px;"></i> ${teacher.suburb}, Melbourne
-          </p>
-          <h1 class="profile-name">${teacher.name}</h1>
-          <p class="profile-headline">${teacher.headline}</p>
+    function teachRows(t) {
+      const groups = { style: [], instrument: [], subject: [], service: [], other: [] };
+      t.tags.forEach((tag) => {
+        if (tag === 'piano') return;
+        const c = TM.tagCategory(tag);
+        if (c === 'style') groups.style.push(tag);
+        else if (c === 'instrument') groups.instrument.push(tag);
+        else if (c === 'subject' || c === 'method') groups.subject.push(tag);
+        else if (c === 'service') groups.service.push(tag);
+        else groups.other.push(tag);
+      });
+      const rows = [];
+      if (groups.style.length) rows.push(['Styles', esc(names(groups.style))]);
+      if (groups.subject.length) rows.push(['Also teaches', esc(names(groups.subject))]);
+      if (groups.instrument.length) rows.push(['Other instruments', esc(names(groups.instrument))]);
+      if (groups.service.length) rows.push(['Services', esc(names(groups.service))]);
+      if (groups.other.length) rows.push(['Also covers', esc(names(groups.other))]);
+      if (t.ages.length) rows.push(['Students', esc(t.ages.map((a) => TM.words.age[a] || a).join(', '))]);
+      if (t.levels.length) rows.push(['Levels', esc(t.levels.map((l) => TM.words.level[l] || l).join(', '))]);
+      if (t.exams.length) rows.push(['Exams', esc(t.exams.map((e) => TM.words.exam[e] || e.toUpperCase()).join(', '))]);
+      if (t.lessons.length) {
+        rows.push(['Lessons', '<ul>' + t.lessons.map((o) => '<li>' + o.minutes + ' minutes, ' + TM.dollars(o.cents) + '</li>').join('') + '</ul>']);
+      }
+      if (t.qualifications.length) {
+        rows.push(['Qualifications', '<ul>' + t.qualifications.map((q) => '<li>' + esc(q) + '</li>').join('') + '</ul>']);
+      }
+      return rows;
+    }
 
-          <div class="profile-stats">
-            <div>
-              <p class="profile-stat-label">Experience</p>
-              <p class="profile-stat-value"><em>${teacher.experience}</em> years</p>
-            </div>
-            <div>
-              <p class="profile-stat-label">Rate</p>
-              <p class="profile-stat-value">${teacher.rateLabel}</p>
-            </div>
-            <div>
-              <p class="profile-stat-label">Format</p>
-              <p class="profile-stat-value">${formatLabels}</p>
-            </div>
-          </div>
+    function bioHtml(t) {
+      const paras = String(t.bio || '').split(/\n+/).map((p) => p.trim()).filter(Boolean);
+      return paras.map((p) => '<p>' + esc(p) + '</p>').join('');
+    }
 
-          <div class="book-card">
-            <div class="book-card-rate">
-              <p class="book-card-price">${teacher.rateLabel}</p>
-            </div>
-            <p class="book-card-trial"><i class="ti ti-gift" style="vertical-align: middle;"></i> ${teacher.trialOffer}</p>
-            <div class="book-card-actions">
-              <button class="btn-primary" type="button">
-                Book a trial lesson <i class="ti ti-arrow-right"></i>
-              </button>
-              <button class="btn-secondary" type="button">
-                <i class="ti ti-message"></i> Message ${teacher.name.split(' ')[0]}
-              </button>
-            </div>
-            <p class="book-card-note">No commitment until you've had your first lesson.</p>
-          </div>
+    function render(t, all) {
+      const who = TM.firstName(t);
+      const place = t.suburb || 'Melbourne';
+      const photo = t.photos[0];
+      const title = t.name + ', piano teacher in ' + place + ' | Signature Pianos';
+      const desc = clip(t.name + ' teaches piano in ' + place + (t.priceFrom != null ? ', with lessons from ' + TM.dollars(t.priceFrom) : '') + '. ' +
+        (t.headline && t.headline !== t.name ? t.headline : 'Listed on TeachMusic, the sister platform of Signature Pianos.'), 158);
+      // TeachMusic keeps listings nobody has claimed out of search; so do we
+      setMeta(title, desc, !t.claimed);
 
-          <div class="profile-section">
-            <h2 class="profile-section-title">About</h2>
-            <div class="profile-section-body">
-              <p>${teacher.bio}</p>
-            </div>
-          </div>
+      const facts = [['Lessons', esc(TM.priceLine(t)), '']];
+      if (t.trial) facts.push(['Trial lesson', t.trial.cents === 0 ? 'Free' : t.trial.cents ? TM.dollars(t.trial.cents) : 'Available', 'is-trial']);
+      if (t.years != null) facts.push(['Experience', t.years + (t.years === 1 ? ' year' : ' years') + ' teaching', '']);
+      const where = whereText(t);
+      if (where) facts.push(['Where', esc(where), '']);
 
-          <div class="profile-section">
-            <h2 class="profile-section-title">Teaching philosophy</h2>
-            <blockquote class="profile-philosophy">"${teacher.philosophy}"</blockquote>
-          </div>
+      const rows = teachRows(t);
+      const bio = bioHtml(t);
+      const long = t.bio.length > 1100;
+      const gallery = t.photos.slice(1, 7);
+      const nearUrl = '/teachers.html' + (t.suburb ? '?near=' + encodeURIComponent(t.suburb) : '');
 
-          <div class="profile-section">
-            <h2 class="profile-section-title">Specialties</h2>
-            <div class="specialties-grid">
-              <div class="specialty-block">
-                <p class="specialty-block-label">Styles</p>
-                <div class="specialty-tags">${styleTagsHtml}</div>
-              </div>
-              <div class="specialty-block">
-                <p class="specialty-block-label">Students</p>
-                <p class="specialty-block-value">${ageLabels}</p>
-              </div>
-              <div class="specialty-block">
-                <p class="specialty-block-label">Skill levels</p>
-                <p class="specialty-block-value">${skillLabels}</p>
-              </div>
-              <div class="specialty-block">
-                <p class="specialty-block-label">Availability</p>
-                <p class="specialty-block-value">${availabilityLabels}</p>
-              </div>
-              <div class="specialty-block">
-                <p class="specialty-block-label">Languages</p>
-                <p class="specialty-block-value">${teacher.languages.join(', ')}</p>
-              </div>
-              <div class="specialty-block">
-                <p class="specialty-block-label">Studio</p>
-                <p class="specialty-block-value">${teacher.studio}</p>
-              </div>
-            </div>
-          </div>
+      root.innerHTML =
+        // A div, not <nav>: the header styles every nav element as the fixed bar
+        '<div class="tp-crumbs" role="navigation" aria-label="Breadcrumb"><ol>' +
+          '<li><a href="/teachers.html">Piano teachers</a></li>' +
+          (t.suburb ? '<li><a href="' + esc(nearUrl) + '">' + esc(t.suburb) + '</a></li>' : '') +
+          '<li aria-current="page">' + esc(t.name) + '</li>' +
+        '</ol></div>' +
 
-          <div class="profile-section">
-            <h2 class="profile-section-title">Credentials</h2>
-            <ul class="credentials-list">${credentialsHtml}</ul>
-          </div>
-        </div>
-      </section>
+        '<section class="tp-hero">' +
+          '<figure class="tp-portrait">' +
+            '<div class="tp-arch">' +
+              (photo
+                ? '<img src="' + esc(photo.url) + '" alt="' + esc(t.name + ', piano teacher in ' + place) + '" style="object-position:' + TM.framing(photo) + '" fetchpriority="high">'
+                : '<span class="tp-arch-initials" aria-hidden="true">' + esc(TM.initials(t.name)) + '</span>') +
+            '</div>' +
+          '</figure>' +
+          '<div>' +
+            '<p class="tp-label">Piano teacher' + (t.suburb ? ' · ' + esc(t.suburb) : '') + '</p>' +
+            '<h1 class="tp-name"><span class="sp-display">' + esc(t.name) + '</span><span class="sp-script">piano lessons</span></h1>' +
+            (t.childSafe ? '<p class="tp-safe">Child safety check verified by TeachMusic</p>' : '') +
+            (t.headline && t.headline !== t.name ? '<p class="tp-headline">' + esc(t.headline) + '</p>' : '') +
+            '<dl class="tp-facts">' + facts.map((f) => '<div><dt>' + f[0] + '</dt><dd class="' + f[2] + '">' + f[1] + '</dd></div>').join('') + '</dl>' +
+            '<div class="tp-actions">' +
+              '<a class="tp-book" href="' + esc(t.profileUrl) + '" target="_blank" rel="noopener">' +
+                (t.claimed ? 'Book a lesson on TeachMusic' : 'Enquire on TeachMusic') +
+                ' <i class="ti ti-arrow-up-right" aria-hidden="true"></i><span class="tm-sr"> (opens in a new tab)</span></a>' +
+              '<p class="tp-book-note">' + (t.claimed
+                ? 'Opens ' + esc(who) + '’s profile on TeachMusic, our sister platform, where you can get in touch or book.'
+                : 'Opens this listing on TeachMusic, our sister platform, where you can send an enquiry.') + '</p>' +
+            '</div>' +
+          '</div>' +
+        '</section>' +
 
-      <section class="related">
-        <div class="related-inner">
-          <div class="related-header">
-            <h2 class="related-title">More teachers in <em>${teacher.suburb}</em> and nearby</h2>
-            <a href="teachers.html" class="related-link">View all teachers <i class="ti ti-arrow-right"></i></a>
-          </div>
-          <div class="related-grid" id="relatedGrid"></div>
-        </div>
-      </section>
-    `;
+        '<section class="tp-body">' +
+          '<div>' +
+            '<h2 class="tp-h2">About</h2>' +
+            (bio
+              ? '<div class="tp-bio' + (long ? ' is-clamped' : '') + '"><div class="tp-bio-text">' + bio + '</div>' +
+                  (long ? '<button type="button" class="tm-link tp-bio-more" aria-expanded="false">Read more</button>' : '') + '</div>'
+              : '<div class="tp-bio"><p>' + esc(who) + ' hasn’t written an introduction on TeachMusic yet.</p></div>') +
+            (gallery.length
+              ? '<ul class="tp-gallery" aria-label="More photos">' + gallery.map((p) =>
+                  '<li><img src="' + esc(p.url) + '" alt="' + esc(p.alt || 'Photo from ' + t.name + '’s listing') + '" loading="lazy" decoding="async" style="object-position:' + TM.framing(p) + '"></li>').join('') + '</ul>'
+              : '') +
+          '</div>' +
+          '<div>' +
+            '<h2 class="tp-h2">What they teach</h2>' +
+            (rows.length
+              ? '<dl class="tp-teach">' + rows.map((r) => '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>').join('') + '</dl>'
+              : '<div class="tp-bio"><p>Piano. Ask ' + esc(who) + ' on TeachMusic about styles, levels and lesson lengths.</p></div>') +
+            (t.claimed ? '' :
+              '<p class="tp-unclaimed">TeachMusic drafted this listing from ' + esc(who) + '’s public details, and it hasn’t been claimed yet. Enquiries go through TeachMusic.</p>') +
+          '</div>' +
+        '</section>' +
 
-    /* ----- Related teachers -----
-       Pick 3 teachers that aren't this one, preferring teachers in
-       the same suburb, then teachers sharing at least one style.
-       Falls back to "any other teacher" if neither bucket is full. */
-    const relatedGrid = document.getElementById('relatedGrid');
-    const others = TEACHERS.filter(t => t.id !== teacher.id);
-    const scored = others.map(t => {
-      let score = 0;
-      if (t.suburb === teacher.suburb) score += 10;
-      const sharedStyles = t.styles.filter(s => teacher.styles.includes(s)).length;
-      score += sharedStyles * 2;
-      return { teacher: t, score };
-    });
-    scored.sort((a, b) => b.score - a.score);
-    const related = scored.slice(0, 3).map(s => s.teacher);
+        '<aside class="tp-piano" aria-labelledby="pianoTitle">' +
+          '<div class="tp-piano-inner">' +
+            '<div><p class="tp-label">From Signature Pianos</p><h2 id="pianoTitle">Need a piano to practise on?</h2></div>' +
+            '<div>' +
+              '<p>Our pre-loved pianos are hand-picked in Japan and checked in our Mount Waverley workshop before they go on the floor. Come and play a few.</p>' +
+              '<a class="tm-link" href="/services/book-a-viewing.html">Book a visit <i class="ti ti-arrow-right" aria-hidden="true"></i></a>' +
+            '</div>' +
+          '</div>' +
+        '</aside>' +
 
-    related.forEach(t => {
-      const initials = t.name.split(' ').map(s => s[0]).slice(0, 2).join('');
-      const card = document.createElement('a');
-      card.className = 'teacher-card';
-      card.href = 'teacher.html?id=' + t.id;
-      card.innerHTML = `
-        <div class="teacher-card-image">
-          <span class="teacher-card-initials">${initials}</span>
-        </div>
-        <div class="teacher-card-body">
-          <p class="teacher-card-suburb">${t.suburb} · ${t.rateLabel}</p>
-          <h3 class="teacher-card-name">${t.name}</h3>
-          <p class="teacher-card-headline">${t.headline}</p>
-        </div>
-      `;
-      relatedGrid.appendChild(card);
-    });
-  }
+        '<section class="tp-related" aria-labelledby="relatedTitle" hidden>' +
+          '<div class="tp-related-head">' +
+            '<h2 class="tp-related-title" id="relatedTitle"><span class="sp-display">More teachers</span><span class="sp-script">nearby</span></h2>' +
+            '<a class="tm-link" href="' + esc(nearUrl) + '">See all teachers <i class="ti ti-arrow-right" aria-hidden="true"></i></a>' +
+          '</div>' +
+          '<div class="tp-related-grid"></div>' +
+        '</section>';
+
+      const archImg = root.querySelector('.tp-arch img');
+      if (archImg) {
+        archImg.addEventListener('error', () => {
+          archImg.outerHTML = '<span class="tp-arch-initials" aria-hidden="true">' + esc(TM.initials(t.name)) + '</span>';
+        });
+      }
+
+      const more = root.querySelector('.tp-bio-more');
+      if (more) {
+        more.addEventListener('click', () => {
+          const box = more.closest('.tp-bio');
+          const open = box.classList.toggle('is-clamped') === false;
+          more.setAttribute('aria-expanded', String(open));
+          more.textContent = open ? 'Show less' : 'Read more';
+        });
+      }
+
+      // The three closest other teachers, by distance when both have a pin
+      const others = all.filter((o) => o.slug !== t.slug)
+        .map((o) => ({ o, d: TM.distanceKm(t, o) }))
+        .sort((a, b) => (a.d == null ? 1e9 : a.d) - (b.d == null ? 1e9 : b.d))
+        .slice(0, 3);
+      if (others.length) {
+        const section = root.querySelector('.tp-related');
+        section.querySelector('.tp-related-grid').innerHTML = others
+          .map(({ o, d }) => TM.card(o, { note: d == null ? '' : TM.kmLine(d) + ' away' })).join('');
+        section.hidden = false;
+      }
+    }
+
+    function start() {
+      if (!slug) { showMissing(true); return; }
+      TM.bySlug(slug).then(({ teacher, all }) => {
+        if (teacher) render(teacher, all);
+        else showMissing(false);
+      }).catch((err) => {
+        console.error(err);
+        showError();
+      });
+    }
+    start();
+  })();
 </script>
 
+<div class="sp-bottombar" role="navigation" aria-label="Quick contact">
+  <a href="tel:+61479128955"><i class="ti ti-phone" aria-hidden="true"></i>Call</a>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener"><i class="ti ti-map-pin" aria-hidden="true"></i>Directions</a>
+  <a class="sp-bottombar-book" href="/services/book-a-viewing.html">Book a visit</a>
+</div>
+<script src="/js/signature-nav.js" defer></script>
+<script src="/js/signature-book.js" defer></script>
 </body>
 </html>

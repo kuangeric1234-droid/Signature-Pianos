@@ -6,25 +6,29 @@
   <title>Piano Delivery — Signature Pianos</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #0e0e0d;
-      color: #f5f0e8;
-      font-family: 'DM Sans', sans-serif;
+      background: #F3F0E9;
+      color: #16222E;
+      font-family: var(--font-body);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
   </style>
+<link rel="stylesheet" href="/css/signature-theme.css" />
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/media/brand/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
 </head>
 <body>
 
 <div id="pageContent">
   <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;">
     <div style="text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;margin-bottom:16px;">Signature Pianos</div>
-      <div style="font-size:13px;color:#6b6760;">Loading…</div>
+      <div style="font-size:20px;color:#16222E;font-style:italic;margin-bottom:16px;">Signature Pianos</div>
+      <div style="font-size:13px;color:#3A4855;">Loading…</div>
     </div>
   </div>
 </div>
@@ -120,31 +124,31 @@ function renderDeliveryPage(delivery) {
 
   document.getElementById('pageContent').innerHTML = `
 
-    <div style="background:#1a1917;padding:20px 24px;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(184,147,90,0.2);">
-      <div style="font-size:16px;color:#b8935a;font-style:italic;">Signature Pianos</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Piano delivery — photo confirmation</div>
+    <div style="background:#1a1917;padding:20px 24px;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(22, 34, 46, 0.2);">
+      <div style="font-size:16px;color:#16222E;font-style:italic;">Signature Pianos</div>
+      <div style="font-size:12px;color:rgba(22, 34, 46, 0.5);margin-top:2px;">Piano delivery — photo confirmation</div>
     </div>
 
     <div style="padding:24px;max-width:480px;margin:0 auto;">
 
-      <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;margin-bottom:24px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-bottom:8px;">Piano being delivered</div>
-        <div style="font-size:20px;font-family:'Cormorant Garamond',serif;color:#f5f0e8;font-style:italic;margin-bottom:4px;">${esc(pianoLabel)}</div>
-        <div style="font-size:12px;color:#6b6760;">
+      <div style="background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:16px;margin-bottom:24px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-bottom:8px;">Piano being delivered</div>
+        <div style="font-size:20px;font-family:var(--font-display);color:#16222E;font-style:italic;margin-bottom:4px;">${esc(pianoLabel)}</div>
+        <div style="font-size:12px;color:#3A4855;">
           ${piano.serial_number ? 'Serial: ' + esc(piano.serial_number) : ''}
         </div>
         ${deliverTo ? `
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-top:14px;margin-bottom:4px;">Deliver to</div>
-          <div style="font-size:13px;color:#9a9590;line-height:1.6;">${esc(deliverTo)}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-top:14px;margin-bottom:4px;">Deliver to</div>
+          <div style="font-size:13px;color:#3A4855;line-height:1.6;">${esc(deliverTo)}</div>
         ` : ''}
         ${customer.phone ? `
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-top:10px;margin-bottom:4px;">Customer phone</div>
-          <a href="tel:${esc(customer.phone)}" style="font-size:13px;color:#b8935a;text-decoration:none;">${esc(customer.phone)}</a>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-top:10px;margin-bottom:4px;">Customer phone</div>
+          <a href="tel:${esc(customer.phone)}" style="font-size:13px;color:#16222E;text-decoration:none;">${esc(customer.phone)}</a>
         ` : ''}
       </div>
 
       <div style="margin-bottom:24px;">
-        <div style="font-size:14px;font-weight:500;color:#f5f0e8;margin-bottom:12px;">Once the piano is in place:</div>
+        <div style="font-size:14px;font-weight:500;color:#16222E;margin-bottom:12px;">Once the piano is in place:</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
           ${[
             'Place the piano in the agreed position',
@@ -154,8 +158,8 @@ function renderDeliveryPage(delivery) {
             'Upload photos using the button below',
           ].map((step, i) => `
             <div style="display:flex;gap:12px;align-items:flex-start;">
-              <div style="background:#b8935a;color:#000;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;margin-top:1px;">${i + 1}</div>
-              <div style="font-size:14px;color:#9a9590;line-height:1.5;padding-top:3px;">${esc(step)}</div>
+              <div style="background:#16222E;color:#FFFFFF;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;margin-top:1px;">${i + 1}</div>
+              <div style="font-size:14px;color:#3A4855;line-height:1.5;padding-top:3px;">${esc(step)}</div>
             </div>
           `).join('')}
         </div>
@@ -167,27 +171,27 @@ function renderDeliveryPage(delivery) {
       </div>
 
       <div style="margin-bottom:20px;">
-        <div style="font-size:14px;font-weight:500;color:#f5f0e8;margin-bottom:12px;">Delivery status</div>
+        <div style="font-size:14px;font-weight:500;color:#16222E;margin-bottom:12px;">Delivery status</div>
         <div style="display:flex;flex-direction:column;gap:8px;">
-          <label style="display:flex;align-items:center;gap:10px;padding:14px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;cursor:pointer;">
-            <input type="radio" name="deliveryStatus" value="no_issues" checked onchange="setDeliveryStatus('no_issues')" style="accent-color:#b8935a;flex-shrink:0;">
+          <label style="display:flex;align-items:center;gap:10px;padding:14px;background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;cursor:pointer;">
+            <input type="radio" name="deliveryStatus" value="no_issues" checked onchange="setDeliveryStatus('no_issues')" style="accent-color:#16222E;flex-shrink:0;">
             <div>
-              <div style="font-size:14px;color:#f5f0e8;font-weight:500;">✓ Delivered successfully</div>
-              <div style="font-size:12px;color:#9a9590;margin-top:2px;">No issues — piano placed in position</div>
+              <div style="font-size:14px;color:#16222E;font-weight:500;">✓ Delivered successfully</div>
+              <div style="font-size:12px;color:#3A4855;margin-top:2px;">No issues — piano placed in position</div>
             </div>
           </label>
-          <label style="display:flex;align-items:center;gap:10px;padding:14px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;cursor:pointer;">
+          <label style="display:flex;align-items:center;gap:10px;padding:14px;background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;cursor:pointer;">
             <input type="radio" name="deliveryStatus" value="damage" onchange="setDeliveryStatus('damage')" style="accent-color:#e74c3c;flex-shrink:0;">
             <div>
-              <div style="font-size:14px;color:#f5f0e8;font-weight:500;">⚠ Damage to report</div>
-              <div style="font-size:12px;color:#9a9590;margin-top:2px;">Piano was damaged during delivery</div>
+              <div style="font-size:14px;color:#16222E;font-weight:500;">⚠ Damage to report</div>
+              <div style="font-size:12px;color:#3A4855;margin-top:2px;">Piano was damaged during delivery</div>
             </div>
           </label>
-          <label style="display:flex;align-items:center;gap:10px;padding:14px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;cursor:pointer;">
+          <label style="display:flex;align-items:center;gap:10px;padding:14px;background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;cursor:pointer;">
             <input type="radio" name="deliveryStatus" value="failed" onchange="setDeliveryStatus('failed')" style="accent-color:#e74c3c;flex-shrink:0;">
             <div>
-              <div style="font-size:14px;color:#f5f0e8;font-weight:500;">✗ Delivery failed</div>
-              <div style="font-size:12px;color:#9a9590;margin-top:2px;">Customer not home / piano doesn't fit / other issue</div>
+              <div style="font-size:14px;color:#16222E;font-weight:500;">✗ Delivery failed</div>
+              <div style="font-size:12px;color:#3A4855;margin-top:2px;">Customer not home / piano doesn't fit / other issue</div>
             </div>
           </label>
         </div>
@@ -196,21 +200,21 @@ function renderDeliveryPage(delivery) {
       <div id="issueDetails" style="display:none;margin-bottom:20px;">
         <div style="background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.3);border-radius:4px;padding:16px;">
           <div id="issueTypeLabel" style="font-size:13px;color:#e74c3c;font-weight:500;margin-bottom:10px;"></div>
-          <label style="font-size:12px;color:#9a9590;display:block;margin-bottom:6px;">Describe what happened *</label>
+          <label style="font-size:12px;color:#3A4855;display:block;margin-bottom:6px;">Describe what happened *</label>
           <textarea id="issueDescription" rows="4"
             placeholder="Please describe the damage or reason for failed delivery..."
-            style="width:100%;padding:12px;background:#1a1a18;border:1px solid rgba(192,57,43,0.3);border-radius:4px;color:#f5f0e8;font-size:14px;resize:vertical;box-sizing:border-box;font-family:'DM Sans',sans-serif;"></textarea>
+            style="width:100%;padding:12px;background:#E9E5DB;border:1px solid rgba(192,57,43,0.3);border-radius:4px;color:#16222E;font-size:14px;resize:vertical;box-sizing:border-box;font-family:var(--font-body);"></textarea>
         </div>
       </div>
 
       <div style="margin-bottom:24px;">
-        <div style="font-size:14px;font-weight:500;color:#f5f0e8;margin-bottom:12px;">Upload photos</div>
+        <div style="font-size:14px;font-weight:500;color:#16222E;margin-bottom:12px;">Upload photos</div>
 
         <div id="uploadArea" onclick="document.getElementById('photoInput').click()"
-          style="border:2px dashed rgba(184,147,90,0.3);border-radius:4px;padding:32px 20px;text-align:center;cursor:pointer;transition:border-color 0.2s ease;margin-bottom:12px;">
+          style="border:2px dashed rgba(22, 34, 46, 0.3);border-radius:4px;padding:32px 20px;text-align:center;cursor:pointer;transition:border-color 0.2s ease;margin-bottom:12px;">
           <div style="font-size:36px;margin-bottom:8px;">📷</div>
-          <div style="font-size:14px;color:#9a9590;">Tap to take photos or choose from camera roll</div>
-          <div style="font-size:12px;color:#6b6760;margin-top:4px;">Minimum 3 photos required</div>
+          <div style="font-size:14px;color:#3A4855;">Tap to take photos or choose from camera roll</div>
+          <div style="font-size:12px;color:#3A4855;margin-top:4px;">Minimum 3 photos required</div>
         </div>
 
         <input type="file" id="photoInput"
@@ -219,18 +223,18 @@ function renderDeliveryPage(delivery) {
           onchange="handlePhotoSelect(event)">
 
         <div id="photoPreview" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;"></div>
-        <div id="photoCount" style="font-size:12px;color:#6b6760;margin-top:8px;text-align:center;"></div>
+        <div id="photoCount" style="font-size:12px;color:#3A4855;margin-top:8px;text-align:center;"></div>
       </div>
 
       <div style="margin-bottom:24px;">
-        <label style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Notes (optional)</label>
+        <label style="font-size:12px;color:#3A4855;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Notes (optional)</label>
         <textarea id="deliveryNotes" rows="3"
           placeholder="Anything to record about the placement or condition..."
-          style="width:100%;padding:12px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;color:#f5f0e8;font-size:14px;resize:vertical;box-sizing:border-box;font-family:'DM Sans',sans-serif;"></textarea>
+          style="width:100%;padding:12px;background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;color:#16222E;font-size:14px;resize:vertical;box-sizing:border-box;font-family:var(--font-body);"></textarea>
       </div>
 
       <button id="submitBtn" onclick="submitDeliveryPhotos()" disabled
-        style="width:100%;background:#444;color:#888;border:none;border-radius:4px;padding:18px;font-size:15px;font-weight:500;letter-spacing:0.05em;cursor:not-allowed;transition:all 0.2s ease;font-family:'DM Sans',sans-serif;">
+        style="width:100%;background:#444;color:#888;border:none;border-radius:4px;padding:18px;font-size:15px;font-weight:500;letter-spacing:0.05em;cursor:not-allowed;transition:all 0.2s ease;font-family:var(--font-body);">
         ADD AT LEAST 3 PHOTOS TO CONTINUE
       </button>
 
@@ -265,18 +269,18 @@ function renderPhotoPreview() {
     <div style="position:relative;aspect-ratio:1;border-radius:4px;overflow:hidden;">
       <img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;">
       <button onclick="removePhoto(${i})"
-        style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+        style="position:absolute;top:4px;right:4px;background:rgba(22, 34, 46, 0.28);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
     </div>
   `).join('')
 
   const n = selectedPhotos.length
   count.textContent = `${n} photo${n !== 1 ? 's' : ''} selected`
-  count.style.color = n >= 3 ? '#1D9E75' : '#6b6760'
+  count.style.color = n >= 3 ? '#1D9E75' : '#3A4855'
 
   if (n >= 3) {
     btn.disabled = false
-    btn.style.background = '#b8935a'
-    btn.style.color = '#000'
+    btn.style.background = '#16222E'
+    btn.style.color = '#FFFFFF'
     btn.style.cursor = 'pointer'
     btn.textContent = `CONFIRM DELIVERY — ${n} PHOTO${n !== 1 ? 'S' : ''}`
   } else {
@@ -398,12 +402,12 @@ function showDeliverySuccess(count, status) {
   }
   const m = messages[status] || messages.no_issues
   document.getElementById('pageContent').innerHTML = `
-    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+    <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
       <div style="text-align:center;max-width:360px;">
         <div style="font-size:72px;margin-bottom:24px;color:${m.color};">${m.icon}</div>
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 16px;">${m.title}</h2>
-        <p style="font-size:14px;color:#9a9590;line-height:1.7;margin:0 0 24px;">${m.body}</p>
-        <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;font-size:13px;color:#6b6760;text-align:left;">
+        <h2 style="font-family:var(--font-display);font-size:32px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 16px;">${m.title}</h2>
+        <p style="font-size:14px;color:#3A4855;line-height:1.7;margin:0 0 24px;">${m.body}</p>
+        <div style="background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:16px;font-size:13px;color:#3A4855;text-align:left;">
           ${m.checklist.map((line, i) => `<div style="margin-bottom:${i === m.checklist.length - 1 ? '0' : '6px'};">${m.icon === '✓' ? '✓' : '•'} ${esc(line)}</div>`).join('')}
         </div>
       </div>
@@ -413,11 +417,11 @@ function showDeliverySuccess(count, status) {
 
 function showAlreadyConfirmed() {
   document.getElementById('pageContent').innerHTML = `
-    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+    <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
       <div style="text-align:center;max-width:360px;">
         <div style="font-size:48px;margin-bottom:16px;color:#1D9E75;">✓</div>
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Delivery already confirmed</h2>
-        <p style="font-size:13px;color:#9a9590;line-height:1.7;">This has already been submitted. Contact Signature Pianos if you need help.</p>
+        <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">Delivery already confirmed</h2>
+        <p style="font-size:13px;color:#3A4855;line-height:1.7;">This has already been submitted. Contact Signature Pianos if you need help.</p>
       </div>
     </div>
   `
@@ -425,11 +429,11 @@ function showAlreadyConfirmed() {
 
 function showError(message) {
   document.getElementById('pageContent').innerHTML = `
-    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+    <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
       <div style="text-align:center;max-width:360px;">
-        <div style="font-size:48px;margin-bottom:16px;color:#b8935a;">✗</div>
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Link not found</h2>
-        <p style="font-size:13px;color:#9a9590;line-height:1.7;">${esc(message)}</p>
+        <div style="font-size:48px;margin-bottom:16px;color:#16222E;">✗</div>
+        <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">Link not found</h2>
+        <p style="font-size:13px;color:#3A4855;line-height:1.7;">${esc(message)}</p>
       </div>
     </div>
   `

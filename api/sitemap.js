@@ -7,7 +7,10 @@
 
 const { supabaseAdmin, SITE_URL } = require('../lib/ai')
 
-const STATIC_PATHS = ['/', '/instruments.html', '/teachers.html', '/about.html', '/blog']
+const STATIC_PATHS = [
+  '/', '/instruments/', '/services/book-a-viewing.html', '/services/delivery-warranty.html',
+  '/services/tuning-servicing.html', '/teachers.html', '/about.html', '/blog',
+]
 
 module.exports = async (req, res) => {
   let posts = []

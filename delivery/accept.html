@@ -6,25 +6,29 @@
   <title>Accept delivery — Signature Pianos</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #0e0e0d;
-      color: #f5f0e8;
-      font-family: 'DM Sans', sans-serif;
+      background: #F3F0E9;
+      color: #16222E;
+      font-family: var(--font-body);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
   </style>
+<link rel="stylesheet" href="/css/signature-theme.css" />
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/media/brand/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
 </head>
 <body>
 
 <div id="pageContent">
   <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;">
     <div style="text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;margin-bottom:16px;">Signature Pianos</div>
-      <div style="font-size:13px;color:#6b6760;">Loading…</div>
+      <div style="font-size:20px;color:#16222E;font-style:italic;margin-bottom:16px;">Signature Pianos</div>
+      <div style="font-size:13px;color:#3A4855;">Loading…</div>
     </div>
   </div>
 </div>
@@ -103,74 +107,74 @@ function renderAcceptPage(delivery) {
 
   document.getElementById('pageContent').innerHTML = `
 
-    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(184,147,90,0.2);">
-      <div style="font-size:16px;color:#b8935a;font-style:italic;">Signature Pianos</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Delivery acceptance</div>
+    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(22, 34, 46, 0.2);">
+      <div style="font-size:16px;color:#16222E;font-style:italic;">Signature Pianos</div>
+      <div style="font-size:12px;color:rgba(22, 34, 46, 0.5);margin-top:2px;">Delivery acceptance</div>
     </div>
 
     <div style="padding:24px;max-width:480px;margin:0 auto;">
 
-      <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 8px;">Accept delivery</h2>
-      <p style="font-size:14px;color:#9a9590;margin:0 0 24px;line-height:1.6;">
+      <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 8px;">Accept delivery</h2>
+      <p style="font-size:14px;color:#3A4855;margin:0 0 24px;line-height:1.6;">
         Select which delivery window you can do. The customer will be notified of the confirmed date.
       </p>
 
-      <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;margin-bottom:16px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-bottom:8px;">Piano</div>
-        <div style="font-size:18px;font-family:'Cormorant Garamond',serif;color:#f5f0e8;font-style:italic;margin-bottom:4px;">${esc(pianoLabel)}</div>
-        <div style="font-size:12px;color:#6b6760;">
+      <div style="background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-bottom:8px;">Piano</div>
+        <div style="font-size:18px;font-family:var(--font-display);color:#16222E;font-style:italic;margin-bottom:4px;">${esc(pianoLabel)}</div>
+        <div style="font-size:12px;color:#3A4855;">
           ${piano.serial_number ? 'Serial: ' + esc(piano.serial_number) : ''}
           ${piano.weight_kg ? ' · ' + esc(piano.weight_kg) + ' kg' : ' · ~200 kg'}
         </div>
       </div>
 
-      <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;margin-bottom:16px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-bottom:8px;">Collect from</div>
-        <div style="font-size:14px;color:#f5f0e8;font-weight:500;">Signature Pianos Warehouse</div>
-        <div style="font-size:13px;color:#9a9590;margin-top:4px;">63 Blackburn Road, Mount Waverley VIC 3149</div>
+      <div style="background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-bottom:8px;">Collect from</div>
+        <div style="font-size:14px;color:#16222E;font-weight:500;">Signature Pianos Warehouse</div>
+        <div style="font-size:13px;color:#3A4855;margin-top:4px;">63 Blackburn Road, Mount Waverley VIC 3149</div>
       </div>
 
-      <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;margin-bottom:24px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-bottom:8px;">Deliver to</div>
-        <div style="font-size:14px;color:#f5f0e8;font-weight:500;">${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}</div>
-        <div style="font-size:13px;color:#9a9590;margin-top:4px;">${esc(deliverTo || '—')}</div>
+      <div style="background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:16px;margin-bottom:24px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-bottom:8px;">Deliver to</div>
+        <div style="font-size:14px;color:#16222E;font-weight:500;">${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}</div>
+        <div style="font-size:13px;color:#3A4855;margin-top:4px;">${esc(deliverTo || '—')}</div>
         ${customer.phone ? `
           <div style="margin-top:8px;">
-            <a href="tel:${esc(customer.phone)}" style="font-size:13px;color:#b8935a;text-decoration:none;">${esc(customer.phone)}</a>
+            <a href="tel:${esc(customer.phone)}" style="font-size:13px;color:#16222E;text-decoration:none;">${esc(customer.phone)}</a>
           </div>
         ` : ''}
       </div>
 
       <div style="margin-bottom:24px;">
-        <div style="font-size:14px;font-weight:500;color:#f5f0e8;margin-bottom:12px;">Select which window you can do:</div>
+        <div style="font-size:14px;font-weight:500;color:#16222E;margin-bottom:12px;">Select which window you can do:</div>
         ${prefs.length === 0 ? `
-          <div style="font-size:13px;color:#9a9590;padding:14px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;">
+          <div style="font-size:13px;color:#3A4855;padding:14px;background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;">
             The customer hasn't submitted preferred windows yet. Please contact Signature Pianos.
           </div>
         ` : prefs.map((pref, i) => `
           <label data-pref-num="${i + 1}" onclick="selectPref(${i + 1}, this)"
-            style="display:flex;align-items:flex-start;gap:12px;padding:14px;margin-bottom:8px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;cursor:pointer;transition:border-color 0.2s;">
-            <input type="radio" name="preference" value="${i + 1}" style="margin-top:2px;accent-color:#b8935a;flex-shrink:0;">
+            style="display:flex;align-items:flex-start;gap:12px;padding:14px;margin-bottom:8px;background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;cursor:pointer;transition:border-color 0.2s;">
+            <input type="radio" name="preference" value="${i + 1}" style="margin-top:2px;accent-color:#16222E;flex-shrink:0;">
             <div>
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6760;margin-bottom:3px;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-bottom:3px;">
                 ${i === 0 ? "Customer's 1st choice" : i === 1 ? "Customer's 2nd choice" : "Customer's 3rd choice"}
               </div>
-              <div style="font-size:14px;color:#f5f0e8;font-weight:500;">${esc(pref)}</div>
+              <div style="font-size:14px;color:#16222E;font-weight:500;">${esc(pref)}</div>
             </div>
           </label>
         `).join('')}
       </div>
 
       <div style="margin-bottom:24px;">
-        <label style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Notes for Signature Pianos (optional)</label>
+        <label style="font-size:12px;color:#3A4855;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Notes for Signature Pianos (optional)</label>
         <textarea id="acceptanceNotes" rows="3"
           placeholder="Any questions or notes about this delivery..."
-          style="width:100%;padding:12px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;color:#f5f0e8;font-size:14px;resize:vertical;box-sizing:border-box;font-family:'DM Sans',sans-serif;"></textarea>
+          style="width:100%;padding:12px;background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;color:#16222E;font-size:14px;resize:vertical;box-sizing:border-box;font-family:var(--font-body);"></textarea>
       </div>
 
       <button id="acceptBtn" onclick="submitAcceptance('${esc(delivery.id)}')"
         disabled
-        style="width:100%;background:#444;color:#888;border:none;border-radius:4px;padding:18px;font-size:15px;font-weight:500;letter-spacing:0.05em;cursor:not-allowed;transition:all 0.2s ease;font-family:'DM Sans',sans-serif;">
+        style="width:100%;background:#444;color:#888;border:none;border-radius:4px;padding:18px;font-size:15px;font-weight:500;letter-spacing:0.05em;cursor:not-allowed;transition:all 0.2s ease;font-family:var(--font-body);">
         SELECT A TIME WINDOW ABOVE
       </button>
 
@@ -183,16 +187,16 @@ function renderAcceptPage(delivery) {
 function selectPref(num, el) {
   selectedPrefNum = num
   document.querySelectorAll('label[data-pref-num]').forEach(l => {
-    l.style.borderColor = 'rgba(184,147,90,0.2)'
+    l.style.borderColor = 'rgba(22, 34, 46, 0.2)'
   })
-  el.style.borderColor = 'rgba(184,147,90,0.8)'
+  el.style.borderColor = 'rgba(22, 34, 46, 0.8)'
   const radio = el.querySelector('input[type="radio"]')
   if (radio) radio.checked = true
 
   const btn = document.getElementById('acceptBtn')
   btn.disabled = false
-  btn.style.background = '#b8935a'
-  btn.style.color = '#000'
+  btn.style.background = '#16222E'
+  btn.style.color = '#FFFFFF'
   btn.style.cursor = 'pointer'
   btn.textContent = 'CONFIRM ACCEPTANCE'
 }
@@ -233,14 +237,14 @@ async function submitAcceptance(deliveryId) {
 
 function showAcceptedSuccess(confirmedDate) {
   document.getElementById('pageContent').innerHTML = `
-    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+    <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
       <div style="text-align:center;max-width:360px;">
         <div style="font-size:64px;margin-bottom:20px;color:#1D9E75;">✓</div>
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Delivery accepted.</h2>
-        <p style="font-size:14px;color:#9a9590;line-height:1.7;margin:0 0 20px;">
+        <h2 style="font-family:var(--font-display);font-size:30px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">Delivery accepted.</h2>
+        <p style="font-size:14px;color:#3A4855;line-height:1.7;margin:0 0 20px;">
           ${confirmedDate ? `Confirmed for ${esc(confirmedDate)}.` : 'Delivery confirmed.'} The customer has been notified.
         </p>
-        <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:16px;font-size:13px;color:#6b6760;text-align:left;line-height:1.8;">
+        <div style="background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:16px;font-size:13px;color:#3A4855;text-align:left;line-height:1.8;">
           You will receive a reminder email 3 days before pickup and again on the day.<br><br>
           Your pickup photo link will be sent 3 days before the confirmed date.
         </div>
@@ -251,11 +255,11 @@ function showAcceptedSuccess(confirmedDate) {
 
 function showAlreadyAccepted() {
   document.getElementById('pageContent').innerHTML = `
-    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+    <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
       <div style="text-align:center;max-width:360px;">
         <div style="font-size:48px;margin-bottom:16px;color:#1D9E75;">✓</div>
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Already accepted</h2>
-        <p style="font-size:13px;color:#9a9590;line-height:1.7;">You have already accepted this delivery. Check your email for your reminder and pickup link.</p>
+        <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">Already accepted</h2>
+        <p style="font-size:13px;color:#3A4855;line-height:1.7;">You have already accepted this delivery. Check your email for your reminder and pickup link.</p>
       </div>
     </div>
   `
@@ -263,11 +267,11 @@ function showAlreadyAccepted() {
 
 function showError(message) {
   document.getElementById('pageContent').innerHTML = `
-    <div style="min-height:100vh;background:#0e0e0d;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+    <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
       <div style="text-align:center;max-width:360px;">
-        <div style="font-size:48px;margin-bottom:16px;color:#b8935a;">✗</div>
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 12px;">Link not found</h2>
-        <p style="font-size:13px;color:#9a9590;line-height:1.7;">${esc(message)}</p>
+        <div style="font-size:48px;margin-bottom:16px;color:#16222E;">✗</div>
+        <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">Link not found</h2>
+        <p style="font-size:13px;color:#3A4855;line-height:1.7;">${esc(message)}</p>
       </div>
     </div>
   `

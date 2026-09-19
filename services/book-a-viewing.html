@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Book a Viewing — Signature Pianos Melbourne</title>
-<meta name="description" content="Book a private piano viewing at the Signature Pianos Melbourne showroom. Take your time, play every piano, ask anything — no pressure, no obligation." />
+<title>Book a Viewing | Signature Pianos Melbourne</title>
+<meta name="description" content="Book a private piano viewing at the Signature Pianos Melbourne showroom. Take your time, play every piano, ask anything. No pressure, no obligation." />
 
 <!-- Canonical + social previews (added from SEO audit) -->
 <link rel="canonical" href="https://signaturepianos.com.au/services/book-a-viewing.html" />
@@ -12,15 +12,15 @@
 <meta property="og:site_name" content="Signature Pianos" />
 <meta property="og:locale" content="en_AU" />
 <meta property="og:url" content="https://signaturepianos.com.au/services/book-a-viewing.html" />
-<meta property="og:title" content="Book a Viewing — Signature Pianos Melbourne" />
-<meta property="og:description" content="Book a private piano viewing at the Signature Pianos Melbourne showroom. Take your time, play every piano, ask anything — no pressure, no obligation." />
+<meta property="og:title" content="Book a Viewing | Signature Pianos Melbourne" />
+<meta property="og:description" content="Book a private piano viewing at the Signature Pianos Melbourne showroom. Take your time, play every piano, ask anything. No pressure, no obligation." />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Book a Viewing — Signature Pianos Melbourne" />
-<meta name="twitter:description" content="Book a private piano viewing at the Signature Pianos Melbourne showroom. Take your time, play every piano, ask anything — no pressure, no obligation." />
+<meta name="twitter:title" content="Book a Viewing | Signature Pianos Melbourne" />
+<meta name="twitter:description" content="Book a private piano viewing at the Signature Pianos Melbourne showroom. Take your time, play every piano, ask anything. No pressure, no obligation." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
 <!-- Breadcrumb + Service structured data (added from SEO audit) -->
@@ -34,16 +34,16 @@
 
 <style>
   :root {
-    --bg-1: #0e0e0d;
-    --bg-2: #1a1a18;
-    --bg-3: #242422;
-    --gold: #b8935a;
-    --gold-light: #d4b483;
-    --text-1: #f5f0e8;
-    --text-2: #9a9590;
-    --text-3: #6b6760;
-    --border: rgba(184, 147, 90, 0.15);
-    --border-hover: rgba(184, 147, 90, 0.4);
+    --bg-1: #F3F0E9;
+    --bg-2: #E9E5DB;
+    --bg-3: #DCE6ED;
+    --gold: #16222E;
+    --gold-light: #3A4855;
+    --text-1: #16222E;
+    --text-2: #3A4855;
+    --text-3: #3A4855;
+    --border: rgba(22, 34, 46, 0.15);
+    --border-hover: rgba(22, 34, 46, 0.4);
     --error: rgba(220, 80, 80, 0.6);
     --error-text: #e89696;
   }
@@ -56,7 +56,7 @@
     padding: 0;
     background: var(--bg-1);
     color: var(--text-1);
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-weight: 300;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
@@ -78,7 +78,7 @@
     margin-bottom: 24px;
   }
   .section-h2 {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 300;
     font-size: clamp(36px, 4.5vw, 56px);
     line-height: 1.1;
@@ -104,16 +104,16 @@
     align-items: center;
     justify-content: space-between;
     gap: 32px;
-    background: rgba(14, 14, 13, 0.88);
+    background: rgba(243, 240, 233, 0.88);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     transition: padding 0.35s ease, background 0.35s ease;
   }
-  nav.scrolled { background: rgba(14, 14, 13, 0.96); padding: 12px 32px; }
+  nav.scrolled { background: rgba(243, 240, 233, 0.96); padding: 12px 32px; }
 
   .logo {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 300;
     font-size: 24px;
     letter-spacing: 0.01em;
@@ -125,7 +125,7 @@
   .nav-links { display: flex; align-items: center; gap: 32px; }
 
   .nav-link-plain {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -141,7 +141,7 @@
 
   .nav-item--dropdown { position: relative; }
   .nav-link-trigger {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -168,7 +168,7 @@
     top: calc(100% + 14px);
     left: 50%;
     transform: translateX(-50%) translateY(-6px);
-    background: #14140f;
+    background: #FFFFFF;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 18px;
@@ -177,7 +177,7 @@
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.85);
+    box-shadow: 0 30px 60px -20px rgba(22, 34, 46, 0.34);
     transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
     z-index: 110;
   }
@@ -236,14 +236,14 @@
     color: inherit;
     transition: background 0.2s ease;
   }
-  .nav-dd-item:hover { background: rgba(184, 147, 90, 0.07); }
+  .nav-dd-item:hover { background: rgba(22, 34, 46, 0.07); }
   /* Active page state inside the dropdown */
-  .nav-dd-item.is-current { background: rgba(184, 147, 90, 0.10); }
+  .nav-dd-item.is-current { background: rgba(22, 34, 46, 0.10); }
   .nav-dd-item.is-current h4 { color: var(--gold); }
   .nav-dd-icon { font-size: 20px; color: var(--gold); margin-top: 2px; flex-shrink: 0; }
   .nav-dd-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .nav-dd-text h4 {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 14px;
     font-weight: 500;
     color: var(--text-1);
@@ -273,7 +273,7 @@
   .nav-account-trigger:hover,
   .nav-item--account.nav-item--open .nav-account-trigger {
     border-color: var(--gold);
-    background: rgba(184, 147, 90, 0.10);
+    background: rgba(22, 34, 46, 0.10);
   }
   .nav-dropdown--account {
     grid-template-columns: 1fr;
@@ -305,7 +305,7 @@
   .bv-hero {
     padding: 180px 40px 120px;
     background:
-      radial-gradient(ellipse at 50% 0%, rgba(184, 147, 90, 0.12), transparent 60%),
+      linear-gradient(transparent, transparent),
       var(--bg-1);
     border-bottom: 1px solid var(--border);
     text-align: center;
@@ -320,7 +320,7 @@
     margin-bottom: 28px;
   }
   .bv-hero-h1 {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-style: italic;
     font-weight: 400;
     font-size: clamp(44px, 6vw, 84px);
@@ -396,7 +396,7 @@
     padding: 0 4px;
   }
   .bv-step-num {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-size: 12px;
     color: var(--gold);
     letter-spacing: 0.22em;
@@ -417,7 +417,7 @@
   .bv-step:hover .bv-step-icon-wrap { border-color: var(--gold); background: var(--bg-3); }
   .bv-step-icon-wrap i { font-size: 24px; color: var(--gold); }
   .bv-step-title {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-weight: 500;
     font-size: 16px;
     line-height: 1.35;
@@ -435,14 +435,14 @@
   .bv-form-section {
     padding: 140px 40px;
     background:
-      radial-gradient(ellipse at 50% 0%, rgba(184, 147, 90, 0.06), transparent 60%),
+      linear-gradient(transparent, transparent),
       var(--bg-1);
     border-bottom: 1px solid var(--border);
   }
   .bv-form-inner { max-width: 760px; margin: 0 auto; }
   .bv-form-header { text-align: center; margin-bottom: 56px; }
   .bv-form-header h2 {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-style: italic;
     font-weight: 400;
     font-size: clamp(36px, 4.5vw, 56px);
@@ -459,10 +459,10 @@
 
   .bv-card {
     background: var(--bg-2);
-    border: 1px solid rgba(184, 147, 90, 0.3);
-    border-radius: 4px;
+    border: 1px solid rgba(22, 34, 46, 0.3);
+    border-radius: 0;
     padding: clamp(28px, 5vw, 56px);
-    box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.9);
+    box-shadow: 0 40px 90px -40px rgba(22, 34, 46, 0.36);
   }
 
   .bv-form-row { margin-bottom: 28px; }
@@ -476,7 +476,7 @@
 
   .bv-label {
     display: block;
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.12em;
@@ -498,9 +498,9 @@
   .bv-textarea {
     width: 100%;
     background: var(--bg-2);
-    border: 1px solid rgba(184, 147, 90, 0.15);
+    border: 1px solid rgba(22, 34, 46, 0.15);
     color: var(--text-1);
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 15px;
     font-weight: 300;
     padding: 14px 16px;
@@ -516,7 +516,7 @@
   .bv-select:focus,
   .bv-textarea:focus {
     border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(184, 147, 90, 0.15);
+    box-shadow: 0 0 0 3px rgba(22, 34, 46, 0.15);
   }
   .bv-input::-webkit-calendar-picker-indicator {
     filter: invert(0.7) sepia(0.6) saturate(2) hue-rotate(-10deg);
@@ -558,10 +558,10 @@
     align-items: center;
     gap: 8px;
     padding: 11px 18px;
-    border: 1px solid rgba(184, 147, 90, 0.3);
+    border: 1px solid rgba(22, 34, 46, 0.3);
     background: transparent;
     color: var(--text-2);
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 13px;
     font-weight: 400;
     letter-spacing: 0.04em;
@@ -617,7 +617,7 @@
     color: var(--bg-1);
     border: 1px solid var(--gold);
     padding: 18px 32px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 14px;
     font-weight: 500;
     letter-spacing: 0.1em;
@@ -668,10 +668,10 @@
     color: var(--gold);
     font-size: 36px;
     margin-bottom: 28px;
-    background: rgba(184, 147, 90, 0.06);
+    background: rgba(22, 34, 46, 0.06);
   }
   .bv-success h3 {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-style: italic;
     font-weight: 400;
     font-size: clamp(32px, 4vw, 44px);
@@ -738,8 +738,8 @@
 
   .bv-map {
     background: var(--bg-2);
-    border: 1px solid rgba(184, 147, 90, 0.3);
-    border-radius: 4px;
+    border: 1px solid rgba(22, 34, 46, 0.3);
+    border-radius: 0;
     min-height: 280px;
     display: flex;
     flex-direction: column;
@@ -788,13 +788,13 @@
   .bv-cta {
     padding: 160px 40px;
     background:
-      radial-gradient(ellipse at 50% 100%, rgba(184, 147, 90, 0.14), transparent 60%),
+      linear-gradient(transparent, transparent),
       var(--bg-1);
     text-align: center;
   }
   .bv-cta-inner { max-width: 760px; margin: 0 auto; }
   .bv-cta-h {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-style: italic;
     font-weight: 400;
     font-size: clamp(40px, 5vw, 64px);
@@ -813,7 +813,7 @@
     color: var(--gold);
     border: 1px solid var(--gold);
     padding: 16px 32px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.18em;
@@ -843,7 +843,7 @@
   }
   .footer-brand .logo { font-size: 26px; }
   .footer-tagline {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-style: italic;
     font-size: 18px;
     color: var(--text-2);
@@ -992,12 +992,22 @@
     .reveal, .reveal-stagger > * { transition: none; opacity: 1; transform: none; }
   }
 </style>
+<link rel="stylesheet" href="/css/signature-theme.css" />
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/media/brand/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
 </head>
 <body>
 
 <!-- ============ NAV ============ -->
+<div class="sp-topbar" role="region" aria-label="Contact details">
+  <span>Pianos imported direct from Japan</span>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley</a>
+  <a class="sp-topbar-phone" href="tel:+61479128955">0479 128 955</a>
+</div>
+
 <nav id="nav">
-  <a href="../index.html" class="logo">Signature <span>Pianos</span></a>
+  <a href="/" class="logo" aria-label="Signature Pianos home">Signature <span>Pianos</span></a>
   <div class="nav-links">
 
     <div class="nav-item nav-item--dropdown">
@@ -1005,21 +1015,21 @@
         Pianos <i class="ti ti-chevron-down nav-chevron"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--pianos" role="menu">
-        <a href="../instruments/index.html?cat=upright" class="nav-dd-item">
+        <a href="/instruments/?cat=upright" class="nav-dd-item">
           <i class="ti ti-bookmark nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Used Japanese uprights</h4><p>Hand-selected, imported direct from Japan</p></div>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese uprights</h4><p>Hand-picked in Japan, checked in Melbourne</p></div>
         </a>
-        <a href="../instruments/index.html?cat=grand" class="nav-dd-item">
+        <a href="/instruments/?cat=grand" class="nav-dd-item">
           <i class="ti ti-crown nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Used Japanese grands</h4><p>Concert &amp; baby grands, fully restored</p></div>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese grands</h4><p>Salon and concert grands from Yamaha and Kawai</p></div>
         </a>
-        <a href="../instruments/index.html?cat=digital" class="nav-dd-item">
+        <a href="/instruments/?cat=digital" class="nav-dd-item">
           <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Modern instruments for any space</p></div>
+          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Roland, Kawai, Casio and Yamaha, coming soon</p></div>
         </a>
-        <a href="../instruments/index.html?cat=books" class="nav-dd-item">
+        <a href="/blog" class="nav-dd-item">
           <i class="ti ti-book nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Sheet music &amp; books</h4><p>For students and teachers alike</p></div>
+          <div class="nav-dd-text"><h4>Buying advice</h4><p>Plain answers before you choose a piano</p></div>
         </a>
       </div>
     </div>
@@ -1029,17 +1039,17 @@
         Services <i class="ti ti-chevron-down nav-chevron"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--services" role="menu">
-        <a href="delivery-warranty.html" class="nav-dd-item">
+        <a href="/services/delivery-warranty.html" class="nav-dd-item">
           <i class="ti ti-truck-delivery nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White glove delivery, tracked end to end</p></div>
+          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White-glove delivery and a 10-year warranty</p></div>
         </a>
-        <a href="book-a-viewing.html" class="nav-dd-item is-current" aria-current="page">
+        <a href="/services/book-a-viewing.html" class="nav-dd-item is-current" aria-current="page">
           <i class="ti ti-calendar-event nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Book a viewing</h4><p>Visit our showroom, try before you buy</p></div>
+          <div class="nav-dd-text"><h4>Book a visit</h4><p>Play the pianos in our Mount Waverley showroom</p></div>
         </a>
-        <a href="tuning-servicing.html" class="nav-dd-item">
+        <a href="/services/tuning-servicing.html" class="nav-dd-item">
           <i class="ti ti-tool nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Keep your piano in perfect condition</p></div>
+          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Tuning and care for pianos across Melbourne</p></div>
         </a>
       </div>
     </div>
@@ -1052,33 +1062,33 @@
         <div class="nav-dd-section">
           <div class="nav-dd-section-label">For students</div>
           <div class="nav-dd-grid">
-            <a href="../teachers.html" class="nav-dd-item">
+            <a href="/teachers.html" class="nav-dd-item">
               <i class="ti ti-search nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Browse local piano teachers by suburb</p></div>
+              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Piano teachers across Melbourne, via TeachMusic</p></div>
             </a>
-            <a href="../teachers.html?nearby=1" class="nav-dd-item">
+            <a href="/teachers-match.html" class="nav-dd-item">
               <i class="ti ti-map-pin nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Teachers near me</h4><p>Use your location to find teachers close by</p></div>
+              <div class="nav-dd-text"><h4>Match me with a teacher</h4><p>A few quick questions, three suggestions</p></div>
             </a>
           </div>
         </div>
         <div class="nav-dd-section">
           <div class="nav-dd-section-label">For teachers</div>
           <div class="nav-dd-grid">
-            <a href="../teachers.html#signup" class="nav-dd-item">
+            <a href="https://www.teachmusic.com.au/for-teachers" class="nav-dd-item" target="_blank" rel="noopener">
               <i class="ti ti-list-details nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>List your studio</h4><p>Free listing, reach new students instantly</p></div>
+              <div class="nav-dd-text"><h4>List your studio</h4><p>Reach new students on TeachMusic, our sister platform</p></div>
             </a>
-            <a href="../teachers.html#dashboard" class="nav-dd-item">
+            <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
               <i class="ti ti-layout-grid nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your schedule</p></div>
+              <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
             </a>
           </div>
         </div>
       </div>
     </div>
 
-    <a href="../about.html" class="nav-link-plain">About</a>
+    <a href="/about.html" class="nav-link-plain">About</a>
   </div>
 
   <div class="nav-ctas">
@@ -1087,19 +1097,20 @@
         <i class="ti ti-user"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--account" role="menu">
-        <a href="#" class="nav-dd-item">
+        <a href="/portal" class="nav-dd-item">
           <i class="ti ti-user nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track delivery, view purchases, manage warranty</p></div>
+          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track your delivery and warranty</p></div>
         </a>
-        <a href="../teachers.html#dashboard" class="nav-dd-item">
+        <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
           <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your studio</p></div>
+          <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
         </a>
       </div>
     </div>
     <a href="#booking-form" class="nav-cta">Book a visit</a>
   </div>
   <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+  <a class="sp-nav-call" href="tel:+61479128955" aria-label="Call Signature Pianos on 0479 128 955"><i class="ti ti-phone" aria-hidden="true"></i></a>
 </nav>
 
 <!-- ============ §1 HERO ============ -->
@@ -1107,7 +1118,7 @@
   <div class="bv-hero-inner">
     <div class="bv-hero-eyebrow reveal">Book a viewing</div>
     <h1 class="bv-hero-h1 reveal">Come and play before you decide.</h1>
-    <p class="bv-hero-sub reveal">There's nothing like sitting down at a piano and feeling it under your fingers. Book a private viewing at our showroom and take as long as you need — no pressure, no rush.</p>
+    <p class="bv-hero-sub reveal">There's nothing like sitting down at a piano and feeling it under your fingers. Book a private viewing at our showroom and take as long as you need. No pressure, no rush.</p>
     <div class="bv-trust-icons reveal-stagger">
       <div class="bv-trust">
         <i class="ti ti-lock"></i>
@@ -1150,7 +1161,7 @@
         <div class="bv-step-num">03</div>
         <div class="bv-step-icon-wrap"><i class="ti ti-messages"></i></div>
         <h3 class="bv-step-title">Ask us anything</h3>
-        <p class="bv-step-body">From the history of each piano to its restoration, regulation and touch — we'll walk you through everything you want to know.</p>
+        <p class="bv-step-body">From the history of each piano to its restoration, regulation and touch, we'll walk you through everything you want to know.</p>
       </div>
       <div class="bv-step">
         <div class="bv-step-num">04</div>
@@ -1201,9 +1212,9 @@
             <div class="bv-select-wrap">
               <select id="bv-time" name="preferred_time" class="bv-select" required>
                 <option value="" disabled selected>Choose a time</option>
-                <option value="morning">Morning (9am–12pm)</option>
-                <option value="afternoon">Afternoon (12pm–4pm)</option>
-                <option value="late_afternoon">Late afternoon (4pm–6pm)</option>
+                <option value="morning">Morning (9am-12pm)</option>
+                <option value="afternoon">Afternoon (12pm-4pm)</option>
+                <option value="late_afternoon">Late afternoon (4pm-6pm)</option>
               </select>
             </div>
           </div>
@@ -1228,9 +1239,9 @@
               Digital pianos
             </label>
             <label class="bv-pill">
-              <input type="checkbox" name="pianos_interested" value="Not sure yet — happy to browse" />
+              <input type="checkbox" name="pianos_interested" value="Not sure yet, happy to browse" />
               <span class="bv-pill-tick"><i class="ti ti-check"></i></span>
-              Not sure yet — happy to browse
+              Not sure yet, happy to browse
             </label>
           </div>
         </div>
@@ -1259,7 +1270,7 @@
         </div>
 
         <button type="submit" class="bv-submit" id="bv-submit">Request a viewing</button>
-        <div class="bv-form-error" id="form-error" style="display:none">Something went wrong — please try again or call us directly.</div>
+        <div class="bv-form-error" id="form-error" style="display:none">Something went wrong. Please try again or call us directly.</div>
 
       </form>
 
@@ -1280,7 +1291,7 @@
     <div class="bv-find-text">
       <div class="section-label reveal">Find us</div>
       <h2 class="section-h2 reveal">Our Melbourne <em>showroom</em>.</h2>
-      <p class="section-body reveal">A quiet, considered space — not a shop floor. Drop in or book ahead and we'll have your favourites ready to play.</p>
+      <p class="section-body reveal">A quiet, considered space, not a shop floor. Drop in or book ahead and we'll have your favourites ready to play.</p>
 
       <ul class="bv-find-list reveal-stagger">
         <li>
@@ -1288,8 +1299,7 @@
           <div>
             <span class="bv-find-row-label">Address</span>
             <span class="bv-find-row-value">
-              <!-- ADD SHOWROOM ADDRESS HERE -->
-              Showroom address — Melbourne, VIC
+              63 Blackburn Road, Mount Waverley VIC 3149
             </span>
           </div>
         </li>
@@ -1298,7 +1308,7 @@
           <div>
             <span class="bv-find-row-label">Opening hours</span>
             <span class="bv-find-row-value">
-              Monday to Saturday 9am–5pm<br>
+              Monday to Saturday 9am-5pm<br>
               Sunday by appointment
             </span>
           </div>
@@ -1308,8 +1318,7 @@
           <div>
             <span class="bv-find-row-label">Phone</span>
             <span class="bv-find-row-value">
-              <!-- ADD PHONE NUMBER -->
-              Phone number coming soon
+              <a href="tel:+61479128955">0479 128 955</a>
             </span>
           </div>
         </li>
@@ -1318,19 +1327,14 @@
           <div>
             <span class="bv-find-row-label">Email</span>
             <span class="bv-find-row-value">
-              <!-- ADD EMAIL -->
-              info@signaturepianos.com.au
+              <a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a>
             </span>
           </div>
         </li>
       </ul>
     </div>
 
-    <div class="bv-map reveal" aria-label="Showroom map placeholder">
-      <!-- ADD GOOGLE MAPS EMBED HERE -->
-      <i class="ti ti-map"></i>
-      <span>Map coming soon</span>
-    </div>
+    <div class="bv-map reveal" data-sp-map role="region" aria-label="Map of the showroom at 63 Blackburn Road, Mount Waverley"></div>
   </div>
 </section>
 
@@ -1369,42 +1373,28 @@
 </section>
 
 <!-- ============ FOOTER ============ -->
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-col footer-brand">
-      <a href="../index.html" class="logo">Signature <span>Pianos</span></a>
-      <p class="footer-tagline">Find the piano that moves you.</p>
+<footer class="sp-footer">
+  <div class="sp-footer-inner">
+    <a href="/" class="sp-footer-logo"><img src="/media/brand/logo-ink.svg" width="1542" height="592" alt="Signature Pianos"></a>
+    <p class="sp-footer-tagline">Pre-loved Japanese pianos, hand-picked in Japan and checked in Melbourne.</p>
+    <div class="sp-footer-links" role="navigation" aria-label="Footer">
+      <a href="/instruments/">Pianos</a>
+      <a href="/services/book-a-viewing.html">Book a visit</a>
+      <a href="/services/tuning-servicing.html">Tuning</a>
+      <a href="/services/delivery-warranty.html">Delivery &amp; warranty</a>
+      <a href="/teachers.html">Teachers</a>
+      <a href="/blog">Blog</a>
+      <a href="/about.html">About</a>
     </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Shop</div>
-      <a href="../instruments/index.html" class="footer-link">Shop</a>
-      <a href="../instruments/index.html?filter=brands" class="footer-link">Brands</a>
-      <a href="book-a-viewing.html" class="footer-link">Book viewing</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Teachers</div>
-      <a href="../teachers.html" class="footer-link">Teacher platform</a>
-      <a href="../teachers.html#signup" class="footer-link">Sign up</a>
-      <a href="../teachers.html#dashboard" class="footer-link">Log in</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Company</div>
-      <a href="../index.html#story" class="footer-link">About</a>
-      <a href="#" class="footer-link">Blog</a>
-      <a href="mailto:info@signaturepianos.com.au" class="footer-link">Contact</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Find us</div>
-      <div class="footer-socials">
-        <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
-        <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
-      </div>
-      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
+    <address class="sp-footer-contact">
+      <span class="sp-line"><a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="tel:+61479128955">0479 128 955</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></span>
+    </address>
+    <div class="sp-footer-socials">
+      <a href="#" aria-label="Instagram"><i class="ti ti-brand-instagram" aria-hidden="true"></i></a>
+      <a href="#" aria-label="Facebook"><i class="ti ti-brand-facebook" aria-hidden="true"></i></a>
     </div>
   </div>
-  <div class="footer-bottom">
-    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
-  </div>
+  <div class="sp-footer-bottom">© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></div>
 </footer>
 
 <!-- Supabase JS -->
@@ -1565,5 +1555,13 @@
   })
 </script>
 
+<div class="sp-bottombar" role="navigation" aria-label="Quick contact">
+  <a href="tel:+61479128955"><i class="ti ti-phone" aria-hidden="true"></i>Call</a>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener"><i class="ti ti-map-pin" aria-hidden="true"></i>Directions</a>
+  <a class="sp-bottombar-book" href="/services/book-a-viewing.html">Book a visit</a>
+</div>
+<script src="/js/signature-nav.js" defer></script>
+<script src="/js/signature-book.js" defer></script>
+<script src="/js/signature-map.js" defer></script>
 </body>
 </html>

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Find a Piano Teacher in Melbourne — Signature Pianos</title>
-<meta name="description" content="Hand-picked Melbourne piano teachers. Browse by suburb, style and skill level. Book a trial lesson with a verified teacher in minutes." />
+<title>Find a Piano Teacher in Melbourne | Signature Pianos</title>
+<meta name="description" content="Piano teachers across Melbourne, live from TeachMusic. Search by suburb, lesson type, style and price, then get in touch or book on TeachMusic." />
 
 <!-- Canonical + social previews (added from SEO audit) -->
 <link rel="canonical" href="https://signaturepianos.com.au/teachers.html" />
@@ -12,15 +12,15 @@
 <meta property="og:site_name" content="Signature Pianos" />
 <meta property="og:locale" content="en_AU" />
 <meta property="og:url" content="https://signaturepianos.com.au/teachers.html" />
-<meta property="og:title" content="Find a Piano Teacher in Melbourne — Signature Pianos" />
-<meta property="og:description" content="Hand-picked Melbourne piano teachers. Browse by suburb, style and skill level. Book a trial lesson with a verified teacher in minutes." />
+<meta property="og:title" content="Find a Piano Teacher in Melbourne | Signature Pianos" />
+<meta property="og:description" content="Piano teachers across Melbourne, live from TeachMusic. Search by suburb, lesson type, style and price, then get in touch or book on TeachMusic." />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Find a Piano Teacher in Melbourne — Signature Pianos" />
-<meta name="twitter:description" content="Hand-picked Melbourne piano teachers. Browse by suburb, style and skill level. Book a trial lesson with a verified teacher in minutes." />
+<meta name="twitter:title" content="Find a Piano Teacher in Melbourne | Signature Pianos" />
+<meta name="twitter:description" content="Piano teachers across Melbourne, live from TeachMusic. Search by suburb, lesson type, style and price, then get in touch or book on TeachMusic." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
 <!-- Breadcrumb + Service structured data (added from SEO audit) -->
@@ -31,37 +31,21 @@
 {"@type":"ListItem","position":2,"name":"Find a Piano Teacher","item":"https://signaturepianos.com.au/teachers.html"}]},
 {"@type":"Service","name":"Piano teacher matching","serviceType":"Piano lessons and teacher matching","areaServed":{"@type":"City","name":"Melbourne"},"provider":{"@type":"MusicStore","@id":"https://signaturepianos.com.au/#store","name":"Signature Pianos"},"url":"https://signaturepianos.com.au/teachers.html"}]}
 </script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <style>
-  :root {
-    --bg-1: #0e0e0d;
-    --bg-2: #1a1a18;
-    --bg-3: #242422;
-    --gold: #b8935a;
-    --gold-light: #d4b483;
-    --text-1: #f5f0e8;
-    --text-2: #9a9590;
-    --text-3: #6b6760;
-    --border: rgba(184, 147, 90, 0.15);
-    --border-hover: rgba(184, 147, 90, 0.4);
-  }
-
   *, *::before, *::after { box-sizing: border-box; }
 
   html, body {
     margin: 0; padding: 0;
     background: var(--bg-1);
     color: var(--text-1);
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 300;
+    font-family: var(--font-body);
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
   a { color: inherit; text-decoration: none; }
   button { font-family: inherit; }
-  ::selection { background: var(--gold); color: var(--bg-1); }
 
   /* ============ NAV (matches homepage) ============ */
   nav {
@@ -73,16 +57,16 @@
     align-items: center;
     justify-content: space-between;
     gap: 32px;
-    background: rgba(14, 14, 13, 0.88);
+    background: rgba(243, 240, 233, 0.88);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     transition: padding 0.35s ease, background 0.35s ease;
   }
-  nav.scrolled { background: rgba(14, 14, 13, 0.96); padding: 12px 32px; }
+  nav.scrolled { background: rgba(243, 240, 233, 0.96); padding: 12px 32px; }
 
   .logo {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 300;
     font-size: 24px;
     letter-spacing: 0.01em;
@@ -94,7 +78,7 @@
   .nav-links { display: flex; align-items: center; gap: 32px; }
 
   .nav-link-plain {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -110,7 +94,7 @@
 
   .nav-item--dropdown { position: relative; }
   .nav-link-trigger {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -135,7 +119,7 @@
     top: calc(100% + 14px);
     left: 50%;
     transform: translateX(-50%) translateY(-6px);
-    background: #14140f;
+    background: #FFFFFF;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 18px;
@@ -144,7 +128,7 @@
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.85);
+    box-shadow: 0 30px 60px -20px rgba(22, 34, 46, 0.34);
     transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
     z-index: 110;
   }
@@ -203,11 +187,11 @@
     color: inherit;
     transition: background 0.2s ease;
   }
-  .nav-dd-item:hover { background: rgba(184, 147, 90, 0.07); }
+  .nav-dd-item:hover { background: rgba(22, 34, 46, 0.07); }
   .nav-dd-icon { font-size: 20px; color: var(--gold); margin-top: 2px; flex-shrink: 0; }
   .nav-dd-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .nav-dd-text h4 {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 14px;
     font-weight: 500;
     color: var(--text-1);
@@ -237,7 +221,7 @@
   .nav-account-trigger:hover,
   .nav-item--account.nav-item--open .nav-account-trigger {
     border-color: var(--gold);
-    background: rgba(184, 147, 90, 0.10);
+    background: rgba(22, 34, 46, 0.10);
   }
   .nav-dropdown--account {
     grid-template-columns: 1fr;
@@ -265,830 +249,560 @@
 
   .nav-burger { display: none; background: none; border: 0; color: var(--text-1); font-size: 24px; cursor: pointer; }
 
-  /* ============ PAGE HEADER ============ */
-  .page-header {
-    padding: 130px 40px 36px;
-    border-bottom: 1px solid var(--border);
+  /* ============ TEACHER CARD (markup from /js/teachmusic.js) ============
+     No box: photo, a hairline, the name in condensed capitals, one line of
+     facts, one action. The same block sits on teachers.html, teacher.html and
+     teachers-match.html. */
+  .tm-sr {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
   }
-  .page-header-inner {
-    max-width: 1500px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 40px;
-    align-items: end;
-  }
-  .page-eyebrow {
-    font-size: clamp(11px, 0.78vw, 14px);
-    font-weight: 500;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 18px;
-  }
-  .page-headline {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-size: clamp(36px, 4vw, 72px);
-    line-height: 1.05;
-    margin: 0 0 14px 0;
-    max-width: 1000px;
-  }
-  .page-headline em { font-style: italic; color: var(--gold); font-weight: 400; }
-  .page-sub {
-    font-size: clamp(15px, 1vw, 18px);
-    line-height: 1.7;
-    color: var(--text-2);
-    max-width: 640px;
-    margin: 0;
-  }
-
-  /* Match-me CTA card in the header */
-  .match-cta {
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    padding: 22px 26px;
-    max-width: 340px;
-    text-align: left;
-    transition: border-color 0.3s ease;
-  }
-  .match-cta:hover { border-color: var(--border-hover); }
-  .match-cta-eyebrow {
-    font-size: 10px;
-    letter-spacing: 0.26em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin: 0 0 8px 0;
-    font-weight: 500;
-  }
-  .match-cta-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 22px;
-    line-height: 1.25;
-    margin: 0 0 8px 0;
-  }
-  .match-cta-title em { font-style: italic; color: var(--gold); }
-  .match-cta-sub {
-    font-size: 13px;
-    color: var(--text-2);
-    margin: 0 0 16px 0;
-    line-height: 1.55;
-  }
-  .match-cta-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--gold);
-    transition: gap 0.2s ease, color 0.2s ease;
-    font-weight: 500;
-  }
-  .match-cta-btn:hover { gap: 14px; color: var(--gold-light); }
-
-  /* ============ FILTER BAR ============ */
-  .filter-bar {
-    position: sticky;
-    top: 71px;
-    z-index: 50;
-    padding: 18px 40px;
-    background: rgba(14, 14, 13, 0.92);
-    -webkit-backdrop-filter: blur(14px);
-            backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--border);
-  }
-  .filter-bar-inner {
-    max-width: 1500px;
-    margin: 0 auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 32px;
-    align-items: center;
-  }
-  .filter-dropdown { position: relative; }
-  .filter-trigger {
-    background: transparent;
-    border: 0;
-    color: var(--text-1);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    cursor: pointer;
-    padding: 10px 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    transition: color 0.2s ease;
+  .tm-card { display: flex; flex-direction: column; min-width: 0; }
+  .tm-card-photo {
     position: relative;
-  }
-  .filter-trigger::after {
-    content: '';
-    position: absolute;
-    left: 0; right: 0; bottom: 4px;
-    height: 1px;
-    background: var(--gold);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.3s ease;
-  }
-  .filter-trigger.has-value { color: var(--gold); }
-  .filter-trigger.has-value::after { transform: scaleX(1); }
-  .filter-trigger:hover { color: var(--gold); }
-  .filter-trigger i {
-    font-size: 14px;
-    transition: transform 0.3s ease;
-  }
-  .filter-dropdown:hover .filter-trigger i,
-  .filter-dropdown.open .filter-trigger i { transform: rotate(180deg); }
-
-  .filter-menu {
-    position: absolute;
-    top: 100%;
-    left: -18px;
-    margin-top: 8px;
-    min-width: 220px;
-    max-height: 360px;
-    overflow-y: auto;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    padding: 14px 0;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-8px);
-    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
-    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
-    z-index: 60;
-  }
-  /* invisible bridge so cursor moving from trigger to menu doesn't close it */
-  .filter-dropdown::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 0; right: 0;
-    height: 10px;
-  }
-  .filter-dropdown:hover .filter-menu,
-  .filter-dropdown.open .filter-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-  }
-  .filter-menu-label {
-    font-size: 9px;
-    letter-spacing: 0.26em;
-    text-transform: uppercase;
-    color: var(--text-3);
-    padding: 4px 22px 12px;
-    font-weight: 500;
-  }
-  .filter-option {
     display: block;
-    width: 100%;
-    text-align: left;
-    background: transparent;
-    border: 0;
-    color: var(--text-2);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    padding: 10px 22px;
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-    font-weight: 400;
-  }
-  .filter-option:hover { background: var(--bg-3); color: var(--text-1); }
-  .filter-option.active { color: var(--gold); }
-  .filter-option.active::before { content: '· '; color: var(--gold); }
-
-  /* ----- Searchable suburb typeahead ----- */
-  .filter-search {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px 8px 14px;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    min-width: 260px;
-    transition: border-color 0.2s ease;
-  }
-  .filter-search:hover,
-  .filter-search.focused {
-    border-color: var(--border-hover);
-  }
-  .filter-search.has-value {
-    border-color: var(--gold);
-  }
-  .filter-search-icon {
-    font-size: 16px;
-    color: var(--text-3);
-    flex-shrink: 0;
-    transition: color 0.2s ease;
-  }
-  .filter-search.focused .filter-search-icon,
-  .filter-search.has-value .filter-search-icon { color: var(--gold); }
-  .filter-search-input {
-    flex: 1;
-    background: transparent;
-    border: 0;
-    outline: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: 0.02em;
-    color: var(--text-1);
-    padding: 4px 0;
-    min-width: 0;   /* allow flex shrink in narrow bars */
-  }
-  .filter-search-input::placeholder {
-    color: var(--text-3);
-    font-weight: 400;
-  }
-  .filter-search-clear {
-    background: transparent;
-    border: 0;
-    color: var(--text-3);
-    cursor: pointer;
-    padding: 4px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.2s ease;
-    flex-shrink: 0;
-  }
-  .filter-search-clear i { font-size: 14px; }
-  .filter-search-clear:hover { color: var(--gold); }
-  .filter-search.has-value .filter-search-clear,
-  .filter-search-input:not(:placeholder-shown) ~ .filter-search-clear {
-    display: inline-flex;
-  }
-
-  /* Autocomplete results panel */
-  .filter-search-menu {
-    position: absolute;
-    top: 100%;
-    left: -1px;
-    right: -1px;
-    margin-top: 6px;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    padding: 14px 0;
-    max-height: 320px;
-    overflow-y: auto;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-6px);
-    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
-    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
-    z-index: 60;
-  }
-  .filter-search.open .filter-search-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-    transition: opacity 0.18s ease, transform 0.18s ease;
-  }
-  .filter-search-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    text-align: left;
-    background: transparent;
-    border: 0;
-    color: var(--text-2);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    padding: 10px 22px;
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-    font-weight: 400;
-  }
-  .filter-search-option i { color: var(--text-3); font-size: 14px; }
-  .filter-search-option:hover,
-  .filter-search-option.highlight {
-    background: var(--bg-3);
-    color: var(--text-1);
-  }
-  .filter-search-option:hover i,
-  .filter-search-option.highlight i { color: var(--gold); }
-  .filter-search-option.active { color: var(--gold); }
-  .filter-search-option.active i { color: var(--gold); }
-  .filter-search-option mark {
-    background: transparent;
-    color: var(--gold);
-    font-weight: 500;
-  }
-  .filter-search-empty {
-    padding: 14px 22px;
-    font-size: 13px;
-    color: var(--text-3);
-    font-style: italic;
-  }
-
-  .filter-slider-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-width: 220px;
-    padding: 4px 0;
-  }
-  .filter-slider-label-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 12px;
-  }
-  .filter-slider-label {
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-1);
-    font-weight: 500;
-  }
-  .filter-slider-value {
-    font-size: 12px;
-    color: var(--gold);
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-  }
-  .filter-slider {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(to right, var(--gold) 0%, var(--gold) var(--fill, 100%), var(--bg-3) var(--fill, 100%));
-    outline: none;
-    border: 0;
-    cursor: pointer;
-    border-radius: 1px;
-  }
-  .filter-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--gold);
-    cursor: pointer;
-    border: 2px solid var(--bg-1);
-    box-shadow: 0 0 0 1px var(--gold), 0 0 12px rgba(184, 147, 90, 0.4);
-    transition: transform 0.15s ease;
-  }
-  .filter-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
-  .filter-slider::-moz-range-thumb {
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: var(--gold);
-    cursor: pointer;
-    border: 2px solid var(--bg-1);
-    box-shadow: 0 0 0 1px var(--gold), 0 0 12px rgba(184, 147, 90, 0.4);
-  }
-
-  .filter-clear {
-    background: transparent;
-    border: 0;
-    color: var(--text-3);
-    padding: 10px 0;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: color 0.2s ease;
-    margin-left: auto;
-  }
-  .filter-clear:hover { color: var(--gold); }
-  .filter-count {
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-2);
-    white-space: nowrap;
-    font-weight: 500;
-  }
-  .filter-count strong { color: var(--gold); font-weight: 600; }
-
-  /* ============ DIRECTORY LAYOUT (split: cards left, map right) ============ */
-  .directory {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-    /* fill the viewport below nav + filter bar */
-    min-height: calc(100vh - 71px - 64px);
-  }
-  .teacher-list {
-    padding: 40px 40px 80px;
-    overflow-y: auto;
-  }
-  .teacher-list-inner {
-    max-width: 980px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }
-  .map-wrap {
-    position: sticky;
-    top: calc(71px + 64px);
-    height: calc(100vh - 71px - 64px);
-    border-left: 1px solid var(--border);
-    background: var(--bg-2);
-  }
-  #teacherMap {
-    width: 100%;
-    height: 100%;
-  }
-
-  /* ============ TEACHER CARD ============ */
-  .teacher-card {
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    cursor: pointer;
-    transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    color: inherit;
-  }
-  .teacher-card:hover {
-    border-color: var(--border-hover);
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.6);
-  }
-  .teacher-card.highlighted {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 1px var(--gold), 0 20px 40px -20px rgba(0, 0, 0, 0.6);
-  }
-  .teacher-card-image {
-    position: relative;
-    aspect-ratio: 4 / 3;
-    background:
-      radial-gradient(ellipse at 40% 50%, rgba(184, 147, 90, 0.25), transparent 60%),
-      linear-gradient(140deg, #1f1812, #0a0807);
+    aspect-ratio: 5 / 4;
     overflow: hidden;
+    background: var(--sp-ivory-deep);
   }
-  .teacher-card-image::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(circle at 45% 42%, rgba(184, 147, 90, 0.5), transparent 28%),
-      radial-gradient(circle at 45% 75%, rgba(184, 147, 90, 0.3), transparent 40%);
-    opacity: 0.5;
+  .tm-card-photo img {
+    display: block;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s var(--sp-ease);
   }
-  .teacher-card-initials {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 300;
-    font-size: 64px;
-    color: rgba(245, 240, 232, 0.9);
-    z-index: 1;
-    letter-spacing: -0.02em;
-  }
-  .teacher-card-rate-badge {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    background: rgba(14, 14, 13, 0.85);
-    border: 1px solid var(--border);
-    padding: 5px 10px;
-    font-size: 10px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--gold);
+  .tm-card:hover .tm-card-photo img { transform: scale(1.03); }
+  .tm-card-initials {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    font-family: var(--sp-font-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
     font-weight: 500;
-    z-index: 2;
+    font-size: 72px;
+    color: var(--sp-ink);
   }
-  .teacher-card-body {
-    padding: 22px 22px 24px;
-    flex: 1;
+  .tm-card-body {
     display: flex;
     flex-direction: column;
-  }
-  .teacher-card-suburb {
-    font-size: 10px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin: 0 0 6px 0;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .teacher-card-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 24px;
-    line-height: 1.2;
-    margin: 0 0 8px 0;
-  }
-  .teacher-card-headline {
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--text-2);
-    margin: 0 0 16px 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
     flex: 1;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--sp-rule);
   }
-  .teacher-card-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 14px;
-    font-size: 11px;
-    color: var(--text-3);
-    margin: 0 0 14px 0;
-  }
-  .teacher-card-meta span {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .teacher-card-meta i { font-size: 13px; color: var(--text-3); }
-  .teacher-card-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 14px;
-  }
-  .teacher-tag {
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-2);
-    padding: 4px 10px;
-    border: 1px solid var(--border);
-    font-weight: 400;
-  }
-  .teacher-card-trial {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 15px;
-    color: var(--gold);
+  .tm-card-name {
     margin: 0;
-    padding-top: 14px;
-    border-top: 1px solid var(--border);
-  }
-
-  /* Empty state */
-  .directory-empty {
-    grid-column: 1 / -1;
-    padding: 80px 40px;
-    text-align: center;
-    color: var(--text-2);
-  }
-  .directory-empty h3 {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 26px;
-    color: var(--text-1);
-    margin: 0 0 12px 0;
-  }
-  .directory-empty a { color: var(--gold); text-decoration: underline; }
-
-  /* ============ LEAFLET — dark theme overrides + gold piano pins ============ */
-  .leaflet-container {
-    background: #0a0a09;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .leaflet-control-attribution {
-    background: rgba(14, 14, 13, 0.7) !important;
-    color: var(--text-3) !important;
-    font-size: 10px !important;
-    padding: 2px 8px !important;
-  }
-  .leaflet-control-attribution a {
-    color: var(--text-2) !important;
-  }
-  .leaflet-control-zoom a {
-    background: var(--bg-2) !important;
-    color: var(--text-1) !important;
-    border: 1px solid var(--border) !important;
-    border-bottom: 0 !important;
-  }
-  .leaflet-control-zoom a:hover {
-    background: var(--bg-3) !important;
-    color: var(--gold) !important;
-  }
-  .leaflet-control-zoom a:last-child {
-    border-bottom: 1px solid var(--border) !important;
-  }
-
-  .piano-pin {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: var(--gold);
-    border: 2px solid var(--bg-1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--bg-1);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--gold);
-    cursor: pointer;
-    transition: transform 0.2s ease, background 0.2s ease;
-  }
-  .piano-pin:hover, .piano-pin.active {
-    transform: scale(1.18);
-    background: var(--gold-light);
-    z-index: 1000 !important;
-  }
-
-  .leaflet-popup-content-wrapper {
-    background: var(--bg-2) !important;
-    color: var(--text-1) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 0 !important;
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8) !important;
-    padding: 0 !important;
-  }
-  .leaflet-popup-content {
-    margin: 0 !important;
-    width: 240px !important;
-  }
-  .leaflet-popup-tip {
-    background: var(--bg-2) !important;
-    border: 1px solid var(--border) !important;
-  }
-  .leaflet-popup-close-button {
-    color: var(--text-2) !important;
-    padding: 8px 8px 0 0 !important;
-  }
-  .leaflet-popup-close-button:hover { color: var(--gold) !important; }
-
-  .map-popup {
-    padding: 18px 20px 18px;
-  }
-  .map-popup-suburb {
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin: 0 0 6px 0;
+    font-size: 30px;
     font-weight: 500;
+    line-height: 0.95;
+    color: var(--sp-ink);
   }
-  .map-popup-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 20px;
-    line-height: 1.2;
-    margin: 0 0 8px 0;
-    color: var(--text-1);
-  }
-  .map-popup-rate {
-    font-size: 12px;
-    color: var(--text-2);
-    margin: 0 0 14px 0;
-  }
-  .map-popup-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+  .tm-card-name a { transition: color 0.4s linear; }
+  .tm-card-name a:hover { color: var(--sp-ink-soft); }
+  .tm-card-facts { margin: 12px 0 0; font-size: 15px; line-height: 1.55; color: var(--sp-ink-soft); }
+  .tm-card-trial { margin: 2px 0 0; font-size: 14px; font-weight: 500; line-height: 1.55; color: var(--sp-felt); }
+  .tm-card-note {
+    margin: 10px 0 0;
     font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--gold);
     font-weight: 500;
-    transition: gap 0.2s ease;
-  }
-  .map-popup-link:hover { gap: 12px; }
-
-  /* ============ FOOTER (matches homepage) ============ */
-  .footer {
-    background: var(--bg-1);
-    padding: 80px 40px 0;
-    border-top: 1px solid var(--border);
-  }
-  .footer-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 64px;
-    padding-bottom: 56px;
-  }
-  .footer-brand .logo { font-size: 26px; }
-  .footer-tagline {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 18px;
-    color: var(--text-2);
-    margin: 18px 0 0 0;
-    max-width: 320px;
-  }
-  .footer-col-title {
-    font-size: 10px;
     letter-spacing: 0.24em;
     text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 22px;
-    font-weight: 500;
+    color: var(--sp-ink);
   }
-  .footer-link {
-    display: block;
-    font-size: 14px;
-    color: var(--text-2);
-    margin-bottom: 12px;
-    transition: color 0.2s ease;
+  .tm-card-why { list-style: none; margin: 14px 0 0; padding: 0; }
+  .tm-card-why li {
+    position: relative;
+    padding: 5px 0 5px 20px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--sp-ink);
   }
-  .footer-link:hover { color: var(--text-1); }
-  .footer-contact {
-    font-size: 14px;
-    color: var(--text-2);
-    margin: 0 0 12px 0;
-    line-height: 1.6;
+  .tm-card-why li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.95em;
+    width: 10px; height: 1px;
+    background: var(--sp-ink);
   }
-  .footer-socials { display: flex; gap: 12px; }
-  .footer-social {
-    width: 40px; height: 40px;
+  .tm-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 20px;
+    margin-top: auto;
+    padding-top: 14px;
+  }
+  .tm-card-ext {
+    font-size: 13px;
+    color: var(--sp-ink-soft);
+    text-decoration: underline;
+    text-decoration-color: rgba(22, 34, 46, 0.3);
+    text-underline-offset: 4px;
+    transition: color 0.4s linear, text-decoration-color 0.4s linear;
+  }
+  .tm-card-ext:hover { color: var(--sp-ink); text-decoration-color: currentColor; }
+
+  /* Loading placeholders */
+  .tm-card--ghost .tm-card-photo { animation: tm-breathe 1.6s ease-in-out infinite; }
+  .tm-ghost-line { display: block; height: 14px; margin-top: 6px; background: var(--sp-ivory-deep); animation: tm-breathe 1.6s ease-in-out infinite; }
+  .tm-ghost-line:first-child { height: 26px; width: 70%; margin-top: 0; }
+  .tm-ghost-line--short { width: 45%; }
+  @keyframes tm-breathe { 50% { opacity: 0.55; } }
+
+  /* Text link: capitals, an arrow, a hairline that draws in */
+  .tm-link {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border);
-    color: var(--text-2);
-    font-size: 18px;
-    transition: border-color 0.2s ease, color 0.2s ease;
+    gap: 10px;
+    padding: 8px 0;
+    border: 0;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+    background: linear-gradient(currentColor, currentColor) 0 calc(100% - 4px) / 0 1px no-repeat;
+    cursor: pointer;
+    transition: background-size 0.6s var(--sp-ease);
   }
-  .footer-social:hover { border-color: var(--gold); color: var(--gold); }
-  .footer-bottom {
-    border-top: 1px solid var(--border);
-    padding: 24px 0;
+  .tm-link:hover { background-size: 100% 1px; }
+  .tm-link i { font-size: 15px; transition: transform 0.6s var(--sp-ease); }
+  .tm-link:hover i { transform: translateX(6px); }
+
+  /* ============ DIRECTORY ============ */
+  .td { padding-top: calc(var(--topbar-h) + 84px); }
+  .td-label {
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--sp-ink-soft);
+  }
+
+  /* Head: the crossing heading, and the quiz inside the page's one Mist arch */
+  .td-head {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: clamp(36px, 3.6vw, 56px) 40px clamp(44px, 4.4vw, 64px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 330px);
+    gap: 48px 80px;
+    align-items: end;
+  }
+  .td-heading { margin: 22px 0 0; font-weight: 500; color: var(--sp-ink); }
+  .td-heading .sp-display { font-size: clamp(56px, 8.4vw, 150px); }
+  .td-heading .sp-script { font-size: clamp(64px, 8vw, 138px); padding-left: 1.5em; }
+  .td-intro {
+    margin: 26px 0 0;
+    max-width: 62ch;
+    font-size: clamp(17px, 1.35vw, 19px);
+    line-height: 1.7;
+    color: var(--sp-ink-soft);
+  }
+  .td-intro a {
+    color: var(--sp-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--border-hover);
+    text-underline-offset: 4px;
+  }
+  .td-arch {
+    background: var(--sp-mist);
+    border-radius: 100vw 100vw 0 0;
+    padding: 100px 32px 34px;
     text-align: center;
   }
-  .footer-bottom p { font-size: 12px; color: var(--text-3); margin: 0; }
-  .footer-bottom a { color: var(--text-3); transition: color 0.2s ease; }
-  .footer-bottom a:hover { color: var(--text-1); }
+  .td-arch .td-label { color: var(--sp-ink); }
+  .td-arch-title {
+    margin: 16px 0 0;
+    font-family: var(--sp-font-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: 40px;
+    line-height: 0.92;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+  }
+  .td-arch-text { margin: 16px auto 0; max-width: 30ch; font-size: 15.5px; line-height: 1.65; color: var(--sp-ink); }
+  .td-arch .tm-link { margin-top: 14px; }
 
-  /* ============ TABLET / MOBILE ============ */
-  /* Widescreen — push to 4 columns so the half-width list panel fills
-     the space between the filter bar and the map (avoids dead air on
-     4K / ultrawide monitors). */
-  @media (min-width: 1800px) {
-    .teacher-list-inner { grid-template-columns: repeat(4, 1fr); max-width: 1320px; }
+  /* Filters: hairline fields, like the Book a visit card */
+  .td-filters {
+    position: sticky;
+    top: var(--td-nav-bottom, 0px);
+    z-index: 40;
+    background: rgba(243, 240, 233, 0.97);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
   }
-  @media (min-width: 2400px) {
-    .teacher-list-inner { grid-template-columns: repeat(4, 1fr); max-width: 1600px; }
+  .td-filters-inner {
+    display: grid;
+    grid-template-columns: minmax(250px, 1.7fr) repeat(3, minmax(140px, 1fr)) minmax(190px, 1.3fr);
+    gap: 16px 32px;
+    align-items: end;
+    margin: 0;
+    padding: 18px 40px 16px;
   }
-  @media (max-width: 1400px) {
-    .teacher-list-inner { grid-template-columns: 1fr 1fr; max-width: 720px; }
+  .td-field { position: relative; display: flex; flex-direction: column; min-width: 0; }
+  .td-field-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--sp-ink-soft);
+  }
+  .td-field-label output { letter-spacing: 0.04em; text-transform: none; font-size: 14px; color: var(--sp-ink); }
+  .td-field input[type="text"],
+  .td-field select {
+    width: 100%;
+    margin-top: 4px;
+    padding: 8px 0 9px;
+    border: 0;
+    border-bottom: 1px solid rgba(22, 34, 46, 0.4);
+    border-radius: 0;
+    background: transparent;
+    color: var(--sp-ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.4;
+    outline: none;
+    -webkit-appearance: none;
+            appearance: none;
+    transition: border-color 0.4s linear, box-shadow 0.4s linear;
+  }
+  .td-field select {
+    padding-right: 22px;
+    cursor: pointer;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2316222E' stroke-width='1.3'/%3E%3C/svg%3E") no-repeat right 2px center;
+  }
+  .td-field input[type="text"]::placeholder { color: var(--sp-ink-soft); opacity: 0.75; }
+  .td-field input[type="text"]:focus,
+  .td-field select:focus { border-bottom-color: var(--sp-ink); box-shadow: 0 1px 0 var(--sp-ink); }
+  .td-field--search input[type="text"] { padding-right: 76px; }
+  .td-field-tools {
+    position: absolute;
+    right: 0; bottom: 4px;
+    display: flex;
+    gap: 2px;
+  }
+  .td-icon-btn {
+    width: 36px; height: 36px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--sp-ink);
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.4s linear;
+  }
+  .td-icon-btn:hover,
+  .td-icon-btn[aria-pressed="true"] { background: var(--sp-ivory-deep); }
+  .td-icon-btn[hidden] { display: none; }
+  .td-suggest {
+    position: absolute;
+    top: 100%; left: 0; right: 0;
+    z-index: 60;
+    margin: 6px 0 0;
+    padding: 6px 0;
+    list-style: none;
+    background: var(--sp-ivory);
+    border: 1px solid var(--border);
+    box-shadow: 0 28px 56px -28px rgba(22, 34, 46, 0.32);
+  }
+  .td-suggest[hidden] { display: none; }
+  .td-suggest li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    font-size: 15px;
+    color: var(--sp-ink);
+    cursor: pointer;
+  }
+  .td-suggest li span { color: var(--sp-ink-soft); }
+  .td-suggest li:hover,
+  .td-suggest li[aria-selected="true"] { background: var(--sp-ivory-deep); }
+
+  /* Price ceiling: a hairline track, a round thumb */
+  .td-range {
+    width: 100%;
+    height: 38px;
+    margin: 4px 0 0;
+    background: transparent;
+    cursor: pointer;
+    -webkit-appearance: none;
+            appearance: none;
+  }
+  .td-range:focus { outline: none; }
+  .td-range::-webkit-slider-runnable-track {
+    height: 1px;
+    background: linear-gradient(var(--sp-ink), var(--sp-ink)) 0 0 / var(--fill, 100%) 100% no-repeat, rgba(22, 34, 46, 0.3);
+  }
+  .td-range::-moz-range-track { height: 1px; background: rgba(22, 34, 46, 0.3); }
+  .td-range::-moz-range-progress { height: 1px; background: var(--sp-ink); }
+  .td-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    margin-top: -7.5px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--sp-ink);
+    transition: transform 0.4s var(--sp-ease);
+  }
+  .td-range::-moz-range-thumb { width: 16px; height: 16px; border: 0; border-radius: 50%; background: var(--sp-ink); }
+  .td-range:hover::-webkit-slider-thumb { transform: scale(1.15); }
+  .td-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--sp-ivory), 0 0 0 5px var(--sp-ink); }
+  .td-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--sp-ivory), 0 0 0 5px var(--sp-ink); }
+
+  /* Results: cards on the left, the map held on the right */
+  .td-results {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(420px, 42%);
+    align-items: start;
+  }
+  .td-list { min-width: 0; padding: 30px 40px 110px; }
+  .td-summary {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px 24px;
+    margin: 0 0 30px;
+    min-height: 38px;
+  }
+  .td-count {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+  }
+  .td-count span { color: var(--sp-ink-soft); font-weight: 400; }
+  .td-summary .tm-link[hidden] { display: none; }
+  .td-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 64px 32px;
+  }
+  .td-grid .tm-card { animation: td-in 0.8s var(--sp-ease) both; }
+  .td-grid .tm-card.is-lit .tm-card-name a { color: var(--sp-ink-soft); }
+  @keyframes td-in { from { opacity: 0; transform: translateY(14px); } }
+  .td-empty { grid-column: 1 / -1; max-width: 52ch; padding: 24px 0 40px; }
+  .td-empty-title {
+    margin: 0;
+    font-family: var(--sp-font-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: 40px;
+    line-height: 0.95;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+  }
+  .td-empty p:not(.td-empty-title) { margin: 16px 0 0; font-size: 17px; line-height: 1.7; color: var(--sp-ink-soft); }
+  .td-empty-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 28px; margin-top: 18px; }
+
+  .td-map-col {
+    position: sticky;
+    top: var(--td-map-top, 0px);
+    height: calc(100vh - var(--td-map-top, 0px));
+    min-height: 420px;
+    border-left: 1px solid var(--border);
+  }
+  .td-map-wrap { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--sp-mist-light); }
+  /* MapLibre sets position: relative on the container, so size it with width/height */
+  .td-map { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .td-map-status {
+    position: absolute; inset: 0;
+    margin: 0;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 15px;
+    color: var(--sp-ink-soft);
+  }
+  .td-map-status[hidden] { display: none; }
+  .maplibregl-ctrl-group { border-radius: 0 !important; box-shadow: none !important; border: 1px solid var(--border); }
+  .maplibregl-ctrl-group button { width: 36px !important; height: 36px !important; }
+
+  /* Pins are the teacher's own photo (initials when there is none) */
+  .td-pin {
+    width: 46px; height: 46px;
+    padding: 0;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    border: 2px solid #FFFFFF;
+    border-radius: 50%;
+    background: var(--sp-ink);
+    color: #FFFFFF;
+    font: 500 13px/1 var(--font-body);
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(22, 34, 46, 0.35);
+    transition: transform 0.4s var(--sp-ease), box-shadow 0.4s linear;
+  }
+  .td-pin img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .td-pin:hover { transform: scale(1.12); }
+  .td-pin.is-active { transform: scale(1.2); box-shadow: 0 0 0 3px var(--sp-felt), 0 8px 18px rgba(22, 34, 46, 0.4); }
+  .td-here {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--sp-ink);
+    box-shadow: 0 0 0 6px rgba(22, 34, 46, 0.18);
+    pointer-events: none;
+  }
+
+  .td-pop {
+    position: absolute;
+    left: 20px; bottom: 20px;
+    z-index: 3;
+    width: min(340px, calc(100% - 40px));
+    max-height: calc(100% - 40px);
+    overflow-y: auto;
+    background: var(--sp-ivory);
+    border: 1px solid var(--border);
+    box-shadow: 0 24px 50px -24px rgba(22, 34, 46, 0.45);
+  }
+  .td-pop[hidden] { display: none; }
+  .td-pop-photo { display: block; aspect-ratio: 2 / 1; background: var(--sp-ivory-deep); }
+  .td-pop-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .td-pop-body { padding: 18px 20px 14px; }
+  .td-pop-name { margin: 0; font-size: 28px; line-height: 0.95; color: var(--sp-ink); }
+  .td-pop-facts { margin: 10px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--sp-ink-soft); }
+  .td-pop-trial { margin: 2px 0 0; font-size: 14px; font-weight: 500; color: var(--sp-felt); }
+  .td-pop-trial:empty { display: none; }
+  .td-pop-close {
+    position: absolute;
+    top: 10px; right: 10px;
+    z-index: 1;
+    width: 40px; height: 40px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(243, 240, 233, 0.94);
+    color: var(--sp-ink);
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  /* Foot: a piano to practise on, and where teachers list */
+  .td-more { background: var(--sp-mist-light); padding: clamp(72px, 8vw, 120px) 40px; }
+  .td-more-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 56px 96px;
+    align-items: end;
+  }
+  .td-more-title {
+    margin: 18px 0 0;
+    font-size: clamp(40px, 4.6vw, 68px);
+    font-weight: 500;
+    line-height: 0.9;
+    color: var(--sp-ink);
+  }
+  .td-more p:not(.td-label) { margin: 18px 0 0; max-width: 48ch; font-size: 17px; line-height: 1.7; color: var(--sp-ink-soft); }
+  .td-more .tm-link { margin-top: 12px; }
+  .td-more-aside { border-top: 1px solid rgba(22, 34, 46, 0.3); padding-top: 22px; }
+  .td-more-aside p:not(.td-label) { font-size: 16px; }
+
+  .td-quiz-inline { display: none; margin: 18px 0 0; font-size: 16px; color: var(--sp-ink-soft); }
+  .td-quiz-inline .tm-link { margin-left: 4px; }
+
+  /* ============ SMALLER SCREENS ============ */
+  @media (min-width: 1700px) {
+    .td-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 1240px) {
+    .td-filters-inner { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .td-field--search { grid-column: span 2; }
   }
   @media (max-width: 1100px) {
-    .teacher-list-inner { grid-template-columns: 1fr; max-width: 480px; }
+    .td-filters { position: static; }
+    .td-results { grid-template-columns: 1fr; }
+    .td-map-col { position: relative; top: 0; order: -1; height: 460px; min-height: 0; border-left: 0; border-bottom: 1px solid var(--border); }
+    .td-list { padding: 30px 32px 96px; }
   }
+  @media (max-width: 960px) {
+    .td { padding-top: 62px; }
+    .td-head { grid-template-columns: 1fr; padding: 44px 24px 48px; }
+    .td-arch { display: none; }
+    .td-quiz-inline { display: block; }
+    .td-filters-inner { padding: 16px 24px 14px; }
+    .td-more { padding: 72px 24px; }
+    .td-more-inner { grid-template-columns: 1fr; gap: 44px; }
+  }
+  @media (max-width: 720px) {
+    .td-filters-inner { grid-template-columns: 1fr 1fr; gap: 14px 20px; }
+    .td-field--search,
+    .td-field--price { grid-column: 1 / -1; }
+    .td-map-col { height: 360px; }
+    .td-list { padding: 24px 16px 72px; }
+    .td-heading .sp-script { padding-left: 1em; }
+  }
+  /* Phones: each teacher on one row, photo beside the words */
+  @media (max-width: 640px) {
+    .td-grid { grid-template-columns: 1fr; gap: 0; }
+    .td-grid .tm-card {
+      display: grid;
+      grid-template-columns: 118px minmax(0, 1fr);
+      gap: 0 18px;
+      padding: 22px 0;
+      border-top: 1px solid var(--sp-rule);
+    }
+    .td-grid .tm-card-photo { aspect-ratio: 1; align-self: start; }
+    .td-grid .tm-card-body { margin: 0; padding: 0; border: 0; }
+    .td-grid .tm-card-name { font-size: 25px; }
+    .td-grid .tm-card-facts { margin-top: 8px; font-size: 14.5px; }
+    .td-grid .tm-card-actions { padding-top: 8px; justify-content: flex-start; gap: 0 18px; }
+    .td-grid .tm-card-initials { font-size: 44px; }
+    .td-pop { left: 12px; right: 12px; bottom: 12px; width: auto; max-height: calc(100% - 24px); }
+    .td-pop-photo { aspect-ratio: 16 / 6; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .td-grid .tm-card, .tm-card--ghost .tm-card-photo, .tm-ghost-line { animation: none; }
+    .tm-card-photo img, .td-pin, .tm-link, .tm-link i { transition: none; }
+  }
+
   @media (max-width: 960px) {
     nav { padding: 18px 24px; }
     .nav-links, .nav-ctas { display: none; }
     .nav-burger { display: inline-flex; }
-
-    .page-header {
-      padding: 120px 24px 32px;
-      grid-template-columns: 1fr;
-    }
-    .page-header-inner { grid-template-columns: 1fr; gap: 28px; align-items: start; }
-    .match-cta { max-width: none; }
-
-    .filter-bar { padding: 14px 24px; top: 66px; }
-    .filter-bar-inner { gap: 22px; }
-    .filter-slider-wrap { min-width: 100%; order: 99; }
-    .filter-clear { margin-left: 0; }
-
-    /* Stack the map above the list on small screens */
-    .directory { grid-template-columns: 1fr; min-height: 0; }
-    .map-wrap {
-      position: static;
-      height: 360px;
-      border-left: 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .teacher-list { padding: 32px 24px 60px; overflow: visible; }
-    .teacher-list-inner { grid-template-columns: 1fr; }
-
-    .footer { padding: 60px 24px 0; }
-    .footer-inner { grid-template-columns: 1fr; gap: 40px; }
   }
 </style>
+<link rel="stylesheet" href="/css/signature-theme.css" />
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/media/brand/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
 </head>
 <body>
 
 <!-- ============ NAV ============ -->
+<div class="sp-topbar" role="region" aria-label="Contact details">
+  <span>Pianos imported direct from Japan</span>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley</a>
+  <a class="sp-topbar-phone" href="tel:+61479128955">0479 128 955</a>
+</div>
+
 <nav id="nav">
-  <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+  <a href="/" class="logo" aria-label="Signature Pianos home">Signature <span>Pianos</span></a>
   <div class="nav-links">
 
     <div class="nav-item nav-item--dropdown">
@@ -1096,21 +810,21 @@
         Pianos <i class="ti ti-chevron-down nav-chevron"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--pianos" role="menu">
-        <a href="instruments/index.html?cat=upright" class="nav-dd-item">
+        <a href="/instruments/?cat=upright" class="nav-dd-item">
           <i class="ti ti-bookmark nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Used Japanese uprights</h4><p>Hand-selected, imported direct from Japan</p></div>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese uprights</h4><p>Hand-picked in Japan, checked in Melbourne</p></div>
         </a>
-        <a href="instruments/index.html?cat=grand" class="nav-dd-item">
+        <a href="/instruments/?cat=grand" class="nav-dd-item">
           <i class="ti ti-crown nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Used Japanese grands</h4><p>Concert &amp; baby grands, fully restored</p></div>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese grands</h4><p>Salon and concert grands from Yamaha and Kawai</p></div>
         </a>
-        <a href="instruments/index.html?cat=digital" class="nav-dd-item">
+        <a href="/instruments/?cat=digital" class="nav-dd-item">
           <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Modern instruments for any space</p></div>
+          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Roland, Kawai, Casio and Yamaha, coming soon</p></div>
         </a>
-        <a href="instruments/index.html?cat=books" class="nav-dd-item">
+        <a href="/blog" class="nav-dd-item">
           <i class="ti ti-book nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Sheet music &amp; books</h4><p>For students and teachers alike</p></div>
+          <div class="nav-dd-text"><h4>Buying advice</h4><p>Plain answers before you choose a piano</p></div>
         </a>
       </div>
     </div>
@@ -1120,17 +834,17 @@
         Services <i class="ti ti-chevron-down nav-chevron"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--services" role="menu">
-        <a href="services/delivery-warranty.html" class="nav-dd-item">
+        <a href="/services/delivery-warranty.html" class="nav-dd-item">
           <i class="ti ti-truck-delivery nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White glove delivery, tracked end to end</p></div>
+          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White-glove delivery and a 10-year warranty</p></div>
         </a>
-        <a href="services/book-a-viewing.html" class="nav-dd-item">
+        <a href="/services/book-a-viewing.html" class="nav-dd-item">
           <i class="ti ti-calendar-event nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Book a viewing</h4><p>Visit our showroom, try before you buy</p></div>
+          <div class="nav-dd-text"><h4>Book a visit</h4><p>Play the pianos in our Mount Waverley showroom</p></div>
         </a>
-        <a href="services/tuning-servicing.html" class="nav-dd-item">
+        <a href="/services/tuning-servicing.html" class="nav-dd-item">
           <i class="ti ti-tool nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Keep your piano in perfect condition</p></div>
+          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Tuning and care for pianos across Melbourne</p></div>
         </a>
       </div>
     </div>
@@ -1143,33 +857,33 @@
         <div class="nav-dd-section">
           <div class="nav-dd-section-label">For students</div>
           <div class="nav-dd-grid">
-            <a href="teachers.html" class="nav-dd-item">
+            <a href="/teachers.html" class="nav-dd-item">
               <i class="ti ti-search nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Browse local piano teachers by suburb</p></div>
+              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Piano teachers across Melbourne, via TeachMusic</p></div>
             </a>
-            <a href="teachers.html?nearby=1" class="nav-dd-item">
+            <a href="/teachers-match.html" class="nav-dd-item">
               <i class="ti ti-map-pin nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Teachers near me</h4><p>Use your location to find teachers close by</p></div>
+              <div class="nav-dd-text"><h4>Match me with a teacher</h4><p>A few quick questions, three suggestions</p></div>
             </a>
           </div>
         </div>
         <div class="nav-dd-section">
           <div class="nav-dd-section-label">For teachers</div>
           <div class="nav-dd-grid">
-            <a href="teachers.html#signup" class="nav-dd-item">
+            <a href="https://www.teachmusic.com.au/for-teachers" class="nav-dd-item" target="_blank" rel="noopener">
               <i class="ti ti-list-details nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>List your studio</h4><p>Free listing, reach new students instantly</p></div>
+              <div class="nav-dd-text"><h4>List your studio</h4><p>Reach new students on TeachMusic, our sister platform</p></div>
             </a>
-            <a href="teachers.html#dashboard" class="nav-dd-item">
+            <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
               <i class="ti ti-layout-grid nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your schedule</p></div>
+              <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
             </a>
           </div>
         </div>
       </div>
     </div>
 
-    <a href="about.html" class="nav-link-plain">About</a>
+    <a href="/about.html" class="nav-link-plain">About</a>
   </div>
 
   <div class="nav-ctas">
@@ -1178,171 +892,161 @@
         <i class="ti ti-user"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--account" role="menu">
-        <a href="#" class="nav-dd-item">
+        <a href="/portal" class="nav-dd-item">
           <i class="ti ti-user nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track delivery, view purchases, manage warranty</p></div>
+          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track your delivery and warranty</p></div>
         </a>
-        <a href="teachers.html#dashboard" class="nav-dd-item">
+        <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
           <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your studio</p></div>
+          <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
         </a>
       </div>
     </div>
-    <button class="nav-cta">Book a visit</button>
+    <a class="nav-cta" href="/services/book-a-viewing.html">Book a visit</a>
   </div>
   <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+  <a class="sp-nav-call" href="tel:+61479128955" aria-label="Call Signature Pianos on 0479 128 955"><i class="ti ti-phone" aria-hidden="true"></i></a>
 </nav>
 
-<!-- ============ PAGE HEADER ============ -->
-<section class="page-header">
-  <div class="page-header-inner">
+<main class="td" id="main">
+
+  <!-- ============ HEAD ============ -->
+  <header class="td-head">
     <div>
-      <div class="page-eyebrow">Verified Melbourne teachers</div>
-      <h1 class="page-headline">The teacher who <em>fits</em> the player.</h1>
-      <p class="page-sub">Every teacher on Signature Pianos is interviewed, reference-checked and reviewed by our team. Book a trial lesson directly — no agency in the middle.</p>
+      <p class="td-label">Piano teachers across Melbourne</p>
+      <h1 class="td-heading">
+        <span class="sp-display">Find a teacher</span>
+        <span class="sp-script">who fits</span>
+      </h1>
+      <p class="td-intro">These are the piano teachers listed on <a href="https://www.teachmusic.com.au" target="_blank" rel="noopener">TeachMusic</a>, our sister platform for music lessons. Names, prices and photos come straight from each teacher’s TeachMusic profile, and that’s where you get in touch or book.</p>
+      <p class="td-quiz-inline">Not sure where to start? <a class="tm-link" href="/teachers-match.html">Take the five-question quiz <i class="ti ti-arrow-right" aria-hidden="true"></i></a></p>
     </div>
-    <a href="teachers-match.html" class="match-cta">
-      <p class="match-cta-eyebrow">In a hurry?</p>
-      <h2 class="match-cta-title">Get <em>matched</em> in 90 seconds.</h2>
-      <p class="match-cta-sub">Answer five questions. We'll narrow the directory to your three best teachers.</p>
-      <span class="match-cta-btn">Start the quiz <i class="ti ti-arrow-right"></i></span>
-    </a>
-  </div>
-</section>
+    <aside class="td-arch" aria-labelledby="archTitle">
+      <p class="td-label">Not sure where to start</p>
+      <p class="td-arch-title" id="archTitle">Five quick questions</p>
+      <p class="td-arch-text">Tell us who the lessons are for, where you live and your budget. We’ll suggest three teachers to start with.</p>
+      <a class="tm-link" href="/teachers-match.html">Take the quiz <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+    </aside>
+  </header>
 
-<!-- ============ FILTER BAR ============ -->
-<div class="filter-bar">
-  <div class="filter-bar-inner">
+  <!-- ============ FILTERS ============ -->
+  <section class="td-filters" aria-label="Filter teachers">
+    <form class="td-filters-inner" id="filters" role="search" autocomplete="off" onsubmit="return false">
+      <div class="td-field td-field--search">
+        <label class="td-field-label" for="q">Suburb or name</label>
+        <input type="text" id="q" name="q" placeholder="Try Box Hill, or a teacher’s name" spellcheck="false"
+               role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="qSuggest">
+        <div class="td-field-tools">
+          <button type="button" class="td-icon-btn" id="qClear" aria-label="Clear the search" hidden><i class="ti ti-x" aria-hidden="true"></i></button>
+          <button type="button" class="td-icon-btn" id="locate" aria-pressed="false" aria-label="Show the teachers nearest to me" title="Nearest to me"><i class="ti ti-current-location" aria-hidden="true"></i></button>
+        </div>
+        <ul class="td-suggest" id="qSuggest" role="listbox" aria-label="Suburbs" hidden></ul>
+      </div>
+      <div class="td-field">
+        <label class="td-field-label" for="mode">Lessons</label>
+        <select id="mode" name="mode">
+          <option value="">Any way</option>
+          <option value="studio">At their studio</option>
+          <option value="mobile">They come to you</option>
+          <option value="online">Online</option>
+        </select>
+      </div>
+      <div class="td-field">
+        <label class="td-field-label" for="age">For</label>
+        <select id="age" name="age">
+          <option value="">Anyone</option>
+          <option value="children">Children</option>
+          <option value="teens">Teenagers</option>
+          <option value="adults">Adults</option>
+        </select>
+      </div>
+      <div class="td-field">
+        <label class="td-field-label" for="style">Style</label>
+        <select id="style" name="style">
+          <option value="">Any style</option>
+        </select>
+      </div>
+      <div class="td-field td-field--price">
+        <label class="td-field-label" for="price">Price <output id="priceOut" for="price">Any price</output></label>
+        <input type="range" class="td-range" id="price" name="max" min="30" max="120" step="5" value="120"
+               aria-describedby="priceHelp">
+        <span class="tm-sr" id="priceHelp">Highest price per lesson. All the way to the right shows every price.</span>
+      </div>
+    </form>
+  </section>
 
-    <!-- Suburb — searchable typeahead -->
-    <div class="filter-search" id="suburbSearch">
-      <i class="ti ti-search filter-search-icon"></i>
-      <input type="text" class="filter-search-input" id="suburbInput"
-             placeholder="Anywhere in Melbourne" autocomplete="off" spellcheck="false" />
-      <button class="filter-search-clear" type="button" id="suburbClear" aria-label="Clear suburb">
-        <i class="ti ti-x"></i>
-      </button>
-      <div class="filter-search-menu" id="suburbResults">
-        <div class="filter-menu-label">Suburb</div>
-        <!-- options populated by JS -->
+  <!-- ============ RESULTS: cards and the map ============ -->
+  <section class="td-results" aria-label="Piano teachers">
+    <div class="td-list">
+      <div class="td-summary">
+        <p class="td-count" id="count" role="status">Loading teachers from TeachMusic</p>
+        <button type="button" class="tm-link" id="clearAll" hidden>Clear filters</button>
+      </div>
+      <div class="td-grid" id="grid" aria-busy="true"></div>
+    </div>
+    <div class="td-map-col">
+      <div class="td-map-wrap" data-lenis-prevent>
+        <div class="td-map" id="teacherMap" role="region" aria-label="Map of the piano teachers listed. Drag to explore, scroll or use the buttons to zoom, and choose a photo to see that teacher."></div>
+        <p class="td-map-status" id="mapStatus">Loading the map</p>
+        <div class="td-pop" id="mapPop" hidden>
+          <button type="button" class="td-pop-close" aria-label="Close teacher details"><i class="ti ti-x" aria-hidden="true"></i></button>
+          <a class="td-pop-photo" tabindex="-1" aria-hidden="true"><img alt=""></a>
+          <div class="td-pop-body">
+            <h2 class="td-pop-name"></h2>
+            <p class="td-pop-facts"></p>
+            <p class="td-pop-trial"></p>
+            <a class="tm-link td-pop-link" href="/teachers.html">View profile <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+          </div>
+        </div>
       </div>
     </div>
+  </section>
 
-    <!-- Style -->
-    <div class="filter-dropdown" data-filter="style">
-      <button class="filter-trigger" type="button" data-default="Any style">
-        <span class="filter-trigger-label">Any style</span>
-        <i class="ti ti-chevron-down"></i>
-      </button>
-      <div class="filter-menu" id="styleMenu">
-        <div class="filter-menu-label">Teaching style</div>
-        <button class="filter-option active" type="button" data-value="">Any style</button>
-        <!-- populated by JS -->
+  <!-- ============ FOOT: a piano to practise on ============ -->
+  <section class="td-more" aria-labelledby="moreTitle">
+    <div class="td-more-inner">
+      <div>
+        <p class="td-label">From Signature Pianos</p>
+        <h2 class="td-more-title" id="moreTitle">Need a piano to practise on?</h2>
+        <p>Every piano in our Mount Waverley showroom is hand-picked in Japan and checked in our workshop before it goes on the floor. Come and play a few before lessons start.</p>
+        <a class="tm-link" href="/services/book-a-viewing.html">Book a visit <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+      </div>
+      <div class="td-more-aside">
+        <p class="td-label">Teach piano in Melbourne?</p>
+        <p>Teacher listings are set up and managed on TeachMusic.</p>
+        <a class="tm-link" href="https://www.teachmusic.com.au" target="_blank" rel="noopener">Go to TeachMusic <i class="ti ti-arrow-up-right" aria-hidden="true"></i><span class="tm-sr"> (opens in a new tab)</span></a>
       </div>
     </div>
+  </section>
 
-    <!-- Student age -->
-    <div class="filter-dropdown" data-filter="ageGroup">
-      <button class="filter-trigger" type="button" data-default="Any age">
-        <span class="filter-trigger-label">Any age</span>
-        <i class="ti ti-chevron-down"></i>
-      </button>
-      <div class="filter-menu" id="ageMenu">
-        <div class="filter-menu-label">Student age</div>
-        <button class="filter-option active" type="button" data-value="">Any age</button>
-        <!-- populated by JS -->
-      </div>
-    </div>
-
-    <!-- Format -->
-    <div class="filter-dropdown" data-filter="format">
-      <button class="filter-trigger" type="button" data-default="In-person or online">
-        <span class="filter-trigger-label">In-person or online</span>
-        <i class="ti ti-chevron-down"></i>
-      </button>
-      <div class="filter-menu" id="formatMenu">
-        <div class="filter-menu-label">Lesson format</div>
-        <button class="filter-option active" type="button" data-value="">In-person or online</button>
-        <!-- populated by JS -->
-      </div>
-    </div>
-
-    <!-- Skill level -->
-    <div class="filter-dropdown" data-filter="skillLevel">
-      <button class="filter-trigger" type="button" data-default="Any level">
-        <span class="filter-trigger-label">Any level</span>
-        <i class="ti ti-chevron-down"></i>
-      </button>
-      <div class="filter-menu" id="skillMenu">
-        <div class="filter-menu-label">Your level</div>
-        <button class="filter-option active" type="button" data-value="">Any level</button>
-        <!-- populated by JS -->
-      </div>
-    </div>
-
-    <!-- Budget slider -->
-    <div class="filter-slider-wrap">
-      <div class="filter-slider-label-row">
-        <span class="filter-slider-label">Budget</span>
-        <span class="filter-slider-value">Up to $<span id="budgetMaxValue">150</span> / hr</span>
-      </div>
-      <input type="range" id="filterBudget" class="filter-slider" min="40" max="150" step="5" value="150">
-    </div>
-
-    <button class="filter-clear" type="button" id="filterClear">Reset filters</button>
-    <div class="filter-count"><strong id="resultCount">0</strong> teachers</div>
-  </div>
-</div>
-
-<!-- ============ DIRECTORY (split: cards + map) ============ -->
-<section class="directory">
-  <div class="teacher-list">
-    <div class="teacher-list-inner" id="teacherListInner">
-      <!-- teacher cards inserted by JS -->
-    </div>
-  </div>
-  <div class="map-wrap">
-    <div id="teacherMap"></div>
-  </div>
-</section>
+</main>
 
 <!-- ============ FOOTER ============ -->
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-col footer-brand">
-      <a href="index.html" class="logo">Signature <span>Pianos</span></a>
-      <p class="footer-tagline">Find the piano that moves you.</p>
+<footer class="sp-footer">
+  <div class="sp-footer-inner">
+    <a href="/" class="sp-footer-logo"><img src="/media/brand/logo-ink.svg" width="1542" height="592" alt="Signature Pianos"></a>
+    <p class="sp-footer-tagline">Pre-loved Japanese pianos, hand-picked in Japan and checked in Melbourne.</p>
+    <div class="sp-footer-links" role="navigation" aria-label="Footer">
+      <a href="/instruments/">Pianos</a>
+      <a href="/services/book-a-viewing.html">Book a visit</a>
+      <a href="/services/tuning-servicing.html">Tuning</a>
+      <a href="/services/delivery-warranty.html">Delivery &amp; warranty</a>
+      <a href="/teachers.html">Teachers</a>
+      <a href="/blog">Blog</a>
+      <a href="/about.html">About</a>
     </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Explore</div>
-      <a href="instruments/index.html" class="footer-link">Instruments</a>
-      <a href="index.html#matcher" class="footer-link">Find my piano</a>
-      <a href="teachers.html" class="footer-link">Teachers</a>
-      <a href="teachers-match.html" class="footer-link">Find a teacher</a>
-      <a href="#" class="footer-link">Our story</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Visit</div>
-      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
-      <a href="tel:+61300000000" class="footer-link">+61 3 0000 0000</a>
-      <a href="mailto:info@signaturepianos.com.au" class="footer-link">info@signaturepianos.com.au</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Follow</div>
-      <div class="footer-socials">
-        <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
-        <a href="#" class="footer-social" aria-label="YouTube"><i class="ti ti-brand-youtube"></i></a>
-        <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
-      </div>
+    <address class="sp-footer-contact">
+      <span class="sp-line"><a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="tel:+61479128955">0479 128 955</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></span>
+    </address>
+    <div class="sp-footer-socials">
+      <a href="#" aria-label="Instagram"><i class="ti ti-brand-instagram" aria-hidden="true"></i></a>
+      <a href="#" aria-label="Facebook"><i class="ti ti-brand-facebook" aria-hidden="true"></i></a>
     </div>
   </div>
-  <div class="footer-bottom">
-    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
-  </div>
+  <div class="sp-footer-bottom">© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></div>
 </footer>
 
-<script src="teachers-data.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/js/teachmusic.js"></script>
 <script>
   /* -------- NAV: scrolled-state + dropdowns -------- */
   (function setupNav() {
@@ -1379,417 +1083,495 @@
   })();
 
   /* ============================================================
-     Teacher directory — filtering + map sync
-     - Filter state is the single source of truth.
-     - Each render() rebuilds the card list and the map markers
-       in lockstep so they always match what the filters say.
+     Teacher directory: live piano teachers from TeachMusic
+     (js/teachmusic.js). `state` is the single source of truth;
+     apply() redraws the cards, the pins, the count and the URL
+     together so they always agree.
      ============================================================ */
+  (function directory() {
+    const TM = window.TeachMusic;
+    const $ = (id) => document.getElementById(id);
+    const grid = $('grid');
+    const countEl = $('count');
+    const clearAll = $('clearAll');
+    const qInput = $('q');
+    const qClear = $('qClear');
+    const suggest = $('qSuggest');
+    const locateBtn = $('locate');
+    const modeSel = $('mode');
+    const ageSel = $('age');
+    const styleSel = $('style');
+    const price = $('price');
+    const priceOut = $('priceOut');
+    const params = new URLSearchParams(location.search);
 
-  const state = {
-    suburb: '',
-    style: '',
-    ageGroup: '',
-    format: '',
-    skillLevel: '',
-    budget: 150,
-  };
+    const state = { q: '', near: null, mode: '', age: '', style: '', max: null };
+    let all = [];
+    let map = null;          // the map helper, once MapLibre is ready
+    let lastShown = [];
 
-  /* Populate dropdowns that depend on the data file */
-  function populateMenu(menuId, items) {
-    const menu = document.getElementById(menuId);
-    items.forEach(item => {
-      const btn = document.createElement('button');
-      btn.className = 'filter-option';
-      btn.type = 'button';
-      if (typeof item === 'string') {
-        btn.dataset.value = item;
-        btn.textContent = item;
-      } else {
-        btn.dataset.value = item.id;
-        btn.textContent = item.label;
+    grid.innerHTML = TM.skeletons(4);
+
+    /* ---------- Sticky offsets: the filters sit under the header, the map under both ---------- */
+    const nav = $('nav');
+    const filters = document.querySelector('.td-filters');
+    function measure() {
+      const navBottom = nav ? Math.max(0, Math.round(nav.getBoundingClientRect().bottom)) : 0;
+      const root = document.documentElement.style;
+      root.setProperty('--td-nav-bottom', navBottom + 'px');
+      root.setProperty('--td-map-top', (navBottom + filters.offsetHeight) + 'px');
+    }
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { ticking = false; measure(); });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    if (nav) nav.addEventListener('transitionend', measure);
+    measure();
+
+    /* ---------- Drawing ---------- */
+    function priceLabel() {
+      return state.max == null ? 'Any price' : 'Up to $' + state.max;
+    }
+    function fillRange() {
+      const pct = ((price.value - price.min) / (price.max - price.min)) * 100;
+      price.style.setProperty('--fill', pct + '%');
+      priceOut.textContent = priceLabel();
+    }
+
+    function hasFilters() {
+      return Boolean(state.q || state.near || state.mode || state.age || state.style || state.max != null);
+    }
+
+    function apply(opts) {
+      const f = { q: state.near ? '' : state.q, mode: state.mode, age: state.age, style: state.style, maxCents: state.max == null ? null : state.max * 100 };
+      let list = all.filter((t) => TM.matches(t, f));
+      const notes = {};
+      if (state.near) {
+        list = list
+          .map((t) => ({ t, d: TM.distanceKm(state.near, t) }))
+          .sort((a, b) => (a.d == null ? 1e9 : a.d) - (b.d == null ? 1e9 : b.d))
+          .map(({ t, d }) => {
+            if (d != null) notes[t.slug] = TM.kmLine(d) + (state.near.you ? ' away' : ' from ' + state.near.name);
+            return t;
+          });
       }
-      menu.appendChild(btn);
+      lastShown = list;
+      drawCards(list, notes);
+      drawSummary(list);
+      syncUrl();
+      if (map) map.show(list, state.near, opts && opts.first);
+    }
+
+    function drawCards(list, notes) {
+      grid.setAttribute('aria-busy', 'false');
+      if (!list.length) {
+        const typed = state.q && !state.near;
+        grid.innerHTML =
+          '<div class="td-empty">' +
+            '<p class="td-empty-title">No teachers match all of that</p>' +
+            (typed
+              ? '<p>No teacher’s name or suburb matches “' + TM.esc(state.q) + '”. If that’s where you live, choose it from the suburb list to see the nearest teachers instead.</p>'
+              : '<p>Try a higher price, another style or lesson type, or clear the filters to see every teacher.</p>') +
+            '<div class="td-empty-actions">' +
+              '<button type="button" class="tm-link" data-clear>Clear filters</button>' +
+              '<a class="tm-card-ext" href="' + TM.BROWSE_URL + '" target="_blank" rel="noopener">Search piano teachers on TeachMusic</a>' +
+            '</div>' +
+          '</div>';
+        return;
+      }
+      grid.innerHTML = list.map((t) => TM.card(t, { note: notes[t.slug] })).join('');
+    }
+
+    function drawSummary(list) {
+      const total = all.length;
+      let text = list.length === total
+        ? total + ' piano teacher' + (total === 1 ? '' : 's')
+        : list.length + ' of ' + total + ' piano teachers';
+      let extra = '';
+      if (state.near && list.length) extra = state.near.you ? 'Nearest to you first' : 'Nearest to ' + state.near.name + ' first';
+      countEl.innerHTML = TM.esc(text) + (extra ? ' <span>· ' + TM.esc(extra) + '</span>' : '');
+      clearAll.hidden = !hasFilters();
+    }
+
+    function drawError() {
+      grid.setAttribute('aria-busy', 'false');
+      countEl.textContent = 'Teachers could not load';
+      grid.innerHTML =
+        '<div class="td-empty" role="alert">' +
+          '<p class="td-empty-title">TeachMusic isn’t answering just now</p>' +
+          '<p>We couldn’t load the teacher list. Try again in a moment, or see the same teachers on TeachMusic.</p>' +
+          '<div class="td-empty-actions">' +
+            '<button type="button" class="tm-link" id="retry">Try again <i class="ti ti-refresh" aria-hidden="true"></i></button>' +
+            '<a class="tm-card-ext" href="' + TM.BROWSE_URL + '" target="_blank" rel="noopener">Piano teachers in Melbourne on TeachMusic</a>' +
+          '</div>' +
+        '</div>';
+      $('retry').addEventListener('click', start);
+    }
+
+    function syncUrl() {
+      const p = new URLSearchParams();
+      if (state.near && !state.near.you) p.set('near', state.near.name);
+      else if (state.q) p.set('q', state.q);
+      if (state.mode) p.set('mode', state.mode);
+      if (state.age) p.set('age', state.age);
+      if (state.style) p.set('style', state.style);
+      if (state.max != null) p.set('max', state.max);
+      const qs = p.toString();
+      history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+    }
+
+    /* ---------- Filters ---------- */
+    function setSelect(sel, value) {
+      if (value && [...sel.options].some((o) => o.value === value)) { sel.value = value; return value; }
+      sel.value = '';
+      return '';
+    }
+    modeSel.addEventListener('change', () => { state.mode = modeSel.value; apply(); });
+    ageSel.addEventListener('change', () => { state.age = ageSel.value; apply(); });
+    styleSel.addEventListener('change', () => { state.style = styleSel.value; apply(); });
+    price.addEventListener('input', () => {
+      state.max = Number(price.value) >= Number(price.max) ? null : Number(price.value);
+      fillRange();
+      apply();
     });
-  }
-  populateMenu('styleMenu',  getTeacherStyles());
-  populateMenu('ageMenu',    getTeacherAgeGroups());
-  populateMenu('formatMenu', getTeacherFormats());
-  populateMenu('skillMenu',  getTeacherSkillLevels());
 
-  /* ============================================================
-     Suburb typeahead — replaces the old hover dropdown.
-     - Focus shows all suburbs; typing filters by substring.
-     - Click or Enter selects; matched substring is highlighted.
-     - State.suburb stays the single source of truth so render()
-       and the URL deep-link logic both still work unchanged.
-     ============================================================ */
-  const suburbList = getTeacherSuburbs();
-  const suburbSearch = document.getElementById('suburbSearch');
-  const suburbInput  = document.getElementById('suburbInput');
-  const suburbClear  = document.getElementById('suburbClear');
-  const suburbResults = document.getElementById('suburbResults');
-
-  function escapeHtml(s) {
-    return s.replace(/[&<>"']/g, c => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    })[c]);
-  }
-  function highlightMatch(suburb, query) {
-    if (!query) return escapeHtml(suburb);
-    const lower = suburb.toLowerCase();
-    const q = query.toLowerCase();
-    const idx = lower.indexOf(q);
-    if (idx === -1) return escapeHtml(suburb);
-    return escapeHtml(suburb.slice(0, idx))
-         + '<mark>' + escapeHtml(suburb.slice(idx, idx + q.length)) + '</mark>'
-         + escapeHtml(suburb.slice(idx + q.length));
-  }
-  function renderSuburbResults(query) {
-    const q = (query || '').trim();
-    const matches = q
-      ? suburbList.filter(s => s.toLowerCase().includes(q.toLowerCase()))
-      : suburbList.slice();
-
-    /* Always include "Anywhere in Melbourne" as the first option when the
-       user has nothing typed — it's how they clear the filter visually. */
-    let html = '<div class="filter-menu-label">Suburb</div>';
-    if (!q) {
-      html += `<button class="filter-search-option ${state.suburb === '' ? 'active' : ''}" type="button" data-value="">
-                 <i class="ti ti-map-2"></i>Anywhere in Melbourne
-               </button>`;
+    function clearFilters() {
+      state.q = ''; state.near = null; state.mode = ''; state.age = ''; state.style = ''; state.max = null;
+      qInput.value = ''; modeSel.value = ''; ageSel.value = ''; styleSel.value = '';
+      price.value = price.max;
+      locateBtn.setAttribute('aria-pressed', 'false');
+      qClear.hidden = true;
+      closeSuggest();
+      fillRange();
+      apply();
     }
-    if (matches.length === 0) {
-      html += `<div class="filter-search-empty">No suburbs match "${escapeHtml(q)}"</div>`;
-    } else {
-      html += matches.map(s => `
-        <button class="filter-search-option ${state.suburb === s ? 'active' : ''}" type="button" data-value="${escapeHtml(s)}">
-          <i class="ti ti-map-pin"></i>${highlightMatch(s, q)}
-        </button>
-      `).join('');
-    }
-    suburbResults.innerHTML = html;
+    clearAll.addEventListener('click', clearFilters);
+    grid.addEventListener('click', (e) => { if (e.target.closest('[data-clear]')) clearFilters(); });
 
-    /* Wire clicks on the freshly rendered options */
-    suburbResults.querySelectorAll('.filter-search-option').forEach(btn => {
-      btn.addEventListener('mousedown', e => {
-        /* mousedown (not click) so the input's blur doesn't fire first
-           and dismiss the dropdown before the click registers. */
+    /* ---------- Suburb or name: filters as you type, and offers suburbs to sort by distance ---------- */
+    let options = [];
+    let active = -1;
+    let lookup = 0;
+    let typingTimer = null;
+
+    function closeSuggest() {
+      suggest.hidden = true;
+      qInput.setAttribute('aria-expanded', 'false');
+      qInput.removeAttribute('aria-activedescendant');
+      active = -1;
+    }
+    function drawSuggest() {
+      if (!options.length) { closeSuggest(); return; }
+      suggest.innerHTML = options.map((s, i) =>
+        '<li role="option" id="qopt-' + i + '" aria-selected="' + (i === active) + '" data-i="' + i + '">' +
+          'Nearest to ' + TM.esc(s.name) + ' <span>' + TM.esc(s.postcode || '') + '</span></li>').join('');
+      suggest.hidden = false;
+      qInput.setAttribute('aria-expanded', 'true');
+      if (active >= 0) qInput.setAttribute('aria-activedescendant', 'qopt-' + active);
+      else qInput.removeAttribute('aria-activedescendant');
+    }
+    function pickSuburb(s) {
+      state.near = { name: s.name, lat: s.lat, lng: s.lng };
+      state.q = '';
+      qInput.value = s.name;
+      qClear.hidden = false;
+      locateBtn.setAttribute('aria-pressed', 'false');
+      options = [];
+      closeSuggest();
+      apply();
+    }
+
+    qInput.addEventListener('input', () => {
+      state.q = qInput.value.trim();
+      state.near = null;
+      locateBtn.setAttribute('aria-pressed', 'false');
+      qClear.hidden = !qInput.value;
+      apply();
+      clearTimeout(typingTimer);
+      const text = qInput.value;
+      typingTimer = setTimeout(() => {
+        const id = ++lookup;
+        TM.findSuburbs(text, 6).then((rows) => {
+          if (id !== lookup || document.activeElement !== qInput) return;
+          options = rows; active = -1; drawSuggest();
+        }).catch(() => { options = []; closeSuggest(); });
+      }, 220);
+    });
+    qInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        if (!options.length) return;
         e.preventDefault();
-        selectSuburb(btn.dataset.value);
-      });
-    });
-  }
-  function openSuburbMenu()  { suburbSearch.classList.add('open'); }
-  function closeSuburbMenu() { suburbSearch.classList.remove('open'); }
-  function selectSuburb(value) {
-    state.suburb = value;
-    suburbInput.value = value;   /* empty for "Anywhere" */
-    suburbSearch.classList.toggle('has-value', !!value);
-    closeSuburbMenu();
-    render();
-  }
-
-  suburbInput.addEventListener('focus', () => {
-    suburbSearch.classList.add('focused');
-    renderSuburbResults(suburbInput.value);
-    openSuburbMenu();
-  });
-  suburbInput.addEventListener('blur', () => {
-    suburbSearch.classList.remove('focused');
-    /* slight delay so a click on an option lands before we close */
-    setTimeout(closeSuburbMenu, 120);
-  });
-  suburbInput.addEventListener('input', () => {
-    renderSuburbResults(suburbInput.value);
-    openSuburbMenu();
-  });
-  suburbInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      /* Pick the first non-"Anywhere" match if there is one */
-      const firstMatch = suburbResults.querySelector('.filter-search-option[data-value]:not([data-value=""])');
-      if (firstMatch) selectSuburb(firstMatch.dataset.value);
-    } else if (e.key === 'Escape') {
-      suburbInput.blur();
-      closeSuburbMenu();
-    }
-  });
-  suburbClear.addEventListener('click', e => {
-    e.preventDefault();
-    selectSuburb('');
-    suburbInput.focus();
-  });
-  /* Close suburb menu when clicking outside */
-  document.addEventListener('click', e => {
-    if (!e.target.closest('#suburbSearch')) closeSuburbMenu();
-  });
-
-  /* ----- dropdown wiring (hover handled in CSS, click for keyboard/touch) ----- */
-  document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
-    const key = dropdown.dataset.filter;
-    const trigger = dropdown.querySelector('.filter-trigger');
-    const label = trigger.querySelector('.filter-trigger-label');
-    const defaultLabel = trigger.dataset.default;
-
-    trigger.addEventListener('click', e => {
-      e.stopPropagation();
-      const wasOpen = dropdown.classList.contains('open');
-      document.querySelectorAll('.filter-dropdown.open').forEach(d => d.classList.remove('open'));
-      if (!wasOpen) dropdown.classList.add('open');
-    });
-
-    dropdown.querySelectorAll('.filter-option').forEach(opt => {
-      opt.addEventListener('click', e => {
-        e.stopPropagation();
-        const v = opt.dataset.value;
-        state[key] = v;
-        label.textContent = v ? opt.textContent : defaultLabel;
-        trigger.classList.toggle('has-value', !!v);
-        dropdown.querySelectorAll('.filter-option').forEach(o => o.classList.remove('active'));
-        opt.classList.add('active');
-        dropdown.classList.remove('open');
-        render();
-      });
-    });
-  });
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.filter-dropdown')) {
-      document.querySelectorAll('.filter-dropdown.open').forEach(d => d.classList.remove('open'));
-    }
-  });
-
-  /* ----- budget slider ----- */
-  const budgetSlider = document.getElementById('filterBudget');
-  const budgetValueEl = document.getElementById('budgetMaxValue');
-  function updateSliderFill() {
-    const pct = ((budgetSlider.value - budgetSlider.min) / (budgetSlider.max - budgetSlider.min)) * 100;
-    budgetSlider.style.setProperty('--fill', pct + '%');
-  }
-  budgetSlider.addEventListener('input', () => {
-    state.budget = Number(budgetSlider.value);
-    budgetValueEl.textContent = state.budget;
-    updateSliderFill();
-    render();
-  });
-  updateSliderFill();
-
-  /* ----- reset filters ----- */
-  document.getElementById('filterClear').addEventListener('click', () => {
-    Object.keys(state).forEach(k => { state[k] = (k === 'budget') ? 150 : ''; });
-    budgetSlider.value = 150;
-    budgetValueEl.textContent = 150;
-    updateSliderFill();
-    document.querySelectorAll('.filter-dropdown').forEach(d => {
-      const trigger = d.querySelector('.filter-trigger');
-      trigger.querySelector('.filter-trigger-label').textContent = trigger.dataset.default;
-      trigger.classList.remove('has-value');
-      d.querySelectorAll('.filter-option').forEach(o => o.classList.remove('active'));
-      const allOpt = d.querySelector('.filter-option[data-value=""]');
-      if (allOpt) allOpt.classList.add('active');
-    });
-    /* Suburb is a typeahead, not a .filter-dropdown — reset it separately */
-    suburbInput.value = '';
-    suburbSearch.classList.remove('has-value');
-    render();
-  });
-
-  function applyDropdownValue(filterKey, value) {
-    const d = document.querySelector('.filter-dropdown[data-filter="' + filterKey + '"]');
-    if (!d) return;
-    const opt = d.querySelector('.filter-option[data-value="' + value + '"]');
-    if (opt) opt.click();
-  }
-
-  /* ============================================================
-     Map — Leaflet with CARTO dark tiles so the basemap matches
-     the site's charcoal theme. Markers are gold circles with the
-     teacher's initials (no real photos yet).
-     ============================================================ */
-  const map = L.map('teacherMap', {
-    zoomControl: true,
-    scrollWheelZoom: false,   /* don't hijack page scroll */
-    attributionControl: true,
-  }).setView([-37.8136, 144.9631], 11);  /* Melbourne CBD */
-
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 19,
-  }).addTo(map);
-
-  /* Re-enable wheel zoom only after the user clicks into the map,
-     so casual scrolling past the page doesn't zoom the map. */
-  map.on('click focus', () => map.scrollWheelZoom.enable());
-  map.getContainer().addEventListener('mouseleave', () => map.scrollWheelZoom.disable());
-
-  /* Markers are rebuilt every render — store the layer so we can clear it. */
-  let markerLayer = L.layerGroup().addTo(map);
-  /* Keep handles to each marker keyed by teacher id so card hover can
-     highlight the matching pin and vice versa. */
-  const markersById = {};
-
-  function buildMarkers(teachers) {
-    markerLayer.clearLayers();
-    Object.keys(markersById).forEach(k => delete markersById[k]);
-
-    teachers.forEach(t => {
-      const initials = t.name.split(' ').map(s => s[0]).slice(0, 2).join('');
-      const icon = L.divIcon({
-        className: '',  /* don't apply Leaflet's default styles */
-        html: `<div class="piano-pin" data-teacher-id="${t.id}">${initials}</div>`,
-        iconSize: [36, 36],
-        iconAnchor: [18, 18],
-      });
-      const marker = L.marker(t.coords, { icon }).addTo(markerLayer);
-
-      const popupHtml = `
-        <div class="map-popup">
-          <p class="map-popup-suburb"><i class="ti ti-map-pin" style="font-size: 11px; vertical-align: middle;"></i> ${t.suburb}</p>
-          <h3 class="map-popup-name">${t.name}</h3>
-          <p class="map-popup-rate">${t.rateLabel} · ${t.experience} yrs teaching</p>
-          <a href="teacher.html?id=${t.id}" class="map-popup-link">View profile <i class="ti ti-arrow-right"></i></a>
-        </div>
-      `;
-      marker.bindPopup(popupHtml, { closeButton: true, autoPan: true, maxWidth: 260 });
-      markersById[t.id] = marker;
-    });
-  }
-
-  /* ============================================================
-     Card builder
-     ============================================================ */
-  function makeCard(t) {
-    const card = document.createElement('a');
-    card.className = 'teacher-card';
-    card.href = 'teacher.html?id=' + t.id;
-    card.dataset.teacherId = t.id;
-    const initials = t.name.split(' ').map(s => s[0]).slice(0, 2).join('');
-
-    /* Pick up to 3 most relevant style tags */
-    const tagsHtml = t.styles.slice(0, 3).map(s => `<span class="teacher-tag">${s}</span>`).join('');
-    const ageLabel = t.studentAges.map(a => {
-      if (a === 'kids') return 'Kids';
-      if (a === 'teens') return 'Teens';
-      return 'Adults';
-    }).join(', ');
-    const formatLabel = t.formats.length === 2
-      ? 'In-person + online'
-      : (t.formats[0] === 'online' ? 'Online' : 'In-person');
-
-    card.innerHTML = `
-      <div class="teacher-card-image">
-        <span class="teacher-card-rate-badge">${t.rateLabel}</span>
-        <span class="teacher-card-initials">${initials}</span>
-      </div>
-      <div class="teacher-card-body">
-        <p class="teacher-card-suburb"><i class="ti ti-map-pin" style="font-size: 12px;"></i> ${t.suburb}</p>
-        <h3 class="teacher-card-name">${t.name}</h3>
-        <p class="teacher-card-headline">${t.headline}</p>
-        <div class="teacher-card-meta">
-          <span><i class="ti ti-clock"></i> ${t.experience} yrs</span>
-          <span><i class="ti ti-user"></i> ${ageLabel}</span>
-          <span><i class="ti ti-device-laptop"></i> ${formatLabel}</span>
-        </div>
-        <div class="teacher-card-tags">${tagsHtml}</div>
-        <p class="teacher-card-trial">${t.trialOffer}</p>
-      </div>
-    `;
-
-    /* Hover sync: card ↔ map pin */
-    card.addEventListener('mouseenter', () => {
-      const m = markersById[t.id];
-      if (m) {
-        const el = m.getElement()?.querySelector('.piano-pin');
-        if (el) el.classList.add('active');
+        active = e.key === 'ArrowDown' ? (active + 1) % options.length : (active <= 0 ? options.length - 1 : active - 1);
+        drawSuggest();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!suggest.hidden && options.length) pickSuburb(options[Math.max(0, active)]);
+      } else if (e.key === 'Escape') {
+        closeSuggest();
       }
     });
-    card.addEventListener('mouseleave', () => {
-      const m = markersById[t.id];
-      if (m) {
-        const el = m.getElement()?.querySelector('.piano-pin');
-        if (el) el.classList.remove('active');
+    qInput.addEventListener('blur', () => setTimeout(closeSuggest, 150));
+    suggest.addEventListener('mousedown', (e) => {
+      const li = e.target.closest('li[data-i]');
+      if (!li) return;
+      e.preventDefault(); // keep focus so the blur doesn't close the list first
+      pickSuburb(options[Number(li.dataset.i)]);
+    });
+    qClear.addEventListener('click', () => {
+      state.q = ''; state.near = null;
+      qInput.value = '';
+      qClear.hidden = true;
+      options = [];
+      closeSuggest();
+      apply();
+      qInput.focus();
+    });
+
+    /* ---------- Nearest to me ---------- */
+    function locate() {
+      if (!('geolocation' in navigator)) { countEl.textContent = 'This browser can’t share your location'; return; }
+      locateBtn.setAttribute('aria-pressed', 'true');
+      navigator.geolocation.getCurrentPosition((pos) => {
+        state.near = { name: 'you', you: true, lat: pos.coords.latitude, lng: pos.coords.longitude };
+        state.q = '';
+        qInput.value = '';
+        qClear.hidden = true;
+        apply();
+      }, () => {
+        locateBtn.setAttribute('aria-pressed', 'false');
+        countEl.innerHTML = TM.esc(countEl.textContent) + ' <span>· We couldn’t get your location</span>';
+      }, { maximumAge: 300000, timeout: 10000 });
+    }
+    locateBtn.addEventListener('click', () => {
+      if (state.near && state.near.you) {
+        state.near = null;
+        locateBtn.setAttribute('aria-pressed', 'false');
+        apply();
+      } else {
+        locate();
       }
     });
 
-    return card;
-  }
+    /* ---------- Map: MapLibre and the Carto Positron basemap, as on the homepage ---------- */
+    const mapStatus = $('mapStatus');
+    const pop = $('mapPop');
+    const popPhoto = pop.querySelector('.td-pop-photo');
+    const popImg = popPhoto.querySelector('img');
+    const popName = pop.querySelector('.td-pop-name');
+    const popFacts = pop.querySelector('.td-pop-facts');
+    const popTrial = pop.querySelector('.td-pop-trial');
+    const popLink = pop.querySelector('.td-pop-link');
+    let activePin = null;
 
-  /* ============================================================
-     Filtering logic
-     A teacher is included if EVERY active filter matches.
-     For multi-value fields (styles, ages, formats, skill levels),
-     the teacher needs to contain the selected value.
-     Budget is a per-hour upper bound — we approximate the teacher's
-     per-hour rate by dividing their lesson fee by lesson length,
-     but since all rates are already stored as rough hourly figures
-     we use t.rate directly.
-     ============================================================ */
-  function filterTeachers() {
-    return TEACHERS.filter(t => {
-      if (state.suburb     && t.suburb !== state.suburb) return false;
-      if (state.style      && !t.styles.includes(state.style)) return false;
-      if (state.ageGroup   && !t.studentAges.includes(state.ageGroup)) return false;
-      if (state.format     && !t.formats.includes(state.format)) return false;
-      if (state.skillLevel && !t.skillLevels.includes(state.skillLevel)) return false;
-      if (t.rate > state.budget) return false;
-      return true;
+    function closePop() {
+      pop.hidden = true;
+      if (activePin) activePin.classList.remove('is-active');
+      activePin = null;
+    }
+    function openPop(t, pin) {
+      if (activePin) activePin.classList.remove('is-active');
+      activePin = pin;
+      pin.classList.add('is-active');
+      const photo = t.photos[0];
+      popPhoto.hidden = !photo;
+      if (photo) {
+        popImg.src = photo.url;
+        popImg.style.objectPosition = TM.framing(photo);
+        popPhoto.href = t.pageUrl;
+      }
+      popName.textContent = t.name;
+      popFacts.textContent = [t.suburb, TM.priceLine(t)].filter(Boolean).join(' · ');
+      popTrial.textContent = TM.trialLine(t);
+      popLink.href = t.pageUrl;
+      popLink.setAttribute('aria-label', 'View ' + t.name + '’s profile');
+      pop.hidden = false;
+    }
+    pop.querySelector('.td-pop-close').addEventListener('click', closePop);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.hidden) closePop(); });
+
+    function loadAsset(src, css) {
+      return new Promise((resolve, reject) => {
+        const el = document.createElement(css ? 'link' : 'script');
+        if (css) { el.rel = 'stylesheet'; el.href = src; } else { el.src = src; }
+        el.onload = resolve;
+        el.onerror = reject;
+        document.head.appendChild(el);
+      });
+    }
+
+    function startMap() {
+      return Promise.all([
+        loadAsset('https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css', true),
+        loadAsset('https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'),
+      ]).then(() => new Promise((resolve, reject) => {
+        const m = new maplibregl.Map({
+          container: 'teacherMap',
+          style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+          center: [TM.CENTRE.lng, TM.CENTRE.lat],
+          zoom: 9.4,
+          attributionControl: { compact: true },
+          // Touch screens keep two-finger gestures so a thumb can still scroll the page
+          cooperativeGestures: window.matchMedia('(pointer: coarse)').matches,
+        });
+        m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+        m.on('click', closePop);
+        const failed = setTimeout(() => reject(new Error('Map style did not load')), 20000);
+        m.on('load', () => { clearTimeout(failed); resolve(m); });
+      })).then((mapObj) => {
+        mapStatus.hidden = true;
+        const markers = new Map();
+        let here = null;
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function pinFor(t) {
+          const pin = document.createElement('button');
+          pin.type = 'button';
+          pin.className = 'td-pin';
+          pin.setAttribute('aria-label', t.name + (t.suburb ? ', ' + t.suburb : '') + '. Show details.');
+          const photo = t.photos[0];
+          if (photo) {
+            const img = document.createElement('img');
+            img.src = photo.url; img.alt = ''; img.decoding = 'async'; img.loading = 'lazy';
+            img.style.objectPosition = TM.framing(photo);
+            img.onerror = () => { img.remove(); pin.textContent = TM.initials(t.name); };
+            pin.appendChild(img);
+          } else {
+            pin.textContent = TM.initials(t.name);
+          }
+          pin.addEventListener('click', (e) => { e.stopPropagation(); openPop(t, pin); });
+          const holder = document.createElement('div');
+          holder.appendChild(pin);
+          return { marker: new maplibregl.Marker({ element: holder }).setLngLat([t.lng, t.lat]), pin };
+        }
+
+        return {
+          show(list, near, first) {
+            closePop();
+            markers.forEach((m) => m.marker.remove());
+            markers.clear();
+            if (here) { here.remove(); here = null; }
+            const bounds = new maplibregl.LngLatBounds();
+            const placed = list.filter((t) => t.lat != null && t.lng != null);
+            placed.forEach((t) => {
+              const m = pinFor(t);
+              m.marker.addTo(mapObj);
+              markers.set(t.slug, m);
+            });
+            // Near a place: frame it with its closest few teachers; otherwise frame them all
+            const framed = near ? placed.slice(0, 4) : placed;
+            framed.forEach((t) => bounds.extend([t.lng, t.lat]));
+            if (near) {
+              const dot = document.createElement('div');
+              dot.className = 'td-here';
+              here = new maplibregl.Marker({ element: dot }).setLngLat([near.lng, near.lat]).addTo(mapObj);
+              bounds.extend([near.lng, near.lat]);
+            }
+            if (!bounds.isEmpty()) {
+              mapObj.fitBounds(bounds, { padding: 70, maxZoom: near ? 12.5 : 11.5, animate: !first && !reduce, duration: 900 });
+            }
+          },
+          highlight(slug, on) {
+            const m = markers.get(slug);
+            if (!m || m.pin === activePin) return;
+            m.pin.classList.toggle('is-active', on);
+          },
+        };
+      });
+    }
+
+    // Card hover lights its pin
+    grid.addEventListener('mouseover', (e) => {
+      const card = e.target.closest('.tm-card[data-slug]');
+      if (card && map) map.highlight(card.dataset.slug, true);
     });
-  }
+    grid.addEventListener('mouseout', (e) => {
+      const card = e.target.closest('.tm-card[data-slug]');
+      if (card && map && !card.contains(e.relatedTarget)) map.highlight(card.dataset.slug, false);
+    });
 
-  const listInner = document.getElementById('teacherListInner');
-  const resultCount = document.getElementById('resultCount');
-
-  function render() {
-    const filtered = filterTeachers();
-    resultCount.textContent = filtered.length;
-
-    listInner.innerHTML = '';
-    if (filtered.length === 0) {
-      listInner.innerHTML = `
-        <div class="directory-empty">
-          <h3>No teachers match those filters.</h3>
-          <p>Try widening your search, or <a href="teachers-match.html">take the matching quiz</a> and we'll suggest one.</p>
-        </div>
-      `;
-    } else {
-      filtered.forEach(t => listInner.appendChild(makeCard(t)));
+    /* ---------- Start ---------- */
+    function fillStyles() {
+      const counts = {};
+      all.forEach((t) => t.tags.forEach((tag) => {
+        if (TM.tagCategory(tag) === 'style') counts[tag] = (counts[tag] || 0) + 1;
+      }));
+      const styles = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || TM.tagName(a).localeCompare(TM.tagName(b)));
+      styleSel.innerHTML = '<option value="">Any style</option>' +
+        styles.map((s) => '<option value="' + TM.esc(s) + '">' + TM.esc(TM.tagName(s)) + '</option>').join('');
+      styleSel.disabled = !styles.length;
+    }
+    function fillPrice() {
+      const prices = all.map((t) => t.priceFrom).filter((c) => c != null).map((c) => c / 100);
+      const top = prices.length ? Math.max(120, Math.ceil(Math.max(...prices) / 10) * 10 + 10) : 120;
+      price.max = top;
+      if (state.max == null) price.value = top;
     }
 
-    buildMarkers(filtered);
-
-    /* If a suburb filter is active, zoom the map to the matching teachers.
-       Otherwise show the whole Melbourne view. */
-    if (filtered.length > 0 && state.suburb) {
-      const bounds = L.latLngBounds(filtered.map(t => t.coords));
-      map.fitBounds(bounds.pad(0.4), { animate: true, maxZoom: 14 });
-    } else if (filtered.length > 0) {
-      const bounds = L.latLngBounds(filtered.map(t => t.coords));
-      map.fitBounds(bounds.pad(0.15), { animate: true, maxZoom: 12 });
+    function readParams() {
+      state.mode = setSelect(modeSel, params.get('mode'));
+      state.age = setSelect(ageSel, params.get('age'));
+      state.style = setSelect(styleSel, params.get('style'));
+      const max = Number(params.get('max'));
+      if (max >= Number(price.min) && max < Number(price.max)) { state.max = Math.round(max / 5) * 5; price.value = state.max; }
+      const q = (params.get('q') || '').trim();
+      if (q) { state.q = q; qInput.value = q; qClear.hidden = false; }
+      fillRange();
     }
-  }
 
-  /* Honor URL params on load (e.g., from the quiz: ?suburb=Carlton&style=Jazz) */
-  const params = new URLSearchParams(window.location.search);
-  ['style','ageGroup','format','skillLevel'].forEach(key => {
-    if (params.get(key)) applyDropdownValue(key, params.get(key));
-  });
-  /* Suburb has its own input/state — set it directly if present */
-  if (params.get('suburb')) {
-    const requested = params.get('suburb');
-    if (suburbList.includes(requested)) selectSuburb(requested);
-  }
-  if (params.get('budget')) {
-    const b = Number(params.get('budget'));
-    if (b >= 40 && b <= 150) {
-      state.budget = b;
-      budgetSlider.value = b;
-      budgetValueEl.textContent = b;
-      updateSliderFill();
+    let mapStarted = null;
+    function start() {
+      grid.innerHTML = TM.skeletons(4);
+      grid.setAttribute('aria-busy', 'true');
+      countEl.textContent = 'Loading teachers from TeachMusic';
+      TM.load().then((list) => {
+        all = list;
+        fillStyles();
+        fillPrice();
+        readParams();
+        apply({ first: true });
+
+        // A suburb from the quiz or a shared link: sort by distance to it
+        const near = (params.get('near') || '').trim();
+        if (near) {
+          TM.resolveSuburb(near).then((s) => {
+            if (s) pickSuburb(s);
+            else { state.q = near; qInput.value = near; qClear.hidden = false; apply(); }
+          }).catch(() => {});
+        }
+        if (params.get('nearby') === '1') locate();
+
+        if (!mapStarted) {
+          mapStarted = startMap().then((helper) => {
+            map = helper;
+            map.show(lastShown, state.near, true);
+          }).catch((err) => {
+            console.error(err);
+            mapStatus.hidden = false;
+            mapStatus.textContent = 'The map couldn’t load just now. Every teacher is still listed here.';
+          });
+        } else if (map) {
+          map.show(lastShown, state.near, true);
+        }
+      }).catch((err) => {
+        console.error(err);
+        drawError();
+        mapStatus.textContent = 'The map will show teachers once TeachMusic is back.';
+      });
     }
-  }
-
-  render();
+    start();
+  })();
 </script>
 
+<div class="sp-bottombar" role="navigation" aria-label="Quick contact">
+  <a href="tel:+61479128955"><i class="ti ti-phone" aria-hidden="true"></i>Call</a>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener"><i class="ti ti-map-pin" aria-hidden="true"></i>Directions</a>
+  <a class="sp-bottombar-book" href="/services/book-a-viewing.html">Book a visit</a>
+</div>
+<script src="/js/signature-nav.js" defer></script>
+<script src="/js/signature-book.js" defer></script>
 </body>
 </html>

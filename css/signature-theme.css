@@ -1,0 +1,883 @@
+/* ==========================================================================
+   Signature Pianos · brand layer
+   --------------------------------------------------------------------------
+   Loaded AFTER each page's inline <style>, so it redefines the shared tokens
+   (--bg-1, --gold, --text-1 ...) and restyles the shared header, headings,
+   buttons, footer and the "Book a visit" card without touching page layout.
+
+   The brand (brand/BRAND-GUIDELINES.md, brand/tokens.css):
+   - Key Ivory ground, Ink text, Mist Light alternate sections, Hammer Felt
+     as the one small accent (never buttons, links or body text)
+   - headings and piano names in Noto Serif Display, condensed capitals, with
+     one Italianno script word crossing them; Jost for everything read
+   - square corners; only the arch and circles are round
+   - every movement on cubic-bezier(.4,0,.1,1); colour fades at 0.4s linear
+   ========================================================================== */
+
+:root {
+  /* Brand tokens, as in brand/tokens.css */
+  --sp-ink: #16222E;
+  --sp-ink-soft: #3A4855;
+  --sp-ivory: #F3F0E9;
+  --sp-ivory-deep: #E9E5DB;
+  --sp-mist: #BCCEDA;
+  --sp-mist-light: #DCE6ED;
+  --sp-felt: #4A1520;
+  --sp-white: #FFFFFF;
+  --sp-rule: rgba(22, 34, 46, 0.12);
+  --sp-scrim: rgba(22, 34, 46, 0.42);
+  --sp-font-script: 'Italianno', 'Snell Roundhand', 'Apple Chancery', cursive;
+  --sp-font-display: 'Noto Serif Display', 'Bodoni Moda', Didot, Georgia, serif;
+  --sp-font-text: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+  --sp-ease: cubic-bezier(.4, 0, .1, 1);
+
+  /* Shared tokens used by every page's inline styles, mapped onto the brand */
+  --bg-1: var(--sp-ivory);
+  --bg-2: var(--sp-ivory-deep);
+  --bg-3: var(--sp-mist-light);
+  --gold: var(--sp-ink);          /* the retired gold accent is now Ink */
+  --gold-light: var(--sp-ink-soft);
+  --text-1: var(--sp-ink);
+  --text-2: var(--sp-ink-soft);
+  --text-3: var(--sp-ink-soft);
+  --border: rgba(22, 34, 46, 0.14);
+  --border-hover: rgba(22, 34, 46, 0.38);
+
+  /* Short names used in this file */
+  --ink: var(--sp-ink);
+  --ink-2: var(--sp-ink-soft);
+  --ivory: var(--sp-ivory);
+  --ivory-2: var(--sp-ivory-deep);
+  --mist: var(--sp-mist);
+  --mist-2: var(--sp-mist-light);
+  --felt: var(--sp-felt);
+  --font-display: var(--sp-font-display);
+  --font-body: var(--sp-font-text);
+  --font-script: var(--sp-font-script);
+  --ease: var(--sp-ease);
+  --topbar-h: 34px;
+}
+
+html,
+body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  background: var(--bg-1);
+  color: var(--text-1);
+}
+
+::selection { background: var(--ink); color: #FFFFFF; }
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* ---------- Headings: condensed serif capitals, script for the accent ---------- */
+/* The display face has no italic; older page rules that ask for one would
+   get a slanted fake, so headings stay upright. */
+h1,
+h2,
+h3 { font-style: normal !important; font-weight: 500 !important; }
+h1,
+h2 {
+  font-family: var(--sp-font-display);
+  font-stretch: 62.5%;
+  font-variation-settings: 'wdth' 62.5;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+/* Pages style their heading <em> as italics with their own class rules;
+   the brand wants the script instead, so these few win outright. */
+h1 em,
+h2 em,
+h1 i:not([class]),
+h2 i:not([class]) {
+  font-family: var(--font-script) !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 1.2em;
+  line-height: 0.8;
+  color: inherit;
+}
+/* Card titles and piano names: the same condensed capitals */
+h3 {
+  font-family: var(--sp-font-display);
+  font-stretch: 62.5%;
+  font-variation-settings: 'wdth' 62.5;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+}
+h3 em { font-style: normal; }
+/* Small headings are labels, set in Jost */
+h4,
+h5 {
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Brand classes from brand/tokens.css, for new markup */
+.sp-display {
+  display: block;
+  font-family: var(--sp-font-display);
+  font-weight: 500;
+  font-stretch: 62.5%;
+  font-variation-settings: 'wdth' 62.5;
+  text-transform: uppercase;
+  line-height: 0.86;
+  letter-spacing: -0.005em;
+  color: var(--sp-ink);
+}
+.sp-script {
+  display: block;
+  font-family: var(--sp-font-script);
+  font-weight: 400;
+  text-transform: none;
+  line-height: 1;
+  letter-spacing: 0;
+  margin-top: -0.32em;
+  color: var(--sp-ink);
+}
+.sp-label {
+  font-family: var(--sp-font-text);
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--sp-ink-soft);
+}
+
+/* ---------- Top bar: what we do, where we are, a number to tap ---------- */
+.sp-topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 101;
+  height: var(--topbar-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  padding: 0 24px;
+  background: var(--bg-3);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+}
+.sp-topbar a {
+  color: var(--text-1);
+  transition: color 0.4s linear;
+}
+.sp-topbar a:hover { color: var(--ink-2); }
+.sp-topbar-phone { font-weight: 500; }
+
+/* ---------- Header: centred script wordmark, links left, actions right ---------- */
+nav#nav {
+  top: var(--topbar-h);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 24px;
+  padding: 10px 40px 8px;
+  background: rgba(243, 240, 233, 0.94);
+  border-bottom: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+  transition: padding 0.4s var(--ease), background 0.4s linear;
+}
+nav#nav.scrolled {
+  padding: 4px 40px 2px;
+  background: rgba(243, 240, 233, 0.98);
+}
+
+nav#nav .logo {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-script);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 58px;
+  line-height: 0.9;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+  transition: font-size 0.4s var(--ease), color 0.4s linear;
+}
+nav#nav.scrolled .logo { font-size: 48px; }
+nav#nav .logo span {
+  display: block;
+  margin: 2px -0.6em 0 0;
+  font-family: var(--font-body);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 9.5px;
+  line-height: 1;
+  letter-spacing: 0.6em;
+  text-transform: uppercase;
+  color: var(--text-1);
+}
+nav#nav .logo:hover { color: var(--ink-2); }
+
+nav#nav .nav-links {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+  gap: 28px;
+}
+nav#nav .nav-ctas {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+}
+
+/* Links rest a step back and come forward on hover (0.4s linear) */
+nav#nav .nav-link-plain,
+nav#nav .nav-link-trigger {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  color: var(--text-1);
+  opacity: 0.72;
+  transition: opacity 0.4s linear, color 0.4s linear;
+}
+nav#nav .nav-link-plain:hover,
+nav#nav .nav-link-trigger:hover,
+nav#nav .nav-item--open .nav-link-trigger { opacity: 1; color: var(--ink); }
+nav#nav .nav-chevron { color: var(--text-2); opacity: 1; }
+nav#nav .nav-link-plain.is-active,
+nav#nav .nav-link-plain[aria-current="page"] { opacity: 1; }
+
+/* Dropdown panels: ivory card, tinted shadow, square corners */
+.nav-dropdown {
+  background: var(--ivory);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: 0 28px 56px -28px rgba(22, 34, 46, 0.32);
+  max-width: calc(100vw - 48px);
+}
+/* The links sit at the left edge, so their panels open from the link's
+   left edge instead of centring on it (centred panels ran off the screen). */
+nav#nav .nav-links .nav-dropdown {
+  left: -18px;
+  transform: translateY(-6px);
+  transition: opacity 0.4s linear, transform 0.6s var(--ease), visibility 0.4s linear;
+}
+nav#nav .nav-links .nav-item--open .nav-dropdown { transform: translateY(0); }
+nav#nav .nav-links .nav-dropdown--pianos,
+nav#nav .nav-links .nav-dropdown--teachers { width: min(600px, calc(100vw - 48px)); }
+nav#nav .nav-links .nav-dropdown--services { width: min(680px, calc(100vw - 48px)); }
+.nav-dd-item { border-radius: 0; }
+.nav-dd-item:hover { background: var(--bg-2); }
+.nav-dd-icon { color: var(--ink-2); }
+.nav-dd-text h4 {
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--text-1);
+  text-transform: none;
+}
+.nav-dd-text p { color: var(--text-3); }
+
+.nav-account-trigger {
+  color: var(--ink);
+  border-color: var(--border-hover);
+  transition: border-color 0.4s linear, background 0.4s linear;
+}
+.nav-account-trigger:hover,
+.nav-item--account.nav-item--open .nav-account-trigger {
+  border-color: var(--ink);
+  background: var(--bg-2);
+}
+
+/* Header CTA: filled ink, fill swaps to outline on hover */
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #FFFFFF;
+  padding: 12px 22px 11px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition: background 0.4s linear, color 0.4s linear;
+}
+.nav-cta:hover { background: transparent; color: var(--ink); }
+
+.sp-nav-call { display: none; }
+
+/* ---------- Buttons and text links ---------- */
+.btn-primary,
+.btn-ghost,
+.btn-outline,
+.btn-secondary {
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding-top: 17px;
+  padding-bottom: 15px;
+  border-radius: 0;
+  transform: none;
+  transition: background 0.4s linear, color 0.4s linear, border-color 0.4s linear;
+}
+.btn-primary {
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  color: #FFFFFF;
+}
+.btn-primary:hover {
+  background: transparent;
+  color: var(--ink);
+  transform: none;
+}
+
+/* Link-block: the label and arrow slide on one curve, a hairline draws under */
+.btn-link {
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: linear-gradient(currentColor, currentColor) 0 calc(100% - 12px) / 0 1px no-repeat;
+  transition: color 0.4s linear, background-size 0.6s var(--ease);
+}
+.btn-link i { transition: transform 0.6s var(--ease); }
+.btn-link:hover {
+  color: var(--ink-2);
+  gap: 10px;
+  background-size: 100% 1px;
+}
+.btn-link:hover i { transform: translateX(6px); }
+
+/* ---------- Footer: centred wordmark, one row of links, contact line ---------- */
+.sp-footer {
+  position: relative;
+  background: var(--ivory);
+  color: var(--ink);
+  border-top: 1px solid var(--border);
+  padding: clamp(72px, 9vw, 120px) 24px 0;
+  text-align: center;
+}
+.sp-footer-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.sp-footer-logo {
+  display: block;
+  width: clamp(220px, 26vw, 360px);
+  transition: opacity 0.4s linear;
+}
+.sp-footer-logo:hover { opacity: 0.75; }
+.sp-footer-logo img { display: block; width: 100%; height: auto; }
+.sp-footer-tagline {
+  margin: 26px 0 0;
+  max-width: 46ch;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  text-wrap: balance;
+}
+.sp-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 34px;
+  margin: 44px 0 0;
+  padding: 26px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+}
+.sp-footer-links a {
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+  padding: 6px 0;
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+  transition: background-size 0.6s var(--ease);
+}
+.sp-footer-links a:hover { background-size: 100% 1px; }
+.sp-footer-contact {
+  margin: 30px 0 0;
+  font-style: normal;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--ink-2);
+}
+.sp-footer-contact a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--border-hover); text-underline-offset: 4px; }
+.sp-footer-contact a:hover { text-decoration-color: currentColor; }
+.sp-footer-contact .sp-dot { margin: 0 10px; opacity: 0.5; }
+.sp-footer-socials {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 26px;
+}
+.sp-footer-socials a {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-hover);
+  border-radius: 50%;
+  color: var(--ink);
+  font-size: 18px;
+  transition: background 0.4s linear, color 0.4s linear;
+}
+.sp-footer-socials a:hover { background: var(--ink); color: #FFFFFF; }
+.sp-footer-bottom {
+  margin-top: 56px;
+  padding: 22px 0 26px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+.sp-footer-bottom a { color: var(--text-3); transition: color 0.4s linear; }
+.sp-footer-bottom a:hover { color: var(--ink); }
+
+/* ---------- Mobile menu panel (built by /js/signature-nav.js) ---------- */
+.sp-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  padding: 108px 24px calc(96px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-1);
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: opacity 0.4s linear, transform 0.6s var(--ease), visibility 0s linear 0.4s;
+}
+.sp-menu.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.4s linear, transform 0.6s var(--ease), visibility 0s;
+}
+.sp-menu-group { border-bottom: 1px solid var(--border); padding: 18px 0; }
+.sp-menu-group h2 {
+  margin: 0 0 10px;
+  font-family: var(--font-body);
+  font-stretch: normal;
+  font-variation-settings: normal;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.sp-menu a.sp-menu-link {
+  display: block;
+  padding: 10px 0;
+  font-family: var(--sp-font-display);
+  font-weight: 500;
+  font-stretch: 62.5%;
+  font-variation-settings: 'wdth' 62.5;
+  text-transform: uppercase;
+  font-size: 30px;
+  line-height: 1.05;
+  color: var(--text-1);
+}
+.sp-menu a.sp-menu-link small {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  color: var(--text-3);
+}
+.sp-menu-contact {
+  display: grid;
+  gap: 6px;
+  padding-top: 22px;
+  font-size: 16px;
+  color: var(--text-2);
+}
+.sp-menu-contact a { color: var(--ink); font-weight: 500; }
+body.sp-menu-open { overflow: hidden; }
+
+/* ---------- Mobile bottom bar: call, directions, book ---------- */
+.sp-bottombar { display: none; }
+
+@media (max-width: 960px) {
+  :root { --topbar-h: 0px; }
+  .sp-topbar { display: none; }
+
+  nav#nav,
+  nav#nav.scrolled {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    gap: 8px;
+    padding: 8px 12px 6px;
+  }
+  nav#nav .logo { font-size: 46px; }
+  nav#nav.scrolled .logo { font-size: 42px; }
+  nav#nav .logo span { font-size: 9px; }
+  nav#nav .nav-burger {
+    grid-column: 1;
+    grid-row: 1;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: var(--ink);
+    font-size: 24px;
+  }
+  .sp-nav-call {
+    grid-column: 3;
+    grid-row: 1;
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    font-size: 22px;
+  }
+
+  .sp-bottombar {
+    position: fixed;
+    top: auto; left: 0; right: 0; bottom: 0;
+    z-index: 102;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+    background: rgba(243, 240, 233, 0.97);
+    border-top: 1px solid var(--border);
+    -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+  }
+  .sp-bottombar a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    border: 1px solid var(--border-hover);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .sp-bottombar a i { font-size: 18px; }
+  .sp-bottombar a.sp-bottombar-book {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #FFFFFF;
+  }
+  body { padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px)); }
+
+  .sp-footer-links { gap: 4px 22px; }
+  .sp-footer-contact .sp-dot { display: none; }
+  .sp-footer-contact span.sp-line { display: block; }
+}
+
+/* ==========================================================================
+   "Book a visit" postcard (js/signature-book.js)
+   A pale mist card: the title and notes on the left, a hairline with the
+   seal in the middle, the form on the right. Flies in from above.
+   ========================================================================== */
+html.sp-book-open,
+html.sp-book-open body { overflow: hidden; }
+
+.sp-book {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.sp-book[hidden] { display: none !important; }
+.sp-book-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 34, 46, 0.42);
+  -webkit-backdrop-filter: blur(3px);
+          backdrop-filter: blur(3px);
+}
+.sp-book-card {
+  position: relative;
+  width: min(1060px, 100%);
+  min-height: min(600px, calc(100vh - 48px));
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1.12fr);
+  background: var(--mist-2);
+  color: var(--ink);
+  box-shadow: 0 50px 90px -40px rgba(10, 16, 24, 0.55);
+  overflow: hidden;
+  transform-origin: 50% 40%;
+  will-change: transform;
+}
+/* a fine inner border, like the edge of a printed card */
+.sp-book-card::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(22, 34, 46, 0.16);
+  pointer-events: none;
+}
+.sp-book-close {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.4s linear, transform 0.6s var(--ease);
+}
+.sp-book-close svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 1.4; fill: none; }
+.sp-book-close:hover { background: rgba(22, 34, 46, 0.08); transform: rotate(90deg); }
+
+.sp-book-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 58px 48px 52px 60px;
+}
+.sp-book-title { margin: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.sp-book-script {
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-size: clamp(96px, 10vw, 150px);
+  line-height: 0.7;
+  text-transform: none;
+  letter-spacing: 0;
+  margin: 0;
+}
+.sp-book-display {
+  margin: 10px 0 0 0.35em;
+  font-family: var(--sp-font-display);
+  font-weight: 500;
+  font-size: clamp(38px, 3.6vw, 56px);
+  line-height: 0.9;
+}
+.sp-book-notes { max-width: 34ch; }
+.sp-book-notes p { margin: 0 0 12px; font-size: 14.5px; line-height: 1.65; color: var(--ink-2); }
+.sp-book-notes p:last-child { margin-bottom: 0; }
+.sp-book-direct a { color: var(--ink); font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
+
+.sp-book-rule {
+  position: relative;
+  background: rgba(22, 34, 46, 0.22);
+  margin: 40px 0;
+}
+.sp-book-seal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 72px;
+  padding: 14px 12px;
+  transform: translate(-50%, -50%);
+  background: var(--mist-2);
+}
+.sp-book-seal img { display: block; width: 100%; height: auto; }
+
+.sp-book-form,
+.sp-book-success {
+  padding: 74px 64px 48px 60px;
+  overflow-y: auto;
+}
+.sp-book-form { display: flex; flex-direction: column; gap: 22px; }
+.sp-book-form[hidden],
+.sp-book-success[hidden] { display: none; }
+.sp-book-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 28px; }
+.sp-book-field { position: relative; display: flex; flex-direction: column; min-width: 0; margin: 0; padding: 0; border: 0; }
+.sp-book-field label,
+.sp-book-field legend {
+  padding: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.sp-book-field label small { font-size: inherit; letter-spacing: 0.1em; text-transform: none; opacity: 0.8; }
+.sp-book-field input,
+.sp-book-field select,
+.sp-book-field textarea {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 0 9px;
+  border: 0;
+  border-bottom: 1px solid rgba(22, 34, 46, 0.4);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.4;
+  outline: none;
+  transition: border-color 0.4s linear;
+  -webkit-appearance: none;
+          appearance: none;
+}
+.sp-book-field textarea { resize: none; min-height: 40px; }
+.sp-book-field select {
+  cursor: pointer;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2316222E' stroke-width='1.3'/%3E%3C/svg%3E") no-repeat right 2px center;
+  padding-right: 22px;
+}
+.sp-book-field input:focus,
+.sp-book-field select:focus,
+.sp-book-field textarea:focus { border-bottom-color: var(--ink); box-shadow: 0 1px 0 var(--ink); }
+.sp-book-field.is-invalid input,
+.sp-book-field.is-invalid select { border-bottom-color: var(--felt); box-shadow: 0 1px 0 var(--felt); }
+.sp-book-field.is-invalid label::after { content: ' \00B7  required'; letter-spacing: 0.1em; text-transform: none; }
+
+.sp-book-chips { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+.sp-book-chips legend { width: 100%; margin-bottom: 10px; }
+.sp-book-chips label {
+  position: relative;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+.sp-book-chips input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.sp-book-chips span {
+  display: inline-block;
+  padding: 9px 16px 8px;
+  border: 1px solid rgba(22, 34, 46, 0.4);
+  border-radius: 0;
+  transition: background 0.4s linear, color 0.4s linear, border-color 0.4s linear;
+}
+.sp-book-chips label:hover span { border-color: var(--ink); }
+.sp-book-chips input:checked + span { background: var(--ink); border-color: var(--ink); color: #FFFFFF; }
+.sp-book-chips input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+.sp-book-foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+.sp-book-privacy { margin: 0; max-width: 30ch; font-size: 12.5px; line-height: 1.6; color: var(--ink-2); }
+.sp-book-error { display: block; margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--felt); color: var(--ink); font-weight: 500; }
+.sp-book-error[hidden] { display: none; }
+.sp-book-send {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.4s linear, color 0.4s linear, transform 0.6s var(--ease);
+}
+.sp-book-send span { margin-right: -0.22em; }
+.sp-book-send:hover { background: transparent; color: var(--ink); transform: scale(1.05); }
+.sp-book-send:disabled { cursor: progress; opacity: 0.7; }
+.sp-book-send.is-sending span { animation: sp-book-pulse 1s ease-in-out infinite; }
+@keyframes sp-book-pulse { 50% { opacity: 0.35; } }
+
+.sp-book-success {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 18px;
+}
+.sp-book-success .sp-book-script { font-size: clamp(90px, 9vw, 130px); line-height: 0.8; }
+.sp-book-success-text { margin: 0; max-width: 34ch; font-size: 18px; line-height: 1.6; color: var(--ink-2); }
+.sp-book-done {
+  margin-top: 10px;
+  padding: 16px 30px 14px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.4s linear, color 0.4s linear;
+}
+.sp-book-done:hover { background: var(--ink); color: #FFFFFF; }
+
+@media (max-width: 860px) {
+  .sp-book { padding: 10px; }
+  .sp-book-card {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+    min-height: 0;
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .sp-book-card::before { inset: 8px; }
+  .sp-book-side { padding: 44px 28px 0; gap: 18px; }
+  .sp-book-script { font-size: 96px; }
+  .sp-book-display { font-size: 34px; }
+  .sp-book-notes p { font-size: 14px; }
+  .sp-book-notes p:nth-child(2) { display: none; }
+  .sp-book-rule { height: 1px; margin: 26px 28px 0; }
+  .sp-book-seal { display: none; }
+  .sp-book-form,
+  .sp-book-success { padding: 24px 28px 34px; overflow: visible; }
+  .sp-book-pair { grid-template-columns: 1fr; gap: 22px; }
+  .sp-book-send { width: 84px; height: 84px; }
+  .sp-book-close { top: 14px; right: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  nav#nav, nav#nav .logo, .sp-menu, .btn-link, .btn-link i { transition: none; }
+}
+
+/* ---------- Showroom map (js/signature-map.js) ---------- */
+.sp-map { position: relative; min-height: 320px; background: var(--sp-ivory-deep); }
+.sp-map .maplibregl-canvas { outline: none; }
+.sp-map-pin { display: block; cursor: pointer; filter: drop-shadow(0 8px 10px rgba(22, 34, 46, 0.3)); }
+.sp-map-pin img { display: block; width: 40px; height: auto; background: var(--sp-ivory); border-radius: 20px 20px 0 0; }
+.sp-map-fallback {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  min-height: 320px;
+  padding: 24px;
+  text-align: center;
+  color: var(--sp-ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.sp-map[data-sp-map] { display: block !important; border-radius: 0 !important; padding: 0 !important; overflow: hidden; }

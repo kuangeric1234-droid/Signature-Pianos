@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Signature Pianos Melbourne — Find Your Perfect Piano</title>
-<meta name="description" content="Melbourne's most trusted piano destination. New, pre-loved, acoustic and digital pianos. AI-powered piano matching, verified teachers, and post-sale care — all in one place." />
+<title>Signature Pianos Melbourne | Find Your Perfect Piano</title>
+<meta name="description" content="Pre-loved Yamaha and Kawai pianos, hand-picked in Japan and checked in Melbourne. Visit our Mount Waverley showroom. 10-year warranty and white-glove delivery." />
 
 <!-- Canonical + social previews (added from SEO audit) -->
 <link rel="canonical" href="https://signaturepianos.com.au/" />
@@ -12,17 +12,17 @@
 <meta property="og:site_name" content="Signature Pianos" />
 <meta property="og:locale" content="en_AU" />
 <meta property="og:url" content="https://signaturepianos.com.au/" />
-<meta property="og:title" content="Signature Pianos Melbourne — Find Your Perfect Piano" />
-<meta property="og:description" content="Melbourne's piano specialists in Mount Waverley. New, pre-loved, acoustic and digital pianos, delivery, tuning, payment plans and verified teachers." />
+<meta property="og:title" content="Signature Pianos Melbourne | Find Your Perfect Piano" />
+<meta property="og:description" content="Pre-loved Yamaha and Kawai pianos, hand-picked in Japan and checked in Melbourne. Visit our Mount Waverley showroom. 10-year warranty and white-glove delivery." />
 <!-- TODO: add a real share image (1200×630) then uncomment the next line and switch twitter:card to summary_large_image
 <meta property="og:image" content="https://signaturepianos.com.au/og-image.jpg" /> -->
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Signature Pianos Melbourne — Find Your Perfect Piano" />
-<meta name="twitter:description" content="Melbourne's piano specialists in Mount Waverley. New, pre-loved, acoustic and digital pianos, delivery, tuning, payment plans and verified teachers." />
+<meta name="twitter:title" content="Signature Pianos Melbourne | Find Your Perfect Piano" />
+<meta name="twitter:description" content="Pre-loved Yamaha and Kawai pianos, hand-picked in Japan and checked in Melbourne. Visit our Mount Waverley showroom. 10-year warranty and white-glove delivery." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
 <!--
@@ -39,7 +39,7 @@
   "@type": "MusicStore",
   "@id": "https://signaturepianos.com.au/#store",
   "name": "Signature Pianos",
-  "description": "Melbourne piano specialists offering new and pre-loved acoustic and digital pianos, delivery, tuning and servicing, payment plans, and matching with verified piano teachers.",
+  "description": "Pre-loved Japanese pianos, hand-picked in Japan and checked in Melbourne, with white-glove delivery, a 10-year warranty, tuning and servicing, and piano teachers through TeachMusic.",
   "url": "https://signaturepianos.com.au/",
   "email": "info@signaturepianos.com.au",
   "telephone": "+61 479 128 955",
@@ -59,16 +59,16 @@
 
 <style>
   :root {
-    --bg-1: #0e0e0d;
-    --bg-2: #1a1a18;
-    --bg-3: #242422;
-    --gold: #b8935a;
-    --gold-light: #d4b483;
-    --text-1: #f5f0e8;
-    --text-2: #9a9590;
-    --text-3: #6b6760;
-    --border: rgba(184, 147, 90, 0.15);
-    --border-hover: rgba(184, 147, 90, 0.4);
+    --bg-1: #F3F0E9;
+    --bg-2: #E9E5DB;
+    --bg-3: #DCE6ED;
+    --gold: #16222E;
+    --gold-light: #3A4855;
+    --text-1: #16222E;
+    --text-2: #3A4855;
+    --text-3: #3A4855;
+    --border: rgba(22, 34, 46, 0.15);
+    --border-hover: rgba(22, 34, 46, 0.4);
     --ivory: #f0ece0;
     --max: 1200px;
   }
@@ -83,7 +83,7 @@
     padding: 0;
     background: var(--bg-1);
     color: var(--text-1);
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-weight: 300;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
@@ -106,19 +106,19 @@
     align-items: center;
     justify-content: space-between;
     gap: 32px;
-    background: rgba(14, 14, 13, 0.88);
+    background: rgba(243, 240, 233, 0.88);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     transition: padding 0.35s ease, background 0.35s ease;
   }
   nav.scrolled {
-    background: rgba(14, 14, 13, 0.96);
+    background: rgba(243, 240, 233, 0.96);
     padding: 12px 32px;
   }
 
   .logo {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 300;
     font-size: 24px;
     letter-spacing: 0.01em;
@@ -135,7 +135,7 @@
 
   /* Plain (non-dropdown) link in the nav row */
   .nav-link-plain {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -153,7 +153,7 @@
      typography so the row reads as one consistent set. */
   .nav-item--dropdown { position: relative; }
   .nav-link-trigger {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -184,7 +184,7 @@
     top: calc(100% + 14px);
     left: 50%;
     transform: translateX(-50%) translateY(-6px);
-    background: #14140f;
+    background: #FFFFFF;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 18px;
@@ -193,7 +193,7 @@
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.85);
+    box-shadow: 0 30px 60px -20px rgba(22, 34, 46, 0.34);
     transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
     z-index: 110;
   }
@@ -257,7 +257,7 @@
     color: inherit;
     transition: background 0.2s ease;
   }
-  .nav-dd-item:hover { background: rgba(184, 147, 90, 0.07); }
+  .nav-dd-item:hover { background: rgba(22, 34, 46, 0.07); }
   .nav-dd-icon {
     font-size: 20px;
     color: var(--gold);
@@ -266,7 +266,7 @@
   }
   .nav-dd-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .nav-dd-text h4 {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 14px;
     font-weight: 500;
     color: var(--text-1);
@@ -309,7 +309,7 @@
   .nav-account-trigger:hover,
   .nav-item--account.nav-item--open .nav-account-trigger {
     border-color: var(--gold);
-    background: rgba(184, 147, 90, 0.10);
+    background: rgba(22, 34, 46, 0.10);
   }
 
   /* Account dropdown is right-aligned to the icon (overrides the centered
@@ -343,590 +343,100 @@
 
   .nav-burger { display: none; background: none; border: 0; color: var(--text-1); font-size: 24px; cursor: pointer; }
 
-  /* ============ HERO ============ */
-  .hero {
-    position: relative;
-    min-height: 100vh;
-    padding: 140px 40px 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: var(--bg-1);
+  /* ============ BUYER'S GUIDE ============ */
+  .guide {
+    padding: 110px 40px;
+    background: var(--bg-2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
   }
-
-  .hero-inner {
-    position: relative;
-    z-index: 2;
-    width: 100%;
+  .guide-inner {
+    max-width: var(--max);
     margin: 0 auto;
-    flex: 1;
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: clamp(40px, 6vw, 96px);
     align-items: center;
-    justify-content: center;
-    gap: clamp(40px, 6vw, 140px);
-    padding-bottom: 60px;
   }
-  .hero-copy {
-    position: relative;
-    /* Explicit width — absolute-positioned scenes can't establish parent
-       width on their own, so we set it directly. */
-    width: clamp(560px, 32vw, 820px);
-    max-width: 100%;
-    flex-shrink: 0;
-    /* min-height keeps the column from collapsing as scenes stack absolutely */
-    min-height: clamp(420px, 50vh, 560px);
-  }
-  .hero-copy-scene {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transform: translateY(24px);
-    will-change: opacity, transform;
-    pointer-events: none;
-  }
-  /* first scene visible by default (before JS kicks in) */
-  .hero-copy-scene[data-scene="0"] {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
-
-  .hero-eyebrow {
-    font-size: 11px;
-    font-weight: 500;
+  .guide-label {
+    font-size: 12px;
     letter-spacing: 0.28em;
-    color: var(--gold);
     text-transform: uppercase;
-    margin-bottom: 28px;
-  }
-
-  .hero-h1 {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-size: clamp(44px, 4vw, 132px);
-    line-height: 1.04;
-    letter-spacing: -0.01em;
-    margin: 0 0 32px 0;
-    color: var(--text-1);
-  }
-  .hero-h1 em {
-    font-style: italic;
-    color: var(--gold);
-    font-weight: 400;
-  }
-
-  .hero-sub {
-    font-size: clamp(15px, 1.05vw, 22px);
-    font-weight: 300;
-    line-height: 1.7;
     color: var(--text-2);
-    max-width: 560px;
-    margin: 0 0 44px 0;
+    margin-bottom: 18px;
   }
-  .hero-eyebrow {
-    font-size: clamp(11px, 0.78vw, 15px);
-  }
-
-  .hero-btns {
-    display: flex;
-    align-items: center;
-    gap: 32px;
-    flex-wrap: wrap;
-  }
-
-  .btn-primary {
-    background: var(--gold);
-    color: var(--bg-1);
-    border: 1px solid var(--gold);
-    padding: 16px 32px;
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
-  }
-  .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
-
-  .btn-link {
-    color: var(--text-1);
-    font-size: 12px;
-    font-weight: 400;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    background: transparent;
-    border: 0;
-    padding: 16px 0;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    transition: color 0.25s ease, gap 0.25s ease;
-  }
-  .btn-link:hover { color: var(--gold); gap: 16px; }
-
-  /* hero right — piano image sized by height so it stays large on wide
-     screens and never overflows the viewport vertically */
-  .hero-visual {
-    position: relative;
-    height: clamp(520px, 78vh, 1040px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  /* atmospheric glow disabled while testing background match — re-enable
-     after the piano image background is confirmed to match #0e0e0d */
-  .hero-visual::before { content: none; }
-  .hero-piano-image,
-  .hero-piano-canvas {
-    position: relative;
-    height: 100%;
-    width: auto;
-    aspect-ratio: 1 / 1;
-    object-fit: contain;
-    user-select: none;
-    -webkit-user-drag: none;
-    -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 52%, #000 55%, transparent 92%);
-            mask-image: radial-gradient(ellipse 70% 70% at 50% 52%, #000 55%, transparent 92%);
-    will-change: transform, opacity;
-    display: block;
-  }
-  .hero-piano-canvas {
-    background: #0e0e0d;
-  }
-
-  .scroll-cue {
-    position: absolute;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 9px;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--text-3);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    pointer-events: none;
-    z-index: 3;
-  }
-  .scroll-cue i { font-size: 18px; animation: bob 2s ease-in-out infinite; }
-  @keyframes bob {
-    0%, 100% { transform: translateY(0); opacity: 0.5; }
-    50% { transform: translateY(6px); opacity: 1; }
-  }
-
-  /* ============ HERO ZOOM CANVAS (Phase 2 overlay) ============
-     Positioned via JS during Phase 2 — starts overlaying exactly where
-     the right-column opening canvas was (1:1, ~700px), then grows
-     to full viewport as scroll advances. Cover-fit drawing reveals
-     more of the 16:9 Clip D source as the canvas widens. */
-  .hero-zoom-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 5;
-    opacity: 0;
-    /* Fills any transparent pixels in the keyed frames with the exact
-       site bg — both the dark void around the piano AND the piano body's
-       dark areas that the chromakey caught — making the piano look solid
-       and the rectangle outline invisible. */
-    background: var(--bg-1);
-    will-change: opacity, top, left, width, height;
-    pointer-events: none;
-    user-select: none;
-  }
-
-  /* ============ PLAYABLE PHASE ============
-     The playable section itself is now a zero-height trigger element —
-     it just provides a scroll position for ScrollTrigger to pin on. The
-     ACTUAL visible content (CTA + click targets) lives in the
-     .playable-overlay div which is position:fixed and layered over the
-     still-visible zoom canvas. This means the playable state appears
-     ON the last frame of the hero zoom (no scrolling in from below). */
-  .playable-section {
-    position: relative;
-    width: 100%;
-    height: 1px;   /* trigger element only — no visible content */
-    background: transparent;
-  }
-
-  .playable-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 6;    /* above the zoom canvas (z-index 5) */
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.6s ease;
-    /* center the 16:9 stage in the viewport */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .playable-overlay.show {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  /* Fixed-aspect (16:9) stage that the click targets and CTA live inside.
-     On viewports wider than 16:9, the stage is bound by viewport height
-     (letterbox left/right). On narrower viewports, bound by width
-     (letterbox top/bottom). Keys and CTA positions remain consistent
-     across all resolutions. */
-  .playable-stage {
-    position: relative;
-    aspect-ratio: 16 / 9;
-    width: min(100vw, calc(100vh * 16 / 9));
-    height: min(calc(100vw * 9 / 16), 100vh);
-    /* Perspective must live on the DIRECT parent of the rotated child
-       (.playable-keys) for the 3D depth tilt to render. */
-    perspective: 1500px;
-  }
-
-  /* Inline buyer's guide form sitting on the music desk area */
-  .playable-guide {
-    position: absolute;
-    top: 30%;
-    left: 50%;
-    transform: translate(-50%, -50%) translateY(20px);
-    width: clamp(440px, 46%, 620px);
-    text-align: center;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.7s ease 0.15s, transform 0.7s ease 0.15s;
-  }
-  .playable-overlay.show .playable-guide {
-    opacity: 1;
-    transform: translate(-50%, -50%) translateY(0);
-    pointer-events: auto;
-  }
-  .playable-guide-label {
-    font-size: 10px;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--gold);
-    font-weight: 500;
-    margin-bottom: 10px;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-  }
-  .playable-guide-headline {
-    font-family: 'Cormorant Garamond', serif;
+  .guide-headline {
+    font-family: var(--font-display);
     font-weight: 300;
-    font-size: clamp(22px, 1.9vw, 34px);
-    line-height: 1.15;
-    margin: 0 0 16px 0;
+    font-size: clamp(34px, 3.4vw, 52px);
+    line-height: 1.1;
+    margin: 0;
     color: var(--text-1);
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
   }
-  .playable-guide-headline em {
-    font-style: italic;
-    color: var(--gold);
-    font-weight: 400;
-  }
-
-  /* Form panel — dark blurred backdrop so it reads cleanly over the piano */
+  .guide-headline em { font-style: italic; }
   .playable-guide-form {
-    background: rgba(14, 14, 13, 0.78);
-    border: 1px solid var(--gold);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 16px;
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    padding: 32px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    text-align: left;
+    gap: 12px;
   }
   .pg-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 12px;
   }
   .playable-guide-form input[type="text"],
   .playable-guide-form input[type="email"],
   .playable-guide-form input[type="tel"] {
-    background: rgba(36, 36, 34, 0.55);
-    border: 1px solid var(--border);
-    padding: 11px 14px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    color: var(--text-1);
-    outline: none;
-    transition: border-color 0.2s ease, background 0.2s ease;
-    min-width: 0;
     width: 100%;
+    min-width: 0;
+    padding: 14px 16px;
+    font: inherit;
+    font-size: 16px;
+    color: var(--text-1);
+    background: var(--bg-1);
+    border: 1px solid var(--border-hover);
+    border-radius: 0;
+    transition: border-color 0.4s linear;
   }
-  .playable-guide-form input::placeholder {
-    color: var(--text-3);
-    letter-spacing: 0.02em;
-  }
-  .playable-guide-form input:focus {
-    border-color: var(--gold);
-    background: rgba(36, 36, 34, 0.8);
-  }
-
-  /* Consent checkbox row */
+  .playable-guide-form input::placeholder { color: var(--text-3); }
+  .playable-guide-form input:focus { outline: none; border-color: var(--gold); }
   .pg-consent {
     display: flex;
-    align-items: flex-start;
     gap: 10px;
-    font-size: 10px;
+    align-items: flex-start;
+    font-size: 14px;
     line-height: 1.5;
     color: var(--text-2);
-    margin: 2px 0;
-    cursor: pointer;
   }
-  .pg-consent input[type="checkbox"] {
-    width: 14px;
-    height: 14px;
-    margin-top: 2px;
-    accent-color: var(--gold);
-    flex-shrink: 0;
-    cursor: pointer;
-  }
-  .pg-consent a {
-    color: var(--gold);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  /* Submit */
+  .pg-consent input[type="checkbox"] { margin-top: 3px; accent-color: var(--gold); }
+  .pg-consent a { color: var(--gold); text-decoration: underline; }
   .playable-guide-form button[type="submit"] {
-    background: var(--gold);
-    border: 0;
-    color: var(--bg-1);
-    padding: 13px 22px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.20em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: background 0.25s ease;
+    margin-top: 6px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    margin-top: 4px;
-    width: 100%;
-  }
-  .playable-guide-form button[type="submit"]:hover { background: var(--gold-light); }
-  .playable-guide-form button[type="submit"]:disabled {
-    background: var(--bg-3);
-    color: var(--text-2);
-    cursor: default;
-  }
-
-  /* Meta labels just above the keys — left says "Tap a key", right says "Play" */
-  .playable-meta {
-    position: absolute;
-    top: 69%;
-    left: 0;
-    right: 0;
-    padding: 0 7%;
-    display: flex;
-    justify-content: space-between;
+    gap: 10px;
+    padding: 17px 24px 15px;
+    font-family: var(--font-display);
     font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.28em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--gold);
-    text-shadow: 0 0 16px rgba(184, 147, 90, 0.5);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.7s ease 0.3s;
-  }
-  .playable-overlay.show .playable-meta { opacity: 1; }
-  .playable-meta-dot {
-    display: inline-block;
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--gold-light);
-    margin-right: 12px;
-    vertical-align: middle;
-    box-shadow: 0 0 14px var(--gold), 0 0 26px rgba(184, 147, 90, 0.4);
-    animation: playableMetaPulse 1.8s ease-in-out infinite;
-  }
-  @keyframes playableMetaPulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.55; transform: scale(1.3); }
-  }
-  .playable-cta-eyebrow {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 18px;
-  }
-  .playable-cta-headline {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-size: clamp(36px, 4.5vw, 72px);
-    line-height: 1.05;
-    color: var(--text-1);
-    margin: 0 0 20px 0;
-  }
-  .playable-cta-headline em {
-    font-style: italic;
-    color: var(--gold);
-    font-weight: 400;
-  }
-  .playable-cta-sub {
-    font-size: clamp(14px, 1vw, 18px);
-    color: var(--text-2);
-    margin: 0;
-  }
-
-  /* Invisible click targets aligned over the keyboard in the close-up
-     image (which is rendered by the zoom canvas at its last frame, still
-     visible during the playable phase). Tune the four edge percentages
-     to match where the keys appear in the image. */
-  .playable-keys {
-    position: absolute;
-    top: 74%;
-    bottom: 12.5%;
-    left: 7%;
-    right: 6%;
-    z-index: 3;
-    overflow: hidden;
-    /* Tuned for the current close-up keys image at locked 16:9 stage.
-       If you regenerate the image, re-tune via ?debug mode. Knobs:
-         --tilt:  Z rotation (twist in screen plane)
-         --depth: X rotation (forward/back tilt around bottom edge)
-         --curve: per-key parabolic Y offset for perspective bow */
-    --tilt: 0.2deg;
-    --depth: 32deg;
-    --curve: 6px;
-    transform: rotateX(var(--depth)) rotate(var(--tilt));
-    transform-origin: center bottom;
-    transform-style: preserve-3d;
-  }
-  .pk-white { top: var(--curve-offset, 0px); }
-  .pk-black { top: var(--curve-offset, 0px); }
-  .pk-white,
-  .pk-black {
-    position: absolute;
-    cursor: pointer;
-    background: transparent;
-    transition: background 0.12s ease;
-    -webkit-tap-highlight-color: transparent;
-  }
-  /* No background tint on hover/active — the visible keys in the close-up
-     image aren't pixel-perfectly aligned with our rectangular click
-     targets, so tinting them exposes the misalignment. The note bubble
-     (floating gold italic letter) + the radial flash at the click point
-     are enough feedback, and both appear where the user actually
-     clicked, not where the click target's box is. */
-  .pk-white { height: 100%; }
-  .pk-black {
-    height: 60%;
-    z-index: 2;
-  }
-
-  /* DEBUG MODE — append ?debug to the URL to make the click targets
-     visible with gold tints and outlines so you can see exactly where
-     they sit relative to the keyboard in the image. Tune the
-     .playable-keys top/bottom/left/right values until the boxes align
-     with the visible keys. Remove ?debug from the URL when done. */
-  body.debug-keys .playable-keys {
-    outline: 2px dashed rgba(184, 147, 90, 0.9);
-    background: rgba(184, 147, 90, 0.08);
-  }
-  body.debug-keys .pk-white {
-    background: rgba(255, 255, 255, 0.20);
-    border: 1px solid rgba(0, 0, 0, 0.4);
-  }
-  body.debug-keys .pk-black {
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(184, 147, 90, 0.6);
-  }
-
-  /* Live tuner panel — only visible in ?debug mode */
-  .debug-panel {
-    display: none;
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    width: 280px;
-    z-index: 9999;
-    background: rgba(8, 8, 7, 0.95);
+    color: #FFFFFF;
+    background: var(--gold);
     border: 1px solid var(--gold);
-    padding: 16px 16px 12px;
-    font-family: 'DM Sans', monospace, sans-serif;
-    color: var(--text-1);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.6);
-    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.4s linear, color 0.4s linear;
   }
-  body.debug-keys .debug-panel { display: block; }
-  .debug-panel .debug-title {
-    font-size: 10px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 14px;
-  }
-  .debug-panel label {
-    display: block;
-    font-size: 11px;
-    margin-bottom: 10px;
-    color: var(--text-2);
-  }
-  .debug-panel label span {
-    color: var(--text-1);
-    font-weight: 500;
-    float: right;
-  }
-  .debug-panel input[type=range] {
-    width: 100%;
-    margin-top: 4px;
-    accent-color: var(--gold);
-  }
-  .debug-panel .debug-output {
-    margin: 12px 0 0;
-    padding: 10px;
-    background: rgba(184, 147, 90, 0.08);
-    border: 1px solid rgba(184, 147, 90, 0.25);
-    font-size: 10px;
-    line-height: 1.5;
-    color: var(--gold-light);
-    white-space: pre;
-    overflow-x: auto;
-    cursor: text;
-    user-select: text;
-  }
-
-  /* Click feedback — bright gold glow + bigger note name */
-  .pk-flash {
-    position: fixed;
-    pointer-events: none;
-    width: 120px; height: 120px;
-    margin-left: -60px; margin-top: -60px;
-    border-radius: 50%;
-    background: radial-gradient(circle,
-                  rgba(255, 230, 170, 0.9) 0%,
-                  rgba(212, 180, 131, 0.5) 35%,
-                  transparent 70%);
-    z-index: 50;
-    mix-blend-mode: screen;
-  }
-  .pk-note-bubble {
-    position: fixed;
-    pointer-events: none;
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 56px;
-    color: #ffe6aa;
-    text-shadow: 0 0 24px rgba(255, 230, 170, 0.9),
-                 0 0 48px rgba(212, 180, 131, 0.7),
-                 0 2px 6px rgba(0, 0, 0, 0.4);
-    z-index: 51;
-    transform: translate(-50%, -100%);
-    white-space: nowrap;
+  .playable-guide-form button[type="submit"]:hover { background: transparent; color: var(--gold); }
+  .playable-guide-form button[type="submit"]:disabled { opacity: 0.6; cursor: default; }
+  @media (max-width: 960px) {
+    .guide { padding: 72px 24px; }
+    .guide-inner { grid-template-columns: 1fr; }
+    .playable-guide-form { padding: 22px; }
+    .pg-row { grid-template-columns: 1fr; }
   }
 
   /* ============ MATCHER ============ */
@@ -951,7 +461,7 @@
     margin-bottom: 24px;
   }
   .section-h2 {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 300;
     font-size: clamp(36px, 4.5vw, 56px);
     line-height: 1.1;
@@ -981,10 +491,10 @@
   }
   .step.active {
     border-color: var(--gold);
-    background: linear-gradient(135deg, rgba(184, 147, 90, 0.08), transparent 60%), var(--bg-3);
+    background: linear-gradient(135deg, rgba(22, 34, 46, 0.08), transparent 60%), var(--bg-3);
   }
   .step-num {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-size: 32px;
     color: var(--gold);
     font-weight: 300;
@@ -1032,7 +542,7 @@
     background: transparent;
     border: 0;
     color: var(--text-1);
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 14px;
     padding: 22px 42px 22px 22px;
     appearance: none;
@@ -1074,547 +584,6 @@
   }
   .find-btn:hover { background: var(--gold-light); transform: translateY(-1px); }
 
-  /* ============ TRUST & STORY (§2) ============ */
-  .trust {
-    padding: 140px 40px;
-    background: var(--bg-1);
-    border-top: 1px solid var(--border);
-  }
-  .trust-inner {
-    max-width: 1280px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 5fr 6fr;
-    gap: clamp(40px, 6vw, 96px);
-    align-items: center;
-  }
-  .trust-photo {
-    position: relative;
-    aspect-ratio: 4 / 5;
-    background:
-      radial-gradient(ellipse at 30% 20%, rgba(184, 147, 90, 0.18), transparent 60%),
-      linear-gradient(180deg, #1f1812, #0a0807);
-    border: 1px solid var(--border);
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .trust-photo-placeholder {
-    font-size: 10px;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--text-3);
-  }
-  .trust-body {
-    font-size: 17px;
-    line-height: 1.7;
-    color: var(--text-2);
-    margin: 0 0 48px 0;
-    max-width: 560px;
-  }
-  .trust-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
-    padding-top: 36px;
-    border-top: 1px solid var(--border);
-  }
-  .trust-stat-num {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-size: clamp(36px, 4vw, 52px);
-    color: var(--gold);
-    line-height: 1;
-    margin-bottom: 12px;
-  }
-  .trust-stat-label {
-    font-size: 11px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--text-3);
-  }
-
-  /* ============ FEATURED PIANOS (§3) ============ */
-  .featured {
-    padding: 120px 40px;
-    background: var(--bg-2);
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-  }
-  .featured-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-  .featured-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 24px;
-    margin-bottom: 64px;
-  }
-  .featured-header-text { max-width: 720px; }
-  .piano-cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
-  }
-  .piano-card {
-    background: var(--bg-1);
-    border: 1px solid var(--border);
-    display: block;
-    color: inherit;
-    transition: border-color 0.3s ease, transform 0.4s ease, box-shadow 0.4s ease;
-  }
-  .piano-card:hover {
-    border-color: var(--border-hover);
-    transform: translateY(-4px);
-    box-shadow: 0 30px 50px -25px rgba(0, 0, 0, 0.8);
-  }
-  .piano-card-image {
-    position: relative;
-    aspect-ratio: 4 / 3;
-    overflow: hidden;
-  }
-  .piano-card-image--a {
-    background:
-      radial-gradient(ellipse at 30% 60%, rgba(184, 147, 90, 0.28), transparent 60%),
-      linear-gradient(135deg, #1f1812, #0a0807);
-  }
-  .piano-card-image--b {
-    background:
-      radial-gradient(ellipse at 60% 40%, rgba(184, 147, 90, 0.22), transparent 55%),
-      linear-gradient(160deg, #1a1714, #0c0a09);
-  }
-  .piano-card-image--c {
-    background:
-      radial-gradient(ellipse at 50% 70%, rgba(184, 147, 90, 0.18), transparent 50%),
-      linear-gradient(180deg, #1a1a18, #0e0e0d);
-  }
-  .piano-card-grade {
-    position: absolute;
-    top: 16px;
-    right: 18px;
-    font-size: 10px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--gold);
-    font-weight: 500;
-    padding: 6px 10px;
-    border: 1px solid var(--gold);
-    background: rgba(14, 14, 13, 0.55);
-  }
-  .piano-card-body {
-    padding: 28px 28px 30px;
-  }
-  .piano-card-brand {
-    font-size: 11px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--text-3);
-    margin: 0 0 10px 0;
-  }
-  .piano-card-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 28px;
-    line-height: 1.2;
-    margin: 0 0 22px 0;
-    color: var(--text-1);
-  }
-  .piano-card-price {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    padding-top: 18px;
-    border-top: 1px solid var(--border);
-  }
-  .piano-card-price-value {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 22px;
-    color: var(--gold);
-  }
-  .piano-card-arrow {
-    font-size: 18px;
-    color: var(--text-3);
-    transition: color 0.3s ease, transform 0.3s ease;
-  }
-  .piano-card:hover .piano-card-arrow {
-    color: var(--gold);
-    transform: translateX(4px);
-  }
-  .featured-cta-link {
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.20em;
-    text-transform: uppercase;
-    color: var(--text-1);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    transition: color 0.25s ease, gap 0.25s ease;
-  }
-  .featured-cta-link:hover { color: var(--gold); gap: 16px; }
-
-  /* ============ THE FULL JOURNEY (§4) ============ */
-  .journey {
-    padding: 140px 40px;
-    background: var(--bg-1);
-  }
-  .journey-inner {
-    max-width: 1100px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  .journey-header { max-width: 720px; margin: 0 auto 80px; }
-  .journey-header .section-h2 { margin-left: auto; margin-right: auto; }
-  .journey-steps {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    position: relative;
-  }
-  .journey-steps::before {
-    content: '';
-    position: absolute;
-    top: 48px;
-    left: 18%;
-    right: 18%;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--border) 20%, var(--border) 80%, transparent);
-  }
-  .journey-step {
-    background: transparent;
-    padding: 0 20px;
-    text-align: center;
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
-    border: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: transform 0.3s ease;
-  }
-  .journey-step:hover { transform: translateY(-4px); }
-  .journey-step-icon-wrap {
-    width: 96px;
-    height: 96px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border);
-    background: var(--bg-2);
-    border-radius: 50%;
-    margin-bottom: 28px;
-    font-size: 36px;
-    color: var(--gold);
-    transition: border-color 0.3s ease, background 0.3s ease;
-    position: relative;
-    z-index: 1;
-  }
-  .journey-step:hover .journey-step-icon-wrap {
-    border-color: var(--gold);
-    background: var(--bg-3);
-  }
-  .journey-step-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 26px;
-    margin: 0 0 8px 0;
-    color: var(--text-1);
-  }
-  .journey-step-hint {
-    font-size: 13px;
-    color: var(--text-3);
-    margin: 0;
-  }
-
-  /* ============ HOW IT WORKS / DELIVERY FLOW (§5) ============ */
-  .flow {
-    padding: 120px 40px;
-    background: var(--bg-2);
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-  }
-  .flow-inner { max-width: 1400px; margin: 0 auto; }
-  .flow-header { max-width: 720px; margin-bottom: 64px; }
-  .flow-steps {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-  }
-  .flow-step {
-    background: var(--bg-1);
-    padding: 40px 32px 44px;
-    display: flex;
-    flex-direction: column;
-    transition: background 0.3s ease;
-  }
-  .flow-step:hover { background: var(--bg-3); }
-  .flow-step-num {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 13px;
-    color: var(--gold);
-    letter-spacing: 0.22em;
-    margin-bottom: 24px;
-  }
-  .flow-step-icon {
-    font-size: 34px;
-    color: var(--gold);
-    margin-bottom: 24px;
-    display: block;
-  }
-  .flow-step-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 24px;
-    margin: 0 0 10px 0;
-    color: var(--text-1);
-  }
-  .flow-step-hint {
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--text-2);
-    margin: 0;
-  }
-
-  /* ============ TEACHER MARKETPLACE (§6) ============ */
-  .teachers-band {
-    padding: 140px 40px;
-    background: var(--bg-1);
-  }
-  .teachers-band-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1.55fr 1fr;
-    gap: 32px;
-    align-items: stretch;
-  }
-  .tb-student { padding: 0; }
-  .tb-search-row {
-    display: flex;
-    gap: 12px;
-    margin: 28px 0 36px;
-    max-width: 520px;
-  }
-  .tb-search-input {
-    flex: 1;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    color: var(--text-1);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    padding: 18px 22px;
-    outline: none;
-    transition: border-color 0.25s ease;
-  }
-  .tb-search-input::placeholder { color: var(--text-3); }
-  .tb-search-input:focus { border-color: var(--gold); }
-  .tb-search-btn {
-    background: var(--gold);
-    color: var(--bg-1);
-    border: 0;
-    padding: 0 28px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: background 0.25s ease;
-  }
-  .tb-search-btn:hover { background: var(--gold-light); }
-  .tb-teacher-cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-  }
-  .tb-teacher-card {
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    padding: 20px 22px;
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    transition: border-color 0.25s ease, background 0.25s ease;
-  }
-  .tb-teacher-card:hover { border-color: var(--border-hover); background: var(--bg-3); }
-  .tb-teacher-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background:
-      radial-gradient(circle at 30% 30%, rgba(184, 147, 90, 0.5), transparent 70%),
-      linear-gradient(135deg, #2a2520, #0e0e0d);
-    flex-shrink: 0;
-    border: 1px solid var(--border);
-  }
-  .tb-teacher-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 18px;
-    margin: 0 0 2px 0;
-    color: var(--text-1);
-  }
-  .tb-teacher-meta {
-    font-size: 12px;
-    color: var(--text-3);
-    margin: 0;
-  }
-  .tb-pro {
-    background:
-      radial-gradient(ellipse at 80% 0%, rgba(184, 147, 90, 0.18), transparent 60%),
-      var(--bg-3);
-    border: 1px solid var(--gold);
-    padding: 44px 36px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 28px;
-  }
-  .tb-pro-label {
-    font-size: 10px;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--gold);
-  }
-  .tb-pro-headline {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-size: clamp(28px, 2.4vw, 36px);
-    line-height: 1.15;
-    color: var(--text-1);
-    margin: 18px 0 14px 0;
-  }
-  .tb-pro-headline em { font-style: italic; color: var(--gold); font-weight: 400; }
-  .tb-pro-body {
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--text-2);
-    margin: 0;
-  }
-  .tb-pro-cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 16px 24px;
-    background: var(--gold);
-    color: var(--bg-1);
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    transition: background 0.25s ease;
-    border: 0;
-    cursor: pointer;
-  }
-  .tb-pro-cta:hover { background: var(--gold-light); }
-
-  /* ============ SOCIAL PROOF (§7) ============ */
-  .proof {
-    padding: 120px 40px;
-    background: var(--bg-2);
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-  }
-  .proof-inner { max-width: 1400px; margin: 0 auto; }
-  .proof-header {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 40px;
-    align-items: end;
-    margin-bottom: 56px;
-  }
-  .proof-google {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    border: 1px solid var(--border);
-    padding: 20px 24px;
-    background: var(--bg-1);
-    justify-self: end;
-    min-width: 240px;
-  }
-  .proof-google-row { display: flex; align-items: baseline; gap: 12px; }
-  .proof-google-stars {
-    font-size: 16px;
-    color: var(--gold);
-    letter-spacing: 2px;
-  }
-  .proof-google-rating {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 26px;
-    color: var(--text-1);
-    line-height: 1;
-  }
-  .proof-google-meta {
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-3);
-  }
-  .proof-body {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 32px;
-    align-items: stretch;
-  }
-  .testimonial-cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    align-content: start;
-  }
-  .testimonial {
-    background: var(--bg-1);
-    padding: 32px 28px;
-    border-left: 2px solid var(--gold);
-    margin: 0;
-  }
-  .testimonial p {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 19px;
-    line-height: 1.5;
-    color: var(--text-1);
-    margin: 0 0 24px 0;
-  }
-  .testimonial cite {
-    font-style: normal;
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-3);
-  }
-  .testimonial--feature { grid-column: span 2; }
-  .proof-photo {
-    position: relative;
-    aspect-ratio: 3 / 4;
-    background:
-      radial-gradient(ellipse at 30% 30%, rgba(184, 147, 90, 0.18), transparent 60%),
-      linear-gradient(180deg, #1f1812, #0a0807);
-    border: 1px solid var(--border);
-    display: flex;
-    align-items: end;
-    padding: 24px;
-    overflow: hidden;
-  }
-  .proof-photo-caption {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 14px;
-    color: var(--text-2);
-    max-width: 220px;
-  }
-
   /* ============ FOOTER (§8) ============ */
   .footer {
     background: var(--bg-1);
@@ -1631,7 +600,7 @@
   }
   .footer-brand .logo { font-size: 26px; }
   .footer-tagline {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-style: italic;
     font-size: 18px;
     color: var(--text-2);
@@ -1723,7 +692,7 @@
   .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(8, 8, 7, 0.7);
+    background: rgba(22, 34, 46, 0.35);
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
     opacity: 0;
@@ -1744,7 +713,7 @@
     z-index: 201;
     opacity: 0;
     pointer-events: none;
-    box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(184, 147, 90, 0.2);
+    box-shadow: 0 40px 80px -20px rgba(22, 34, 46, 0.32), 0 0 0 1px rgba(22, 34, 46, 0.2);
   }
   .match-result-popup.active { pointer-events: auto; }
   .popup-label {
@@ -1755,7 +724,7 @@
     margin-bottom: 18px;
   }
   .popup-piano-name {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-style: italic;
     font-weight: 400;
     font-size: 36px;
@@ -1816,8 +785,7 @@
     }
     .hero-copy { max-width: 100%; }
     .hero-visual { width: 100%; height: auto; aspect-ratio: 1 / 1; max-height: 60vh; justify-content: center; }
-    .hero-piano-image,
-    .hero-piano-canvas { width: 100%; height: auto; }
+    .hero-video { width: 100%; height: 100%; aspect-ratio: auto; }
 
     .matcher { padding: 80px 24px; }
     .steps { grid-template-columns: 1fr; gap: 12px; margin-bottom: 32px; }
@@ -1835,13 +803,744 @@
   /* ============ ANIM HELPERS ============ */
   .reveal { opacity: 0; }
   .reveal-ready { opacity: 1; }
-</style>
-</head>
-<body>
+  /* ==========================================================================
+     HOMEPAGE · editorial scroll story
+     Reference language (Atelier method): ERA Residence (The First The Last,
+     Awwwards Site of the Month, Aug 2026). Borrowed: condensed high-contrast
+     display caps crossed by a script word, rising arches, an image that grows
+     to full bleed, a sliding headline, a self-drawing route, a sideways
+     collection, drifting photo collage, a numbered side rail.
+     Recast in Signature's own palette: key ivory, mist blue, ink, hammer felt.
+     ========================================================================== */
+  body.home {
+    --h-ivory: #F3F0E9;
+    --h-ivory-2: #E9E5DB;
+    --h-mist: #BCCEDA;
+    --h-mist-2: #DCE6ED;
+    --h-ink: #16222E;
+    --h-ink-2: #3A4855;
+    --h-felt: #4A1520;
+    --h-display: 'Noto Serif Display', 'Bodoni Moda', Didot, Georgia, serif;
+    --h-ease: cubic-bezier(.4, 0, .1, 1);
+    /* shared tokens retuned for this page */
+    --bg-1: var(--h-ivory);
+    --bg-2: var(--h-ivory-2);
+    --bg-3: var(--h-mist-2);
+    --gold: var(--h-ink);
+    --text-1: var(--h-ink);
+    --text-2: var(--h-ink-2);
+    --font-display: var(--font-body);
+    background: var(--h-ivory);
+    color: var(--h-ink);
+  }
+  .sr-only {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  .lenis.lenis-stopped { overflow: hidden; }
 
-<!-- ============ NAV ============ -->
+  /* Type roles */
+  .h-display {
+    display: block;
+    font-family: var(--h-display);
+    font-weight: 500;
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    text-transform: uppercase;
+    line-height: 0.86;
+    letter-spacing: -0.005em;
+  }
+  .h-script {
+    display: block;
+    font-family: var(--font-script);
+    font-weight: 400;
+    text-transform: none;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+  .h-heading { margin: 0; text-align: center; color: var(--h-ink); }
+  .h-heading .h-display { font-size: clamp(56px, 8.4vw, 150px); }
+  .h-heading .h-script { font-size: clamp(64px, 8vw, 138px); margin-top: -0.32em; }
+  .h-body {
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--h-ink-2);
+    max-width: 44ch;
+  }
+  .h-label {
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--h-ink-2);
+  }
+  .h-textlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--h-ink);
+    padding: 10px 0;
+    background: linear-gradient(currentColor, currentColor) 0 calc(100% - 6px) / 0 1px no-repeat;
+    transition: background-size 0.6s var(--h-ease);
+  }
+  .h-textlink:hover { background-size: 100% 1px; }
+  .h-textlink i { transition: transform 0.6s var(--h-ease); }
+  .h-textlink:hover i { transform: translateX(6px); }
+
+  body.home .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px 32px 16px;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: var(--h-ink);
+    color: #FFFFFF;
+    border: 1px solid var(--h-ink);
+    cursor: pointer;
+    transition: background 0.4s linear, color 0.4s linear, border-color 0.4s linear;
+  }
+  body.home .btn-primary:hover { background: transparent; color: var(--h-ink); }
+
+  /* Round button with its label set around the ring */
+  .h-circle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 132px;
+    height: 132px;
+    border-radius: 50%;
+    color: var(--h-ink);
+  }
+  .h-circle svg.h-ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    animation: h-spin 22s linear infinite;
+  }
+  .h-circle svg.h-ring text {
+    font-family: var(--font-body);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    fill: currentColor;
+  }
+  .h-circle .h-circle-core {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: background 0.4s linear, color 0.4s linear, transform 0.6s var(--h-ease);
+  }
+  .h-circle:hover .h-circle-core { background: currentColor; transform: scale(1.08); }
+  .h-circle:hover .h-circle-core i { color: var(--h-ivory); }
+  .h-circle.is-light { color: #FFFFFF; }
+  .h-circle.is-light:hover .h-circle-core i { color: var(--h-ink); }
+  @keyframes h-spin { to { transform: rotate(360deg); } }
+
+  /* Side rail: which chapter you're in */
+  .h-rail {
+    position: fixed;
+    left: 26px;
+    top: 50%;
+    z-index: 90;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: #FFFFFF;
+    mix-blend-mode: difference;
+    pointer-events: none;
+  }
+  .h-rail-line { width: 1px; height: 84px; background: rgba(255, 255, 255, 0.45); position: relative; overflow: hidden; }
+  .h-rail-fill { position: absolute; left: 0; top: 0; width: 1px; height: 100%; background: #FFFFFF; transform-origin: top; transform: scaleY(0); }
+
+  /* Header floats over the hero photograph */
+  body.home.over-hero nav#nav { background: transparent; border-bottom-color: transparent; }
+  body.home.over-hero nav#nav .logo,
+  body.home.over-hero nav#nav .logo span,
+  body.home.over-hero nav#nav .nav-link-plain,
+  body.home.over-hero nav#nav .nav-link-trigger,
+  body.home.over-hero nav#nav .nav-chevron,
+  body.home.over-hero nav#nav .nav-burger,
+  body.home.over-hero nav#nav .sp-nav-call { color: #FFFFFF; opacity: 1; }
+  body.home.over-hero nav#nav .nav-account-trigger { color: #FFFFFF; border-color: rgba(255, 255, 255, 0.6); }
+  body.home.over-hero nav#nav .nav-cta { background: #FFFFFF; border-color: #FFFFFF; color: var(--h-ink); }
+  body.home.over-hero nav#nav .nav-cta:hover { background: transparent; color: #FFFFFF; }
+
+  /* ============ 01 HERO ============ */
+  .h-hero {
+    position: relative;
+    height: 100vh;
+    height: 100svh;
+    min-height: 620px;
+    background: var(--h-felt);
+    overflow: hidden;
+    color: #FFFFFF;
+  }
+  .h-hero-media { position: absolute; inset: 0; will-change: clip-path; }
+  .h-hero-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 62%;
+    transform-origin: 50% 70%;
+  }
+  .h-hero-scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(10, 12, 16, 0.7) 0%, rgba(10, 12, 16, 0.32) 48%, rgba(10, 12, 16, 0.6) 100%);
+    pointer-events: none;
+  }
+  /* The content sits centred in the band between the header and the top of
+     the arch (the arch rises 30vh into the hero), so the button never
+     crowds the next section. */
+  .h-hero-content {
+    position: absolute;
+    left: 0; right: 0;
+    top: 0;
+    bottom: 30vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 118px 24px 28px;
+  }
+  .h-hero-title { margin: 0; max-width: min(1500px, 92vw); }
+  .h-hero-title .h-display { display: block; font-size: clamp(52px, 6.4vw, 124px); line-height: 0.92; text-wrap: balance; }
+  .h-kicker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    margin: 36px 0 0;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+  .h-kicker-line { width: 90px; height: 1px; background: currentColor; opacity: 0.7; }
+  .h-hero-sub {
+    margin: 30px 0 0;
+    max-width: 44ch;
+    font-size: clamp(17px, 1.35vw, 21px);
+    line-height: 1.55;
+    color: #FFFFFF;
+    text-shadow: 0 1px 18px rgba(0, 0, 0, 0.35);
+  }
+  .h-hero-actions { margin-top: 34px; }
+  body.home .h-btn-light { background: #FFFFFF; color: var(--h-ink); border-color: #FFFFFF; }
+  body.home .h-btn-light:hover { background: transparent; color: #FFFFFF; }
+  .h-hero-circle {
+    position: absolute;
+    right: 5vw;
+    bottom: 9vh;
+  }
+
+  /* ============ 02 ARCH: why a Japanese piano ============ */
+  .h-arch {
+    position: relative;
+    z-index: 3;
+    margin-top: -30vh;
+    padding: 0 24px 120px;
+    pointer-events: none;
+  }
+  .h-arch-shape {
+    position: relative;
+    width: min(100%, 1180px);
+    margin: 0 auto;
+    padding: clamp(150px, 19vw, 280px) clamp(24px, 7vw, 120px) 90px;
+    background: var(--h-mist);
+    border-radius: 100vw 100vw 0 0;
+    text-align: center;
+    pointer-events: auto;
+  }
+  .h-arch-text {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .h-arch-text text {
+    font-family: var(--h-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: 40px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    fill: var(--h-ink);
+  }
+  .h-arch-mark { font-size: clamp(54px, 6vw, 84px); color: var(--h-ink); }
+  .h-reasons {
+    list-style: none;
+    margin: 36px auto 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 40px;
+    max-width: 960px;
+    text-align: left;
+  }
+  .h-reasons li { border-top: 1px solid rgba(22, 34, 46, 0.3); padding-top: 20px; }
+  .h-reasons h3 {
+    margin: 0 0 10px;
+    font-family: var(--h-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: 30px;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+  .h-reasons p { margin: 0; font-size: 16px; line-height: 1.65; color: var(--h-ink-2); }
+
+  /* ============ 03 BUYER'S GUIDE, concept statement ============ */
+  .h-concept { position: relative; background: var(--h-ivory); }
+  .h-concept-pin {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 130px 24px 70px;
+    text-align: center;
+    overflow: hidden;
+  }
+  .h-concept-label { margin: 0; }
+  .h-concept-statement {
+    margin: 0;
+    max-width: 1000px;
+    font-family: var(--h-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: clamp(34px, 3.8vw, 64px);
+    line-height: 1.02;
+    text-transform: uppercase;
+    text-wrap: balance;
+    color: var(--h-ink);
+    transform-origin: 50% 50%;
+  }
+  .h-concept-form { width: min(100%, 760px); text-align: left; }
+  .h-concept-form .playable-guide-form { box-shadow: 0 30px 60px -42px rgba(22, 34, 46, 0.45); }
+
+  /* ============ 04 QUOTE ============ */
+  .h-quote { position: relative; height: 110vh; min-height: 640px; overflow: hidden; color: #FFFFFF; }
+  .h-quote-media { position: absolute; inset: -10% 0; margin: 0; }
+  .h-quote-media img { width: 100%; height: 100%; object-fit: cover; object-position: 40% 50%; }
+  .h-quote::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(10, 12, 16, 0.62) 0%, rgba(10, 12, 16, 0.1) 70%);
+  }
+  .h-quote blockquote {
+    position: absolute;
+    z-index: 1;
+    left: clamp(24px, 8vw, 140px);
+    bottom: 16vh;
+    margin: 0;
+    max-width: 640px;
+  }
+  .h-quote blockquote p {
+    margin: 0;
+    font-family: var(--h-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 400;
+    font-size: clamp(30px, 3.4vw, 50px);
+    line-height: 1.12;
+    text-transform: uppercase;
+  }
+  .h-quote blockquote footer { margin-top: 26px; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255, 255, 255, 0.82); }
+
+  /* ============ 05 GRAND PIANOS ============ */
+  .h-grands { position: relative; background: var(--h-ivory); padding: 130px 24px 120px; border-top: 1px solid rgba(22, 34, 46, 0.12); }
+  .h-grands-head { text-align: center; }
+  .h-grands-head .h-body { margin: 22px auto 0; text-align: center; }
+  .h-grands-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(20px, 3vw, 44px);
+    max-width: 1320px;
+    margin: 70px auto 0;
+    align-items: start;
+  }
+  .h-grand:nth-child(2) { margin-top: 90px; }
+  .h-grand a { display: flex; flex-direction: column; gap: 18px; color: var(--h-ink); }
+  .h-grand figure { margin: 0; aspect-ratio: 4 / 5; overflow: hidden; background: var(--h-ivory-2); }
+  .h-grand img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--h-ease); }
+  .h-grand a:hover img { transform: scale(1.04); }
+  .h-grand-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    border-top: 1px solid rgba(22, 34, 46, 0.25);
+    padding-top: 16px;
+  }
+  .h-grand-brand { display: block; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--h-ink-2); }
+  .h-grand h3 {
+    margin: 6px 0 0;
+    font-family: var(--h-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: clamp(40px, 3.4vw, 58px);
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+  .h-grand p { margin: 8px 0 0; font-size: 15px; color: var(--h-ink-2); }
+  .h-grand p.h-grand-note { margin-top: 4px; font-size: 12px; }
+  .h-credits { max-width: 1320px; margin: 50px auto 0; font-size: 12px; line-height: 1.6; color: var(--h-ink-2); text-align: center; }
+  .h-credits a { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ============ 06 ROUTE ============ */
+  .h-route { position: relative; padding: 120px 24px 140px; background: var(--h-ivory); border-top: 1px solid rgba(22, 34, 46, 0.12); }
+  .h-route-lede { text-align: center; margin: 20px auto 0; }
+  .h-route-map { position: relative; max-width: 1240px; margin: 70px auto 0; aspect-ratio: 1200 / 260; }
+  .h-route-map svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .h-route-path { fill: none; stroke: var(--h-ink); stroke-width: 1.6; stroke-linecap: round; }
+  .h-route-stops { list-style: none; margin: 0; padding: 0; }
+  .h-route-stop { position: absolute; width: 0; height: 0; }
+  .h-route-stop .h-dot {
+    position: absolute; left: -6px; top: -6px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--h-ivory); border: 1.5px solid var(--h-ink);
+    transition: background 0.4s linear, transform 0.6s var(--h-ease);
+  }
+  .h-route-stop.is-reached .h-dot { background: var(--h-ink); transform: scale(1.15); }
+  .h-stop-text {
+    position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%);
+    width: 170px; display: flex; flex-direction: column; gap: 4px; text-align: center;
+    opacity: 0.35; transition: opacity 0.6s linear;
+  }
+  .h-route-stop.is-reached .h-stop-text { opacity: 1; }
+  .h-route-stop.is-below .h-stop-text { bottom: auto; top: 20px; }
+  .h-stop-text strong { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 500; }
+  .h-stop-text span { font-size: 13px; color: var(--h-ink-2); }
+
+  /* ============ 07 COLLECTION ============ */
+  .h-collection { position: relative; background: var(--h-mist-2); overflow: hidden; }
+  .h-collection-pin { padding: 118px 0 40px; }
+  .h-collection-head { text-align: center; padding: 0 24px; }
+  .h-collection-head .h-body { margin: 22px auto 0; text-align: center; }
+  .h-collection-head .h-heading .h-display { font-size: clamp(52px, 6.4vw, 112px); }
+  .h-collection-head .h-heading .h-script { font-size: clamp(56px, 6vw, 104px); }
+  .h-collection-track {
+    display: flex;
+    gap: 28px;
+    padding: 40px clamp(24px, 8vw, 140px) 10px;
+    will-change: transform;
+  }
+  .h-card {
+    flex: 0 0 clamp(240px, 21vw, 330px);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    color: var(--h-ink);
+  }
+  .h-card figure { margin: 0; aspect-ratio: 1 / 1; overflow: hidden; background: #FFFFFF; }
+  .h-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--h-ease); }
+  .h-card:hover img { transform: scale(1.05); }
+  .h-card-meta { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+  .h-card h3 {
+    margin: 0;
+    font-family: var(--h-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: 32px;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+  .h-card p { margin: 6px 0 0; font-size: 14px; color: var(--h-ink-2); }
+  .h-card-cta { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; white-space: nowrap; padding-top: 6px; }
+  .h-card-all {
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 1;
+    border: 1px solid rgba(22, 34, 46, 0.3);
+    align-self: flex-start;
+    transition: background 0.4s linear, color 0.4s linear;
+  }
+  .h-card-all .h-display { font-size: 56px; }
+  .h-card-all .h-script { font-size: 64px; margin-top: -0.3em; }
+  .h-card-all:hover { background: var(--h-ink); color: var(--h-ivory); }
+  .h-collection-note { text-align: center; font-size: 13px; color: var(--h-ink-2); margin: 28px 24px 0; }
+
+  /* ============ 08 DETAIL COLLAGE ============ */
+  .h-detail { position: relative; padding: 150px 24px 170px; background: var(--h-ivory); overflow: hidden; }
+  .h-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(32px, 6vw, 100px);
+    max-width: 1240px;
+    margin: 0 auto;
+    align-items: center;
+  }
+  .h-detail-head .h-heading { text-align: left; }
+  .h-detail-head .h-heading .h-script { margin-left: 0.6em; }
+  .h-detail-head .h-body { margin: 28px 0 22px; }
+  .h-collage { position: relative; height: clamp(520px, 56vw, 760px); }
+  .h-collage figure { position: absolute; margin: 0; overflow: hidden; }
+  .h-collage img { width: 100%; height: 100%; object-fit: cover; }
+  .h-collage .c-block { position: absolute; background: var(--h-felt); }
+  .h-collage .c1 { left: 6%; top: 4%; width: 46%; height: 58%; }
+  .h-collage .c-block { left: 0; top: 30%; width: 34%; height: 56%; }
+  .h-collage .c2 { right: 0; top: 0; width: 40%; height: 40%; }
+  .h-collage .c3 { right: 6%; bottom: 0; width: 44%; height: 44%; }
+  .h-collage .c4 { left: 22%; bottom: 2%; width: 30%; height: 30%; }
+
+  /* ============ 09 MATCHER (existing component, re-dressed) ============ */
+  body.home .matcher { background: var(--h-mist-2); }
+  body.home .matcher .section-label { color: var(--h-ink-2); }
+  body.home .matcher .section-h2 {
+    font-family: var(--h-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: clamp(48px, 6vw, 96px);
+    line-height: 0.92;
+  }
+  body.home .matcher .section-h2 em { font-family: var(--font-script); text-transform: none; font-style: normal; font-weight: 400; font-size: 1.1em; }
+
+  /* ============ 10 TEACHERS MAP ============ */
+  .h-teachers { background: var(--h-ivory); padding: 130px 24px 110px; }
+  .h-teachers-head { text-align: center; }
+  .h-teachers-head .h-body { margin: 22px auto 0; text-align: center; }
+  .h-map-wrap {
+    position: relative;
+    max-width: 1320px;
+    height: min(72vh, 680px);
+    margin: 56px auto 0;
+    overflow: hidden;
+    background: var(--h-mist-2);
+    border: 1px solid rgba(22, 34, 46, 0.14);
+  }
+  /* MapLibre's own stylesheet sets position: relative on the map container,
+     so the size must come from width/height, not from inset. */
+  .h-map { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .h-map-status[hidden], .h-map-card[hidden] { display: none; }
+  .h-map-status { position: absolute; inset: 0; margin: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; font-size: 15px; color: var(--h-ink-2); }
+  /* Pins are the teacher's own photo (initials when there isn't one) */
+  .h-pin {
+    width: 46px; height: 46px;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 50%;
+    border: 2px solid #FFFFFF;
+    background: var(--h-ink);
+    color: #FFFFFF;
+    display: grid;
+    place-items: center;
+    font: 600 13px/1 var(--font-body);
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(22, 34, 46, 0.35);
+    transition: transform 0.3s var(--h-ease), box-shadow 0.3s linear;
+  }
+  .h-pin img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .h-pin:hover { transform: scale(1.12); }
+  .h-pin.is-active { transform: scale(1.2); box-shadow: 0 0 0 3px var(--h-felt), 0 8px 18px rgba(22, 34, 46, 0.4); }
+  .h-map-card {
+    position: absolute;
+    left: 20px; bottom: 20px;
+    z-index: 3;
+    width: min(360px, calc(100% - 40px));
+    max-height: calc(100% - 40px);
+    overflow-y: auto;
+    padding: 0;
+    background: #FFFFFF;
+    border: 1px solid rgba(22, 34, 46, 0.14);
+    box-shadow: 0 24px 50px -24px rgba(22, 34, 46, 0.45);
+  }
+  .h-map-photo { margin: 0; aspect-ratio: 2 / 1; background: var(--h-mist-2); }
+  .h-map-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .h-map-body { padding: 20px 22px 22px; }
+  .h-map-name {
+    margin: 0;
+    font-family: var(--h-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: 28px;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+  .h-map-sub { margin: 10px 0 0; font-size: 15px; color: var(--h-ink-2); }
+  .h-map-headline { margin: 10px 0 0; font-size: 15px; line-height: 1.5; color: var(--h-ink); }
+  .h-map-price { display: flex; align-items: baseline; gap: 8px; margin-top: 14px; }
+  .h-map-amount {
+    font-family: var(--h-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: 36px;
+    line-height: 1;
+  }
+  .h-map-unit { font-size: 14px; color: var(--h-ink-2); }
+  .h-map-trial { margin: 4px 0 0; font-size: 14px; font-weight: 500; color: var(--h-felt); }
+  .h-map-tags { margin: 8px 0 18px; font-size: 14px; color: var(--h-ink-2); }
+  .h-map-headline:empty, .h-map-trial:empty, .h-map-price[hidden] { display: none; }
+  .h-map-close {
+    position: absolute; top: 10px; right: 10px; z-index: 1;
+    width: 40px; height: 40px;
+    border: 0; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    font-size: 18px; color: var(--h-ink); cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .h-map-foot { max-width: 1320px; margin: 20px auto 0; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--h-ink-2); }
+
+  /* Buyer's guide, re-dressed */
+  body.home .guide { background: var(--h-mist-2); border: 0; }
+  body.home .guide-headline {
+    font-family: var(--h-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: clamp(46px, 5vw, 84px);
+    line-height: 0.95;
+  }
+  body.home .guide-headline em { font-family: var(--font-script); text-transform: none; font-style: normal; font-weight: 400; font-size: 1.12em; }
+
+  /* ============ 11 VISIT ============ */
+  .h-visit { position: relative; min-height: 100vh; overflow: hidden; color: #FFFFFF; display: flex; align-items: flex-end; }
+  .h-visit-media { position: absolute; inset: -8% 0; margin: 0; }
+  .h-visit-media img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; }
+  /* Ink scrim, never under 35% where the white logo sits (brand rule) */
+  .h-visit::after { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(22, 34, 46, 0.74) 0%, rgba(22, 34, 46, 0.4) 55%, rgba(22, 34, 46, 0.44) 100%); }
+  /* Logo lockup above the suburb name */
+  .h-visit-brand {
+    position: absolute;
+    z-index: 1;
+    top: 16vh;
+    left: 0;
+    right: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(28px, 3vw, 44px);
+    text-align: center;
+    color: #FFFFFF;
+  }
+  /* The master logo leads; the suburb reads as its caption. The gap keeps
+     twice the PIANOS cap height clear around the logo. */
+  .h-visit-logo { display: block; width: clamp(320px, 36vw, 620px); height: auto; }
+  .h-visit-word { font-size: clamp(34px, 3.4vw, 58px); letter-spacing: 0.08em; text-wrap: balance; }
+  .h-visit-label { display: block; margin-bottom: 14px; color: rgba(255, 255, 255, 0.85); }
+  .h-visit { justify-content: center; }
+  .h-visit-card {
+    position: relative;
+    z-index: 2;
+    margin: 0 auto 11vh;
+    max-width: 460px;
+    padding: 0 24px;
+    text-align: center;
+  }
+  .h-visit-card .h-script { font-size: 72px; margin-bottom: 10px; }
+  .h-visit-card address { font-style: normal; font-size: 18px; line-height: 1.6; }
+  .h-visit-card p { margin: 14px 0 0; font-size: 16px; line-height: 1.7; }
+  .h-visit-card a:not(.btn-primary) { color: #FFFFFF; text-decoration: underline; text-underline-offset: 4px; }
+  .h-visit-actions { display: flex; gap: 22px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
+  body.home .h-visit .btn-primary { background: #FFFFFF; color: var(--h-ink); border-color: #FFFFFF; }
+  body.home .h-visit .btn-primary:hover { background: transparent; color: #FFFFFF; }
+
+  /* Footer on the ivory ground */
+  body.home .footer { background: var(--h-ivory); }
+
+  /* ============ Phones and tablets ============ */
+  @media (max-width: 960px) {
+    .h-rail { display: none; }
+    .h-hero-content { bottom: calc(18vh + 128px); padding: 96px 20px 12px; }
+    .h-kicker { gap: 12px; font-size: 10.5px; letter-spacing: 0.22em; }
+    .h-kicker-line { width: 36px; }
+    .h-hero-circle { right: auto; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); }
+    .h-kicker { flex-direction: column; gap: 6px; }
+    .h-kicker-line { display: none; }
+    .h-circle { width: 112px; height: 112px; }
+    .h-arch { margin-top: -18vh; padding: 0 12px 80px; }
+    .h-arch-shape { padding: 120px 22px 56px; }
+    .h-arch-text text { font-size: 52px; letter-spacing: 0.16em; }
+    .h-reasons { grid-template-columns: 1fr; gap: 26px; }
+    .h-concept-pin { min-height: 0; padding: 90px 16px 80px; }
+    .h-grands { padding: 90px 20px; }
+    .h-grands-grid { grid-template-columns: 1fr; gap: 56px; margin-top: 44px; }
+    .h-grand:nth-child(2) { margin-top: 0; }
+    .h-map-wrap { height: 460px; margin-top: 36px; }
+    .h-route { padding: 90px 16px 100px; }
+    .h-route-map { aspect-ratio: auto; height: auto; margin-top: 40px; }
+    .h-route-map svg { display: none; }
+    .h-route-stops { display: grid; gap: 26px; border-left: 1px solid var(--h-ink); padding-left: 24px; margin-left: 8px; }
+    .h-route-stop { position: relative; width: auto; height: auto; left: auto !important; top: auto !important; }
+    .h-route-stop .h-dot { left: -31px; top: 3px; }
+    .h-stop-text, .h-route-stop.is-below .h-stop-text { position: static; transform: none; width: auto; text-align: left; opacity: 1; }
+    .h-collection-pin { padding: 80px 0 60px; }
+    .h-collection-track { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 40px 24px 16px; scrollbar-width: none; }
+    .h-collection-track::-webkit-scrollbar { display: none; }
+    .h-card { flex-basis: 78vw; scroll-snap-align: center; }
+    .h-card figure { aspect-ratio: 4 / 5; }
+    .h-detail { padding: 100px 20px 110px; }
+    .h-detail-grid { grid-template-columns: 1fr; }
+    .h-collage { height: 118vw; }
+    .h-teachers { padding: 90px 16px; }
+    .h-visit-card { margin: 0 auto calc(110px + env(safe-area-inset-bottom, 0px)); }
+    .h-visit-brand { top: calc(64px + 6vh); gap: 26px; }
+    .h-visit-logo { width: min(80vw, 380px); }
+    .h-map-card { left: 12px; right: 12px; bottom: 12px; width: auto; max-height: calc(100% - 24px); }
+    .h-map-photo { aspect-ratio: 16 / 6; }
+  }
+  @media (max-width: 520px) {
+    .h-hero-title .h-display { font-size: 12.6vw; line-height: 0.95; }
+    .h-hero-title .h-script { font-size: 22vw; }
+    .h-heading .h-display { font-size: 16vw; }
+    .h-heading .h-script { font-size: 18vw; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .h-circle svg.h-ring { animation: none; }
+  }
+</style>
+<link rel="stylesheet" href="/css/signature-theme.css" />
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/media/brand/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
+</head>
+<body class="home over-hero">
+
+<div class="sp-topbar" role="region" aria-label="Contact details">
+  <span>Pianos imported direct from Japan</span>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley</a>
+  <a class="sp-topbar-phone" href="tel:+61479128955">0479 128 955</a>
+</div>
+
 <nav id="nav">
-  <a href="#" class="logo">Signature <span>Pianos</span></a>
+  <a href="/" class="logo" aria-label="Signature Pianos home">Signature <span>Pianos</span></a>
   <div class="nav-links">
 
     <!-- Pianos dropdown — products only -->
@@ -1850,33 +1549,21 @@
         Pianos <i class="ti ti-chevron-down nav-chevron"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--pianos" role="menu">
-        <a href="instruments/index.html?cat=upright" class="nav-dd-item">
+        <a href="/instruments/?cat=upright" class="nav-dd-item">
           <i class="ti ti-bookmark nav-dd-icon"></i>
-          <div class="nav-dd-text">
-            <h4>Used Japanese uprights</h4>
-            <p>Hand-selected, imported direct from Japan</p>
-          </div>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese uprights</h4><p>Hand-picked in Japan, checked in Melbourne</p></div>
         </a>
-        <a href="instruments/index.html?cat=grand" class="nav-dd-item">
+        <a href="/instruments/?cat=grand" class="nav-dd-item">
           <i class="ti ti-crown nav-dd-icon"></i>
-          <div class="nav-dd-text">
-            <h4>Used Japanese grands</h4>
-            <p>Concert &amp; baby grands, fully restored</p>
-          </div>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese grands</h4><p>Salon and concert grands from Yamaha and Kawai</p></div>
         </a>
-        <a href="instruments/index.html?cat=digital" class="nav-dd-item">
+        <a href="/instruments/?cat=digital" class="nav-dd-item">
           <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text">
-            <h4>Digital pianos</h4>
-            <p>Modern instruments for any space</p>
-          </div>
+          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Roland, Kawai, Casio and Yamaha, coming soon</p></div>
         </a>
-        <a href="instruments/index.html?cat=books" class="nav-dd-item">
+        <a href="/blog" class="nav-dd-item">
           <i class="ti ti-book nav-dd-icon"></i>
-          <div class="nav-dd-text">
-            <h4>Sheet music &amp; books</h4>
-            <p>For students and teachers alike</p>
-          </div>
+          <div class="nav-dd-text"><h4>Buying advice</h4><p>Plain answers before you choose a piano</p></div>
         </a>
       </div>
     </div>
@@ -1887,26 +1574,17 @@
         Services <i class="ti ti-chevron-down nav-chevron"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--services" role="menu">
-        <a href="services/delivery-warranty.html" class="nav-dd-item">
+        <a href="/services/delivery-warranty.html" class="nav-dd-item">
           <i class="ti ti-truck-delivery nav-dd-icon"></i>
-          <div class="nav-dd-text">
-            <h4>Delivery &amp; warranty</h4>
-            <p>White glove delivery, tracked end to end</p>
-          </div>
+          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White-glove delivery and a 10-year warranty</p></div>
         </a>
-        <a href="services/book-a-viewing.html" class="nav-dd-item">
+        <a href="/services/book-a-viewing.html" class="nav-dd-item">
           <i class="ti ti-calendar-event nav-dd-icon"></i>
-          <div class="nav-dd-text">
-            <h4>Book a viewing</h4>
-            <p>Visit our showroom, try before you buy</p>
-          </div>
+          <div class="nav-dd-text"><h4>Book a visit</h4><p>Play the pianos in our Mount Waverley showroom</p></div>
         </a>
-        <a href="services/tuning-servicing.html" class="nav-dd-item">
+        <a href="/services/tuning-servicing.html" class="nav-dd-item">
           <i class="ti ti-tool nav-dd-icon"></i>
-          <div class="nav-dd-text">
-            <h4>Tuning &amp; servicing</h4>
-            <p>Keep your piano in perfect condition</p>
-          </div>
+          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Tuning and care for pianos across Melbourne</p></div>
         </a>
       </div>
     </div>
@@ -1920,38 +1598,26 @@
         <div class="nav-dd-section">
           <div class="nav-dd-section-label">For students</div>
           <div class="nav-dd-grid">
-            <a href="teachers.html" class="nav-dd-item">
+            <a href="/teachers.html" class="nav-dd-item">
               <i class="ti ti-search nav-dd-icon"></i>
-              <div class="nav-dd-text">
-                <h4>Find a teacher</h4>
-                <p>Browse local piano teachers by suburb</p>
-              </div>
+              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Piano teachers across Melbourne, via TeachMusic</p></div>
             </a>
-            <a href="teachers.html?nearby=1" class="nav-dd-item">
+            <a href="/teachers-match.html" class="nav-dd-item">
               <i class="ti ti-map-pin nav-dd-icon"></i>
-              <div class="nav-dd-text">
-                <h4>Teachers near me</h4>
-                <p>Use your location to find teachers close by</p>
-              </div>
+              <div class="nav-dd-text"><h4>Match me with a teacher</h4><p>A few quick questions, three suggestions</p></div>
             </a>
           </div>
         </div>
         <div class="nav-dd-section">
           <div class="nav-dd-section-label">For teachers</div>
           <div class="nav-dd-grid">
-            <a href="teachers.html#signup" class="nav-dd-item">
+            <a href="https://www.teachmusic.com.au/for-teachers" class="nav-dd-item" target="_blank" rel="noopener">
               <i class="ti ti-list-details nav-dd-icon"></i>
-              <div class="nav-dd-text">
-                <h4>List your studio</h4>
-                <p>Free listing, reach new students instantly</p>
-              </div>
+              <div class="nav-dd-text"><h4>List your studio</h4><p>Reach new students on TeachMusic, our sister platform</p></div>
             </a>
-            <a href="teachers.html#dashboard" class="nav-dd-item">
+            <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
               <i class="ti ti-layout-grid nav-dd-icon"></i>
-              <div class="nav-dd-text">
-                <h4>Teacher dashboard</h4>
-                <p>Manage bookings, students &amp; your schedule</p>
-              </div>
+              <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
             </a>
           </div>
         </div>
@@ -1959,7 +1625,7 @@
     </div>
 
     <a href="/blog" class="nav-link-plain">Blog</a>
-    <a href="about.html" class="nav-link-plain">About</a>
+    <a href="/about.html" class="nav-link-plain">About</a>
   </div>
 
   <div class="nav-ctas">
@@ -1969,122 +1635,86 @@
         <i class="ti ti-user"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--account" role="menu">
-        <a href="#" class="nav-dd-item">
+        <a href="/portal" class="nav-dd-item">
           <i class="ti ti-user nav-dd-icon"></i>
-          <div class="nav-dd-text">
-            <h4>Customer portal</h4>
-            <p>Track delivery, view purchases, manage warranty</p>
-          </div>
+          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track your delivery and warranty</p></div>
         </a>
-        <a href="teachers.html#dashboard" class="nav-dd-item">
+        <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
           <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text">
-            <h4>Teacher dashboard</h4>
-            <p>Manage bookings, students &amp; your studio</p>
-          </div>
+          <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
         </a>
       </div>
     </div>
-    <button class="nav-cta">Book a visit</button>
+    <a class="nav-cta" href="/services/book-a-viewing.html">Book a visit</a>
   </div>
   <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+  <a class="sp-nav-call" href="tel:+61479128955" aria-label="Call Signature Pianos on 0479 128 955"><i class="ti ti-phone" aria-hidden="true"></i></a>
 </nav>
 
-<!-- ============ HERO ============ -->
-<section class="hero">
-  <!-- Phase 2 full-bleed zoom canvas — hidden until the opening finishes,
-       then cross-fades in over the right-column opening canvas while the
-       text fades out, plays Clip D as scroll continues -->
-  <canvas class="hero-zoom-canvas" id="zoomCanvas" width="1280" height="720" aria-hidden="true"></canvas>
-  <div class="hero-inner">
-    <div class="hero-copy">
-      <!-- Three stacked text scenes cycle through during Phase 1 (the
-           piano opening). Each one has its own eyebrow / headline /
-           sub / CTAs. JS drives opacity based on scroll progress. -->
-      <div class="hero-copy-scene" data-scene="0">
-        <div class="hero-eyebrow">Melbourne's Piano House</div>
-        <h1 class="hero-h1">Find the piano<br/>that <em>moves</em> you.</h1>
-        <p class="hero-sub">From first lesson to concert hall. We match every buyer to the perfect instrument — with expert guidance, not sales pressure.</p>
-        <div class="hero-btns">
-          <button class="btn-primary" onclick="document.getElementById('matcher').scrollIntoView({behavior:'smooth'})">Find my piano</button>
-          <a href="instruments/index.html" class="btn-link">Explore instruments <i class="ti ti-arrow-right"></i></a>
-        </div>
-      </div>
+<div class="h-rail" aria-hidden="true">
+  <span class="h-rail-now">01</span>
+  <span class="h-rail-line"><span class="h-rail-fill"></span></span>
+  <span class="h-rail-total">10</span>
+</div>
 
-      <div class="hero-copy-scene" data-scene="1">
-        <div class="hero-eyebrow">Two hundred instruments</div>
-        <h1 class="hero-h1">Hand-picked.<br/><em>Quality</em>-checked.</h1>
-        <p class="hero-sub">Grands, uprights, and digitals — every piece vetted for tone, action and history before it earns its place in our Melbourne showroom.</p>
-        <div class="hero-btns">
-          <a href="instruments/index.html" class="btn-primary">Browse the collection</a>
-          <a href="instruments/index.html?brand=Yamaha" class="btn-link">Filter by brand <i class="ti ti-arrow-right"></i></a>
-        </div>
-      </div>
+<main>
 
-      <div class="hero-copy-scene" data-scene="2">
-        <div class="hero-eyebrow">Verified Melbourne teachers</div>
-        <h1 class="hero-h1">Find a teacher<br/>who <em>fits</em>.</h1>
-        <p class="hero-sub">80+ vetted piano teachers across every suburb, style and skill level. Match in minutes, book a trial lesson today — and we'll handle the introduction.</p>
-        <div class="hero-btns">
-          <a href="teachers.html" class="btn-primary">Find a teacher</a>
-          <a href="teachers-match.html" class="btn-link">Get matched in 90s <i class="ti ti-arrow-right"></i></a>
-        </div>
-      </div>
-    </div>
-    <div class="hero-visual">
-      <canvas class="hero-piano-canvas" id="heroCanvas" width="900" height="900" aria-label="Signature grand piano opening as you scroll"></canvas>
+<!-- ============ 01 HERO ============ -->
+<section class="h-hero" id="top" data-chapter>
+  <div class="h-hero-media">
+    <img src="/media/home/hall-japan.webp"
+         srcset="/media/home/hall-japan-sm.webp 1100w, /media/home/hall-japan.webp 2048w"
+         sizes="100vw" fetchpriority="high"
+         alt="A black grand piano alone on the stage of a wood-panelled concert hall">
+  </div>
+  <div class="h-hero-scrim"></div>
+  <div class="h-hero-content">
+    <h1 class="h-hero-title"><span class="h-display">Melbourne's luxury piano showroom</span></h1>
+    <p class="h-hero-sub">Hand-selected pre-loved grand and upright pianos, imported direct from Japan to Mount Waverley.</p>
+    <div class="h-hero-actions">
+      <a class="btn-primary h-btn-light" href="/services/book-a-viewing.html">Book a visit</a>
     </div>
   </div>
+  <a class="h-circle is-light h-hero-circle" href="#grands" aria-label="Browse the pianos">
+    <svg class="h-ring" viewBox="0 0 132 132" aria-hidden="true">
+      <defs><path id="ringHero" d="M66,66 m-52,0 a52,52 0 1,1 104,0 a52,52 0 1,1 -104,0"></path></defs>
+      <text><textPath href="#ringHero">Browse the pianos · Mount Waverley ·</textPath></text>
+    </svg>
+    <span class="h-circle-core"><i class="ti ti-arrow-down" aria-hidden="true"></i></span>
+  </a>
+</section>
 
-  <div class="scroll-cue">
-    Scroll to explore
-    <i class="ti ti-chevron-down"></i>
+<!-- ============ 02 ARCH: why a Japanese piano ============ -->
+<section class="h-arch" id="why" data-chapter aria-labelledby="whyTitle">
+  <div class="h-arch-shape">
+    <svg class="h-arch-text" viewBox="0 0 1000 500" aria-hidden="true">
+      <defs><path id="archPath" d="M 70 500 A 430 430 0 0 1 930 500"></path></defs>
+      <text><textPath href="#archPath" startOffset="50%" text-anchor="middle">Why Signature Pianos</textPath></text>
+    </svg>
+    <h2 class="sr-only" id="whyTitle">Why Signature Pianos</h2>
+    <ul class="h-reasons">
+      <li>
+        <h3>Imported direct</h3>
+        <p>Hand-selected in Japan and brought straight to Melbourne, with no middle dealer in between.</p>
+      </li>
+      <li>
+        <h3>Workshop-checked</h3>
+        <p>Every piano is quality-checked in our Melbourne workshop before it earns its place in the showroom.</p>
+      </li>
+      <li>
+        <h3>Delivered, tracked</h3>
+        <p>White glove delivery across Melbourne, tracked end to end, so you know exactly where your piano is.</p>
+      </li>
+    </ul>
   </div>
 </section>
 
-<!-- Live key-alignment debug panel — only visible when ?debug is in the URL.
-     Six sliders let you tune the click-target bounds + tilt + curve in real
-     time, with the resulting CSS shown at the bottom so you can paste it
-     back into the stylesheet when it's dialed in. -->
-<div class="debug-panel" id="debugPanel">
-  <div class="debug-title">Key Alignment Tuner</div>
-  <label>Top <span id="dbg_top_val">77</span>%
-    <input type="range" id="dbg_top" min="40" max="95" step="0.5" value="77">
-  </label>
-  <label>Bottom <span id="dbg_bottom_val">4</span>%
-    <input type="range" id="dbg_bottom" min="0" max="30" step="0.5" value="4">
-  </label>
-  <label>Left <span id="dbg_left_val">3</span>%
-    <input type="range" id="dbg_left" min="0" max="30" step="0.5" value="3">
-  </label>
-  <label>Right <span id="dbg_right_val">3</span>%
-    <input type="range" id="dbg_right" min="0" max="30" step="0.5" value="3">
-  </label>
-  <label>Tilt (twist) <span id="dbg_tilt_val">0</span>°
-    <input type="range" id="dbg_tilt" min="-5" max="5" step="0.1" value="0">
-  </label>
-  <label>Depth (forward/back tilt) <span id="dbg_depth_val">0</span>°
-    <input type="range" id="dbg_depth" min="-45" max="45" step="0.5" value="0">
-  </label>
-  <label>Curve <span id="dbg_curve_val">0</span>px
-    <input type="range" id="dbg_curve" min="-60" max="60" step="1" value="0">
-  </label>
-  <pre class="debug-output" id="dbg_output"></pre>
-</div>
-
-<!-- Position-fixed overlay layered over the zoom canvas during the playable
-     PHASE 3 of the hero pin. Hidden by default; .show class added when
-     Phase 3 begins (after the zoom completes) so the playable state
-     appears ON the last frame of the hero zoom — same image, just with
-     the CTA + clickable keys overlaid on top. -->
-<div class="playable-overlay" id="playableOverlay">
-  <!-- Fixed 16:9 stage so all overlay elements line up with the keys
-       image regardless of viewport aspect (ultrawides, portrait, etc.) -->
-  <div class="playable-stage" id="playableStage">
-    <!-- Inline buyer's guide form sitting on the music desk -->
-    <div class="playable-guide">
-      <div class="playable-guide-label">Free for 2026</div>
-      <h3 class="playable-guide-headline">The <em>Signature</em> buyer's guide.</h3>
+<!-- ============ 03 BUYER'S GUIDE ============ -->
+<section class="h-concept" id="guide" data-chapter aria-labelledby="guideTitle">
+  <div class="h-concept-pin">
+    <p class="h-label h-concept-label">The Signature buyer's guide</p>
+    <h2 class="h-concept-statement" id="guideTitle">Choosing a pre-loved Japanese piano? Our free buyer's guide walks you through it, step by step.</h2>
+    <div class="h-concept-form">
       <form class="playable-guide-form" id="playableGuideForm" novalidate>
         <div class="pg-row">
           <input type="text" name="firstName" placeholder="First name *" required>
@@ -2099,24 +1729,159 @@
         <button type="submit" id="playableGuideSubmit">Download the guide <i class="ti ti-arrow-right"></i></button>
       </form>
     </div>
-
-    <!-- Meta labels just above the keys — left & right -->
-    <div class="playable-meta">
-      <span class="playable-meta-left"><span class="playable-meta-dot"></span>Tap a key</span>
-      <span class="playable-meta-right">Play</span>
-    </div>
-
-    <!-- 88-key click target grid, built by JS (52 white + 36 black, A0 → C8) -->
-    <div class="playable-keys" id="playableKeys"></div>
   </div>
-</div>
+</section>
+
+<!-- ============ 04 QUOTE ============ -->
+<section class="h-quote" data-chapter aria-label="From Eric Kuang, founder of Signature Pianos">
+  <figure class="h-quote-media" data-speed="8">
+    <img src="/media/home/strings.webp"
+         srcset="/media/home/strings-sm.webp 1000w, /media/home/strings.webp 1920w" sizes="100vw"
+         alt="Inside a grand piano: the strings, red felt and polished wooden rim">
+  </figure>
+  <blockquote>
+    <p data-reveal="lines">Japan's finest pre-loved pianos used to reach Melbourne through a chain of dealers. I bring them here myself, so families pay for the piano, not the markup.</p>
+    <footer>Eric Kuang - Signature Pianos</footer>
+  </blockquote>
+</section>
+
+<!-- ============ 05 GRAND PIANOS ============ -->
+<section class="h-grands" id="grands" data-chapter aria-labelledby="grandsTitle">
+  <div class="h-grands-head">
+    <h2 class="h-heading" id="grandsTitle">
+      <span class="h-display" data-reveal="lines">Grand pianos</span>
+      <span class="h-script">pre-loved</span>
+    </h2>
+    <p class="h-body">Concert and salon grands, each hand-selected and checked in our Melbourne workshop before it reaches the showroom.</p>
+  </div>
+  <div class="h-grands-grid">
+    <article class="h-grand" data-piano="Yamaha C3X" data-speed="-3">
+      <a href="/services/book-a-viewing.html">
+        <figure data-reveal="image"><img src="/media/home/grand-c3x-sm.webp" srcset="/media/home/grand-c3x-sm.webp 800w, /media/home/grand-c3x.webp 1500w" sizes="(max-width: 960px) 100vw, 33vw" loading="lazy" alt="Pre-loved Yamaha C3X grand piano in polished ebony, lid open"></figure>
+        <div class="h-grand-row">
+          <div><span class="h-grand-brand">Yamaha</span><h3>C3X</h3><p>2016 · 186 cm · Silent system</p></div>
+          <span class="h-card-cta">Enquire</span>
+        </div>
+      </a>
+    </article>
+    <article class="h-grand" data-piano="Shigeru Kawai concert grand" data-speed="4">
+      <a href="/services/book-a-viewing.html">
+        <figure data-reveal="image"><img src="/media/home/grand-shigeru-kawai-sm.webp" srcset="/media/home/grand-shigeru-kawai-sm.webp 800w, /media/home/grand-shigeru-kawai.webp 1600w" sizes="(max-width: 960px) 100vw, 33vw" loading="lazy" style="object-position: 52% 60%;" alt="A Shigeru Kawai grand piano on display at Hamamatsu Station, Japan"></figure>
+        <div class="h-grand-row">
+          <div><span class="h-grand-brand">Shigeru Kawai</span><h3>Concert grand</h3><p>Pre-loved · Hand-built in Ryuyo, Japan</p><p class="h-grand-note">Representative photo</p></div>
+          <span class="h-card-cta">Enquire</span>
+        </div>
+      </a>
+    </article>
+    <article class="h-grand" data-piano="Bösendorfer concert grand" data-speed="-2">
+      <a href="/services/book-a-viewing.html">
+        <figure data-reveal="image"><img src="/media/home/grand-bosendorfer-sm.webp" srcset="/media/home/grand-bosendorfer-sm.webp 800w, /media/home/grand-bosendorfer.webp 1600w" sizes="(max-width: 960px) 100vw, 33vw" loading="lazy" style="object-position: 40% 50%;" alt="A Bösendorfer concert grand piano with its lid open on a stage"></figure>
+        <div class="h-grand-row">
+          <div><span class="h-grand-brand">Bösendorfer</span><h3>Concert grand</h3><p>Pre-loved · Austrian craftsmanship</p><p class="h-grand-note">Representative photo</p></div>
+          <span class="h-card-cta">Enquire</span>
+        </div>
+      </a>
+    </article>
+  </div>
+  <p class="h-credits">Shigeru Kawai photo by <a href="https://commons.wikimedia.org/wiki/File:Display_booth_of_KAWAI_Piano_in_Hamamatsu_Station_Shinkansen_concourse_02.jpg" target="_blank" rel="noopener">Dr.yellow</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Bösendorfer photo by <a href="https://commons.wikimedia.org/wiki/File:Boesendorfer-5075415.jpg" target="_blank" rel="noopener">ermell</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a>. Both via Wikimedia Commons.</p>
+</section>
+
+<!-- ============ 06 ROUTE ============ -->
+<section class="h-route" data-chapter aria-labelledby="routeTitle">
+  <h2 class="h-heading" id="routeTitle">
+    <span class="h-display" data-reveal="lines">From its home</span>
+    <span class="h-script">to yours</span>
+  </h2>
+  <p class="h-body h-route-lede">Every piano makes the same careful journey before it reaches your living room.</p>
+  <div class="h-route-map">
+    <svg viewBox="0 0 1200 260" preserveAspectRatio="none" aria-hidden="true">
+      <path class="h-route-path" d="M 20 170 C 150 70, 230 210, 320 150 S 500 50, 600 120 S 800 230, 900 140 S 1090 60, 1180 120"></path>
+    </svg>
+    <ol class="h-route-stops">
+      <li class="h-route-stop"><span class="h-dot"></span><span class="h-stop-text"><strong>Found in Japan</strong><span>Chosen by hand</span></span></li>
+      <li class="h-route-stop is-below"><span class="h-dot"></span><span class="h-stop-text"><strong>Restored</strong><span>Prepared for its next home</span></span></li>
+      <li class="h-route-stop"><span class="h-dot"></span><span class="h-stop-text"><strong>Shipped</strong><span>By sea to Melbourne</span></span></li>
+      <li class="h-route-stop is-below"><span class="h-dot"></span><span class="h-stop-text"><strong>Workshop-checked</strong><span>In our Melbourne workshop</span></span></li>
+      <li class="h-route-stop"><span class="h-dot"></span><span class="h-stop-text"><strong>Delivered</strong><span>Tracked to your door</span></span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ 07 COLLECTION ============ -->
+<section class="h-collection" id="collection" data-chapter aria-labelledby="collectionTitle">
+  <div class="h-collection-pin">
+    <div class="h-collection-head">
+      <h2 class="h-heading" id="collectionTitle">
+        <span class="h-display" data-reveal="lines">Upright pianos</span>
+        <span class="h-script">hand-picked</span>
+      </h2>
+      <p class="h-body">Every pre-loved upright is one of a kind. These were photographed in Japan before import.</p>
+    </div>
+    <div class="h-collection-track">
+      <a class="h-card" href="/services/book-a-viewing.html" data-piano="Bösendorfer 130">
+        <figure><img src="/media/home/unit-bosendorfer-130-sm.webp" loading="lazy" alt="Bösendorfer 130 upright piano in polished ebony"></figure>
+        <div class="h-card-meta"><div><h3>Bösendorfer 130</h3><p>1992 · Upright · Polished ebony</p></div><span class="h-card-cta">Enquire</span></div>
+      </a>
+      <a class="h-card" href="/services/book-a-viewing.html" data-piano="Yamaha YUS5">
+        <figure><img src="/media/home/unit-yus5-walnut-sm.webp" loading="lazy" alt="Yamaha YUS5 upright piano in walnut" style="object-position: 70% 50%;"></figure>
+        <div class="h-card-meta"><div><h3>Yamaha YUS5</h3><p>2008 · Upright · Walnut</p></div><span class="h-card-cta">Enquire</span></div>
+      </a>
+      <a class="h-card" href="/services/book-a-viewing.html" data-piano="Yamaha b121 SC2">
+        <figure><img src="/media/home/unit-b121-sm.webp" loading="lazy" alt="Yamaha b121 SC2 upright piano in polished ebony"></figure>
+        <div class="h-card-meta"><div><h3>Yamaha b121 SC2</h3><p>2018 · Upright with silent system</p></div><span class="h-card-cta">Enquire</span></div>
+      </a>
+      <a class="h-card" href="/services/book-a-viewing.html" data-piano="Yamaha W3A">
+        <figure><img src="/media/home/unit-w3a-mahogany-sm.webp" loading="lazy" alt="Yamaha W3A upright piano in mahogany with carved legs"></figure>
+        <div class="h-card-meta"><div><h3>Yamaha W3A</h3><p>Upright · Mahogany</p></div><span class="h-card-cta">Enquire</span></div>
+      </a>
+      <a class="h-card" href="/services/book-a-viewing.html" data-piano="Yamaha YU33">
+        <figure><img src="/media/home/unit-yu33-sm.webp" loading="lazy" alt="Yamaha YU33 upright piano in polished ebony"></figure>
+        <div class="h-card-meta"><div><h3>Yamaha YU33</h3><p>2007 · Upright · Polished ebony</p></div><span class="h-card-cta">Enquire</span></div>
+      </a>
+      <a class="h-card" href="/services/book-a-viewing.html" data-piano="Yamaha U3H">
+        <figure><img src="/media/home/unit-u3h-sm.webp" loading="lazy" alt="Yamaha U3H upright piano in polished ebony"></figure>
+        <div class="h-card-meta"><div><h3>Yamaha U3H</h3><p>1973 · Upright · 131 cm tall</p></div><span class="h-card-cta">Enquire</span></div>
+      </a>
+      <a class="h-card" href="/services/book-a-viewing.html" data-piano="Yamaha UX30A">
+        <figure><img src="/media/home/unit-ux30a-sm.webp" loading="lazy" alt="Yamaha UX30A upright piano in polished ebony"></figure>
+        <div class="h-card-meta"><div><h3>Yamaha UX30A</h3><p>1991 · Upright · Polished ebony</p></div><span class="h-card-cta">Enquire</span></div>
+      </a>
+      <a class="h-card h-card-all" href="/instruments/index.html">
+        <span class="h-display">View all</span>
+        <span class="h-script">pianos</span>
+      </a>
+    </div>
+    <p class="h-collection-note">Prices on request while each piano completes its workshop check.</p>
+  </div>
+</section>
+
+<!-- ============ 08 DETAIL ============ -->
+<section class="h-detail" data-chapter aria-labelledby="detailTitle">
+  <div class="h-detail-grid">
+    <div class="h-detail-head">
+      <h2 class="h-heading" id="detailTitle">
+        <span class="h-display" data-reveal="lines">Every detail</span>
+        <span class="h-script">checked</span>
+      </h2>
+      <p class="h-body" data-reveal="lines">From the hammers to the pedals, every piano is quality-checked in our Melbourne workshop before it earns its place in the showroom.</p>
+      <a class="h-textlink" href="/services/tuning-servicing.html">Tuning and servicing <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+    </div>
+    <div class="h-collage">
+      <div class="c-block" data-speed="4"></div>
+      <figure class="c1" data-speed="-6" data-reveal="image"><img src="/media/home/detail-hammers-sm.webp" loading="lazy" alt="Rows of felt hammers inside an upright piano"></figure>
+      <figure class="c2" data-speed="10" data-reveal="image"><img src="/media/home/detail-keys-walnut-sm.webp" loading="lazy" alt="Close-up of piano keys on a walnut upright"></figure>
+      <figure class="c3" data-speed="-3" data-reveal="image"><img src="/media/home/detail-pedals-sm.webp" loading="lazy" alt="Three brass pedals on a walnut upright piano"></figure>
+      <figure class="c4" data-speed="14" data-reveal="image"><img src="/media/home/detail-keys-ebony-sm.webp" loading="lazy" alt="Close-up of piano keys on a polished ebony upright"></figure>
+    </div>
+  </div>
+</section>
 
 <!-- ============ MATCHER ============ -->
-<section class="matcher" id="matcher">
+<section class="matcher" id="matcher" data-chapter>
   <div class="matcher-inner">
     <div class="section-label reveal">Intelligent Matching</div>
     <h2 class="section-h2 reveal">Answer 3 questions.<br/>Find your <em>perfect</em> piano.</h2>
-    <p class="section-body reveal">Our AI-powered finder asks about your skill level, space, and budget — then matches you to instruments in our live Melbourne inventory.</p>
+    <p class="section-body reveal">Our AI-powered finder asks about your skill level, space, and budget, then matches you to instruments in our live Melbourne inventory.</p>
 
     <div class="steps reveal-stagger">
       <div class="step active" data-step="0">
@@ -2159,8 +1924,8 @@
         <label class="select-label" for="q-budget">Budget</label>
         <select id="q-budget">
           <option value="b1">Under $3,000</option>
-          <option value="b2">$3,000 – $8,000</option>
-          <option value="b3">$8,000 – $20,000</option>
+          <option value="b2">$3,000 - $8,000</option>
+          <option value="b3">$8,000 - $20,000</option>
           <option value="b4">$20,000+</option>
         </select>
       </div>
@@ -2169,280 +1934,84 @@
   </div>
 </section>
 
-<!-- ============ §2 TRUST & STORY ============ -->
-<section class="trust" id="story">
-  <div class="trust-inner">
-    <div class="trust-photo reveal">
-      <span class="trust-photo-placeholder">Owner / Workshop photo</span>
-    </div>
-    <div class="trust-copy">
-      <div class="section-label reveal">Why Japanese pianos</div>
-      <h2 class="section-h2 reveal">Built in Hamamatsu. <em>Tuned</em> for your home.</h2>
-      <p class="trust-body reveal">For over a decade we've hand-picked Yamaha, Kawai and Shigeru Kawai instruments straight from Japan's certified rebuild houses — then quality-checked every one in our Melbourne workshop before it earns the Signature badge.</p>
-      <div class="trust-stats reveal-stagger">
-        <div class="trust-stat">
-          <div class="trust-stat-num">12</div>
-          <div class="trust-stat-label">Years in Melbourne</div>
-        </div>
-        <div class="trust-stat">
-          <div class="trust-stat-num">800+</div>
-          <div class="trust-stat-label">Pianos placed</div>
-        </div>
-        <div class="trust-stat">
-          <div class="trust-stat-num">4.9★</div>
-          <div class="trust-stat-label">Customer rating</div>
-        </div>
+<!-- ============ 10 TEACHERS ============ -->
+<section class="h-teachers" id="teachers" data-chapter aria-labelledby="teachersTitle">
+  <div class="h-teachers-head">
+    <h2 class="h-heading" id="teachersTitle">
+      <span class="h-display" data-reveal="lines">Find a teacher</span>
+      <span class="h-script">who fits</span>
+    </h2>
+    <p class="h-body">Piano teachers across Melbourne, listed on TeachMusic. Scroll over the map to zoom, drag to explore, and tap a teacher to see their lessons and price.</p>
+  </div>
+  <div class="h-map-wrap" data-lenis-prevent>
+    <div class="h-map" id="teacherMap" role="region" aria-label="Map of Melbourne piano teachers from TeachMusic. Drag to explore; scroll or use the buttons to zoom."></div>
+    <p class="h-map-status">Loading teachers from TeachMusic…</p>
+    <div class="h-map-card" id="teacherCard" hidden>
+      <button type="button" class="h-map-close" aria-label="Close teacher details"><i class="ti ti-x" aria-hidden="true"></i></button>
+      <figure class="h-map-photo"><img class="h-map-img" src="" alt=""></figure>
+      <div class="h-map-body">
+        <h3 class="h-map-name"></h3>
+        <p class="h-map-sub"></p>
+        <p class="h-map-headline"></p>
+        <div class="h-map-price"><strong class="h-map-amount"></strong><span class="h-map-unit"></span></div>
+        <p class="h-map-trial"></p>
+        <p class="h-map-tags"></p>
+        <a class="btn-primary h-map-link" href="https://www.teachmusic.com.au/piano-lessons/melbourne" target="_blank" rel="noopener">View on TeachMusic</a>
       </div>
+    </div>
+  </div>
+  <div class="h-map-foot">
+    <span>Teacher listings from TeachMusic.</span>
+    <a class="h-textlink" href="https://www.teachmusic.com.au/piano-lessons/melbourne" target="_blank" rel="noopener">Browse every Melbourne piano teacher <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+  </div>
+</section>
+
+<!-- ============ 11 VISIT ============ -->
+<section class="h-visit" id="visit" data-chapter aria-labelledby="visitTitle">
+  <figure class="h-visit-media" data-speed="6">
+    <img src="/media/home/stage-cfx.webp" loading="lazy"
+         srcset="/media/home/stage-cfx-sm.webp 1000w, /media/home/stage-cfx.webp 1800w" sizes="100vw"
+         alt="A polished Yamaha concert grand on a wooden stage in front of a full auditorium">
+  </figure>
+  <h2 class="h-visit-brand" id="visitTitle">
+    <img class="h-visit-logo" src="/media/brand/logo-white.svg" width="1542" height="592" alt="Signature Pianos">
+    <span class="h-visit-word h-display">Mount Waverley</span>
+  </h2>
+  <div class="h-visit-card">
+    <span class="h-label h-visit-label">Visit the showroom</span>
+    <address>63 Blackburn Road<br>Mount Waverley VIC 3149</address>
+    <p><a href="tel:+61479128955">0479 128 955</a><br><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></p>
+    <div class="h-visit-actions">
+      <a class="btn-primary" href="/services/book-a-viewing.html">Book a visit</a>
+      <a class="h-textlink" style="color:#FFFFFF" href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">Directions <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
     </div>
   </div>
 </section>
 
-<!-- ============ §3 FEATURED PIANOS ============ -->
-<section class="featured" id="instruments">
-  <div class="featured-inner">
-    <div class="featured-header">
-      <div class="featured-header-text">
-        <div class="section-label reveal">This week's collection</div>
-        <h2 class="section-h2 reveal">Three pianos. <em>Hand-picked</em> for you.</h2>
-      </div>
-      <a href="instruments/index.html" class="featured-cta-link reveal">View all pianos <i class="ti ti-arrow-right"></i></a>
-    </div>
-    <div class="piano-cards reveal-stagger">
-      <a href="instruments/index.html" class="piano-card">
-        <div class="piano-card-image piano-card-image--a">
-          <span class="piano-card-grade">Grade A</span>
-        </div>
-        <div class="piano-card-body">
-          <p class="piano-card-brand">Yamaha · C3X</p>
-          <h3 class="piano-card-name">Conservatory grand</h3>
-          <div class="piano-card-price">
-            <span class="piano-card-price-value">$32,800</span>
-            <i class="ti ti-arrow-right piano-card-arrow"></i>
-          </div>
-        </div>
-      </a>
-      <a href="instruments/index.html" class="piano-card">
-        <div class="piano-card-image piano-card-image--b">
-          <span class="piano-card-grade">Grade A+</span>
-        </div>
-        <div class="piano-card-body">
-          <p class="piano-card-brand">Shigeru Kawai · SK-2</p>
-          <h3 class="piano-card-name">Salon grand</h3>
-          <div class="piano-card-price">
-            <span class="piano-card-price-value">$58,400</span>
-            <i class="ti ti-arrow-right piano-card-arrow"></i>
-          </div>
-        </div>
-      </a>
-      <a href="instruments/index.html" class="piano-card">
-        <div class="piano-card-image piano-card-image--c">
-          <span class="piano-card-grade">Grade B+</span>
-        </div>
-        <div class="piano-card-body">
-          <p class="piano-card-brand">Kawai · K-500</p>
-          <h3 class="piano-card-name">Studio upright</h3>
-          <div class="piano-card-price">
-            <span class="piano-card-price-value">$6,900</span>
-            <i class="ti ti-arrow-right piano-card-arrow"></i>
-          </div>
-        </div>
-      </a>
-    </div>
-  </div>
-</section>
+</main>
 
-<!-- ============ §4 THE FULL JOURNEY ============ -->
-<section class="journey">
-  <div class="journey-inner">
-    <div class="journey-header">
-      <div class="section-label reveal">Your full journey</div>
-      <h2 class="section-h2 reveal">We support your entire <em>musical journey</em>.</h2>
+<footer class="sp-footer">
+  <div class="sp-footer-inner">
+    <a href="/" class="sp-footer-logo"><img src="/media/brand/logo-ink.svg" width="1542" height="592" alt="Signature Pianos"></a>
+    <p class="sp-footer-tagline">Pre-loved Japanese pianos, hand-picked in Japan and checked in Melbourne.</p>
+    <div class="sp-footer-links" role="navigation" aria-label="Footer">
+      <a href="/instruments/">Pianos</a>
+      <a href="/services/book-a-viewing.html">Book a visit</a>
+      <a href="/services/tuning-servicing.html">Tuning</a>
+      <a href="/services/delivery-warranty.html">Delivery &amp; warranty</a>
+      <a href="/teachers.html">Teachers</a>
+      <a href="/blog">Blog</a>
+      <a href="/about.html">About</a>
     </div>
-    <div class="journey-steps reveal-stagger">
-      <a href="#matcher" class="journey-step">
-        <div class="journey-step-icon-wrap"><i class="ti ti-music"></i></div>
-        <h3 class="journey-step-title">Find your piano</h3>
-        <p class="journey-step-hint">Match in 90 seconds</p>
-      </a>
-      <a href="#teachers" class="journey-step">
-        <div class="journey-step-icon-wrap"><i class="ti ti-user-star"></i></div>
-        <h3 class="journey-step-title">Find a teacher</h3>
-        <p class="journey-step-hint">80+ verified locals</p>
-      </a>
-      <a href="instruments/index.html" class="journey-step">
-        <div class="journey-step-icon-wrap"><i class="ti ti-sparkles"></i></div>
-        <h3 class="journey-step-title">Start playing</h3>
-        <p class="journey-step-hint">From day one</p>
-      </a>
+    <address class="sp-footer-contact">
+      <span class="sp-line"><a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="tel:+61479128955">0479 128 955</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></span>
+    </address>
+    <div class="sp-footer-socials">
+      <a href="#" aria-label="Instagram"><i class="ti ti-brand-instagram" aria-hidden="true"></i></a>
+      <a href="#" aria-label="Facebook"><i class="ti ti-brand-facebook" aria-hidden="true"></i></a>
     </div>
   </div>
-</section>
-
-<!-- ============ §5 HOW IT WORKS (DELIVERY FLOW) ============ -->
-<section class="flow">
-  <div class="flow-inner">
-    <div class="flow-header">
-      <div class="section-label reveal">How it works</div>
-      <h2 class="section-h2 reveal">Your piano. <em>Delivered, tuned, tracked</em>.</h2>
-      <p class="section-body reveal">No other Melbourne shop shows you exactly what happens after you buy. We do — because we built the system ourselves.</p>
-    </div>
-    <div class="flow-steps reveal-stagger">
-      <div class="flow-step">
-        <div class="flow-step-num">01</div>
-        <i class="ti ti-credit-card flow-step-icon"></i>
-        <h3 class="flow-step-title">Purchase</h3>
-        <p class="flow-step-hint">Secure online or in-showroom. A deposit holds your instrument while we prep it.</p>
-      </div>
-      <div class="flow-step">
-        <div class="flow-step-num">02</div>
-        <i class="ti ti-calendar-event flow-step-icon"></i>
-        <h3 class="flow-step-title">Schedule delivery</h3>
-        <p class="flow-step-hint">Pick a window that suits you. We confirm same-day and prep the route.</p>
-      </div>
-      <div class="flow-step">
-        <div class="flow-step-num">03</div>
-        <i class="ti ti-map-pin flow-step-icon"></i>
-        <h3 class="flow-step-title">Track your piano</h3>
-        <p class="flow-step-hint">Live location updates from our workshop to your front door — no guessing.</p>
-      </div>
-      <div class="flow-step">
-        <div class="flow-step-num">04</div>
-        <i class="ti ti-shield-check flow-step-icon"></i>
-        <h3 class="flow-step-title">Warranty + tuner</h3>
-        <p class="flow-step-hint">5-year cover and your first complimentary tuning auto-booked for week six.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ §6 TEACHER MARKETPLACE ============ -->
-<section class="teachers-band" id="teachers">
-  <div class="teachers-band-inner">
-    <div class="tb-student">
-      <div class="section-label reveal">For students</div>
-      <h2 class="section-h2 reveal">Find a teacher <em>near you</em>.</h2>
-      <p class="section-body reveal">Search by suburb. Filter by style and level. Book a trial lesson in minutes.</p>
-      <form class="tb-search-row reveal" onsubmit="event.preventDefault(); window.location.href='teachers.html';">
-        <input type="text" class="tb-search-input" placeholder="Enter suburb or postcode" aria-label="Suburb or postcode" />
-        <button type="submit" class="tb-search-btn">Search</button>
-      </form>
-      <div class="tb-teacher-cards reveal-stagger">
-        <a href="teachers.html" class="tb-teacher-card">
-          <div class="tb-teacher-avatar"></div>
-          <div>
-            <h4 class="tb-teacher-name">Mei L.</h4>
-            <p class="tb-teacher-meta">Carlton · Classical · 12 yrs</p>
-          </div>
-        </a>
-        <a href="teachers.html" class="tb-teacher-card">
-          <div class="tb-teacher-avatar"></div>
-          <div>
-            <h4 class="tb-teacher-name">Daniel R.</h4>
-            <p class="tb-teacher-meta">St Kilda · Jazz · 8 yrs</p>
-          </div>
-        </a>
-        <a href="teachers.html" class="tb-teacher-card">
-          <div class="tb-teacher-avatar"></div>
-          <div>
-            <h4 class="tb-teacher-name">Priya K.</h4>
-            <p class="tb-teacher-meta">Hawthorn · Beginner · 6 yrs</p>
-          </div>
-        </a>
-        <a href="teachers.html" class="tb-teacher-card">
-          <div class="tb-teacher-avatar"></div>
-          <div>
-            <h4 class="tb-teacher-name">Owen T.</h4>
-            <p class="tb-teacher-meta">Brunswick · Contemporary · 10 yrs</p>
-          </div>
-        </a>
-      </div>
-    </div>
-    <aside class="tb-pro">
-      <div>
-        <div class="tb-pro-label">For teachers</div>
-        <h3 class="tb-pro-headline">List your <em>studio</em>. Free.</h3>
-        <p class="tb-pro-body">Reach students actively searching in your suburb. Manage bookings, payments and your roster from one dashboard. No monthly fee. No commission lock-in.</p>
-      </div>
-      <a href="teachers.html" class="tb-pro-cta">Create your profile <i class="ti ti-arrow-right"></i></a>
-    </aside>
-  </div>
-</section>
-
-<!-- ============ §7 SOCIAL PROOF ============ -->
-<section class="proof">
-  <div class="proof-inner">
-    <div class="proof-header">
-      <div>
-        <div class="section-label reveal">From buyers</div>
-        <h2 class="section-h2 reveal">Quiet rooms. <em>Loud praise</em>.</h2>
-      </div>
-      <div class="proof-google reveal">
-        <div class="proof-google-row">
-          <span class="proof-google-stars" aria-hidden="true">★★★★★</span>
-          <span class="proof-google-rating">4.9</span>
-        </div>
-        <span class="proof-google-meta">312 Google reviews</span>
-      </div>
-    </div>
-    <div class="proof-body">
-      <div class="testimonial-cards reveal-stagger">
-        <blockquote class="testimonial">
-          <p>The matching tool sent me straight to the right piano. In and out in 40 minutes with a Kawai I love.</p>
-          <cite>Sarah M. · Fitzroy</cite>
-        </blockquote>
-        <blockquote class="testimonial">
-          <p>No other piano shop in Melbourne feels this modern. They even matched me to a teacher the same week.</p>
-          <cite>James T. · South Yarra</cite>
-        </blockquote>
-        <blockquote class="testimonial testimonial--feature">
-          <p>The live delivery tracking was actually a delight. We watched our Shigeru roll out of the workshop and into our living room — and the first tuning was already booked.</p>
-          <cite>Elena K. · Brunswick</cite>
-        </blockquote>
-      </div>
-      <div class="proof-photo reveal">
-        <span class="proof-photo-caption">A Yamaha C3X, placed in a Hawthorn home — November 2026.</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ §8 FOOTER ============ -->
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-col footer-brand">
-      <a href="#" class="logo">Signature <span>Pianos</span></a>
-      <p class="footer-tagline">Find the piano that moves you.</p>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Shop</div>
-      <a href="instruments/index.html" class="footer-link">Shop</a>
-      <a href="instruments/index.html?filter=brands" class="footer-link">Brands</a>
-      <a href="#" class="footer-link">Book viewing</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Teachers</div>
-      <a href="teachers.html" class="footer-link">Teacher platform</a>
-      <a href="teachers.html#signup" class="footer-link">Sign up</a>
-      <a href="teachers.html#login" class="footer-link">Log in</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Company</div>
-      <a href="#story" class="footer-link">About</a>
-      <a href="#" class="footer-link">Blog</a>
-      <a href="mailto:info@signaturepianos.com.au" class="footer-link">Contact</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Find us</div>
-      <div class="footer-socials">
-        <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
-        <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
-      </div>
-      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
-  </div>
+  <div class="sp-footer-bottom">© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></div>
 </footer>
 
 <!-- ============ POPUP ============ -->
@@ -2460,294 +2029,388 @@
 </div>
 
 <!-- ============ SCRIPTS ============ -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.21/dist/lenis.min.js"></script>
 <script>
-  gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+  /* ======================================================================
+     HOMEPAGE MOTION
+     One easing family, slow and even. Everything here is progressive:
+     without JavaScript (or with reduced motion) every word and image is
+     simply visible in place.
+     ====================================================================== */
+  gsap.registerPlugin(ScrollTrigger, SplitText);
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const nav = document.getElementById('nav');
 
-  /* -------- TONE.JS — synth used by the playable section + welcome melody -------- */
-  let toneStarted = false;
-  const synth = new Tone.PolySynth(Tone.Synth, {
-    oscillator: { type: 'triangle' },
-    envelope: { attack: 0.005, decay: 0.5, sustain: 0.1, release: 1.4 }
-  });
-  const reverb = new Tone.Reverb({ decay: 2.2, wet: 0.25 });
-  const filter = new Tone.Filter(2400, 'lowpass');
-  synth.chain(filter, reverb, Tone.Destination);
-  Tone.Destination.volume.value = -6;
-
-  async function ensureAudio() {
-    if (!toneStarted) {
-      await Tone.start();
-      await reverb.generate();
-      toneStarted = true;
-    }
+  /* -------- Smooth scrolling -------- */
+  let lenis = null;
+  if (!reduceMotion && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.09, wheelMultiplier: 0.9 });
+    window.spLenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+    // In-page links glide instead of jumping
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('a[href^="#"]');
+      if (!a) return;
+      const id = a.getAttribute('href');
+      const target = id.length > 1 && document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      lenis.scrollTo(target, { offset: -80 });
+    });
+    // Pause smooth scrolling while the phone menu is open
+    new MutationObserver(() => {
+      document.body.classList.contains('sp-menu-open') ? lenis.stop() : lenis.start();
+    }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   }
 
-  /* Welcome melody — Für Elise opening (Beethoven). Iconic, recognisable.
-     Audio only — plays on first user interaction (autoplay-safe). ~5s total. */
-  const welcome = [
-    // mm. 1–2: E5 D#5 E5 D#5 E5 B4 D5 C5 A4
-    { note: 'E5',  t: 0 },
-    { note: 'D#5', t: 200 },
-    { note: 'E5',  t: 400 },
-    { note: 'D#5', t: 600 },
-    { note: 'E5',  t: 800 },
-    { note: 'B4',  t: 1000 },
-    { note: 'D5',  t: 1200 },
-    { note: 'C5',  t: 1400 },
-    { note: 'A4',  t: 1700 },
-    // arpeggio up to B4
-    { note: 'C4',  t: 2150 },
-    { note: 'E4',  t: 2350 },
-    { note: 'A4',  t: 2550 },
-    { note: 'B4',  t: 2850 },
-    // arpeggio up to C5
-    { note: 'E4',  t: 3300 },
-    { note: 'G#4', t: 3500 },
-    { note: 'B4',  t: 3700 },
-    { note: 'C5',  t: 4000 },
-    // closing flourish (return of opening figure)
-    { note: 'E5',  t: 4450 },
-    { note: 'D#5', t: 4650 },
-    { note: 'E5',  t: 4850 },
-  ];
-  let welcomePlayed = false;
-
-  // Plain audio-only fallback (kept for early autoplay-unlock on first scroll
-  // so Tone.js audio context is ready by the time the user reaches Phase 3)
-  async function unlockAudio() { await ensureAudio(); }
-  ['pointerdown', 'keydown', 'scroll'].forEach(ev =>
-    window.addEventListener(ev, unlockAudio, { once: true, passive: true })
-  );
-
-  // Triggered once when user enters Phase 3 (close-up keys visible).
-  // Plays Für Elise AND lights up the corresponding playable key with the
-  // same gold flash + note bubble the user would see clicking it manually —
-  // demonstrates that the keys are interactive.
-  window.playWelcomeWithVisual = async function () {
-    if (welcomePlayed) return;
-    welcomePlayed = true;
-    await ensureAudio();
-    welcome.forEach(({ note, t }) => {
-      setTimeout(() => {
-        synth.triggerAttackRelease(note, '8n');
-        // Find the matching click target and trigger its visual feedback
-        const k = document.querySelector(
-          '.pk-white[data-note="' + note + '"], .pk-black[data-note="' + note + '"]'
-        );
-        if (!k) return;
-        k.classList.add('pk-active');
-        setTimeout(() => k.classList.remove('pk-active'), 380);
-        const rect = k.getBoundingClientRect();
-        const x = rect.left + rect.width / 2;
-        const y = rect.top + rect.height / 3;
-        if (window.__showPlayableFeedback) {
-          window.__showPlayableFeedback(x, y, note);
-        }
-      }, t);
-    });
+  /* -------- Header over the hero, and the side rail --------
+     Worked out from the scroll position on every update (and on refresh),
+     so a reload or jump halfway down the page lands in the right state. */
+  const hero = document.querySelector('.h-hero');
+  const chapters = [...document.querySelectorAll('[data-chapter]')];
+  const railNow = document.querySelector('.h-rail-now');
+  document.querySelector('.h-rail-total').textContent = String(chapters.length).padStart(2, '0');
+  const updateChrome = () => {
+    const y = window.scrollY;
+    document.body.classList.toggle('over-hero', y < hero.offsetHeight - 120);
+    nav.classList.toggle('scrolled', y > 60);
+    const mid = window.innerHeight / 2;
+    let current = 0;
+    chapters.forEach((section, i) => { if (section.getBoundingClientRect().top <= mid) current = i; });
+    railNow.textContent = String(current + 1).padStart(2, '0');
   };
-
-  /* -------- PLAYABLE SECTION — full 88-key keyboard overlay -------- */
-  // Invisible click targets layered over the keys in the close-up image.
-  // Reuses the existing Tone.js synth (declared above). 52 white keys
-  // (A0, B0, then C-B for octaves 1-7, then C8) + 36 black keys.
-  // Append ?debug to the URL to make the boxes visible while tuning.
-  if (location.search.includes('debug')) {
-    document.body.classList.add('debug-keys');
-  }
-  const playableKeysEl = document.getElementById('playableKeys');
-  if (playableKeysEl) {
-    const wPattern = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-    const blackAfter = { C: 'C#', D: 'D#', F: 'F#', G: 'G#', A: 'A#' };
-
-    const whiteList = ['A0', 'B0'];
-    for (let oct = 1; oct <= 7; oct++) {
-      wPattern.forEach(n => whiteList.push(n + oct));
-    }
-    whiteList.push('C8');
-    const wCount = whiteList.length; // 52
-
-    // Normalized parabolic curve: 0 at center, 1.0 at edges. Multiplied
-    // by --curve depth at runtime so live tuning can update offsets.
-    function curveNorm(i) {
-      const x = (i - (wCount - 1) / 2) / ((wCount - 1) / 2);
-      return x * x;
-    }
-    function applyCurveDepth(depth) {
-      playableKeysEl.querySelectorAll('.pk-white').forEach((k, i) => {
-        k.style.setProperty('--curve-offset', (curveNorm(i) * depth) + 'px');
-      });
-      // Black keys: track which white-key index they sit between
-      let blackIdx = 0;
-      whiteList.forEach((note, i) => {
-        const letter = note[0];
-        const sharp = blackAfter[letter];
-        if (!sharp || i === wCount - 1) return;
-        const bks = playableKeysEl.querySelectorAll('.pk-black');
-        if (bks[blackIdx]) {
-          const avg = (curveNorm(i) + curveNorm(i + 1)) / 2;
-          bks[blackIdx].style.setProperty('--curve-offset', (avg * depth) + 'px');
-        }
-        blackIdx++;
-      });
-    }
-    window.__applyCurveDepth = applyCurveDepth;
-
-    whiteList.forEach((note, i) => {
-      const k = document.createElement('div');
-      k.className = 'pk-white';
-      k.style.left = (i * (100 / wCount)) + '%';
-      k.style.width = (100 / wCount) + '%';
-      k.dataset.note = note;
-      playableKeysEl.appendChild(k);
-    });
-
-    whiteList.forEach((note, i) => {
-      const letter = note[0];
-      const oct = note.slice(1);
-      const sharp = blackAfter[letter];
-      if (!sharp || i === wCount - 1) return;
-      const bk = document.createElement('div');
-      bk.className = 'pk-black';
-      bk.dataset.note = sharp + oct;
-      const blackW = 0.6; // black key width = 60% of white key width
-      const centerPct = ((i + 1) / wCount) * 100;
-      bk.style.left = 'calc(' + centerPct + '% - (100% / ' + wCount + ' * ' + (blackW / 2) + '))';
-      bk.style.width = 'calc(100% / ' + wCount + ' * ' + blackW + ')';
-      playableKeysEl.appendChild(bk);
-    });
-
-    // Apply initial curve depth from CSS variable
-    const initialCurve = parseFloat(getComputedStyle(playableKeysEl).getPropertyValue('--curve')) || 0;
-    applyCurveDepth(initialCurve);
-
-    // -------- LIVE DEBUG PANEL — wire up six sliders to update CSS in
-    // real time and emit the resulting CSS for copy-paste.
-    if (document.body.classList.contains('debug-keys')) {
-      const dbg = {
-        top: document.getElementById('dbg_top'),
-        bottom: document.getElementById('dbg_bottom'),
-        left: document.getElementById('dbg_left'),
-        right: document.getElementById('dbg_right'),
-        tilt: document.getElementById('dbg_tilt'),
-        depth: document.getElementById('dbg_depth'),
-        curve: document.getElementById('dbg_curve'),
-      };
-      const dbgVal = {
-        top: document.getElementById('dbg_top_val'),
-        bottom: document.getElementById('dbg_bottom_val'),
-        left: document.getElementById('dbg_left_val'),
-        right: document.getElementById('dbg_right_val'),
-        tilt: document.getElementById('dbg_tilt_val'),
-        depth: document.getElementById('dbg_depth_val'),
-        curve: document.getElementById('dbg_curve_val'),
-      };
-      const dbgOut = document.getElementById('dbg_output');
-
-      // Initialize sliders to whatever the CSS currently says
-      const cs = getComputedStyle(playableKeysEl);
-      const initTop = parseFloat(cs.top) / window.innerHeight * 100;
-      const initBottom = parseFloat(cs.bottom) / window.innerHeight * 100;
-      const initLeft = parseFloat(cs.left) / window.innerWidth * 100;
-      const initRight = parseFloat(cs.right) / window.innerWidth * 100;
-      dbg.top.value = initTop.toFixed(1);
-      dbg.bottom.value = initBottom.toFixed(1);
-      dbg.left.value = initLeft.toFixed(1);
-      dbg.right.value = initRight.toFixed(1);
-      dbg.tilt.value = parseFloat(cs.getPropertyValue('--tilt')) || 0;
-      dbg.depth.value = parseFloat(cs.getPropertyValue('--depth')) || 0;
-      dbg.curve.value = parseFloat(cs.getPropertyValue('--curve')) || 0;
-
-      function applyDebug() {
-        playableKeysEl.style.top = dbg.top.value + '%';
-        playableKeysEl.style.bottom = dbg.bottom.value + '%';
-        playableKeysEl.style.left = dbg.left.value + '%';
-        playableKeysEl.style.right = dbg.right.value + '%';
-        playableKeysEl.style.transform =
-          'rotateX(' + dbg.depth.value + 'deg) ' +
-          'rotate(' + dbg.tilt.value + 'deg)';
-        applyCurveDepth(parseFloat(dbg.curve.value));
-
-        Object.keys(dbgVal).forEach(k => { dbgVal[k].textContent = dbg[k].value; });
-
-        dbgOut.textContent =
-          '.playable-keys {\n' +
-          '  top: '    + dbg.top.value    + '%;\n' +
-          '  bottom: ' + dbg.bottom.value + '%;\n' +
-          '  left: '   + dbg.left.value   + '%;\n' +
-          '  right: '  + dbg.right.value  + '%;\n' +
-          '  --tilt: '  + dbg.tilt.value  + 'deg;\n' +
-          '  --depth: ' + dbg.depth.value + 'deg;\n' +
-          '  --curve: ' + dbg.curve.value + 'px;\n' +
-          '}';
-      }
-      Object.values(dbg).forEach(input => input.addEventListener('input', applyDebug));
-      applyDebug();
-    }
-
-    function showPlayableFeedback(x, y, note) {
-      const flash = document.createElement('div');
-      flash.className = 'pk-flash';
-      flash.style.left = x + 'px';
-      flash.style.top = y + 'px';
-      document.body.appendChild(flash);
-      gsap.fromTo(flash,
-        { opacity: 1, scale: 0.3 },
-        { opacity: 0, scale: 2.6, duration: 1.0, ease: 'power2.out',
-          onComplete: () => flash.remove() }
-      );
-
-      const bubble = document.createElement('div');
-      bubble.className = 'pk-note-bubble';
-      bubble.textContent = note.replace(/\d/g, '');
-      bubble.style.left = x + 'px';
-      bubble.style.top = y + 'px';
-      document.body.appendChild(bubble);
-      gsap.fromTo(bubble,
-        { opacity: 1, y: 0, scale: 0.7 },
-        { opacity: 0, y: -110, scale: 1.2, duration: 1.4, ease: 'power2.out',
-          onComplete: () => bubble.remove() }
-      );
-    }
-    window.__showPlayableFeedback = showPlayableFeedback;
-
-    const allKeys = playableKeysEl.querySelectorAll('.pk-white, .pk-black');
-    console.log('[playable keyboard] built', allKeys.length, 'keys (52 white + 36 black expected)');
-
-    // Note: the playable section's ScrollTrigger pin is created LATER in
-    // this script (after the hero pin), to ensure correct calculation
-    // ordering. Otherwise the playable pin locks its activation position
-    // without seeing the hero's 3400px spacer, causing it to activate
-    // mid-zoom-animation.
-
-    allKeys.forEach(k => {
-      k.addEventListener('pointerdown', async e => {
-        e.preventDefault();
-        e.stopPropagation();
-        const note = k.dataset.note;
-        console.log('[playable keyboard] key pressed:', note, 'at', e.clientX, e.clientY);
-        k.classList.add('pk-active');
-        setTimeout(() => k.classList.remove('pk-active'), 380);
-        await ensureAudio();
-        synth.triggerAttackRelease(note, '8n');
-        showPlayableFeedback(e.clientX, e.clientY, note);
-      });
-    });
-  } else {
-    console.warn('[playable keyboard] container #playableKeys not found');
-  }
-
-  /* -------- NAV SCROLL -------- */
   ScrollTrigger.create({
-    start: 'top -60',
-    onEnter: () => document.getElementById('nav').classList.add('scrolled'),
-    onLeaveBack: () => document.getElementById('nav').classList.remove('scrolled')
+    start: 0, end: 'max',
+    onUpdate: (self) => { gsap.set('.h-rail-fill', { scaleY: self.progress }); updateChrome(); },
+    onRefresh: updateChrome,
   });
+  updateChrome();
+
+  /* -------- Hero: the arch opens onto the showroom headline -------- */
+  const heroMedia = hero.querySelector('.h-hero-media');
+  if (!reduceMotion) {
+    let firstVisit = true;
+    try { firstVisit = !sessionStorage.getItem('sp-intro'); sessionStorage.setItem('sp-intro', '1'); } catch (e) {}
+    const introParts = ['.h-hero-title', '.h-hero-sub', '.h-hero-actions', '.h-hero-circle'];
+    gsap.set(introParts, { autoAlpha: 0 });
+    const intro = gsap.timeline({ defaults: { ease: 'expo.out' } });
+    if (firstVisit) {
+      intro.fromTo(heroMedia,
+        { clipPath: 'inset(18% 36% 0% 36% round 50vw 50vw 0vw 0vw)' },
+        { clipPath: 'inset(0% 0% 0% 0% round 0vw 0vw 0vw 0vw)', duration: 1.8, ease: 'expo.inOut' });
+    }
+    intro.from(heroMedia.querySelector('img'), { scale: 1.25, duration: 2.4 }, 0);
+    let started = false;
+    const runIntro = () => {
+      if (started) return;
+      started = true;
+      gsap.set(introParts, { autoAlpha: 1 });
+      const lines = SplitText.create('.h-hero-title .h-display', { type: 'lines', mask: 'lines' });
+      const at = firstVisit ? 1.0 : 0.15;
+      intro.from(lines.lines, { yPercent: 105, stagger: 0.12, duration: 1.3 }, at)
+        .from('.h-hero-sub, .h-hero-actions', { opacity: 0, y: 16, stagger: 0.12, duration: 1.1 }, at + 0.5)
+        .from('.h-hero-circle', { opacity: 0, scale: 0.8, duration: 1.2 }, at + 0.7);
+    };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(runIntro);
+    setTimeout(runIntro, 2500);
+
+    gsap.to(heroMedia, {
+      scale: 1.1, yPercent: 10, ease: 'none',
+      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true },
+    });
+    gsap.fromTo('.h-hero-content', { yPercent: 0, opacity: 1 }, {
+      yPercent: -28, opacity: 0, ease: 'none', immediateRender: false,
+      scrollTrigger: { trigger: hero, start: 'top top', end: '65% top', scrub: true },
+    });
+  }
+
+  if (!reduceMotion) {
+    /* -------- Arch rises over the hero -------- */
+    gsap.from('.h-arch-shape', {
+      yPercent: 16, scaleX: 0.84, ease: 'none',
+      scrollTrigger: { trigger: '.h-arch', start: 'top bottom', end: 'top 25%', scrub: true },
+    });
+    gsap.from('.h-reasons li', {
+      y: 40, opacity: 0, stagger: 0.12, duration: 1.2, ease: 'expo.out',
+      scrollTrigger: { trigger: '.h-reasons', start: 'top 85%' },
+    });
+
+    /* -------- Headlines and paragraphs rise line by line -------- */
+    document.querySelectorAll('[data-reveal="lines"]').forEach((el) => {
+      SplitText.create(el, {
+        type: 'lines', mask: 'lines', autoSplit: true,
+        onSplit: (self) => gsap.from(self.lines, {
+          yPercent: 105, stagger: 0.09, duration: 1.3, ease: 'expo.out',
+          scrollTrigger: { trigger: el, start: 'top 88%' },
+        }),
+      });
+    });
+
+    /* -------- Script words write themselves in, left to right -------- */
+    document.querySelectorAll('.h-heading .h-script, .h-card-all .h-script').forEach((el) => {
+      gsap.from(el, {
+        clipPath: 'inset(-30% 100% -40% 0%)', duration: 1.8, ease: 'power3.inOut',
+        scrollTrigger: { trigger: el, start: 'top 88%' },
+      });
+    });
+
+    /* -------- Images unveil upward -------- */
+    document.querySelectorAll('[data-reveal="image"]').forEach((fig) => {
+      const img = fig.querySelector('img');
+      const st = { trigger: fig, start: 'top 88%' };
+      gsap.fromTo(fig, { clipPath: 'inset(100% 0% 0% 0%)' },
+        { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'expo.inOut', scrollTrigger: st });
+      if (img) gsap.from(img, { scale: 1.3, duration: 2.2, ease: 'expo.out', scrollTrigger: st });
+    });
+
+    /* -------- Gentle drift at different speeds -------- */
+    document.querySelectorAll('[data-speed]').forEach((el) => {
+      const speed = parseFloat(el.dataset.speed) || 0;
+      gsap.fromTo(el, { yPercent: -speed }, {
+        yPercent: speed, ease: 'none',
+        scrollTrigger: { trigger: el.closest('section'), start: 'top bottom', end: 'bottom top', scrub: true },
+      });
+    });
+
+    /* -------- The visit word rises gently over the closing photo -------- */
+    gsap.from('.h-visit-brand > *', {
+      opacity: 0, y: 24, duration: 1.4, stagger: 0.15, ease: 'power3.out',
+      scrollTrigger: { trigger: '.h-visit', start: 'top 60%' },
+    });
+  }
+
+  /* -------- Pinned chapters: desktop pins, phones scroll naturally -------- */
+  const mm = gsap.matchMedia();
+  mm.add({ desktop: '(min-width: 961px)', motionOK: '(prefers-reduced-motion: no-preference)' }, (ctx) => {
+    const { desktop, motionOK } = ctx.conditions;
+    if (!motionOK) return;
+    // The buyer's guide: the statement zooms into place, then the form rises into view
+    if (desktop) {
+      const concept = gsap.timeline({
+        scrollTrigger: { trigger: '.h-concept', start: 'top top', end: '+=140%', pin: '.h-concept-pin', scrub: 0.6 },
+      });
+      concept.fromTo('.h-concept-statement', { scale: 1.9, opacity: 0.3 }, { scale: 1, opacity: 1, ease: 'none', duration: 1 }, 0)
+        .fromTo('.h-concept-label', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4 }, 0.5)
+        .fromTo('.h-concept-form', { yPercent: 70, opacity: 0 }, { yPercent: 0, opacity: 1, ease: 'none', duration: 0.8 }, 0.9);
+    } else {
+      gsap.from('.h-concept-statement', {
+        scale: 1.3, opacity: 0, duration: 1.4, ease: 'expo.out',
+        scrollTrigger: { trigger: '.h-concept-statement', start: 'top 85%' },
+      });
+      gsap.from('.h-concept-form', {
+        y: 60, opacity: 0, duration: 1.2, ease: 'expo.out',
+        scrollTrigger: { trigger: '.h-concept-form', start: 'top 90%' },
+      });
+    }
+
+    // The collection moves sideways while you scroll down (desktop only)
+    if (desktop) {
+      const track = document.querySelector('.h-collection-track');
+      const distance = () => Math.max(0, track.scrollWidth - window.innerWidth);
+      gsap.to(track, {
+        x: () => -distance(), ease: 'none',
+        scrollTrigger: {
+          trigger: '.h-collection', start: 'top top', end: () => '+=' + distance(),
+          pin: true, scrub: 0.6, invalidateOnRefresh: true,
+        },
+      });
+    }
+  });
+
+  /* -------- Teachers map: live piano teachers from TeachMusic --------
+     Same stack as teachmusic.com.au (MapLibre + the Carto Positron basemap).
+     The key below is TeachMusic's public anon key: read-only, row-level
+     security decides what it can see. Loads only when the section is near. */
+  (function teacherMap() {
+    const wrap = document.querySelector('.h-map-wrap');
+    if (!wrap) return;
+    const TM = {
+      api: 'https://swxknjeeewbuyvtkgdeb.supabase.co/rest/v1/listings',
+      key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3eGtuamVlZXdidXl2dGtnZGViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMTY0NzcsImV4cCI6MjA5OTY5MjQ3N30.uMWtd1iH10qfOdmLU4EUMfQu9TA9V8wGEXNKUS7vZfY',
+      site: 'https://www.teachmusic.com.au',
+    };
+    const status = wrap.querySelector('.h-map-status');
+    const card = document.getElementById('teacherCard');
+    const nameEl = card.querySelector('.h-map-name');
+    const subEl = card.querySelector('.h-map-sub');
+    const tagsEl = card.querySelector('.h-map-tags');
+    const linkEl = card.querySelector('.h-map-link');
+    const imgEl = card.querySelector('.h-map-img');
+    const photoEl = card.querySelector('.h-map-photo');
+    const headlineEl = card.querySelector('.h-map-headline');
+    const priceEl = card.querySelector('.h-map-price');
+    const amountEl = card.querySelector('.h-map-amount');
+    const unitEl = card.querySelector('.h-map-unit');
+    const trialEl = card.querySelector('.h-map-trial');
+    // Same choices TeachMusic makes: the first gallery photo is the face, prices are per lesson
+    const photoOf = (t) => (Array.isArray(t.gallery) ? t.gallery : [])
+      .find((g) => g && typeof g.url === 'string' && /^https?:\/\//.test(g.url)) || null;
+    const framing = (g) => (g && (g.fx != null || g.fy != null)) ? `${g.fx ?? 50}% ${g.fy ?? 50}%` : '50% 35%';
+    const initials = (name) => {
+      const w = String(name || 'T').split(/\s+/).filter(Boolean);
+      return w.length > 1 ? (w[0][0] + w[w.length - 1][0]).toUpperCase() : w[0].slice(0, 2).toUpperCase();
+    };
+    const dollars = (cents) => '$' + Math.round(cents / 100);
+    let activePin = null;
+
+    const label = (id) => id.split('-').map((w, i) => (i ? w : w[0].toUpperCase() + w.slice(1))).join(' ');
+    const load = (src, css) => new Promise((resolve, reject) => {
+      const el = document.createElement(css ? 'link' : 'script');
+      if (css) { el.rel = 'stylesheet'; el.href = src; } else { el.src = src; }
+      el.onload = resolve; el.onerror = reject;
+      document.head.appendChild(el);
+    });
+    const close = () => {
+      card.hidden = true;
+      if (activePin) activePin.classList.remove('is-active');
+      activePin = null;
+    };
+    const open = (t, pin) => {
+      if (activePin) activePin.classList.remove('is-active');
+      activePin = pin; pin.classList.add('is-active');
+      const name = t.display_name || 'Piano teacher';
+      const photo = photoOf(t);
+      photoEl.hidden = !photo;
+      if (photo) { imgEl.src = photo.url; imgEl.alt = 'Photo of ' + name; imgEl.style.objectPosition = framing(photo); }
+      nameEl.textContent = name;
+      const where = t.suburbs && t.suburbs.name ? t.suburbs.name : 'Melbourne';
+      subEl.textContent = t.years_experience ? `${where} · ${t.years_experience} years teaching` : where;
+      headlineEl.textContent = t.headline || '';
+      if (t.price_from_cents) {
+        amountEl.textContent = 'From ' + dollars(t.price_from_cents);
+        unitEl.textContent = 'per lesson';
+      } else {
+        amountEl.textContent = '';
+        unitEl.textContent = 'Pricing on their TeachMusic profile';
+      }
+      trialEl.textContent = t.offers_trial
+        ? (t.trial_price_cents ? 'Trial lesson ' + dollars(t.trial_price_cents) : 'Free trial lesson')
+        : '';
+      tagsEl.textContent = (t.instruments || []).slice(0, 4).map(label).join(' · ');
+      linkEl.href = TM.site + '/teachers/' + encodeURIComponent(t.slug);
+      card.hidden = false;
+    };
+    card.querySelector('.h-map-close').addEventListener('click', close);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !card.hidden) close(); });
+
+    async function init() {
+      try {
+        await Promise.all([
+          load('https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css', true),
+          load('https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'),
+        ]);
+        const params = new URLSearchParams([
+          ['select', 'slug,display_name,headline,instruments,pin_lat,pin_lng,gallery,price_from_cents,offers_trial,trial_price_cents,years_experience,suburbs(name)'],
+          ['instruments', 'cs.{piano}'],
+          ['pin_lat', 'gte.-38.4'], ['pin_lat', 'lte.-37.4'],
+          ['pin_lng', 'gte.144.3'], ['pin_lng', 'lte.145.7'],
+          ['or', '(and(status.eq.published,is_listable.is.true),and(claim_state.eq.unclaimed,is_listable.is.true,status.neq.removed))'],
+          ['order', 'profile_score.desc'],
+          ['limit', '300'],
+        ]);
+        const res = await fetch(TM.api + '?' + params, { headers: { apikey: TM.key, Authorization: 'Bearer ' + TM.key } });
+        if (!res.ok) throw new Error('TeachMusic listings ' + res.status);
+        const teachers = (await res.json()).filter((t) => t.pin_lat != null && t.pin_lng != null);
+
+        const map = new maplibregl.Map({
+          container: 'teacherMap',
+          style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+          center: [145.05, -37.84],
+          zoom: 9.6,
+          attributionControl: { compact: true },
+          cooperativeGestures: window.matchMedia('(pointer: coarse)').matches,
+        });
+        // Wheel zoom works while the pointer is over the map (the wrapper carries
+        // data-lenis-prevent so smooth scrolling leaves those wheel events alone).
+        // Touch screens keep two-finger gestures so a thumb can still scroll the page.
+        map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+        map.on('click', close);
+        map.on('load', () => {
+          status.hidden = true;
+          const bounds = new maplibregl.LngLatBounds();
+          teachers.forEach((t) => {
+            const pin = document.createElement('button');
+            pin.type = 'button';
+            pin.className = 'h-pin';
+            const where = t.suburbs && t.suburbs.name ? ', ' + t.suburbs.name : '';
+            pin.setAttribute('aria-label', (t.display_name || 'Piano teacher') + where + '. Show details.');
+            const photo = photoOf(t);
+            if (photo) {
+              const img = document.createElement('img');
+              img.src = photo.url; img.alt = ''; img.decoding = 'async'; img.loading = 'lazy';
+              img.style.objectPosition = framing(photo);
+              img.onerror = () => { img.remove(); pin.textContent = initials(t.display_name); };
+              pin.appendChild(img);
+            } else {
+              pin.textContent = initials(t.display_name);
+            }
+            pin.addEventListener('click', (e) => { e.stopPropagation(); open(t, pin); });
+            const holder = document.createElement('div');
+            holder.appendChild(pin);
+            new maplibregl.Marker({ element: holder }).setLngLat([t.pin_lng, t.pin_lat]).addTo(map);
+            bounds.extend([t.pin_lng, t.pin_lat]);
+          });
+          if (teachers.length) map.fitBounds(bounds, { padding: 70, maxZoom: 11.5, animate: false });
+        });
+      } catch (err) {
+        console.error(err);
+        status.textContent = 'The teacher map could not load right now. You can still browse every teacher on TeachMusic below.';
+      }
+    }
+
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        if (entries.some((e) => e.isIntersecting)) { io.disconnect(); init(); }
+      }, { rootMargin: '600px 0px' });
+      io.observe(wrap);
+    } else {
+      init();
+    }
+  })();
+
+  /* -------- The route draws itself as you read -------- */
+  (function route() {
+    const path = document.querySelector('.h-route-path');
+    const stops = [...document.querySelectorAll('.h-route-stop')];
+    if (!path || !stops.length) return;
+    const length = path.getTotalLength();
+    const place = () => {
+      const wide = window.matchMedia('(min-width: 961px)').matches;
+      stops.forEach((stop, i) => {
+        if (!wide) { stop.style.left = ''; stop.style.top = ''; return; }
+        const p = path.getPointAtLength(length * i / (stops.length - 1));
+        stop.style.left = (p.x / 1200 * 100) + '%';
+        stop.style.top = (p.y / 260 * 100) + '%';
+      });
+    };
+    place();
+    window.addEventListener('resize', place);
+    path.style.strokeDasharray = length;
+    if (reduceMotion) {
+      path.style.strokeDashoffset = 0;
+      stops.forEach((s) => s.classList.add('is-reached'));
+      return;
+    }
+    path.style.strokeDashoffset = length;
+    gsap.to(path, {
+      strokeDashoffset: 0, ease: 'none',
+      scrollTrigger: {
+        trigger: '.h-route-map', start: 'top 80%', end: 'bottom 40%', scrub: true,
+        onUpdate: (self) => stops.forEach((s, i) =>
+          s.classList.toggle('is-reached', self.progress >= i / (stops.length - 1) - 0.03)),
+      },
+    });
+  })();
+
+  /* Recompute positions once fonts and images have settled */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
+  window.addEventListener('load', () => ScrollTrigger.refresh());
 
   /* -------- NAV DROPDOWNS --------
      Open on hover (desktop) and click. Close on outside-click or Esc. The
@@ -2787,519 +2450,6 @@
     });
   })();
 
-  /* -------- HERO ENTRANCE -------- */
-  gsap.timeline({ delay: 0.2 })
-    .from('.hero-eyebrow', { opacity: 0, y: 20, duration: 0.6, ease: 'power2.out' })
-    .from('.hero-h1',      { opacity: 0, y: 30, duration: 0.9, ease: 'power2.out' }, '-=0.3')
-    .from('.hero-sub',     { opacity: 0, y: 20, duration: 0.6, ease: 'power2.out' }, '-=0.5')
-    .from('.hero-btns',    { opacity: 0, y: 20, duration: 0.6, ease: 'power2.out' }, '-=0.4')
-    .from('.hero-visual',  { opacity: 0, x: 40, duration: 1.0, ease: 'power2.out' }, '-=0.8')
-    .from('.scroll-cue',   { opacity: 0, duration: 0.6 }, '-=0.2');
-
-  /* hide scroll cue on scroll */
-  ScrollTrigger.create({
-    start: 'top -10',
-    onEnter: () => gsap.to('.scroll-cue', { opacity: 0, duration: 0.3 }),
-    onLeaveBack: () => gsap.to('.scroll-cue', { opacity: 1, duration: 0.3 })
-  });
-
-  /* -------- HERO PIANO CANVAS — scroll-scrubbed frame sequence -------- */
-  // 120 frames extracted from the 3 Seedance clips concatenated:
-  //   ~40 frames: fallboard opens
-  //   ~40 frames: front lid flap folds back, music desk reveals flat
-  //   ~40 frames: main lid rises on stick, music desk tilts upright
-  const FRAME_COUNT = 120;
-  const FRAME_DIR = 'parts/frames/';
-  const canvas = document.getElementById('heroCanvas');
-
-  if (canvas) {
-    const ctx = canvas.getContext('2d');
-    const frames = new Array(FRAME_COUNT);
-    let currentFrame = -1;
-
-    // preload every frame; first frame paints as soon as it arrives
-    for (let i = 0; i < FRAME_COUNT; i++) {
-      const img = new Image();
-      img.src = FRAME_DIR + 'frame_' + String(i + 1).padStart(3, '0') + '.webp';
-      frames[i] = img;
-    }
-    frames[0].addEventListener('load', () => drawFrame(0), { once: true });
-
-    function drawFrame(index) {
-      const idx = Math.max(0, Math.min(FRAME_COUNT - 1, Math.round(index)));
-      if (idx === currentFrame) return;
-      const img = frames[idx];
-      if (!img || !img.complete || img.naturalWidth === 0) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      currentFrame = idx;
-    }
-
-    // Pin the hero for the FULL three-phase cinematic. Single pin, single
-    // continuous scroll. No separate section after.
-    //   Phase 1 (0 → 38%): opening — heroCanvas plays frames 1–120
-    //   Phase 2 (38 → 69%): zoom — text fades out, zoomCanvas plays Clip D
-    //   Phase 3 (69 → 100%): playable — overlay shows on the last zoom
-    //     frame. CTA + clickable keys are layered over the still-visible
-    //     zoom canvas. User can play.
-    // After 100%: matcher comes into view normally.
-    // Phase thresholds in scroll-progress space.
-    // Pin total = 2400px (see ScrollTrigger.end below). Phase 3 is kept
-    // intentionally short so the page can flow into the matcher/buyer's
-    // guide section right after the playable overlay appears, rather
-    // than parking the user in dead pinned scroll.
-    const PHASE1_END = 0.65;   // 0.00 → 0.65 (1560px): 3 text scenes + piano stages
-    const PHASE2_END = 0.90;   // 0.65 → 0.90  (600px): zoom 1:1 → full-bleed auto-plays
-    //                            0.90 → 1.00  (240px): playable keys overlay, then auto-scroll
-    const heroCopy = document.querySelector('.hero-copy');
-    const playableKeys = null; // hero keys removed
-    const zoom = document.getElementById('zoomCanvas');
-    const playableOverlay = document.getElementById('playableOverlay');
-
-    // Compute the 16:9 stage rect (matches the .playable-stage CSS) so
-    // the zoom canvas can target the exact same area when Phase 2 ends.
-    // Click targets are inside .playable-stage so they line up.
-    function stageRect() {
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const targetAspect = 16 / 9;
-      let w, h;
-      if (vw / vh > targetAspect) {
-        h = vh; w = h * targetAspect;
-      } else {
-        w = vw; h = w / targetAspect;
-      }
-      return {
-        top: (vh - h) / 2,
-        left: (vw - w) / 2,
-        width: w,
-        height: h,
-      };
-    }
-
-    // ========================================================
-    // Hero scroll = state machine, not scrubber.
-    // --------------------------------------------------------
-    // Old model: every animation (text opacity, piano frame index,
-    //   zoom canvas rect) was scrubbed proportionally to scroll
-    //   position. That meant scrolling slowly exposed half-finished
-    //   states (two headlines overlapping, piano mid-frame).
-    // New model: scroll position only decides WHICH stage is active.
-    //   Crossing a stage threshold fires a self-completing GSAP
-    //   animation. User scrolls less; animations always play in full.
-    // --------------------------------------------------------
-    //   3 text/piano scenes in Phase 1 (closed → fallboard → lid up),
-    //   then Phase 2 zoom (1:1 → full bleed) auto-plays once,
-    //   then Phase 3 playable overlay.
-    // ========================================================
-
-    const sceneEls = document.querySelectorAll('.hero-copy-scene');
-
-    // Frame indices the piano "lands on" at each scene. Roughly aligns
-    // with the 3 source clips: closed → fallboard open → full lid up.
-    // Tune these if visual rest points don't match headline changes.
-    // Frame indices are 0-based here; the source webp filenames are
-    // 1-based, so frame index 65 == frame_066.webp.
-    const PIANO_STAGE_FRAMES = [0, 65, 119];
-    /* Text + piano share the same duration so they start AND finish in
-       sync — previously piano was 1.2s, twice the text's 0.55s, so the
-       piano always felt like it was catching up after the text settled. */
-    const SCENE_FADE_DUR     = 0.55;
-    const PIANO_STAGE_DUR    = 0.55;
-    const ZOOM_FORWARD_DUR   = 1.40;
-    const ZOOM_REVERSE_DUR   = 0.80;
-
-    // State — single source of truth for what's currently displayed.
-    let currentSceneIdx = 0;
-    let currentPhase    = 1;
-    const pianoFrameProxy = { f: 0 };   // tweened, drives drawFrame
-    const zoomProxy       = { t: 0 };   // 0 = right column 1:1, 1 = full bleed
-
-    // ---- Text scene crossfade (unchanged from previous step) ----
-    function goToScene(targetIdx) {
-      if (targetIdx === currentSceneIdx) return;
-      const dir = targetIdx > currentSceneIdx ? 1 : -1;
-      const outgoing = sceneEls[currentSceneIdx];
-      const incoming = sceneEls[targetIdx];
-      currentSceneIdx = targetIdx;
-      gsap.killTweensOf([outgoing, incoming]);
-      outgoing.style.pointerEvents = 'none';
-      incoming.style.pointerEvents = 'auto';
-      gsap.to(outgoing, {
-        opacity: 0, y: -24 * dir,
-        duration: SCENE_FADE_DUR, ease: 'power2.out',
-      });
-      gsap.fromTo(incoming,
-        { opacity: 0, y: 24 * dir },
-        { opacity: 1, y: 0, duration: SCENE_FADE_DUR, ease: 'power2.out' }
-      );
-    }
-
-    // ---- Piano stage autoplay ----
-    // Tweens the frame index from current to the target stage. GSAP
-    // kills any in-flight tween so changing direction mid-animation
-    // picks up smoothly from wherever the piano currently is.
-    function goToPianoStage(stageIdx) {
-      const target = PIANO_STAGE_FRAMES[stageIdx];
-      gsap.killTweensOf(pianoFrameProxy);
-      gsap.to(pianoFrameProxy, {
-        f: target,
-        duration: PIANO_STAGE_DUR,
-        ease: 'power2.inOut',
-        onUpdate: () => drawFrame(pianoFrameProxy.f),
-      });
-    }
-
-    // ---- Zoom canvas autoplay ----
-    // The zoom canvas grows from the hero's right-column rect to the
-    // 16:9 stage rect while playing through Clip D frames. We tween
-    // a single scalar `t` and re-render the canvas on every tick.
-    function drawZoomState(t) {
-      if (!zoom || !canvas) return;
-      const heroBox = canvas.getBoundingClientRect();
-      const target = stageRect();
-      const SEEDANCE_Y_NUDGE = -28;
-      const yNudge = SEEDANCE_Y_NUDGE * (1 - t);
-      const top    = heroBox.top    + (target.top    - heroBox.top)    * t + yNudge;
-      const left   = heroBox.left   + (target.left   - heroBox.left)   * t;
-      const width  = heroBox.width  + (target.width  - heroBox.width)  * t;
-      const height = heroBox.height + (target.height - heroBox.height) * t;
-      zoom.style.top    = top + 'px';
-      zoom.style.left   = left + 'px';
-      zoom.style.width  = width + 'px';
-      zoom.style.height = height + 'px';
-      const frameIdx = t * (window.__ZOOM_FRAME_COUNT - 1);
-      if (window.__resizeAndDrawZoom) {
-        window.__resizeAndDrawZoom(width, height, frameIdx);
-      }
-    }
-    function playZoomTo(targetT, duration, onComplete) {
-      gsap.killTweensOf(zoomProxy);
-      gsap.to(zoomProxy, {
-        t: targetT,
-        duration,
-        ease: 'power2.inOut',
-        onUpdate: () => drawZoomState(zoomProxy.t),
-        onComplete,
-      });
-    }
-
-    /* The buyer's guide form + "TAP A KEY / PLAY" labels live in this
-       overlay. We reveal it the instant the zoom animation completes —
-       NOT when scroll crosses the Phase 3 threshold. That way a slow
-       scroller never sees a gap between "zoom finished visually" and
-       "form appeared". Idempotent: safe to call multiple times. */
-    function revealPlayable() {
-      if (!playableOverlay) return;
-      if (playableOverlay.classList.contains('show')) return;
-      playableOverlay.classList.add('show');
-      playWelcomeWithVisual();
-    }
-
-    /* ----------------------------------------------------------------
-       detachToFlow / reattachToFixed
-       ----------------------------------------------------------------
-       The zoom canvas and form overlay are position:fixed during the
-       hero pin so the zoom animation can size them against the viewport.
-       But fixed elements never move when the user scrolls past, which
-       creates "stuck" content above the next section. So when the pin
-       releases, we pin each element at its current document Y as an
-       ABSOLUTE element. From there it scrolls naturally up out of view
-       as the user continues toward the matcher — just like a normal
-       page section.
-
-       Two gotchas this code handles:
-        1. The overlay's CSS uses `inset: 0` (shorthand for top/right/
-           bottom/left = 0). If we only set `top` inline, the right/
-           bottom/left stay 0, which on a static-positioned body makes
-           the absolute element stretch to the full document. Set all
-           four sides explicitly.
-        2. The zoom canvas lives inside .hero which has `overflow:hidden`.
-           An absolute child positioned past hero's box would be clipped.
-           So we MOVE the canvas to body on detach and back to hero on
-           reattach.
-       ---------------------------------------------------------------- */
-    const heroEl = document.querySelector('.hero');
-    function detachToFlow() {
-      if (zoom && zoom.dataset.detached !== '1') {
-        const rect = zoom.getBoundingClientRect();
-        zoom.dataset.detached = '1';
-        document.body.appendChild(zoom);   /* escape hero's overflow:hidden */
-        zoom.style.position = 'absolute';
-        zoom.style.top    = (rect.top + window.scrollY) + 'px';
-        zoom.style.left   = rect.left + 'px';
-        zoom.style.right  = 'auto';
-        zoom.style.bottom = 'auto';
-        zoom.style.width  = rect.width + 'px';
-        zoom.style.height = rect.height + 'px';
-      }
-      if (playableOverlay && playableOverlay.dataset.detached !== '1') {
-        const rect = playableOverlay.getBoundingClientRect();
-        playableOverlay.dataset.detached = '1';
-        playableOverlay.style.position = 'absolute';
-        playableOverlay.style.top    = (rect.top + window.scrollY) + 'px';
-        playableOverlay.style.left   = rect.left + 'px';
-        playableOverlay.style.right  = 'auto';
-        playableOverlay.style.bottom = 'auto';
-        playableOverlay.style.width  = rect.width + 'px';
-        playableOverlay.style.height = rect.height + 'px';
-      }
-    }
-    function reattachToFixed() {
-      if (zoom && zoom.dataset.detached === '1') {
-        delete zoom.dataset.detached;
-        if (heroEl) heroEl.insertBefore(zoom, heroEl.firstChild);
-        zoom.style.position = '';
-        zoom.style.top      = '';
-        zoom.style.left     = '';
-        zoom.style.right    = '';
-        zoom.style.bottom   = '';
-        zoom.style.width    = '';
-        zoom.style.height   = '';
-      }
-      if (playableOverlay && playableOverlay.dataset.detached === '1') {
-        delete playableOverlay.dataset.detached;
-        playableOverlay.style.position = '';
-        playableOverlay.style.top      = '';
-        playableOverlay.style.left     = '';
-        playableOverlay.style.right    = '';
-        playableOverlay.style.bottom   = '';
-        playableOverlay.style.width    = '';
-        playableOverlay.style.height   = '';
-      }
-    }
-
-
-    // ---- Phase entry handlers ----
-    // Called once per phase transition (forward or backward). Each one
-    // snaps things to a known-good state before kicking off whatever
-    // animation belongs to that phase, so partial states from rapid
-    // scroll never strand the UI in something unreadable.
-
-    function enterPhase1() {
-      currentPhase = 1;
-      if (playableOverlay) playableOverlay.classList.remove('show');
-      // Kill any in-flight fades on heroCopy/canvas/zoom from a previous
-      // phase transition so we don't fight ourselves.
-      gsap.killTweensOf([heroCopy, canvas, zoom]);
-      if (heroCopy) gsap.to(heroCopy, { opacity: 1, duration: 0.4, ease: 'power2.out' });
-      if (canvas)   gsap.to(canvas,   { opacity: 1, duration: 0.4, ease: 'power2.out' });
-      // If we're coming back from Phase 2/3, reverse the zoom.
-      if (zoomProxy.t > 0.001) {
-        playZoomTo(0, ZOOM_REVERSE_DUR);
-        if (zoom) gsap.to(zoom, { opacity: 0, duration: ZOOM_REVERSE_DUR, ease: 'power2.inOut' });
-      }
-    }
-
-    function enterPhase2() {
-      const fromPhase = currentPhase;
-      currentPhase = 2;
-      // Only hide the overlay if we arrived from Phase 1 (forward).
-      // Coming back from Phase 3, the overlay should stay visible — we're
-      // still looking at the zoomed-in piano with form on the music desk.
-      if (fromPhase === 1 && playableOverlay) {
-        playableOverlay.classList.remove('show');
-      }
-      // Force last scene + last piano frame instantly — user may have
-      // skipped past the in-between scenes via a fast scroll, and we
-      // don't want intermediate states left over when they scroll back.
-      const lastIdx = sceneEls.length - 1;
-      gsap.killTweensOf([sceneEls, pianoFrameProxy, heroCopy, canvas, zoom]);
-      sceneEls.forEach((sc, i) => {
-        sc.style.opacity = (i === lastIdx) ? '1' : '0';
-        sc.style.transform = 'translateY(0)';
-        sc.style.pointerEvents = (i === lastIdx) ? 'auto' : 'none';
-      });
-      currentSceneIdx = lastIdx;
-      pianoFrameProxy.f = PIANO_STAGE_FRAMES[lastIdx];
-      drawFrame(pianoFrameProxy.f);
-      // Fade hero text + hero canvas out, fade zoom in, then auto-play zoom.
-      if (heroCopy) gsap.to(heroCopy, { opacity: 0, duration: 0.45, ease: 'power2.out' });
-      if (zoom)     zoom.style.opacity = 1;
-      if (canvas)   gsap.to(canvas, { opacity: 0, duration: 0.45, delay: 0.15, ease: 'power2.out' });
-      // If we re-entered Phase 2 from Phase 3 (scroll back), zoom is
-      // already at t=1 — reveal immediately. Otherwise forward-play the
-      // zoom and reveal the overlay the instant it completes.
-      if (zoomProxy.t >= 0.999) {
-        drawZoomState(1);
-        revealPlayable();
-      } else {
-        playZoomTo(1, ZOOM_FORWARD_DUR, revealPlayable);
-      }
-    }
-
-    function enterPhase3() {
-      currentPhase = 3;
-      // Snap scenes + piano + hero text/canvas. These are fast-fade things
-      // (≤ 0.5s) so snapping when the user has scrolled past doesn't look
-      // jarring. ZOOM is different — handled separately below.
-      const lastIdx = sceneEls.length - 1;
-      gsap.killTweensOf([sceneEls, pianoFrameProxy, heroCopy, canvas]);
-      sceneEls.forEach((sc, i) => {
-        sc.style.opacity = (i === lastIdx) ? '1' : '0';
-        sc.style.transform = 'translateY(0)';
-        sc.style.pointerEvents = 'none';
-      });
-      currentSceneIdx = lastIdx;
-      pianoFrameProxy.f = PIANO_STAGE_FRAMES[lastIdx];
-      drawFrame(pianoFrameProxy.f);
-      if (canvas)   canvas.style.opacity = 0;
-      if (zoom)     zoom.style.opacity = 1;
-      if (heroCopy) heroCopy.style.opacity = 0;
-
-      // Overlay reveal is now driven by zoom completion (enterPhase2's
-      // playZoomTo onComplete), so we only need to handle two edge cases:
-      //   (a) zoom is already finished → reveal immediately
-      //   (b) we got here without enterPhase2 ever running (page reload
-      //       deep in Phase 3, or scroll skipped Phase 2 entirely
-      //       between two onUpdate ticks) → kick off the zoom now
-      if (zoomProxy.t >= 0.999) {
-        drawZoomState(1);
-        revealPlayable();
-      } else if (!gsap.isTweening(zoomProxy)) {
-        playZoomTo(1, ZOOM_FORWARD_DUR, revealPlayable);
-      }
-      /* else: zoom from enterPhase2 is in flight; its onComplete will reveal. */
-    }
-
-    // ---- Initialize hero state explicitly (don't trust CSS for non-defaults) ----
-    sceneEls.forEach((sc, i) => {
-      sc.style.opacity = (i === 0) ? '1' : '0';
-      sc.style.transform = 'translateY(0)';
-      sc.style.pointerEvents = (i === 0) ? 'auto' : 'none';
-    });
-
-    ScrollTrigger.create({
-      trigger: '.hero',
-      start: 'top top',
-      end: '+=2400',          /* shrunk further — Phase 3 is brief so the matcher
-                                  section follows the playable overlay almost
-                                  immediately on the next scroll input */
-      pin: true,
-      pinSpacing: true,
-      scrub: 0.2,             /* lighter smoothing so phase-change detection
-                                  fires promptly when scroll crosses a threshold */
-      anticipatePin: 1,
-      // When the pin releases, "lock" the zoom canvas and form overlay
-      // at their final viewport positions by converting them to absolute
-      // elements pinned to the current document Y. From there they
-      // scroll naturally upward as the user keeps scrolling — like any
-      // other section of the page — and the matcher comes in directly
-      // below with no fade, no gap, no snap.
-      onLeave:     () => { gsap.set('.scroll-cue', { opacity: 0 }); detachToFlow(); },
-      onEnter:     () => { gsap.set('.scroll-cue', { opacity: 0 }); },
-      onEnterBack: () => {
-        // User scrolled back up into the hero pin range. Restore the
-        // zoom canvas + overlay to position:fixed so the pin animation
-        // (in reverse) can take over again, and re-show Phase 3 visuals.
-        reattachToFixed();
-        if (zoom) {
-          gsap.killTweensOf(zoom, 'opacity');
-          zoom.style.opacity = 1;
-        }
-        if (zoomProxy.t >= 0.999) {
-          enterPhase3();
-        }
-      },
-      onUpdate: self => {
-        const p = self.progress;
-        const phase = p <= PHASE1_END ? 1 : (p <= PHASE2_END ? 2 : 3);
-
-        if (phase !== currentPhase) {
-          if (phase === 1)      enterPhase1();
-          else if (phase === 2) enterPhase2();
-          else                  enterPhase3();
-        }
-
-        // Inside Phase 1:
-        //   - Piano: scroll-scrubbed frame index (every tick draws the
-        //     frame corresponding to current scroll position — the feel
-        //     of scrubbing the source clip with your wheel).
-        //   - Text: still snap-to-active-scene with autonomous crossfade,
-        //     so headlines never overlap mid-transition.
-        // Within Phase 2 and Phase 3, the autoplays from enterPhaseN
-        // handle everything; scroll position doesn't matter.
-        if (phase === 1) {
-          const phase1Progress = p / PHASE1_END;
-          drawFrame(phase1Progress * (FRAME_COUNT - 1));
-          const N = sceneEls.length;
-          const targetIdx = Math.min(N - 1, Math.max(0, Math.floor(phase1Progress * N)));
-          if (targetIdx !== currentSceneIdx) {
-            goToScene(targetIdx);
-          }
-        }
-      }
-    });
-
-    // (The playable phase is handled as Phase 3 of the hero pin above —
-    // no separate ScrollTrigger needed. The overlay shows when the hero's
-    // pin progress crosses PHASE2_END.)
-
-  }
-
-  /* -------- HERO ZOOM CANVAS (Phase 2) — Clip D frames -------- */
-  // 80 frames extracted from Seedance Clip D (camera pushes from wide view
-  // of open piano to tight close-up of keys). Plays in a full-bleed canvas
-  // that crossfades in over the opening canvas during the second half of
-  // the hero pin, while the hero text fades out.
-  const ZOOM_FRAME_COUNT = 80;
-  const ZOOM_FRAME_DIR = 'parts/frames-d/';
-  const zoomCanvas = document.getElementById('zoomCanvas');
-
-  if (zoomCanvas) {
-    const zoomCtx = zoomCanvas.getContext('2d');
-    const zoomFrames = new Array(ZOOM_FRAME_COUNT);
-    let zoomCurrent = -1;
-
-    for (let i = 0; i < ZOOM_FRAME_COUNT; i++) {
-      const img = new Image();
-      img.src = ZOOM_FRAME_DIR + 'frame_' + String(i + 1).padStart(3, '0') + '.webp';
-      zoomFrames[i] = img;
-    }
-
-    function drawZoomFrame(index) {
-      const idx = Math.max(0, Math.min(ZOOM_FRAME_COUNT - 1, Math.round(index)));
-      if (idx === zoomCurrent) return;
-      const img = zoomFrames[idx];
-      if (!img || !img.complete || img.naturalWidth === 0) return;
-      // object-fit: cover behavior — fill canvas, crop overflow
-      const cw = zoomCanvas.width;
-      const ch = zoomCanvas.height;
-      const ir = img.naturalWidth / img.naturalHeight;
-      const cr = cw / ch;
-      let dw, dh, dx, dy;
-      if (ir > cr) { dh = ch; dw = dh * ir; dx = (cw - dw) / 2; dy = 0; }
-      else { dw = cw; dh = dw / ir; dx = 0; dy = (ch - dh) / 2; }
-      zoomCtx.clearRect(0, 0, cw, ch);
-      zoomCtx.drawImage(img, dx, dy, dw, dh);
-      zoomCurrent = idx;
-    }
-
-    // Helper used both for initial preload paint and from the hero
-    // ScrollTrigger during Phase 2 — resizes canvas internal pixels to
-    // match the requested CSS width/height (× DPR), then redraws. Keeps
-    // the canvas's internal aspect always equal to its CSS aspect so the
-    // browser never has to stretch pixels non-uniformly.
-    function resizeAndDrawZoom(cssW, cssH, frameIdx) {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const w = Math.max(1, Math.round(cssW * dpr));
-      const h = Math.max(1, Math.round(cssH * dpr));
-      if (zoomCanvas.width !== w || zoomCanvas.height !== h) {
-        zoomCanvas.width = w;
-        zoomCanvas.height = h;
-        zoomCurrent = -1; // resize wipes the canvas
-      }
-      drawZoomFrame(frameIdx);
-    }
-    window.__resizeAndDrawZoom = resizeAndDrawZoom;
-    // initial paint at viewport size (just so preload kicks in)
-    resizeAndDrawZoom(window.innerWidth, window.innerHeight, 0);
-
-    // expose so the hero ScrollTrigger can drive it
-    window.__drawZoomFrame = drawZoomFrame;
-    window.__ZOOM_FRAME_COUNT = ZOOM_FRAME_COUNT;
-  }
-
   /* -------- SCROLL REVEALS -------- */
   gsap.utils.toArray('.reveal').forEach(el => {
     gsap.fromTo(el,
@@ -3332,12 +2482,12 @@
   /* Match logic — picks a sensible piano from a small bank */
   const bank = {
     'beginner|small|b1':     { name: 'Casio Privia PX-S1100', reason: 'A slim digital that fits anywhere and feels right under beginner hands.', price: 'From $1,099' },
-    'beginner|small|b2':     { name: 'Roland FP-30X',         reason: 'A trusted first piano — weighted keys, honest tone, room to grow.',         price: 'From $1,399' },
+    'beginner|small|b2':     { name: 'Roland FP-30X',         reason: 'A trusted first piano: weighted keys, honest tone, room to grow.',         price: 'From $1,399' },
     'beginner|medium|b1':    { name: 'Yamaha P-145',          reason: 'Yamaha tone, beginner-friendly, ideal for a family living room.',           price: 'From $1,199' },
     'beginner|medium|b2':    { name: 'Kawai KDP120',          reason: 'A console digital that feels like a real piano without the upkeep.',         price: 'From $2,299' },
-    'intermediate|medium|b2':{ name: 'Yamaha b2 Upright',     reason: 'Acoustic warmth in a compact upright — Melbourne homes love this one.',      price: 'From $7,800' },
+    'intermediate|medium|b2':{ name: 'Yamaha b2 Upright',     reason: 'Acoustic warmth in a compact upright. Melbourne homes love this one.',      price: 'From $7,800' },
     'intermediate|large|b3': { name: 'Kawai K-300',           reason: 'Concert tone in a contemporary upright. A buy-once instrument.',             price: 'From $9,400' },
-    'student|medium|b3':     { name: 'Kawai K-500',           reason: 'Built for serious practice — refined action, rich sustain.',                 price: 'From $12,200' },
+    'student|medium|b3':     { name: 'Kawai K-500',           reason: 'Built for serious practice: refined action, rich sustain.',                 price: 'From $12,200' },
     'student|large|b3':      { name: 'Yamaha U1',             reason: 'The studio upright generations of pianists have trained on.',                 price: 'From $11,500' },
     'student|large|b4':      { name: 'Kawai GL-30 Grand',     reason: 'A baby grand with the voicing serious students need.',                       price: 'From $24,800' },
     'pro|studio|b4':         { name: 'Yamaha C3X Grand',      reason: 'A concert-ready studio grand. Recording, performance, teaching.',            price: 'From $38,500' },
@@ -3348,7 +2498,7 @@
     if (exact) return exact;
     const sameLevel = Object.entries(bank).find(([k]) => k.startsWith(level + '|'));
     if (sameLevel) return sameLevel[1];
-    return { name: 'Kawai K-300', reason: 'A confident all-rounder — the piano we recommend most.', price: 'From $9,400' };
+    return { name: 'Kawai K-300', reason: 'A confident all-rounder, the piano we recommend most.', price: 'From $9,400' };
   }
 
   const overlay = document.getElementById('overlay');
@@ -3382,7 +2532,7 @@
   overlay.addEventListener('click', closePopup);
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && popup.classList.contains('active')) closePopup(); });
 
-  /* -------- INLINE BUYER'S GUIDE FORM (on the music desk) --------
+  /* -------- BUYER'S GUIDE FORM --------
      Placeholder submit — swap the body of the handler for a real
      fetch() to your email/CRM endpoint when ready. */
   const playableGuideForm = document.getElementById('playableGuideForm');
@@ -3391,7 +2541,7 @@
     playableGuideForm.addEventListener('submit', e => {
       e.preventDefault();
       const originalLabel = playableGuideSubmit.innerHTML;
-      playableGuideSubmit.innerHTML = 'Sent — check your inbox';
+      playableGuideSubmit.innerHTML = 'Sent. Check your inbox';
       playableGuideSubmit.disabled = true;
       setTimeout(() => {
         playableGuideForm.reset();
@@ -3401,39 +2551,14 @@
     });
   }
 
-  /* -------- PIANO CARD 3D TILT (featured instruments grid) -------- */
-  document.querySelectorAll('.piano-card').forEach(card => {
-    card.addEventListener('mousemove', e => {
-      const rect = card.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      gsap.to(card, {
-        rotationY: x * 8,
-        rotationX: -y * 8,
-        translateY: -4,
-        transformPerspective: 1000,
-        ease: 'power1.out',
-        duration: 0.4
-      });
-    });
-    card.addEventListener('mouseleave', () => {
-      gsap.to(card, {
-        rotationY: 0, rotationX: 0, translateY: 0,
-        duration: 0.6, ease: 'power2.out'
-      });
-    });
-  });
-
-  /* CRITICAL: refresh ALL ScrollTriggers AFTER they've all been created.
-     Without this, sequential pins lock in their activation positions based
-     on the page layout BEFORE later pins (like the hero's 3400px) add their
-     spacers. The hero pin is created AFTER the playable section pin in
-     this script, so without refresh the playable section pins too early
-     (before the hero zoom finishes). refresh() recomputes everything once
-     all triggers exist. */
-  requestAnimationFrame(() => ScrollTrigger.refresh());
-  window.addEventListener('load', () => ScrollTrigger.refresh());
 </script>
 
+<div class="sp-bottombar" role="navigation" aria-label="Quick contact">
+  <a href="tel:+61479128955"><i class="ti ti-phone" aria-hidden="true"></i>Call</a>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener"><i class="ti ti-map-pin" aria-hidden="true"></i>Directions</a>
+  <a class="sp-bottombar-book" href="/services/book-a-viewing.html">Book a visit</a>
+</div>
+<script src="/js/signature-nav.js" defer></script>
+<script src="/js/signature-book.js" defer></script>
 </body>
 </html>

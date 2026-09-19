@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title id="docTitle">Loading… — Signature Pianos</title>
+<title id="docTitle">Loading… | Signature Pianos</title>
 <meta name="description" id="docDesc" content="" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
 <!-- Self-referencing canonical + social preview, set once the piano loads (added from SEO audit) -->
@@ -37,16 +37,16 @@ function upsertSeoMeta(title, desc){
 
 <style>
   :root {
-    --bg-1: #0e0e0d;
-    --bg-2: #1a1a18;
-    --bg-3: #242422;
-    --gold: #b8935a;
-    --gold-light: #d4b483;
-    --text-1: #f5f0e8;
-    --text-2: #9a9590;
-    --text-3: #6b6760;
-    --border: rgba(184, 147, 90, 0.15);
-    --border-hover: rgba(184, 147, 90, 0.4);
+    --bg-1: #F3F0E9;
+    --bg-2: #E9E5DB;
+    --bg-3: #DCE6ED;
+    --gold: #16222E;
+    --gold-light: #3A4855;
+    --text-1: #16222E;
+    --text-2: #3A4855;
+    --text-3: #3A4855;
+    --border: rgba(22, 34, 46, 0.15);
+    --border-hover: rgba(22, 34, 46, 0.4);
   }
 
   *, *::before, *::after { box-sizing: border-box; }
@@ -56,7 +56,7 @@ function upsertSeoMeta(title, desc){
     padding: 0;
     background: var(--bg-1);
     color: var(--text-1);
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-weight: 300;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
@@ -75,16 +75,16 @@ function upsertSeoMeta(title, desc){
     align-items: center;
     justify-content: space-between;
     gap: 32px;
-    background: rgba(14, 14, 13, 0.88);
+    background: rgba(243, 240, 233, 0.88);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     transition: padding 0.35s ease, background 0.35s ease;
   }
-  nav.scrolled { background: rgba(14, 14, 13, 0.96); padding: 12px 32px; }
+  nav.scrolled { background: rgba(243, 240, 233, 0.96); padding: 12px 32px; }
 
   .logo {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 300;
     font-size: 24px;
     letter-spacing: 0.01em;
@@ -96,7 +96,7 @@ function upsertSeoMeta(title, desc){
   .nav-links { display: flex; align-items: center; gap: 32px; }
 
   .nav-link-plain {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -112,7 +112,7 @@ function upsertSeoMeta(title, desc){
 
   .nav-item--dropdown { position: relative; }
   .nav-link-trigger {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -137,7 +137,7 @@ function upsertSeoMeta(title, desc){
     top: calc(100% + 14px);
     left: 50%;
     transform: translateX(-50%) translateY(-6px);
-    background: #14140f;
+    background: #FFFFFF;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 18px;
@@ -146,7 +146,7 @@ function upsertSeoMeta(title, desc){
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.85);
+    box-shadow: 0 30px 60px -20px rgba(22, 34, 46, 0.34);
     transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
     z-index: 110;
   }
@@ -205,11 +205,11 @@ function upsertSeoMeta(title, desc){
     color: inherit;
     transition: background 0.2s ease;
   }
-  .nav-dd-item:hover { background: rgba(184, 147, 90, 0.07); }
+  .nav-dd-item:hover { background: rgba(22, 34, 46, 0.07); }
   .nav-dd-icon { font-size: 20px; color: var(--gold); margin-top: 2px; flex-shrink: 0; }
   .nav-dd-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .nav-dd-text h4 {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 14px;
     font-weight: 500;
     color: var(--text-1);
@@ -239,7 +239,7 @@ function upsertSeoMeta(title, desc){
   .nav-account-trigger:hover,
   .nav-item--account.nav-item--open .nav-account-trigger {
     border-color: var(--gold);
-    background: rgba(184, 147, 90, 0.10);
+    background: rgba(22, 34, 46, 0.10);
   }
   .nav-dropdown--account {
     grid-template-columns: 1fr;
@@ -269,7 +269,7 @@ function upsertSeoMeta(title, desc){
 
   /* ============ BREADCRUMB ============ */
   .breadcrumb {
-    padding: 110px 40px 0;
+    padding: 150px 40px 0;
     max-width: 1400px;
     margin: 0 auto;
     font-size: 11px;
@@ -309,25 +309,25 @@ function upsertSeoMeta(title, desc){
   }
   .product-image-main.grand {
     background:
-      radial-gradient(ellipse at 30% 60%, rgba(184, 147, 90, 0.3), transparent 60%),
-      linear-gradient(135deg, #1f1812, #0a0807);
+      linear-gradient(transparent, transparent),
+      linear-gradient(135deg, #E9E5DB, #F3F0E9);
   }
   .product-image-main.upright {
     background:
-      radial-gradient(ellipse at 60% 40%, rgba(184, 147, 90, 0.25), transparent 55%),
-      linear-gradient(160deg, #1a1714, #0c0a09);
+      linear-gradient(transparent, transparent),
+      linear-gradient(160deg, #E9E5DB, #F3F0E9);
   }
   .product-image-main.digital {
     background:
-      radial-gradient(ellipse at 50% 70%, rgba(184, 147, 90, 0.20), transparent 50%),
-      linear-gradient(180deg, #1a1a18, #0e0e0d);
+      linear-gradient(transparent, transparent),
+      linear-gradient(180deg, #E9E5DB, #F3F0E9);
   }
   .product-image-main i {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     font-size: 100px;
-    color: rgba(184, 147, 90, 0.4);
+    color: rgba(22, 34, 46, 0.4);
   }
   .product-image-main .placeholder-label {
     position: absolute;
@@ -369,7 +369,7 @@ function upsertSeoMeta(title, desc){
     margin-bottom: 16px;
   }
   .product-name {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 300;
     font-size: clamp(40px, 4vw, 72px);
     line-height: 1.05;
@@ -416,12 +416,35 @@ function upsertSeoMeta(title, desc){
     margin-bottom: 6px;
   }
   .product-price {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-style: italic;
-    font-size: 36px;
-    color: var(--gold);
+    font-family: var(--sp-font-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: 44px;
+    line-height: 1;
+    color: var(--sp-ink);
   }
+  /* No photograph yet: the monogram on Ivory Deep */
+  .sp-photo-empty {
+    height: 100%;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 18px;
+    background: var(--sp-ivory-deep);
+  }
+  .sp-photo-empty img { width: 84px; height: auto; opacity: 0.55; }
+  .sp-photo-empty span { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--sp-ink-soft); }
+  .related-card { display: block; color: var(--sp-ink); }
+  .related-card-image { position: relative; aspect-ratio: 4 / 5; background: var(--sp-ivory-deep); overflow: hidden; }
+  .related-card-image > img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--sp-ease); }
+  .related-card:hover .related-card-image > img { transform: scale(1.04); }
+  .related-card-image .sp-photo-empty img { width: 56px; }
+  .related-card-badge { position: absolute; top: 14px; left: 14px; padding: 7px 10px 6px; background: var(--sp-ivory); font-size: 10.5px; font-weight: 500; letter-spacing: 0.2em; line-height: 1; }
+  .related-card-body { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .related-card-name { margin: 0 0 6px; font-size: 28px; line-height: 0.9; }
+  .related-card-facts { margin: 0; font-size: 15px; color: var(--sp-ink-soft); }
+  .related-card-price { margin: 10px 0 0; font-size: 17px; font-weight: 500; }
   .product-summary {
     font-size: 17px;
     line-height: 1.65;
@@ -479,7 +502,7 @@ function upsertSeoMeta(title, desc){
     gap: 80px;
   }
   .details-block-title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 400;
     font-size: 32px;
     margin: 0 0 24px 0;
@@ -532,7 +555,7 @@ function upsertSeoMeta(title, desc){
     margin-bottom: 18px;
   }
   .video-title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 300;
     font-size: clamp(32px, 3vw, 56px);
     margin: 0 0 40px 0;
@@ -542,8 +565,8 @@ function upsertSeoMeta(title, desc){
   .video-placeholder {
     aspect-ratio: 16 / 9;
     background:
-      radial-gradient(ellipse at center, rgba(184, 147, 90, 0.15), transparent 60%),
-      linear-gradient(135deg, #1a1714, #0c0a09);
+      linear-gradient(transparent, transparent),
+      linear-gradient(135deg, #E9E5DB, #F3F0E9);
     border: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -555,7 +578,7 @@ function upsertSeoMeta(title, desc){
   .video-play {
     width: 80px; height: 80px;
     border-radius: 50%;
-    background: rgba(14, 14, 13, 0.6);
+    background: rgba(243, 240, 233, 0.6);
     border: 2px solid var(--gold);
     display: flex;
     align-items: center;
@@ -587,7 +610,7 @@ function upsertSeoMeta(title, desc){
     margin-bottom: 48px;
   }
   .related-title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 300;
     font-size: clamp(32px, 3vw, 48px);
     margin: 0;
@@ -629,19 +652,19 @@ function upsertSeoMeta(title, desc){
     overflow: hidden;
   }
   .related-grid .catalogue-card-image--grand {
-    background: radial-gradient(ellipse at 30% 60%, rgba(184, 147, 90, 0.28), transparent 60%), linear-gradient(135deg, #1f1812, #0a0807);
+    background: linear-gradient(transparent, transparent), linear-gradient(135deg, #E9E5DB, #F3F0E9);
   }
   .related-grid .catalogue-card-image--upright {
-    background: radial-gradient(ellipse at 60% 40%, rgba(184, 147, 90, 0.22), transparent 55%), linear-gradient(160deg, #1a1714, #0c0a09);
+    background: linear-gradient(transparent, transparent), linear-gradient(160deg, #E9E5DB, #F3F0E9);
   }
   .related-grid .catalogue-card-image--digital {
-    background: radial-gradient(ellipse at 50% 70%, rgba(184, 147, 90, 0.18), transparent 50%), linear-gradient(180deg, #1a1a18, #0e0e0d);
+    background: linear-gradient(transparent, transparent), linear-gradient(180deg, #E9E5DB, #F3F0E9);
   }
   .related-grid .catalogue-card-image i {
     position: absolute;
     bottom: 20px; right: 20px;
     font-size: 36px;
-    color: rgba(184, 147, 90, 0.3);
+    color: rgba(22, 34, 46, 0.3);
   }
   .related-grid .catalogue-card-tag {
     position: absolute;
@@ -654,7 +677,7 @@ function upsertSeoMeta(title, desc){
   }
   .related-grid .catalogue-card-body { padding: 22px 24px 24px; }
   .related-grid .catalogue-card-name {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 400;
     font-size: 22px;
     line-height: 1.2;
@@ -684,7 +707,7 @@ function upsertSeoMeta(title, desc){
   }
   .footer-brand .logo { font-size: 26px; }
   .footer-tagline {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-style: italic;
     font-size: 18px;
     color: var(--text-2);
@@ -752,12 +775,22 @@ function upsertSeoMeta(title, desc){
     .footer-inner { grid-template-columns: 1fr; gap: 40px; }
   }
 </style>
+<link rel="stylesheet" href="/css/signature-theme.css" />
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/media/brand/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
 </head>
 <body>
 
 <!-- ============ NAV ============ -->
+<div class="sp-topbar" role="region" aria-label="Contact details">
+  <span>Pianos imported direct from Japan</span>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley</a>
+  <a class="sp-topbar-phone" href="tel:+61479128955">0479 128 955</a>
+</div>
+
 <nav id="nav">
-  <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+  <a href="/" class="logo" aria-label="Signature Pianos home">Signature <span>Pianos</span></a>
   <div class="nav-links">
 
     <div class="nav-item nav-item--dropdown">
@@ -765,21 +798,21 @@ function upsertSeoMeta(title, desc){
         Pianos <i class="ti ti-chevron-down nav-chevron"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--pianos" role="menu">
-        <a href="instruments/index.html?cat=upright" class="nav-dd-item">
+        <a href="/instruments/?cat=upright" class="nav-dd-item">
           <i class="ti ti-bookmark nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Used Japanese uprights</h4><p>Hand-selected, imported direct from Japan</p></div>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese uprights</h4><p>Hand-picked in Japan, checked in Melbourne</p></div>
         </a>
-        <a href="instruments/index.html?cat=grand" class="nav-dd-item">
+        <a href="/instruments/?cat=grand" class="nav-dd-item">
           <i class="ti ti-crown nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Used Japanese grands</h4><p>Concert &amp; baby grands, fully restored</p></div>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese grands</h4><p>Salon and concert grands from Yamaha and Kawai</p></div>
         </a>
-        <a href="instruments/index.html?cat=digital" class="nav-dd-item">
+        <a href="/instruments/?cat=digital" class="nav-dd-item">
           <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Modern instruments for any space</p></div>
+          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Roland, Kawai, Casio and Yamaha, coming soon</p></div>
         </a>
-        <a href="instruments/index.html?cat=books" class="nav-dd-item">
+        <a href="/blog" class="nav-dd-item">
           <i class="ti ti-book nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Sheet music &amp; books</h4><p>For students and teachers alike</p></div>
+          <div class="nav-dd-text"><h4>Buying advice</h4><p>Plain answers before you choose a piano</p></div>
         </a>
       </div>
     </div>
@@ -789,17 +822,17 @@ function upsertSeoMeta(title, desc){
         Services <i class="ti ti-chevron-down nav-chevron"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--services" role="menu">
-        <a href="services/delivery-warranty.html" class="nav-dd-item">
+        <a href="/services/delivery-warranty.html" class="nav-dd-item">
           <i class="ti ti-truck-delivery nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White glove delivery, tracked end to end</p></div>
+          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White-glove delivery and a 10-year warranty</p></div>
         </a>
-        <a href="services/book-a-viewing.html" class="nav-dd-item">
+        <a href="/services/book-a-viewing.html" class="nav-dd-item">
           <i class="ti ti-calendar-event nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Book a viewing</h4><p>Visit our showroom, try before you buy</p></div>
+          <div class="nav-dd-text"><h4>Book a visit</h4><p>Play the pianos in our Mount Waverley showroom</p></div>
         </a>
-        <a href="services/tuning-servicing.html" class="nav-dd-item">
+        <a href="/services/tuning-servicing.html" class="nav-dd-item">
           <i class="ti ti-tool nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Keep your piano in perfect condition</p></div>
+          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Tuning and care for pianos across Melbourne</p></div>
         </a>
       </div>
     </div>
@@ -812,33 +845,33 @@ function upsertSeoMeta(title, desc){
         <div class="nav-dd-section">
           <div class="nav-dd-section-label">For students</div>
           <div class="nav-dd-grid">
-            <a href="teachers.html" class="nav-dd-item">
+            <a href="/teachers.html" class="nav-dd-item">
               <i class="ti ti-search nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Browse local piano teachers by suburb</p></div>
+              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Piano teachers across Melbourne, via TeachMusic</p></div>
             </a>
-            <a href="teachers.html?nearby=1" class="nav-dd-item">
+            <a href="/teachers-match.html" class="nav-dd-item">
               <i class="ti ti-map-pin nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Teachers near me</h4><p>Use your location to find teachers close by</p></div>
+              <div class="nav-dd-text"><h4>Match me with a teacher</h4><p>A few quick questions, three suggestions</p></div>
             </a>
           </div>
         </div>
         <div class="nav-dd-section">
           <div class="nav-dd-section-label">For teachers</div>
           <div class="nav-dd-grid">
-            <a href="teachers.html#signup" class="nav-dd-item">
+            <a href="https://www.teachmusic.com.au/for-teachers" class="nav-dd-item" target="_blank" rel="noopener">
               <i class="ti ti-list-details nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>List your studio</h4><p>Free listing, reach new students instantly</p></div>
+              <div class="nav-dd-text"><h4>List your studio</h4><p>Reach new students on TeachMusic, our sister platform</p></div>
             </a>
-            <a href="teachers.html#dashboard" class="nav-dd-item">
+            <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
               <i class="ti ti-layout-grid nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your schedule</p></div>
+              <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
             </a>
           </div>
         </div>
       </div>
     </div>
 
-    <a href="about.html" class="nav-link-plain">About</a>
+    <a href="/about.html" class="nav-link-plain">About</a>
   </div>
 
   <div class="nav-ctas">
@@ -847,19 +880,20 @@ function upsertSeoMeta(title, desc){
         <i class="ti ti-user"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--account" role="menu">
-        <a href="#" class="nav-dd-item">
+        <a href="/portal" class="nav-dd-item">
           <i class="ti ti-user nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track delivery, view purchases, manage warranty</p></div>
+          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track your delivery and warranty</p></div>
         </a>
-        <a href="teachers.html#dashboard" class="nav-dd-item">
+        <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
           <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your studio</p></div>
+          <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
         </a>
       </div>
     </div>
-    <button class="nav-cta">Book a visit</button>
+    <a class="nav-cta" href="/services/book-a-viewing.html">Book a visit</a>
   </div>
   <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+  <a class="sp-nav-call" href="tel:+61479128955" aria-label="Call Signature Pianos on 0479 128 955"><i class="ti ti-phone" aria-hidden="true"></i></a>
 </nav>
 
 <!-- ============ BREADCRUMB ============ -->
@@ -873,7 +907,7 @@ function upsertSeoMeta(title, desc){
     <div class="product-gallery">
       <div class="product-image-main" id="productImageMain">
         <i id="productImageIcon" class="ti ti-music"></i>
-        <span class="placeholder-label">Photo coming · gradient placeholder</span>
+        <span class="placeholder-label">Photographs soon</span>
       </div>
       <div class="product-thumbs" id="productImageThumbs">
         <div class="product-thumb"><i class="ti ti-photo"></i></div>
@@ -884,28 +918,28 @@ function upsertSeoMeta(title, desc){
     </div>
 
     <div class="product-info">
-      <div class="product-eyebrow" id="productCategory">—</div>
+      <div class="product-eyebrow" id="productCategory">-</div>
       <h1 class="product-name" id="productName">Loading…</h1>
       <p class="product-brand" id="productBrand"></p>
 
       <div class="product-meta-row">
         <div class="product-meta">
           <div class="product-meta-label">Condition</div>
-          <div class="product-meta-value" id="productCondition">—</div>
+          <div class="product-meta-value" id="productCondition">-</div>
         </div>
         <div class="product-meta">
           <div class="product-meta-label">Year</div>
-          <div class="product-meta-value" id="productYear">—</div>
+          <div class="product-meta-value" id="productYear">-</div>
         </div>
         <div class="product-meta">
           <div class="product-meta-label">Origin</div>
-          <div class="product-meta-value" id="productOrigin">—</div>
+          <div class="product-meta-value" id="productOrigin">-</div>
         </div>
       </div>
 
       <div class="product-price-row">
         <div class="product-price-label">Price</div>
-        <div class="product-price" id="productPrice">—</div>
+        <div class="product-price" id="productPrice">-</div>
       </div>
 
       <p class="product-summary" id="productSummary"></p>
@@ -933,7 +967,8 @@ function upsertSeoMeta(title, desc){
 </section>
 
 <!-- ============ HEAR IT PLAY ============ -->
-<section class="video-section">
+<!-- Hidden until pianos carry a recording (no video field in the pianos table yet). -->
+<section class="video-section" hidden>
   <div class="video-section-inner">
     <div class="video-eyebrow">Hear it play</div>
     <h2 class="video-title">Voiced by hand. <em>Recorded</em> at the showroom.</h2>
@@ -944,47 +979,47 @@ function upsertSeoMeta(title, desc){
 </section>
 
 <!-- ============ WHAT'S INCLUDED ============ -->
-<section class="whats-included reveal" style="background:#1a1a18;padding:60px 0;border-top:1px solid rgba(184,147,90,0.15);">
+<section class="whats-included reveal" style="background:#E9E5DB;padding:60px 0;border-top:1px solid rgba(22, 34, 46, 0.15);">
   <div style="max-width:1200px;margin:0 auto;padding:0 24px;">
-    <h2 style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;
-               text-align:center;color:#f5f0e8;margin:0 0 40px;font-style:italic;">
+    <h2 style="font-family:var(--font-display);font-size:36px;font-weight:300;
+               text-align:center;color:#16222E;margin:0 0 40px;font-style:italic;">
       What's included
     </h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;">
       <!-- Certificate -->
       <div style="text-align:center;padding:24px 16px;">
-        <i class="ti ti-certificate" style="font-size:32px;color:#b8935a;margin-bottom:12px;display:block;"></i>
-        <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
-                   color:#f5f0e8;margin:0 0 8px;">10-year warranty</h3>
-        <p style="font-size:13px;color:#9a9590;line-height:1.6;margin:0;">
-          Every Signature Piano is backed by our decade-long guarantee — unmatched in Melbourne.
+        <i class="ti ti-certificate" style="font-size:32px;color:#16222E;margin-bottom:12px;display:block;"></i>
+        <h3 style="font-family:var(--font-display);font-size:20px;font-weight:400;
+                   color:#16222E;margin:0 0 8px;">10-year warranty</h3>
+        <p style="font-size:13px;color:#3A4855;line-height:1.6;margin:0;">
+          Every piano we sell carries the Signature Pianos 10-year warranty.
         </p>
       </div>
       <!-- Delivery -->
       <div style="text-align:center;padding:24px 16px;">
-        <i class="ti ti-truck-delivery" style="font-size:32px;color:#b8935a;margin-bottom:12px;display:block;"></i>
-        <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
-                   color:#f5f0e8;margin:0 0 8px;">White-glove delivery</h3>
-        <p style="font-size:13px;color:#9a9590;line-height:1.6;margin:0;">
+        <i class="ti ti-truck-delivery" style="font-size:32px;color:#16222E;margin-bottom:12px;display:block;"></i>
+        <h3 style="font-family:var(--font-display);font-size:20px;font-weight:400;
+                   color:#16222E;margin:0 0 8px;">White-glove delivery</h3>
+        <p style="font-size:13px;color:#3A4855;line-height:1.6;margin:0;">
           Professional delivery and in-home placement across Melbourne and regional Victoria.
         </p>
       </div>
       <!-- Tuning -->
       <div style="text-align:center;padding:24px 16px;">
-        <i class="ti ti-music" style="font-size:32px;color:#b8935a;margin-bottom:12px;display:block;"></i>
-        <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
-                   color:#f5f0e8;margin:0 0 8px;">First tuning included</h3>
-        <p style="font-size:13px;color:#9a9590;line-height:1.6;margin:0;">
-          A certified tuner visits 3–4 weeks after delivery, automatically booked for you.
+        <i class="ti ti-music" style="font-size:32px;color:#16222E;margin-bottom:12px;display:block;"></i>
+        <h3 style="font-family:var(--font-display);font-size:20px;font-weight:400;
+                   color:#16222E;margin:0 0 8px;">First tuning included</h3>
+        <p style="font-size:13px;color:#3A4855;line-height:1.6;margin:0;">
+          Your first tuning is included, 3 to 4 weeks after delivery, once the piano has settled.
         </p>
       </div>
       <!-- Tracking -->
       <div style="text-align:center;padding:24px 16px;">
-        <i class="ti ti-device-mobile" style="font-size:32px;color:#b8935a;margin-bottom:12px;display:block;"></i>
-        <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
-                   color:#f5f0e8;margin:0 0 8px;">Live tracking</h3>
-        <p style="font-size:13px;color:#9a9590;line-height:1.6;margin:0;">
-          Know exactly where your piano is from warehouse to your home, every step of the way.
+        <i class="ti ti-device-mobile" style="font-size:32px;color:#16222E;margin-bottom:12px;display:block;"></i>
+        <h3 style="font-family:var(--font-display);font-size:20px;font-weight:400;
+                   color:#16222E;margin:0 0 8px;">Tracked delivery</h3>
+        <p style="font-size:13px;color:#3A4855;line-height:1.6;margin:0;">
+          Follow your delivery in the customer portal.
         </p>
       </div>
     </div>
@@ -1003,38 +1038,28 @@ function upsertSeoMeta(title, desc){
 </section>
 
 <!-- ============ FOOTER ============ -->
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-col footer-brand">
-      <a href="index.html" class="logo">Signature <span>Pianos</span></a>
-      <p class="footer-tagline">Find the piano that moves you.</p>
+<footer class="sp-footer">
+  <div class="sp-footer-inner">
+    <a href="/" class="sp-footer-logo"><img src="/media/brand/logo-ink.svg" width="1542" height="592" alt="Signature Pianos"></a>
+    <p class="sp-footer-tagline">Pre-loved Japanese pianos, hand-picked in Japan and checked in Melbourne.</p>
+    <div class="sp-footer-links" role="navigation" aria-label="Footer">
+      <a href="/instruments/">Pianos</a>
+      <a href="/services/book-a-viewing.html">Book a visit</a>
+      <a href="/services/tuning-servicing.html">Tuning</a>
+      <a href="/services/delivery-warranty.html">Delivery &amp; warranty</a>
+      <a href="/teachers.html">Teachers</a>
+      <a href="/blog">Blog</a>
+      <a href="/about.html">About</a>
     </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Explore</div>
-      <a href="instruments/index.html" class="footer-link">Instruments</a>
-      <a href="index.html#matcher" class="footer-link">Find my piano</a>
-      <a href="teachers.html" class="footer-link">Teachers</a>
-      <a href="teachers-match.html" class="footer-link">Find a teacher</a>
-      <a href="#" class="footer-link">Our story</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Visit</div>
-      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
-      <a href="tel:+61300000000" class="footer-link">+61 3 0000 0000</a>
-      <a href="mailto:info@signaturepianos.com.au" class="footer-link">info@signaturepianos.com.au</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Follow</div>
-      <div class="footer-socials">
-        <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
-        <a href="#" class="footer-social" aria-label="YouTube"><i class="ti ti-brand-youtube"></i></a>
-        <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
-      </div>
+    <address class="sp-footer-contact">
+      <span class="sp-line"><a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="tel:+61479128955">0479 128 955</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></span>
+    </address>
+    <div class="sp-footer-socials">
+      <a href="#" aria-label="Instagram"><i class="ti ti-brand-instagram" aria-hidden="true"></i></a>
+      <a href="#" aria-label="Facebook"><i class="ti ti-brand-facebook" aria-hidden="true"></i></a>
     </div>
   </div>
-  <div class="footer-bottom">
-    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
-  </div>
+  <div class="sp-footer-bottom">© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></div>
 </footer>
 
 <!-- Supabase JS -->
@@ -1115,38 +1140,44 @@ function upsertSeoMeta(title, desc){
 
   function renderPiano(piano) {
     // Page meta
-    document.title = `Yamaha ${piano.model} ${piano.year} — Signature Pianos Melbourne`
+    const pianoName = `${piano.brand || ''} ${piano.model || ''}`.trim()
+    document.title = `${pianoName} ${piano.year || ''} | Signature Pianos Melbourne`.replace('  ', ' ')
     document.getElementById('docDesc')?.setAttribute('content', piano.description_short || piano.description || '')
     upsertSeoMeta(document.title, piano.description_short || piano.description || '')
 
     // Breadcrumb
-    document.getElementById('breadcrumbCat').textContent = 'Upright Pianos'
-    document.getElementById('breadcrumbCat').href = 'instruments/index.html'
-    document.getElementById('breadcrumbName').textContent = `Yamaha ${piano.model} ${piano.year}`
+    const catKey = { acoustic_upright: 'upright', acoustic_grand: 'grand', digital: 'digital' }[piano.type]
+    document.getElementById('breadcrumbCat').textContent = formatType(piano.type) + 's'
+    document.getElementById('breadcrumbCat').href = '/instruments/' + (catKey ? '?cat=' + catKey : '')
+    document.getElementById('breadcrumbName').textContent = `${pianoName} ${piano.year || ''}`.trim()
 
     // Product header
     document.getElementById('productCategory').textContent = formatType(piano.type)
-    document.getElementById('productName').textContent = `Yamaha ${piano.model} Upright Piano`
-    document.getElementById('productBrand').textContent = `Yamaha · Model ${piano.model}`
+    document.getElementById('productName').textContent = `${pianoName} ${formatType(piano.type)}`
+    document.getElementById('productBrand').textContent = `${piano.brand || ''} · Model ${piano.model || ''}`
+
+    // "Book a visit" from this page carries the piano into the booking card
+    document.querySelectorAll('a[href*="book-a-viewing"]').forEach(a => {
+      if (!a.closest('nav, .sp-footer, .sp-bottombar')) a.dataset.piano = `${pianoName}${piano.year ? ' (' + piano.year + ')' : ''}`
+    })
 
     // Condition — new A+/B+ grading, styled as a pill
     const condEl = document.getElementById('productCondition')
     condEl.textContent = piano.condition
     condEl.style.cssText = `
       display: inline-block;
-      background: rgba(184,147,90,${piano.condition === 'A+' ? '0.2' : '0.1'});
-      border: 1px solid rgba(184,147,90,${piano.condition === 'A+' ? '0.5' : '0.3'});
-      color: #b8935a;
-      padding: 2px 10px;
-      border-radius: 20px;
+      background: var(--sp-ivory-deep);
+      color: var(--sp-ink);
+      padding: 5px 10px 4px;
       font-size: 11px;
       font-weight: 500;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.2em;
     `
 
     document.getElementById('productYear').textContent = piano.year
     document.getElementById('productOrigin').textContent = 'Japan'
-    document.getElementById('productPrice').textContent = `$${Number(piano.sale_price).toLocaleString()}`
+    document.getElementById('productPrice').textContent = Number(piano.sale_price) > 0
+      ? '$' + Number(piano.sale_price).toLocaleString('en-AU') : 'Price on request'
 
     // Description
     document.getElementById('productSummary').textContent = piano.description_short || ''
@@ -1164,9 +1195,9 @@ function upsertSeoMeta(title, desc){
     if (!piano.images || piano.images.length === 0) {
       // Styled placeholder — gold camera icon, "Photos coming soon"
       main.innerHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;">
-          <i class="ti ti-camera" style="font-size:48px;color:rgba(184,147,90,0.3);"></i>
-          <p style="font-size:12px;color:#6b6760;font-style:italic;margin:0;">Photos coming soon</p>
+        <div class="sp-photo-empty">
+          <img src="/media/brand/monogram-ink.svg" alt="">
+          <span>Photographs soon</span>
         </div>
       `
       if (thumbs) thumbs.style.display = 'none'
@@ -1176,12 +1207,12 @@ function upsertSeoMeta(title, desc){
     function setMainImage(index) {
       main.innerHTML = `<img src="${piano.images[index]}"
         alt="Yamaha ${piano.model} ${piano.year}"
-        style="width:100%;height:100%;object-fit:cover;border-radius:4px;"
-        onerror="this.parentNode.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;\\'><i class=\\'ti ti-camera\\' style=\\'font-size:48px;color:rgba(184,147,90,0.3);\\'></i></div>'">`
+        style="width:100%;height:100%;object-fit:cover;border-radius: 0;"
+        onerror="this.parentNode.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;\\'><i class=\\'ti ti-camera\\' style=\\'font-size:48px;color:rgba(22, 34, 46, 0.3);\\'></i></div>'">`
       document.querySelectorAll('.thumb-item').forEach((t, i) => {
         t.style.borderColor = i === index
-          ? 'rgba(184,147,90,0.8)'
-          : 'rgba(184,147,90,0.15)'
+          ? 'rgba(22, 34, 46, 0.8)'
+          : 'rgba(22, 34, 46, 0.15)'
       })
     }
     // Expose so inline onclick on each thumb can reach it.
@@ -1192,7 +1223,7 @@ function upsertSeoMeta(title, desc){
     if (thumbs && piano.images.length > 1) {
       thumbs.innerHTML = piano.images.map((img, i) => `
         <div class="thumb-item" onclick="setMainImage(${i})"
-          style="width:72px;height:56px;border-radius:4px;overflow:hidden;cursor:pointer;
+          style="width:72px;height:56px;border-radius: 0;overflow:hidden;cursor:pointer;
                  border:1px solid rgba(184,147,90,${i === 0 ? '0.8' : '0.15'});
                  transition:border-color 0.2s ease;">
           <img src="${img}" style="width:100%;height:100%;object-fit:cover;"
@@ -1216,21 +1247,21 @@ function upsertSeoMeta(title, desc){
       ['Serial number', piano.serial_number],
       ['Condition', piano.condition],
       ['Origin', 'Japan'],
-      ['Weight', piano.weight_kg ? `${piano.weight_kg} kg` : '—'],
-      ['Height', dims.height ? `${dims.height} cm` : '—'],
-      ['Width', dims.width ? `${dims.width} cm` : '—'],
-      ['Depth', dims.depth ? `${dims.depth} cm` : '—'],
+      ['Weight', piano.weight_kg ? `${piano.weight_kg} kg` : '-'],
+      ['Height', dims.height ? `${dims.height} cm` : '-'],
+      ['Width', dims.width ? `${dims.width} cm` : '-'],
+      ['Depth', dims.depth ? `${dims.depth} cm` : '-'],
       ['Warranty', '10 years'],
-      ['First tuning', 'Complimentary — auto-booked'],
+      ['First tuning', 'Complimentary, auto-booked'],
     ]
 
     specsTable.innerHTML = specs.map(([label, value]) => `
       <tr>
-        <th style="color:#6b6760;font-weight:400;font-size:12px;padding:8px 12px;
-                   text-align:left;border-bottom:1px solid rgba(184,147,90,0.08);
+        <th style="color:#3A4855;font-weight:400;font-size:12px;padding:8px 12px;
+                   text-align:left;border-bottom:1px solid rgba(22, 34, 46, 0.08);
                    white-space:nowrap;">${label}</th>
-        <td style="color:#f5f0e8;font-size:13px;padding:8px 12px;
-                   border-bottom:1px solid rgba(184,147,90,0.08);">${value}</td>
+        <td style="color:#16222E;font-size:13px;padding:8px 12px;
+                   border-bottom:1px solid rgba(22, 34, 46, 0.08);">${value}</td>
       </tr>
     `).join('')
   }
@@ -1241,32 +1272,32 @@ function upsertSeoMeta(title, desc){
 
     actionsEl.innerHTML = `
       <button id="buyNowBtn"
-        style="width:100%;background:#b8935a;color:#000;border:none;border-radius:0;
-               padding:16px;font-family:'DM Sans',sans-serif;font-size:13px;
+        style="width:100%;background:#16222E;color:#FFFFFF;border:none;border-radius:0;
+               padding:16px;font-family:var(--font-body);font-size:13px;
                font-weight:500;letter-spacing:0.1em;text-transform:uppercase;
                cursor:pointer;margin-bottom:10px;transition:opacity 0.2s ease;">
-        BUY NOW — $${Number(piano.sale_price).toLocaleString()}
+        BUY NOW: $${Number(piano.sale_price).toLocaleString()}
       </button>
 
       <button id="depositBtn"
-        style="width:100%;background:transparent;color:#b8935a;
-               border:1px solid rgba(184,147,90,0.5);border-radius:0;
-               padding:16px;font-family:'DM Sans',sans-serif;font-size:13px;
+        style="width:100%;background:transparent;color:#16222E;
+               border:1px solid rgba(22, 34, 46, 0.5);border-radius:0;
+               padding:16px;font-family:var(--font-body);font-size:13px;
                font-weight:500;letter-spacing:0.1em;text-transform:uppercase;
                cursor:pointer;margin-bottom:12px;transition:all 0.2s ease;">
         RESERVE WITH $500 DEPOSIT
       </button>
 
-      <p style="font-size:11px;color:#6b6760;text-align:center;margin:0 0 20px;line-height:1.6;">
+      <p style="font-size:11px;color:#3A4855;text-align:center;margin:0 0 20px;line-height:1.6;">
         Secure payment via Stripe · 10-year warranty included · Complimentary first tuning
       </p>
 
-      <div style="border-top:1px solid rgba(184,147,90,0.1);padding-top:16px;margin-top:4px;">
-        <p style="font-size:13px;color:#9a9590;margin:0 0 10px;">
+      <div style="border-top:1px solid rgba(22, 34, 46, 0.1);padding-top:16px;margin-top:4px;">
+        <p style="font-size:13px;color:#3A4855;margin:0 0 10px;">
           Not ready to commit? We understand.
         </p>
         <a href="services/book-a-viewing.html"
-          style="color:#b8935a;font-size:13px;text-decoration:none;
+          style="color:#16222E;font-size:13px;text-decoration:none;
                  display:flex;align-items:center;gap:6px;">
           <i class="ti ti-calendar" style="font-size:15px;"></i>
           Book a showroom visit to try this piano
@@ -1276,8 +1307,8 @@ function upsertSeoMeta(title, desc){
       <div id="paymentError"
         style="display:none;margin-top:12px;padding:10px 14px;
                background:rgba(220,80,80,0.1);border:1px solid rgba(220,80,80,0.3);
-               border-radius:4px;font-size:12px;color:rgba(220,80,80,0.9);">
-        Payment failed — please try again or contact us directly.
+               border-radius: 0;font-size:12px;color:rgba(220,80,80,0.9);">
+        Payment failed. Please try again or contact us directly.
       </div>
     `
 
@@ -1335,7 +1366,7 @@ function upsertSeoMeta(title, desc){
 
     let { data: related, error } = await _supabase
       .from('pianos')
-      .select('id, model, year, condition, sale_price, description_short, images, type')
+      .select('id, brand, model, year, condition, sale_price, description_short, images, type')
       .eq('stock_status', 'available')
       .eq('condition', piano.condition)
       .neq('id', piano.id)
@@ -1347,7 +1378,7 @@ function upsertSeoMeta(title, desc){
     if (!related || related.length < 3) {
       const { data: extra, error: extraErr } = await _supabase
         .from('pianos')
-        .select('id, model, year, condition, sale_price, description_short, images, type')
+        .select('id, brand, model, year, condition, sale_price, description_short, images, type')
         .eq('stock_status', 'available')
         .neq('id', piano.id)
         .limit(3)
@@ -1365,41 +1396,35 @@ function upsertSeoMeta(title, desc){
     const relatedCategoryEl = document.getElementById('relatedCategory')
     if (relatedCategoryEl) relatedCategoryEl.textContent = 'pianos'
 
-    relatedGrid.innerHTML = related.map(p => `
-      <a href="piano.html?id=${p.id}"
-        style="display:block;background:#1a1a18;border:1px solid rgba(184,147,90,0.15);
-               border-radius:4px;overflow:hidden;text-decoration:none;
-               transition:border-color 0.3s ease;"
-        onmouseover="this.style.borderColor='rgba(184,147,90,0.4)'"
-        onmouseout="this.style.borderColor='rgba(184,147,90,0.15)'">
-        <div style="height:160px;background:#111;display:flex;align-items:center;
-                    justify-content:center;position:relative;overflow:hidden;">
-          ${p.images && p.images.length
-            ? `<img src="${p.images[0]}" style="width:100%;height:100%;object-fit:cover;"
-                 alt="Yamaha ${p.model}">`
-            : `<i class="ti ti-piano" style="font-size:36px;color:rgba(184,147,90,0.3);"></i>`
-          }
-          <span style="position:absolute;top:10px;left:10px;font-size:10px;
-                       background:rgba(184,147,90,0.15);border:1px solid rgba(184,147,90,0.3);
-                       color:#b8935a;padding:2px 8px;border-radius:20px;
-                       letter-spacing:0.06em;">${p.condition}</span>
+    relatedGrid.innerHTML = related.map(p => {
+      const name = `${p.brand || ''} ${p.model || ''}`.trim()
+      const photo = p.images && p.images[0]
+      return `
+      <a class="related-card" href="/piano.html?id=${encodeURIComponent(p.id)}">
+        <div class="related-card-image">
+          ${photo
+            ? `<img src="${photo}" alt="${name}" loading="lazy">`
+            : `<div class="sp-photo-empty"><img src="/media/brand/monogram-ink.svg" alt=""><span>Photographs soon</span></div>`}
+          ${p.condition ? `<span class="related-card-badge">${p.condition}</span>` : ''}
         </div>
-        <div style="padding:16px;">
-          <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
-                     color:#f5f0e8;margin:0 0 4px;font-style:italic;">
-            Yamaha ${p.model}
-          </h3>
-          <p style="font-size:12px;color:#6b6760;margin:0 0 10px;">${p.year}</p>
-          <p style="font-size:18px;color:#b8935a;font-family:'Cormorant Garamond',serif;margin:0;">
-            $${Number(p.sale_price).toLocaleString()}
-          </p>
+        <div class="related-card-body">
+          <h3 class="related-card-name">${name}</h3>
+          <p class="related-card-facts">${[p.year, formatType(p.type)].filter(Boolean).join(' · ')}</p>
+          <p class="related-card-price">${Number(p.sale_price) > 0 ? '$' + Number(p.sale_price).toLocaleString('en-AU') : 'Price on request'}</p>
         </div>
-      </a>
-    `).join('')
+      </a>`
+    }).join('')
   }
 
   loadPiano()
 </script>
 
+<div class="sp-bottombar" role="navigation" aria-label="Quick contact">
+  <a href="tel:+61479128955"><i class="ti ti-phone" aria-hidden="true"></i>Call</a>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener"><i class="ti ti-map-pin" aria-hidden="true"></i>Directions</a>
+  <a class="sp-bottombar-book" href="/services/book-a-viewing.html">Book a visit</a>
+</div>
+<script src="/js/signature-nav.js" defer></script>
+<script src="/js/signature-book.js" defer></script>
 </body>
 </html>

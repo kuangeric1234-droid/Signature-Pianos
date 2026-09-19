@@ -6,13 +6,13 @@
 <title>My Account — Signature Pianos</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    background: #0e0e0d;
-    color: #f5f0e8;
-    font-family: 'DM Sans', sans-serif;
+    background: #F3F0E9;
+    color: #16222E;
+    font-family: var(--font-body);
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -20,24 +20,24 @@
     padding: 24px;
   }
   .login-card {
-    background: #1a1a18;
-    border: 1px solid rgba(184,147,90,0.2);
+    background: #E9E5DB;
+    border: 1px solid rgba(22, 34, 46, 0.2);
     border-radius: 4px;
     padding: 40px;
     width: 100%;
     max-width: 400px;
   }
   .logo {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-size: 24px;
-    color: #b8935a;
+    color: #16222E;
     font-style: italic;
     text-align: center;
     margin-bottom: 8px;
   }
   .tagline {
     font-size: 12px;
-    color: #6b6760;
+    color: #3A4855;
     text-align: center;
     margin-bottom: 32px;
     text-transform: uppercase;
@@ -45,7 +45,7 @@
   }
   label {
     font-size: 12px;
-    color: #6b6760;
+    color: #3A4855;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     display: block;
@@ -54,26 +54,26 @@
   input {
     width: 100%;
     padding: 12px;
-    background: #0e0e0d;
-    border: 1px solid rgba(184,147,90,0.2);
+    background: #F3F0E9;
+    border: 1px solid rgba(22, 34, 46, 0.2);
     border-radius: 4px;
-    color: #f5f0e8;
+    color: #16222E;
     font-size: 14px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     margin-bottom: 16px;
   }
-  input:focus { outline: none; border-color: rgba(184,147,90,0.5); }
+  input:focus { outline: none; border-color: rgba(22, 34, 46, 0.5); }
   .btn {
     width: 100%;
-    background: #b8935a;
-    color: #000;
+    background: #16222E;
+    color:#FFFFFF;
     border: none;
     border-radius: 4px;
     padding: 14px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     letter-spacing: 0.05em;
   }
   .btn:disabled { opacity: 0.6; cursor: progress; }
@@ -89,12 +89,16 @@
   }
   .hint {
     font-size: 12px;
-    color: #6b6760;
+    color: #3A4855;
     text-align: center;
     margin-top: 16px;
     line-height: 1.6;
   }
 </style>
+<link rel="stylesheet" href="/css/signature-theme.css" />
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/media/brand/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
 </head>
 <body>
 
@@ -119,12 +123,12 @@
 
   <div id="sentView" style="display:none;text-align:center;">
     <div style="font-size:48px;margin-bottom:16px;">📧</div>
-    <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;font-style:italic;margin-bottom:12px;">
+    <h2 style="font-family:var(--font-display);font-size:24px;font-weight:300;font-style:italic;margin-bottom:12px;">
       Check your email
     </h2>
-    <p style="font-size:13px;color:#9a9590;line-height:1.7;">
+    <p style="font-size:13px;color:#3A4855;line-height:1.7;">
       We sent a login link to<br>
-      <strong id="sentEmail" style="color:#f5f0e8;"></strong>
+      <strong id="sentEmail" style="color:#16222E;"></strong>
     </p>
   </div>
 </div>

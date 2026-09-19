@@ -8,23 +8,23 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
 <style>
   :root {
-    --bg-1: #0e0e0d; --bg-2: #1a1a18; --bg-3: #242422;
-    --gold: #b8935a; --gold-light: #d4b483;
-    --text-1: #f5f0e8; --text-2: #9a9590; --text-3: #6b6760;
-    --border: rgba(184, 147, 90, 0.15);
-    --border-strong: rgba(184, 147, 90, 0.4);
+    --bg-1: #F3F0E9; --bg-2: #E9E5DB; --bg-3: #DCE6ED;
+    --gold: #16222E; --gold-light: #3A4855;
+    --text-1: #16222E; --text-2: #3A4855; --text-3: #3A4855;
+    --border: rgba(22, 34, 46, 0.15);
+    --border-strong: rgba(22, 34, 46, 0.4);
     --green: #1D9E75;
   }
   *, *::before, *::after { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0;
     background: var(--bg-1); color: var(--text-1);
-    font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7;
+    font-family: var(--font-body); font-weight: 300; line-height: 1.7;
     -webkit-font-smoothing: antialiased;
   }
   .loading {
@@ -39,7 +39,7 @@
     display: block; margin-bottom: 24px;
   }
   .success-wrap h2 {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-size: 36px; font-weight: 300; color: var(--text-1);
     font-style: italic; margin: 0 0 16px;
   }
@@ -48,6 +48,10 @@
     line-height: 1.7; max-width: 400px; margin: 0 auto;
   }
 </style>
+<link rel="stylesheet" href="/css/signature-theme.css" />
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/media/brand/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
 </head>
 <body>
 
@@ -152,9 +156,9 @@ function fmtDateAU(d) {
 function renderSigningPage(plan, instalments, settings) {
   document.getElementById('pageContent').innerHTML = `
 
-    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(184,147,90,0.2);position:sticky;top:0;z-index:10;">
-      <div style="font-size:16px;color:#b8935a;font-style:italic;">Signature Pianos</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">
+    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(22, 34, 46, 0.2);position:sticky;top:0;z-index:10;">
+      <div style="font-size:16px;color:#16222E;font-style:italic;">Signature Pianos</div>
+      <div style="font-size:12px;color:rgba(22, 34, 46, 0.5);margin-top:2px;">
         Payment Plan Agreement · ${esc(plan.plan_number || '')}
       </div>
     </div>
@@ -165,10 +169,10 @@ function renderSigningPage(plan, instalments, settings) {
       <div style="display:flex;gap:0;margin-bottom:32px;">
         ${['Agreement','ID Upload','Payment','Sign'].map((step, i) => `
           <div style="flex:1;text-align:center;">
-            <div id="step${i+1}indicator" style="width:32px;height:32px;border-radius:50%;background:${i === 0 ? '#b8935a' : 'rgba(255,255,255,0.1)'};color:${i === 0 ? '#000' : 'rgba(255,255,255,0.3)'};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;margin:0 auto 6px;">
+            <div id="step${i+1}indicator" style="width:32px;height:32px;border-radius:50%;background:${i === 0 ? '#16222E' : 'rgba(22, 34, 46, 0.1)'};color:${i === 0 ? '#FFFFFF' : 'rgba(22, 34, 46, 0.3)'};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;margin:0 auto 6px;">
               ${i + 1}
             </div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;">
+            <div style="font-size:10px;color:rgba(22, 34, 46, 0.4);text-transform:uppercase;letter-spacing:0.08em;">
               ${step}
             </div>
           </div>
@@ -177,94 +181,94 @@ function renderSigningPage(plan, instalments, settings) {
 
       <!-- Section 1 — Agreement review -->
       <div id="section1">
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 8px;">
+        <h2 style="font-family:var(--font-display);font-size:26px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 8px;">
           Review your agreement
         </h2>
-        <p style="font-size:14px;color:#9a9590;margin:0 0 20px;line-height:1.6;">
+        <p style="font-size:14px;color:#3A4855;margin:0 0 20px;line-height:1.6;">
           Please read through your payment plan agreement carefully before proceeding.
         </p>
 
-        <div style="background:#fff;border-radius:4px;padding:28px;margin-bottom:20px;border:1px solid rgba(184,147,90,0.3);">
+        <div style="background:#fff;border-radius:4px;padding:28px;margin-bottom:20px;border:1px solid rgba(22, 34, 46, 0.3);">
           ${renderAgreementHTML(plan, instalments, settings)}
         </div>
 
-        <button id="downloadPdfBtn" style="width:100%;background:transparent;border:1px solid rgba(184,147,90,0.4);color:#b8935a;border-radius:4px;padding:12px;font-size:13px;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px;font-family:'DM Sans',sans-serif;">
+        <button id="downloadPdfBtn" style="width:100%;background:transparent;border:1px solid rgba(22, 34, 46, 0.4);color:#16222E;border-radius:4px;padding:12px;font-size:13px;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px;font-family:var(--font-body);">
           <i class="ti ti-download"></i> Download agreement PDF
         </button>
 
-        <button id="section1ContinueBtn" style="width:100%;background:#b8935a;color:#000;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        <button id="section1ContinueBtn" style="width:100%;background:#16222E;color:#FFFFFF;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:pointer;font-family:var(--font-body);">
           I have read the agreement — continue →
         </button>
       </div>
 
       <!-- Section 2 — ID upload -->
       <div id="section2" style="display:none;">
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 8px;">
+        <h2 style="font-family:var(--font-display);font-size:26px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 8px;">
           Verify your identity
         </h2>
-        <p style="font-size:14px;color:#9a9590;margin:0 0 20px;line-height:1.6;">
+        <p style="font-size:14px;color:#3A4855;margin:0 0 20px;line-height:1.6;">
           Please upload a photo of your government-issued ID. Accepted: passport, driver's licence, or any government ID card.
         </p>
 
-        <div id="idUploadArea" style="border:2px dashed rgba(184,147,90,0.3);border-radius:4px;padding:32px 20px;text-align:center;cursor:pointer;margin-bottom:16px;transition:all 0.2s ease;">
+        <div id="idUploadArea" style="border:2px dashed rgba(22, 34, 46, 0.3);border-radius:4px;padding:32px 20px;text-align:center;cursor:pointer;margin-bottom:16px;transition:all 0.2s ease;">
           <div style="font-size:36px;margin-bottom:8px;">🪪</div>
-          <div style="font-size:14px;color:#9a9590;">Tap to take a photo or choose from camera roll</div>
-          <div style="font-size:12px;color:#6b6760;margin-top:4px;">Passport · Driver's licence · Government ID</div>
+          <div style="font-size:14px;color:#3A4855;">Tap to take a photo or choose from camera roll</div>
+          <div style="font-size:12px;color:#3A4855;margin-top:4px;">Passport · Driver's licence · Government ID</div>
         </div>
 
         <input type="file" id="idFileInput" accept="image/*,application/pdf" capture="environment" style="display:none">
 
         <div id="idPreview" style="display:none;margin-bottom:16px;text-align:center;">
-          <img id="idPreviewImg" style="max-width:100%;max-height:200px;border-radius:4px;border:1px solid rgba(184,147,90,0.3);">
+          <img id="idPreviewImg" style="max-width:100%;max-height:200px;border-radius:4px;border:1px solid rgba(22, 34, 46, 0.3);">
           <div style="font-size:12px;color:#1D9E75;margin-top:8px;">
             <i class="ti ti-check"></i> ID document selected
           </div>
         </div>
 
-        <div style="background:rgba(184,147,90,0.05);border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:12px;margin-bottom:16px;">
-          <div style="font-size:12px;color:#9a9590;line-height:1.6;">
-            <i class="ti ti-lock" style="color:#b8935a;"></i>
+        <div style="background:rgba(22, 34, 46, 0.05);border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:12px;margin-bottom:16px;">
+          <div style="font-size:12px;color:#3A4855;line-height:1.6;">
+            <i class="ti ti-lock" style="color:#16222E;"></i>
             Your ID is encrypted and stored securely. It is only used for identity verification purposes and will not be shared with third parties.
           </div>
         </div>
 
-        <button id="idContinueBtn" disabled style="width:100%;background:#444;color:#888;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:not-allowed;font-family:'DM Sans',sans-serif;">
+        <button id="idContinueBtn" disabled style="width:100%;background:#444;color:#888;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:not-allowed;font-family:var(--font-body);">
           SELECT YOUR ID TO CONTINUE
         </button>
       </div>
 
       <!-- Section 3 — Payment method -->
       <div id="section3" style="display:none;">
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 8px;">
+        <h2 style="font-family:var(--font-display);font-size:26px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 8px;">
           Payment method
         </h2>
-        <p style="font-size:14px;color:#9a9590;margin:0 0 20px;line-height:1.6;">
+        <p style="font-size:14px;color:#3A4855;margin:0 0 20px;line-height:1.6;">
           ${plan.payment_method === 'credit_card'
             ? `Your plan uses credit card. A ${esc(plan.surcharge_percentage || '1.5')}% surcharge has been applied.`
             : 'Your plan uses bank transfer. Payment details will be provided in your confirmation email.'}
         </p>
 
         ${plan.payment_method === 'credit_card' ? `
-          <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:20px;margin-bottom:20px;">
-            <div style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Card details</div>
-            <div id="cardElement" style="background:#0e0e0d;padding:14px;border-radius:4px;border:1px solid rgba(184,147,90,0.2);"></div>
+          <div style="background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:20px;margin-bottom:20px;">
+            <div style="font-size:12px;color:#3A4855;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Card details</div>
+            <div id="cardElement" style="background:#F3F0E9;padding:14px;border-radius:4px;border:1px solid rgba(22, 34, 46, 0.2);"></div>
             <div id="cardError" style="color:#e74c3c;font-size:12px;margin-top:8px;display:none;"></div>
           </div>
 
-          <div style="background:rgba(184,147,90,0.05);border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:12px;margin-bottom:16px;">
-            <div style="font-size:12px;color:#9a9590;line-height:1.6;">
-              <i class="ti ti-lock" style="color:#b8935a;"></i>
+          <div style="background:rgba(22, 34, 46, 0.05);border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:12px;margin-bottom:16px;">
+            <div style="font-size:12px;color:#3A4855;line-height:1.6;">
+              <i class="ti ti-lock" style="color:#16222E;"></i>
               Your card is saved securely via Stripe. If an instalment becomes overdue it will be automatically charged to this card after a 3-day grace period.
             </div>
           </div>
 
-          <button id="saveCardBtn" style="width:100%;background:#b8935a;color:#000;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          <button id="saveCardBtn" style="width:100%;background:#16222E;color:#FFFFFF;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:pointer;font-family:var(--font-body);">
             SAVE CARD & CONTINUE
           </button>
         ` : `
-          <div style="background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;padding:20px;margin-bottom:20px;">
-            <div style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Bank transfer details</div>
-            <div style="font-size:13px;color:#f5f0e8;line-height:1.8;">
+          <div style="background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:20px;margin-bottom:20px;">
+            <div style="font-size:12px;color:#3A4855;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Bank transfer details</div>
+            <div style="font-size:13px;color:#16222E;line-height:1.8;">
               BSB: ${esc(settings?.bank_bsb || 'See confirmation email')}<br>
               Account: ${esc(settings?.bank_account || 'See confirmation email')}<br>
               Account name: ${esc(settings?.bank_account_name || 'Signature Pianos')}<br>
@@ -278,7 +282,7 @@ function renderSigningPage(plan, instalments, settings) {
             </div>
           </div>
 
-          <button id="bankTransferContinueBtn" style="width:100%;background:#b8935a;color:#000;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          <button id="bankTransferContinueBtn" style="width:100%;background:#16222E;color:#FFFFFF;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:pointer;font-family:var(--font-body);">
             CONTINUE TO SIGN →
           </button>
         `}
@@ -286,15 +290,15 @@ function renderSigningPage(plan, instalments, settings) {
 
       <!-- Section 4 — Sign -->
       <div id="section4" style="display:none;">
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:#f5f0e8;font-style:italic;margin:0 0 8px;">
+        <h2 style="font-family:var(--font-display);font-size:26px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 8px;">
           Sign your agreement
         </h2>
-        <p style="font-size:14px;color:#9a9590;margin:0 0 20px;line-height:1.6;">
+        <p style="font-size:14px;color:#3A4855;margin:0 0 20px;line-height:1.6;">
           Please sign below to confirm your agreement to the payment plan terms and conditions.
         </p>
 
-        <div style="background:#fff;border-radius:4px;margin-bottom:12px;overflow:hidden;border:1px solid rgba(184,147,90,0.3);">
-          <div style="background:#f8f7f5;padding:8px 14px;font-size:11px;color:#9a9590;border-bottom:1px solid #e8e4dd;">
+        <div style="background:#fff;border-radius:4px;margin-bottom:12px;overflow:hidden;border:1px solid rgba(22, 34, 46, 0.3);">
+          <div style="background:#f8f7f5;padding:8px 14px;font-size:11px;color:#3A4855;border-bottom:1px solid #e8e4dd;">
             Sign here
           </div>
           <div style="position:relative;">
@@ -305,20 +309,20 @@ function renderSigningPage(plan, instalments, settings) {
           </div>
         </div>
 
-        <button id="clearSigBtn" style="background:none;border:1px solid #e8e4dd;border-radius:4px;padding:7px 14px;font-size:12px;cursor:pointer;color:#6b6760;margin-bottom:16px;">
+        <button id="clearSigBtn" style="background:none;border:1px solid #e8e4dd;border-radius:4px;padding:7px 14px;font-size:12px;cursor:pointer;color:#3A4855;margin-bottom:16px;">
           Clear signature
         </button>
 
         <div style="margin-bottom:16px;">
-          <label style="font-size:12px;color:#6b6760;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">
+          <label style="font-size:12px;color:#3A4855;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">
             Type your full name to confirm *
           </label>
-          <input type="text" id="signatureFullName" placeholder="Your full legal name" style="width:100%;padding:12px;background:#1a1a18;border:1px solid rgba(184,147,90,0.2);border-radius:4px;color:#f5f0e8;font-size:14px;box-sizing:border-box;">
+          <input type="text" id="signatureFullName" placeholder="Your full legal name" style="width:100%;padding:12px;background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;color:#16222E;font-size:14px;box-sizing:border-box;">
         </div>
 
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:24px;">
-          <input type="checkbox" id="agreeCheckbox" style="margin-top:3px;accent-color:#b8935a;flex-shrink:0;">
-          <span style="font-size:13px;color:#9a9590;line-height:1.6;">
+          <input type="checkbox" id="agreeCheckbox" style="margin-top:3px;accent-color:#16222E;flex-shrink:0;">
+          <span style="font-size:13px;color:#3A4855;line-height:1.6;">
             I confirm I have read and agree to the Signature Pianos payment plan terms and conditions.
             ${plan.payment_method === 'credit_card'
               ? ' I authorise Signature Pianos to charge my saved card for overdue instalments after a 3-day grace period.'
@@ -326,7 +330,7 @@ function renderSigningPage(plan, instalments, settings) {
           </span>
         </label>
 
-        <button id="submitSignatureBtn" style="width:100%;background:#b8935a;color:#000;border:none;border-radius:4px;padding:18px;font-size:15px;font-weight:500;cursor:pointer;letter-spacing:0.05em;font-family:'DM Sans',sans-serif;">
+        <button id="submitSignatureBtn" style="width:100%;background:#16222E;color:#FFFFFF;border:none;border-radius:4px;padding:18px;font-size:15px;font-weight:500;cursor:pointer;letter-spacing:0.05em;font-family:var(--font-body);">
           SIGN AND SUBMIT CONTRACT
         </button>
 
@@ -370,9 +374,9 @@ function goToSection(num) {
     if (indicator) {
       indicator.style.background =
         i < num  ? '#1D9E75' :
-        i === num ? '#b8935a' :
-                    'rgba(255,255,255,0.1)'
-      indicator.style.color = i <= num ? '#000' : 'rgba(255,255,255,0.3)'
+        i === num ? '#16222E' :
+                    'rgba(22, 34, 46, 0.1)'
+      indicator.style.color = i <= num ? '#FFFFFF' : 'rgba(22, 34, 46, 0.3)'
       indicator.textContent = i < num ? '✓' : String(i)
     }
   }
@@ -404,14 +408,14 @@ function renderAgreementHTML(plan, instalments, settings) {
     <div style="font-family:Georgia,serif;color:#1a1917;">
 
       <div style="text-align:center;padding-bottom:20px;border-bottom:2px solid #1a1917;margin-bottom:20px;">
-        <div style="font-size:22px;color:#b8935a;font-style:italic;margin-bottom:4px;">
+        <div style="font-size:22px;color:#16222E;font-style:italic;margin-bottom:4px;">
           ${esc(settings?.business_name || 'Signature Pianos')}
         </div>
-        ${settings?.abn ? `<div style="font-size:11px;color:#9a9590;">ABN: ${esc(settings.abn)}</div>` : ''}
+        ${settings?.abn ? `<div style="font-size:11px;color:#3A4855;">ABN: ${esc(settings.abn)}</div>` : ''}
         <div style="font-size:16px;font-weight:bold;text-transform:uppercase;letter-spacing:0.12em;margin-top:12px;color:#1a1917;">
           Payment Plan Agreement
         </div>
-        <div style="font-size:12px;color:#9a9590;margin-top:4px;">
+        <div style="font-size:12px;color:#3A4855;margin-top:4px;">
           ${esc(plan.plan_number || '')} · Dated ${formatDate(plan.start_date)}
         </div>
       </div>
@@ -428,11 +432,11 @@ function renderAgreementHTML(plan, instalments, settings) {
       </div>
 
       <div style="background:#f8f7f5;padding:14px;border-radius:4px;margin-bottom:16px;">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#9a9590;margin-bottom:8px;">Instrument</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#3A4855;margin-bottom:8px;">Instrument</div>
         <div style="font-size:14px;font-weight:bold;">
           ${esc(plan.piano?.brand || 'Yamaha')} ${esc(plan.piano?.model || '')} ${plan.piano?.type ? esc(String(plan.piano.type).replace(/_/g, ' ')) : ''}
         </div>
-        <div style="font-size:12px;color:#6b6760;margin-top:2px;">
+        <div style="font-size:12px;color:#3A4855;margin-top:2px;">
           Year: ${esc(plan.piano?.year || '—')} ·
           Serial: ${esc(plan.piano?.serial_number || '—')} ·
           Condition: ${esc(plan.piano?.condition || '—')}
@@ -445,36 +449,36 @@ function renderAgreementHTML(plan, instalments, settings) {
         </div>
         <table style="width:100%;font-size:12px;border-collapse:collapse;">
           <tr>
-            <td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;width:50%;">Total purchase price</td>
+            <td style="padding:6px 0;color:#3A4855;border-bottom:1px solid #f0f0f0;width:50%;">Total purchase price</td>
             <td style="padding:6px 0;font-weight:bold;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(plan.total_amount)}</td>
           </tr>
           ${Number(plan.surcharge_amount) > 0 ? `
             <tr>
-              <td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Credit card surcharge (${esc(plan.surcharge_percentage || '1.5')}%)</td>
+              <td style="padding:6px 0;color:#3A4855;border-bottom:1px solid #f0f0f0;">Credit card surcharge (${esc(plan.surcharge_percentage || '1.5')}%)</td>
               <td style="padding:6px 0;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(plan.surcharge_amount)}</td>
             </tr>
             <tr>
-              <td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Total payable</td>
-              <td style="padding:6px 0;font-weight:bold;border-bottom:1px solid #f0f0f0;text-align:right;color:#b8935a;">${formatCurrency(plan.total_with_surcharge)}</td>
+              <td style="padding:6px 0;color:#3A4855;border-bottom:1px solid #f0f0f0;">Total payable</td>
+              <td style="padding:6px 0;font-weight:bold;border-bottom:1px solid #f0f0f0;text-align:right;color:#16222E;">${formatCurrency(plan.total_with_surcharge)}</td>
             </tr>
           ` : ''}
           <tr>
-            <td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Deposit</td>
+            <td style="padding:6px 0;color:#3A4855;border-bottom:1px solid #f0f0f0;">Deposit</td>
             <td style="padding:6px 0;border-bottom:1px solid #f0f0f0;text-align:right;">
               ${formatCurrency(plan.deposit_amount)}
               ${plan.deposit_paid ? ' <span style="color:#1D9E75;">✓ Paid</span>' : ''}
             </td>
           </tr>
           <tr>
-            <td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Balance payable</td>
+            <td style="padding:6px 0;color:#3A4855;border-bottom:1px solid #f0f0f0;">Balance payable</td>
             <td style="padding:6px 0;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(plan.remaining_amount)}</td>
           </tr>
           <tr>
-            <td style="padding:6px 0;color:#6b6760;border-bottom:1px solid #f0f0f0;">Instalments</td>
+            <td style="padding:6px 0;color:#3A4855;border-bottom:1px solid #f0f0f0;">Instalments</td>
             <td style="padding:6px 0;border-bottom:1px solid #f0f0f0;text-align:right;">${esc(plan.number_of_instalments || 0)} × ${formatCurrency(plan.instalment_amount)} ${esc(plan.instalment_frequency || '')}</td>
           </tr>
           <tr>
-            <td style="padding:6px 0;color:#6b6760;">Payment method</td>
+            <td style="padding:6px 0;color:#3A4855;">Payment method</td>
             <td style="padding:6px 0;text-align:right;">${plan.payment_method === 'credit_card' ? 'Credit card' : 'Bank transfer'}</td>
           </tr>
         </table>
@@ -487,15 +491,15 @@ function renderAgreementHTML(plan, instalments, settings) {
         <table style="width:100%;font-size:11px;border-collapse:collapse;">
           <thead>
             <tr style="background:#f8f7f5;">
-              <th style="padding:6px 8px;text-align:left;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">#</th>
-              <th style="padding:6px 8px;text-align:left;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">Due date</th>
-              <th style="padding:6px 8px;text-align:right;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">Amount</th>
+              <th style="padding:6px 8px;text-align:left;color:#3A4855;font-weight:500;border-bottom:1px solid #e8e4dd;">#</th>
+              <th style="padding:6px 8px;text-align:left;color:#3A4855;font-weight:500;border-bottom:1px solid #e8e4dd;">Due date</th>
+              <th style="padding:6px 8px;text-align:right;color:#3A4855;font-weight:500;border-bottom:1px solid #e8e4dd;">Amount</th>
             </tr>
           </thead>
           <tbody>
             ${(instalments || []).map(ins => `
               <tr>
-                <td style="padding:5px 8px;color:#6b6760;border-bottom:1px solid #f0f0f0;">${esc(ins.instalment_number)}</td>
+                <td style="padding:5px 8px;color:#3A4855;border-bottom:1px solid #f0f0f0;">${esc(ins.instalment_number)}</td>
                 <td style="padding:5px 8px;color:#1a1917;border-bottom:1px solid #f0f0f0;">${formatDate(ins.due_date)}</td>
                 <td style="padding:5px 8px;color:#1a1917;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(ins.amount)}</td>
               </tr>
@@ -508,7 +512,7 @@ function renderAgreementHTML(plan, instalments, settings) {
         <div style="font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;color:#1a1917;border-bottom:1px solid #e8e4dd;padding-bottom:6px;margin-bottom:10px;">
           Terms and Conditions
         </div>
-        <div style="font-size:11px;color:#6b6760;line-height:1.9;">
+        <div style="font-size:11px;color:#3A4855;line-height:1.9;">
           <p style="margin:0 0 8px;"><strong>1. Title.</strong> The instrument remains the property of ${esc(settings?.business_name || 'Signature Pianos')} until all payments have been received in full.</p>
           <p style="margin:0 0 8px;"><strong>2. Payments.</strong> Instalments are due on the dates specified in the payment schedule above. A grace period of 3 days applies before a late fee is incurred.</p>
           <p style="margin:0 0 8px;"><strong>3. Late payments.</strong> Payments overdue by more than 3 days will incur a $50 administration fee.${plan.payment_method === 'credit_card' ? ' Where a credit card has been provided, overdue amounts will be automatically charged to the saved card.' : ''}</p>
@@ -703,22 +707,22 @@ async function downloadAgreementPDF() {
       },
     ],
     styles: {
-      businessName:   { fontSize: 18, color: '#b8935a', italics: true, bold: false },
+      businessName:   { fontSize: 18, color: '#16222E', italics: true, bold: false },
       docTitle:       { fontSize: 14, bold: true, color: '#1a1917', characterSpacing: 1 },
-      planNumber:     { fontSize: 11, color: '#9a9590' },
-      planDate:       { fontSize: 10, color: '#9a9590' },
+      planNumber:     { fontSize: 11, color: '#3A4855' },
+      planDate:       { fontSize: 10, color: '#3A4855' },
       sectionHeader:  { fontSize: 9,  bold: true, characterSpacing: 1.5, color: '#1a1917', margin: [0, 0, 0, 8] },
       body:           { fontSize: 10, color: '#1a1917', lineHeight: 1.5 },
-      subText:        { fontSize: 9,  color: '#9a9590' },
-      tableLabel:     { fontSize: 10, color: '#6b6760' },
+      subText:        { fontSize: 9,  color: '#3A4855' },
+      tableLabel:     { fontSize: 10, color: '#3A4855' },
       tableLabelBold: { fontSize: 10, color: '#1a1917', bold: true },
       tableValue:     { fontSize: 10, color: '#1a1917', alignment: 'right' },
-      tableValueGold: { fontSize: 11, color: '#b8935a', bold: true, alignment: 'right' },
-      tableHeader:    { fontSize: 9,  bold: true, color: '#6b6760', characterSpacing: 0.5 },
+      tableValueGold: { fontSize: 11, color: '#16222E', bold: true, alignment: 'right' },
+      tableHeader:    { fontSize: 9,  bold: true, color: '#3A4855', characterSpacing: 0.5 },
       tableCell:      { fontSize: 10, color: '#1a1917' },
       instrumentName: { fontSize: 13, bold: true, color: '#1a1917' },
       signatureLabel: { fontSize: 9,  bold: true, characterSpacing: 0.5, color: '#1a1917' },
-      signatureName:  { fontSize: 10, color: '#6b6760' },
+      signatureName:  { fontSize: 10, color: '#3A4855' },
     },
   }
 
@@ -752,7 +756,7 @@ function handleIDUpload(e) {
     // PDF or other — show filename instead of image preview
     preview.style.display = 'block'
     preview.innerHTML = `
-      <div style="padding:16px;background:#1a1a18;border-radius:4px;font-size:13px;color:#1D9E75;">
+      <div style="padding:16px;background:#E9E5DB;border-radius:4px;font-size:13px;color:#1D9E75;">
         <i class="ti ti-file-check"></i> ${esc(file.name)} selected
       </div>
     `
@@ -760,8 +764,8 @@ function handleIDUpload(e) {
 
   const btn = document.getElementById('idContinueBtn')
   btn.disabled = false
-  btn.style.background = '#b8935a'
-  btn.style.color = '#000'
+  btn.style.background = '#16222E'
+  btn.style.color = '#FFFFFF'
   btn.style.cursor = 'pointer'
   btn.textContent = 'UPLOAD ID & CONTINUE'
 }
@@ -814,9 +818,9 @@ function initStripeIfNeeded(plan) {
     appearance: {
       theme: 'night',
       variables: {
-        colorPrimary:    '#b8935a',
-        colorBackground: '#0e0e0d',
-        colorText:       '#f5f0e8',
+        colorPrimary:    '#16222E',
+        colorBackground: '#F3F0E9',
+        colorText:       '#16222E',
         colorDanger:     '#e74c3c',
         borderRadius:    '4px',
       },
@@ -826,10 +830,10 @@ function initStripeIfNeeded(plan) {
   cardElement = elements.create('card', {
     style: {
       base: {
-        color: '#f5f0e8',
-        fontFamily: 'DM Sans, sans-serif',
+        color: '#16222E',
+        fontFamily: 'Jost, sans-serif',
         fontSize: '15px',
-        '::placeholder': { color: '#6b6760' },
+        '::placeholder': { color: '#3A4855' },
       },
     },
   })

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Find your piano teacher — Signature Pianos</title>
-<meta name="description" content="Answer six quick questions and we'll match you with your three best Melbourne piano teachers." />
+<title>Find your piano teacher | Signature Pianos</title>
+<meta name="description" content="Answer five quick questions and see the three Melbourne piano teachers on TeachMusic that fit most closely: who the lessons are for, style, where, suburb and budget." />
 
 <!-- Canonical + social previews (added from SEO audit) -->
 <link rel="canonical" href="https://signaturepianos.com.au/teachers-match.html" />
@@ -12,15 +12,15 @@
 <meta property="og:site_name" content="Signature Pianos" />
 <meta property="og:locale" content="en_AU" />
 <meta property="og:url" content="https://signaturepianos.com.au/teachers-match.html" />
-<meta property="og:title" content="Find your piano teacher — Signature Pianos" />
-<meta property="og:description" content="Answer six quick questions and we'll match you with your three best Melbourne piano teachers." />
+<meta property="og:title" content="Find your piano teacher | Signature Pianos" />
+<meta property="og:description" content="Answer five quick questions and see the three Melbourne piano teachers on TeachMusic that fit most closely: who the lessons are for, style, where, suburb and budget." />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Find your piano teacher — Signature Pianos" />
-<meta name="twitter:description" content="Answer six quick questions and we'll match you with your three best Melbourne piano teachers." />
+<meta name="twitter:title" content="Find your piano teacher | Signature Pianos" />
+<meta name="twitter:description" content="Answer five quick questions and see the three Melbourne piano teachers on TeachMusic that fit most closely: who the lessons are for, style, where, suburb and budget." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
 <!-- Breadcrumb structured data (added from SEO audit) -->
@@ -32,32 +32,19 @@
 </script>
 
 <style>
-  :root {
-    --bg-1: #0e0e0d;
-    --bg-2: #1a1a18;
-    --bg-3: #242422;
-    --gold: #b8935a;
-    --gold-light: #d4b483;
-    --text-1: #f5f0e8;
-    --text-2: #9a9590;
-    --text-3: #6b6760;
-    --border: rgba(184, 147, 90, 0.15);
-    --border-hover: rgba(184, 147, 90, 0.4);
-  }
   *, *::before, *::after { box-sizing: border-box; }
+
   html, body {
     margin: 0; padding: 0;
     background: var(--bg-1);
     color: var(--text-1);
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 300;
+    font-family: var(--font-body);
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
-    min-height: 100vh;
+    text-rendering: optimizeLegibility;
   }
   a { color: inherit; text-decoration: none; }
   button { font-family: inherit; }
-  ::selection { background: var(--gold); color: var(--bg-1); }
 
   /* ============ NAV ============ */
   nav {
@@ -69,16 +56,16 @@
     align-items: center;
     justify-content: space-between;
     gap: 32px;
-    background: rgba(14, 14, 13, 0.88);
+    background: rgba(243, 240, 233, 0.88);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     transition: padding 0.35s ease, background 0.35s ease;
   }
-  nav.scrolled { background: rgba(14, 14, 13, 0.96); padding: 12px 32px; }
+  nav.scrolled { background: rgba(243, 240, 233, 0.96); padding: 12px 32px; }
 
   .logo {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
     font-weight: 300;
     font-size: 24px;
     letter-spacing: 0.01em;
@@ -90,7 +77,7 @@
   .nav-links { display: flex; align-items: center; gap: 32px; }
 
   .nav-link-plain {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -106,7 +93,7 @@
 
   .nav-item--dropdown { position: relative; }
   .nav-link-trigger {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -131,7 +118,7 @@
     top: calc(100% + 14px);
     left: 50%;
     transform: translateX(-50%) translateY(-6px);
-    background: #14140f;
+    background: #FFFFFF;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 18px;
@@ -140,7 +127,7 @@
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.85);
+    box-shadow: 0 30px 60px -20px rgba(22, 34, 46, 0.34);
     transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
     z-index: 110;
   }
@@ -199,11 +186,11 @@
     color: inherit;
     transition: background 0.2s ease;
   }
-  .nav-dd-item:hover { background: rgba(184, 147, 90, 0.07); }
+  .nav-dd-item:hover { background: rgba(22, 34, 46, 0.07); }
   .nav-dd-icon { font-size: 20px; color: var(--gold); margin-top: 2px; flex-shrink: 0; }
   .nav-dd-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .nav-dd-text h4 {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     font-size: 14px;
     font-weight: 500;
     color: var(--text-1);
@@ -233,7 +220,7 @@
   .nav-account-trigger:hover,
   .nav-item--account.nav-item--open .nav-account-trigger {
     border-color: var(--gold);
-    background: rgba(184, 147, 90, 0.10);
+    background: rgba(22, 34, 46, 0.10);
   }
   .nav-dropdown--account {
     grid-template-columns: 1fr;
@@ -261,503 +248,413 @@
 
   .nav-burger { display: none; background: none; border: 0; color: var(--text-1); font-size: 24px; cursor: pointer; }
 
-  /* ============ QUIZ STAGE ============ */
-  .quiz-stage {
-    min-height: 100vh;
-    padding: 130px 40px 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  /* ============ TEACHER CARD (markup from /js/teachmusic.js) ============
+     No box: photo, a hairline, the name in condensed capitals, one line of
+     facts, one action. The same block sits on teachers.html, teacher.html and
+     teachers-match.html. */
+  .tm-sr {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
   }
-  .quiz-card {
-    width: 100%;
-    max-width: 760px;
-  }
-
-  /* Progress */
-  .progress-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 36px;
-  }
-  .progress-label {
-    font-size: 10px;
-    letter-spacing: 0.26em;
-    text-transform: uppercase;
-    color: var(--gold);
-    font-weight: 500;
-  }
-  .progress-track {
-    flex: 1;
-    height: 1px;
-    background: var(--bg-3);
+  .tm-card { display: flex; flex-direction: column; min-width: 0; }
+  .tm-card-photo {
     position: relative;
-    overflow: hidden;
-  }
-  .progress-fill {
-    position: absolute;
-    inset: 0 auto 0 0;
-    background: var(--gold);
-    width: 0%;
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .progress-step {
-    font-size: 11px;
-    color: var(--text-3);
-    letter-spacing: 0.1em;
-    font-variant-numeric: tabular-nums;
-  }
-  .progress-step strong { color: var(--text-1); font-weight: 500; }
-
-  /* Question */
-  .question { animation: fadeUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both; }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .question-eyebrow {
-    font-size: 11px;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin: 0 0 14px 0;
-    font-weight: 500;
-  }
-  .question-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-size: clamp(32px, 4vw, 56px);
-    line-height: 1.1;
-    margin: 0 0 14px 0;
-  }
-  .question-title em { font-style: italic; color: var(--gold); font-weight: 400; }
-  .question-sub {
-    font-size: 15px;
-    color: var(--text-2);
-    margin: 0 0 40px 0;
-    line-height: 1.7;
-    max-width: 540px;
-  }
-
-  /* Option list */
-  .options {
-    display: grid;
-    gap: 12px;
-    margin-bottom: 40px;
-  }
-  .options.options-2 { grid-template-columns: 1fr 1fr; }
-  .options.options-3 { grid-template-columns: repeat(3, 1fr); }
-  .option {
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    padding: 22px 24px;
-    text-align: left;
-    cursor: pointer;
-    transition: border-color 0.25s ease, transform 0.25s ease, background 0.25s ease;
-    color: var(--text-1);
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-  }
-  .option:hover {
-    border-color: var(--border-hover);
-    transform: translateY(-2px);
-  }
-  .option.selected {
-    border-color: var(--gold);
-    background: rgba(184, 147, 90, 0.08);
-    box-shadow: inset 0 0 0 1px var(--gold);
-  }
-  .option-icon {
-    width: 36px;
-    height: 36px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border);
-    color: var(--gold);
-    font-size: 18px;
-    transition: border-color 0.25s ease;
-  }
-  .option.selected .option-icon { border-color: var(--gold); }
-  .option-text { flex: 1; }
-  .option-label {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 20px;
-    line-height: 1.25;
-    margin: 0 0 4px 0;
-    color: var(--text-1);
-  }
-  .option-sub {
-    font-size: 13px;
-    color: var(--text-2);
-    margin: 0;
-    line-height: 1.55;
-  }
-
-  /* Budget slider (final question) */
-  .budget-display {
-    text-align: center;
-    margin: 40px 0 32px;
-  }
-  .budget-value {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-size: clamp(48px, 6vw, 88px);
-    line-height: 1;
-    color: var(--text-1);
-    margin: 0;
-  }
-  .budget-value em { font-style: italic; color: var(--gold); }
-  .budget-unit {
-    font-size: 14px;
-    color: var(--text-2);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    margin: 10px 0 0 0;
-  }
-  .quiz-slider {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(to right, var(--gold) 0%, var(--gold) var(--fill, 50%), var(--bg-3) var(--fill, 50%));
-    outline: none;
-    border: 0;
-    cursor: pointer;
-    border-radius: 1px;
-    margin: 32px 0 8px;
-  }
-  .quiz-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--gold);
-    cursor: pointer;
-    border: 3px solid var(--bg-1);
-    box-shadow: 0 0 0 1px var(--gold), 0 0 16px rgba(184, 147, 90, 0.4);
-    transition: transform 0.15s ease;
-  }
-  .quiz-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
-  .quiz-slider::-moz-range-thumb {
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: var(--gold);
-    border: 3px solid var(--bg-1);
-    cursor: pointer;
-  }
-  .slider-range {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: var(--text-3);
-    letter-spacing: 0.1em;
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* Nav buttons */
-  .quiz-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-top: 12px;
-  }
-  .quiz-btn {
-    padding: 14px 28px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    cursor: pointer;
-    border: 1px solid var(--gold);
-    background: transparent;
-    color: var(--gold);
-    transition: background 0.25s ease, color 0.25s ease, opacity 0.25s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .quiz-btn:hover { background: rgba(184, 147, 90, 0.08); }
-  .quiz-btn.primary {
-    background: var(--gold);
-    color: var(--bg-1);
-  }
-  .quiz-btn.primary:hover { background: var(--gold-light); border-color: var(--gold-light); }
-  .quiz-btn.text {
-    background: transparent;
-    border: 0;
-    color: var(--text-3);
-    padding: 14px 0;
-  }
-  .quiz-btn.text:hover { color: var(--gold); background: transparent; }
-  .quiz-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-
-  /* ============ RESULTS ============ */
-  .results-stage {
-    padding: 130px 40px 100px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  .results-header {
-    text-align: center;
-    margin-bottom: 64px;
-  }
-  .results-eyebrow {
-    font-size: 11px;
-    letter-spacing: 0.26em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin: 0 0 18px 0;
-    font-weight: 500;
-  }
-  .results-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-size: clamp(36px, 4.5vw, 64px);
-    line-height: 1.05;
-    margin: 0 0 16px 0;
-  }
-  .results-title em { font-style: italic; color: var(--gold); font-weight: 400; }
-  .results-sub {
-    font-size: 16px;
-    color: var(--text-2);
-    margin: 0 auto;
-    max-width: 560px;
-  }
-  .results-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 28px;
-    margin-bottom: 64px;
-  }
-  .result-card {
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    transition: border-color 0.3s ease, transform 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    color: inherit;
-    position: relative;
-  }
-  .result-card:hover {
-    border-color: var(--border-hover);
-    transform: translateY(-4px);
-  }
-  .result-card.top-match {
-    border-color: var(--gold);
-  }
-  .result-rank {
-    position: absolute;
-    top: -1px;
-    left: -1px;
-    background: var(--gold);
-    color: var(--bg-1);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    padding: 6px 14px;
-    z-index: 2;
-  }
-  .result-card-image {
-    position: relative;
-    aspect-ratio: 4 / 3;
-    background:
-      radial-gradient(ellipse at 40% 50%, rgba(184, 147, 90, 0.28), transparent 60%),
-      linear-gradient(140deg, #1f1812, #0a0807);
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .result-card-initials {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 300;
-    font-size: 70px;
-    color: rgba(245, 240, 232, 0.92);
-    z-index: 1;
-  }
-  .result-card-body {
-    padding: 26px 28px 28px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-  .result-card-suburb {
-    font-size: 10px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin: 0 0 8px 0;
-    font-weight: 500;
-  }
-  .result-card-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 400;
-    font-size: 26px;
-    line-height: 1.2;
-    margin: 0 0 8px 0;
-  }
-  .result-card-headline {
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--text-2);
-    margin: 0 0 18px 0;
-    flex: 1;
-  }
-  .result-why {
-    background: rgba(184, 147, 90, 0.06);
-    border-left: 2px solid var(--gold);
-    padding: 12px 14px;
-    font-size: 12px;
-    color: var(--text-1);
-    margin: 0 0 18px 0;
-    line-height: 1.55;
-  }
-  .result-why strong {
-    color: var(--gold);
-    font-weight: 500;
-  }
-  .result-card-cta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--gold);
-    font-weight: 500;
-  }
-  .result-card-cta i { transition: transform 0.2s ease; }
-  .result-card:hover .result-card-cta i { transform: translateX(6px); }
-
-  .results-actions {
-    text-align: center;
-  }
-  .results-secondary {
-    font-size: 14px;
-    color: var(--text-2);
-    margin: 0 0 14px 0;
-  }
-  .results-actions .quiz-btn { display: inline-flex; }
-
-  /* No-match fallback */
-  .no-match {
-    text-align: center;
-    padding: 60px 40px;
-    border: 1px solid var(--border);
-    background: var(--bg-2);
-    margin-bottom: 40px;
-  }
-  .no-match h3 {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 28px;
-    margin: 0 0 14px 0;
-  }
-  .no-match p { color: var(--text-2); margin: 0 0 24px 0; }
-
-  /* ============ FOOTER ============ */
-  .footer {
-    background: var(--bg-1);
-    padding: 80px 40px 0;
-    border-top: 1px solid var(--border);
-  }
-  .footer-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 64px;
-    padding-bottom: 56px;
-  }
-  .footer-brand .logo { font-size: 26px; }
-  .footer-tagline {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 18px;
-    color: var(--text-2);
-    margin: 18px 0 0 0;
-    max-width: 320px;
-  }
-  .footer-col-title {
-    font-size: 10px;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 22px;
-    font-weight: 500;
-  }
-  .footer-link {
     display: block;
-    font-size: 14px;
-    color: var(--text-2);
-    margin-bottom: 12px;
-    transition: color 0.2s ease;
+    aspect-ratio: 5 / 4;
+    overflow: hidden;
+    background: var(--sp-ivory-deep);
   }
-  .footer-link:hover { color: var(--text-1); }
-  .footer-contact {
-    font-size: 14px;
-    color: var(--text-2);
-    margin: 0 0 12px 0;
-    line-height: 1.6;
+  .tm-card-photo img {
+    display: block;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s var(--sp-ease);
   }
-  .footer-socials { display: flex; gap: 12px; }
-  .footer-social {
-    width: 40px; height: 40px;
+  .tm-card:hover .tm-card-photo img { transform: scale(1.03); }
+  .tm-card-initials {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    font-family: var(--sp-font-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: 72px;
+    color: var(--sp-ink);
+  }
+  .tm-card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--sp-rule);
+  }
+  .tm-card-name {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 0.95;
+    color: var(--sp-ink);
+  }
+  .tm-card-name a { transition: color 0.4s linear; }
+  .tm-card-name a:hover { color: var(--sp-ink-soft); }
+  .tm-card-facts { margin: 12px 0 0; font-size: 15px; line-height: 1.55; color: var(--sp-ink-soft); }
+  .tm-card-trial { margin: 2px 0 0; font-size: 14px; font-weight: 500; line-height: 1.55; color: var(--sp-felt); }
+  .tm-card-note {
+    margin: 10px 0 0;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+  }
+  .tm-card-why { list-style: none; margin: 14px 0 0; padding: 0; }
+  .tm-card-why li {
+    position: relative;
+    padding: 5px 0 5px 20px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--sp-ink);
+  }
+  .tm-card-why li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.95em;
+    width: 10px; height: 1px;
+    background: var(--sp-ink);
+  }
+  .tm-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 20px;
+    margin-top: auto;
+    padding-top: 14px;
+  }
+  .tm-card-ext {
+    font-size: 13px;
+    color: var(--sp-ink-soft);
+    text-decoration: underline;
+    text-decoration-color: rgba(22, 34, 46, 0.3);
+    text-underline-offset: 4px;
+    transition: color 0.4s linear, text-decoration-color 0.4s linear;
+  }
+  .tm-card-ext:hover { color: var(--sp-ink); text-decoration-color: currentColor; }
+
+  /* Loading placeholders */
+  .tm-card--ghost .tm-card-photo { animation: tm-breathe 1.6s ease-in-out infinite; }
+  .tm-ghost-line { display: block; height: 14px; margin-top: 6px; background: var(--sp-ivory-deep); animation: tm-breathe 1.6s ease-in-out infinite; }
+  .tm-ghost-line:first-child { height: 26px; width: 70%; margin-top: 0; }
+  .tm-ghost-line--short { width: 45%; }
+  @keyframes tm-breathe { 50% { opacity: 0.55; } }
+
+  /* Text link: capitals, an arrow, a hairline that draws in */
+  .tm-link {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border);
-    color: var(--text-2);
-    font-size: 18px;
-    transition: border-color 0.2s ease, color 0.2s ease;
+    gap: 10px;
+    padding: 8px 0;
+    border: 0;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+    background: linear-gradient(currentColor, currentColor) 0 calc(100% - 4px) / 0 1px no-repeat;
+    cursor: pointer;
+    transition: background-size 0.6s var(--sp-ease);
   }
-  .footer-social:hover { border-color: var(--gold); color: var(--gold); }
-  .footer-bottom {
-    border-top: 1px solid var(--border);
-    padding: 24px 0;
+  .tm-link:hover { background-size: 100% 1px; }
+  .tm-link i { font-size: 15px; transition: transform 0.6s var(--sp-ease); }
+  .tm-link:hover i { transform: translateX(6px); }
+
+  /* ============ QUIZ ============ */
+  .tq { padding-top: calc(var(--topbar-h) + 84px); }
+  .tq-label {
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--sp-ink-soft);
+  }
+  .tq-head {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: clamp(28px, 3vw, 44px) 40px clamp(32px, 3.4vw, 48px);
     text-align: center;
   }
-  .footer-bottom p { font-size: 12px; color: var(--text-3); margin: 0; }
+  .tq-heading { margin: 22px 0 0; font-weight: 500; color: var(--sp-ink); }
+  .tq-heading .sp-display { font-size: clamp(56px, 8.4vw, 150px); }
+  .tq-heading .sp-script { font-size: clamp(64px, 8vw, 138px); }
+  .tq-intro {
+    margin: 22px auto 0;
+    max-width: 64ch;
+    font-size: clamp(17px, 1.35vw, 19px);
+    line-height: 1.7;
+    color: var(--sp-ink-soft);
+  }
 
-  /* ============ MOBILE ============ */
+  /* The questions sit inside the page's one Mist arch */
+  .tq-stage { padding: 0 40px clamp(96px, 10vw, 140px); }
+  .tq-arch {
+    max-width: 980px;
+    min-height: 600px;
+    margin: 0 auto;
+    padding: clamp(130px, 12vw, 160px) clamp(24px, 6vw, 88px) clamp(56px, 6vw, 80px);
+    background: var(--sp-mist);
+    border-radius: 100vw 100vw 0 0;
+    text-align: center;
+    scroll-margin-top: 110px;
+  }
+  .tq-arch.is-results { max-width: 1180px; }
+  .tq-step {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+  }
+  .tq-progress {
+    display: block;
+    width: 160px;
+    height: 1px;
+    margin: 14px auto 0;
+    background: rgba(22, 34, 46, 0.25);
+  }
+  .tq-progress span { display: block; height: 100%; background: var(--sp-ink); transition: width 0.6s var(--sp-ease); }
+  .tq-q {
+    margin: 24px auto 0;
+    max-width: 16ch;
+    font-size: clamp(40px, 5vw, 72px);
+    font-weight: 500;
+    line-height: 0.9;
+    color: var(--sp-ink);
+    outline: none;
+  }
+  .tq-hint { margin: 18px auto 0; max-width: 48ch; font-size: 16.5px; line-height: 1.65; color: var(--sp-ink); }
+  .tq-hint a { text-decoration: underline; text-underline-offset: 4px; }
+
+  /* Answers: square tiles; the chosen one fills with Ink */
+  .tq-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    max-width: 760px;
+    margin: 36px auto 0;
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+  .tq-option { position: relative; display: block; cursor: pointer; }
+  .tq-option input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+  .tq-option span {
+    display: block;
+    height: 100%;
+    padding: 18px 22px 17px;
+    border: 1px solid rgba(22, 34, 46, 0.4);
+    transition: background 0.4s linear, color 0.4s linear, border-color 0.4s linear;
+  }
+  .tq-option strong { display: block; font-size: 17px; font-weight: 500; line-height: 1.35; color: inherit; }
+  .tq-option small { display: block; margin-top: 3px; font-size: 14px; line-height: 1.5; color: var(--sp-ink-soft); transition: color 0.4s linear; }
+  .tq-option:hover span { border-color: var(--sp-ink); }
+  .tq-option input:checked + span { background: var(--sp-ink); border-color: var(--sp-ink); color: #FFFFFF; }
+  .tq-option input:checked + span small { color: rgba(255, 255, 255, 0.78); }
+  .tq-option input:focus-visible + span { outline: 2px solid var(--sp-ink); outline-offset: 3px; }
+
+  /* Suburb and budget */
+  .tq-field { position: relative; max-width: 440px; margin: 40px auto 0; text-align: left; }
+  .tq-field label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+  }
+  .tq-field input[type="text"] {
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px 0 10px;
+    border: 0;
+    border-bottom: 1px solid rgba(22, 34, 46, 0.5);
+    border-radius: 0;
+    background: transparent;
+    color: var(--sp-ink);
+    font-family: var(--font-body);
+    font-size: 20px;
+    outline: none;
+    transition: border-color 0.4s linear, box-shadow 0.4s linear;
+  }
+  .tq-field input[type="text"]:focus { border-bottom-color: var(--sp-ink); box-shadow: 0 1px 0 var(--sp-ink); }
+  .tq-field-msg { margin: 10px 0 0; min-height: 1.5em; font-size: 14px; line-height: 1.5; color: var(--sp-ink); }
+  .tq-suggest {
+    position: absolute;
+    top: 76px; left: 0; right: 0;
+    z-index: 5;
+    margin: 0;
+    padding: 6px 0;
+    list-style: none;
+    background: var(--sp-ivory);
+    border: 1px solid var(--border);
+    box-shadow: 0 28px 56px -28px rgba(22, 34, 46, 0.32);
+  }
+  .tq-suggest[hidden] { display: none; }
+  .tq-suggest li { display: flex; justify-content: space-between; gap: 12px; padding: 11px 16px; font-size: 16px; color: var(--sp-ink); cursor: pointer; }
+  .tq-suggest li span { color: var(--sp-ink-soft); }
+  .tq-suggest li:hover,
+  .tq-suggest li[aria-selected="true"] { background: var(--sp-ivory-deep); }
+
+  .tq-price { margin: 36px auto 0; max-width: 520px; }
+  .tq-price-value {
+    margin: 0;
+    font-family: var(--sp-font-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: clamp(72px, 8vw, 112px);
+    line-height: 0.9;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+  }
+  .tq-price-unit { margin: 8px 0 0; font-size: 15px; color: var(--sp-ink); }
+  .tq-range {
+    width: 100%;
+    height: 40px;
+    margin: 22px 0 0;
+    background: transparent;
+    cursor: pointer;
+    -webkit-appearance: none;
+            appearance: none;
+  }
+  .tq-range:focus { outline: none; }
+  .tq-range::-webkit-slider-runnable-track {
+    height: 1px;
+    background: linear-gradient(var(--sp-ink), var(--sp-ink)) 0 0 / var(--fill, 50%) 100% no-repeat, rgba(22, 34, 46, 0.3);
+  }
+  .tq-range::-moz-range-track { height: 1px; background: rgba(22, 34, 46, 0.3); }
+  .tq-range::-moz-range-progress { height: 1px; background: var(--sp-ink); }
+  .tq-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    margin-top: -9.5px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--sp-ink);
+  }
+  .tq-range::-moz-range-thumb { width: 20px; height: 20px; border: 0; border-radius: 50%; background: var(--sp-ink); }
+  .tq-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--sp-mist), 0 0 0 5px var(--sp-ink); }
+  .tq-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--sp-mist), 0 0 0 5px var(--sp-ink); }
+  .tq-range-ends { display: flex; justify-content: space-between; font-size: 13px; color: var(--sp-ink); }
+
+  /* Back and continue */
+  .tq-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    max-width: 760px;
+    margin: 40px auto 0;
+  }
+  .tq-nav-end { display: flex; align-items: center; gap: 24px; margin-left: auto; }
+  .tq-next {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 32px 16px;
+    border: 1px solid var(--sp-ink);
+    background: var(--sp-ink);
+    color: #FFFFFF;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.4s linear, color 0.4s linear, opacity 0.4s linear;
+  }
+  .tq-next:hover:not(:disabled) { background: transparent; color: var(--sp-ink); }
+  .tq-next:disabled { opacity: 0.35; cursor: not-allowed; }
+  .tq-back[hidden] { display: none; }
+
+  /* Results */
+  .tq-results-title { margin: 18px auto 0; font-size: clamp(44px, 5.4vw, 80px); font-weight: 500; line-height: 0.9; color: var(--sp-ink); outline: none; }
+  .tq-results-note { margin: 18px auto 0; max-width: 56ch; font-size: 16.5px; line-height: 1.65; color: var(--sp-ink); }
+  .tq-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 48px 28px;
+    margin: 44px 0 0;
+    text-align: left;
+  }
+  .tq-arch .tm-card-body { border-top-color: rgba(22, 34, 46, 0.3); }
+  .tq-arch .tm-card-facts,
+  .tq-arch .tm-card-ext { color: var(--sp-ink); }
+  .tq-arch .tm-card-photo { background: var(--sp-mist-light); }
+  .tq-after {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 12px 36px;
+    margin-top: 52px;
+    padding-top: 26px;
+    border-top: 1px solid rgba(22, 34, 46, 0.3);
+  }
+  .tq-grid .tm-card { animation: tq-in 0.8s var(--sp-ease) both; }
+  .tq-grid .tm-card:nth-child(2) { animation-delay: 0.08s; }
+  .tq-grid .tm-card:nth-child(3) { animation-delay: 0.16s; }
+  @keyframes tq-in { from { opacity: 0; transform: translateY(16px); } }
+  .tq-busy { margin: 40px 0 0; font-size: 16px; color: var(--sp-ink); }
+
+  /* Signature, underneath */
+  .tq-piano { border-top: 1px solid var(--border); padding: clamp(56px, 6vw, 88px) 40px; text-align: center; }
+  .tq-piano p { margin: 0 auto; max-width: 56ch; font-size: 17px; line-height: 1.7; color: var(--sp-ink-soft); }
+  .tq-piano .tm-link { margin-top: 10px; }
+
+  @media (max-width: 960px) {
+    .tq { padding-top: 62px; }
+    .tq-head { padding: 40px 24px 40px; }
+    .tq-stage { padding: 0 16px 80px; }
+    .tq-grid { grid-template-columns: 1fr; max-width: 440px; margin-left: auto; margin-right: auto; }
+    .tq-piano { padding: 56px 24px; }
+  }
+  @media (max-width: 640px) {
+    .tq-arch { min-height: 0; padding: 118px 18px 44px; }
+    .tq-options { grid-template-columns: 1fr; margin-top: 28px; }
+    .tq-q { margin-top: 22px; }
+    .tq-nav { margin-top: 30px; }
+    .tq-next { padding: 17px 24px 15px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tq-grid .tm-card, .tm-card--ghost .tm-card-photo, .tm-ghost-line { animation: none; }
+    .tq-option span, .tq-next, .tq-progress span, .tm-card-photo img, .tm-link, .tm-link i { transition: none; }
+  }
+
   @media (max-width: 960px) {
     nav { padding: 18px 24px; }
     .nav-links, .nav-ctas { display: none; }
     .nav-burger { display: inline-flex; }
-
-    .quiz-stage { padding: 110px 24px 60px; }
-    .options.options-2, .options.options-3 { grid-template-columns: 1fr; }
-
-    .results-stage { padding: 110px 24px 80px; }
-    .results-grid { grid-template-columns: 1fr; }
-
-    .footer { padding: 60px 24px 0; }
-    .footer-inner { grid-template-columns: 1fr; gap: 40px; }
   }
 </style>
+<link rel="stylesheet" href="/css/signature-theme.css" />
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/media/brand/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
 </head>
 <body>
 
 <!-- ============ NAV ============ -->
+<div class="sp-topbar" role="region" aria-label="Contact details">
+  <span>Pianos imported direct from Japan</span>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley</a>
+  <a class="sp-topbar-phone" href="tel:+61479128955">0479 128 955</a>
+</div>
+
 <nav id="nav">
-  <a href="index.html" class="logo">Signature <span>Pianos</span></a>
+  <a href="/" class="logo" aria-label="Signature Pianos home">Signature <span>Pianos</span></a>
   <div class="nav-links">
 
     <div class="nav-item nav-item--dropdown">
@@ -765,21 +662,21 @@
         Pianos <i class="ti ti-chevron-down nav-chevron"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--pianos" role="menu">
-        <a href="instruments/index.html?cat=upright" class="nav-dd-item">
+        <a href="/instruments/?cat=upright" class="nav-dd-item">
           <i class="ti ti-bookmark nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Used Japanese uprights</h4><p>Hand-selected, imported direct from Japan</p></div>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese uprights</h4><p>Hand-picked in Japan, checked in Melbourne</p></div>
         </a>
-        <a href="instruments/index.html?cat=grand" class="nav-dd-item">
+        <a href="/instruments/?cat=grand" class="nav-dd-item">
           <i class="ti ti-crown nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Used Japanese grands</h4><p>Concert &amp; baby grands, fully restored</p></div>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese grands</h4><p>Salon and concert grands from Yamaha and Kawai</p></div>
         </a>
-        <a href="instruments/index.html?cat=digital" class="nav-dd-item">
+        <a href="/instruments/?cat=digital" class="nav-dd-item">
           <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Modern instruments for any space</p></div>
+          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Roland, Kawai, Casio and Yamaha, coming soon</p></div>
         </a>
-        <a href="instruments/index.html?cat=books" class="nav-dd-item">
+        <a href="/blog" class="nav-dd-item">
           <i class="ti ti-book nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Sheet music &amp; books</h4><p>For students and teachers alike</p></div>
+          <div class="nav-dd-text"><h4>Buying advice</h4><p>Plain answers before you choose a piano</p></div>
         </a>
       </div>
     </div>
@@ -789,17 +686,17 @@
         Services <i class="ti ti-chevron-down nav-chevron"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--services" role="menu">
-        <a href="services/delivery-warranty.html" class="nav-dd-item">
+        <a href="/services/delivery-warranty.html" class="nav-dd-item">
           <i class="ti ti-truck-delivery nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White glove delivery, tracked end to end</p></div>
+          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White-glove delivery and a 10-year warranty</p></div>
         </a>
-        <a href="services/book-a-viewing.html" class="nav-dd-item">
+        <a href="/services/book-a-viewing.html" class="nav-dd-item">
           <i class="ti ti-calendar-event nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Book a viewing</h4><p>Visit our showroom, try before you buy</p></div>
+          <div class="nav-dd-text"><h4>Book a visit</h4><p>Play the pianos in our Mount Waverley showroom</p></div>
         </a>
-        <a href="services/tuning-servicing.html" class="nav-dd-item">
+        <a href="/services/tuning-servicing.html" class="nav-dd-item">
           <i class="ti ti-tool nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Keep your piano in perfect condition</p></div>
+          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Tuning and care for pianos across Melbourne</p></div>
         </a>
       </div>
     </div>
@@ -812,33 +709,33 @@
         <div class="nav-dd-section">
           <div class="nav-dd-section-label">For students</div>
           <div class="nav-dd-grid">
-            <a href="teachers.html" class="nav-dd-item">
+            <a href="/teachers.html" class="nav-dd-item">
               <i class="ti ti-search nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Browse local piano teachers by suburb</p></div>
+              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Piano teachers across Melbourne, via TeachMusic</p></div>
             </a>
-            <a href="teachers.html?nearby=1" class="nav-dd-item">
+            <a href="/teachers-match.html" class="nav-dd-item">
               <i class="ti ti-map-pin nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Teachers near me</h4><p>Use your location to find teachers close by</p></div>
+              <div class="nav-dd-text"><h4>Match me with a teacher</h4><p>A few quick questions, three suggestions</p></div>
             </a>
           </div>
         </div>
         <div class="nav-dd-section">
           <div class="nav-dd-section-label">For teachers</div>
           <div class="nav-dd-grid">
-            <a href="teachers.html#signup" class="nav-dd-item">
+            <a href="https://www.teachmusic.com.au/for-teachers" class="nav-dd-item" target="_blank" rel="noopener">
               <i class="ti ti-list-details nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>List your studio</h4><p>Free listing, reach new students instantly</p></div>
+              <div class="nav-dd-text"><h4>List your studio</h4><p>Reach new students on TeachMusic, our sister platform</p></div>
             </a>
-            <a href="teachers.html#dashboard" class="nav-dd-item">
+            <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
               <i class="ti ti-layout-grid nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your schedule</p></div>
+              <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
             </a>
           </div>
         </div>
       </div>
     </div>
 
-    <a href="about.html" class="nav-link-plain">About</a>
+    <a href="/about.html" class="nav-link-plain">About</a>
   </div>
 
   <div class="nav-ctas">
@@ -847,59 +744,70 @@
         <i class="ti ti-user"></i>
       </button>
       <div class="nav-dropdown nav-dropdown--account" role="menu">
-        <a href="#" class="nav-dd-item">
+        <a href="/portal" class="nav-dd-item">
           <i class="ti ti-user nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track delivery, view purchases, manage warranty</p></div>
+          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track your delivery and warranty</p></div>
         </a>
-        <a href="teachers.html#dashboard" class="nav-dd-item">
+        <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
           <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Teacher dashboard</h4><p>Manage bookings, students &amp; your studio</p></div>
+          <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
         </a>
       </div>
     </div>
-    <button class="nav-cta">Book a visit</button>
+    <a class="nav-cta" href="/services/book-a-viewing.html">Book a visit</a>
   </div>
   <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+  <a class="sp-nav-call" href="tel:+61479128955" aria-label="Call Signature Pianos on 0479 128 955"><i class="ti ti-phone" aria-hidden="true"></i></a>
 </nav>
 
-<main id="quizRoot"></main>
+<main class="tq" id="main">
+  <header class="tq-head">
+    <p class="tq-label">Piano teachers from TeachMusic</p>
+    <h1 class="tq-heading">
+      <span class="sp-display">Five questions</span>
+      <span class="sp-script">three teachers</span>
+    </h1>
+    <p class="tq-intro">Tell us a little about the lessons you’re after. We’ll rank the Melbourne piano teachers listed on TeachMusic, our sister platform, and show you the three that fit most closely. There’s nothing to sign up for.</p>
+  </header>
+
+  <section class="tq-stage" aria-label="Teacher quiz">
+    <div class="tq-arch" id="quiz">
+      <noscript><p class="tq-hint">The quiz needs JavaScript. You can still <a href="/teachers.html">browse every teacher</a>.</p></noscript>
+    </div>
+  </section>
+
+  <section class="tq-piano" aria-label="From Signature Pianos">
+    <p>Need a piano to practise on? Ours are pre-loved, hand-picked in Japan and checked in our Mount Waverley workshop.</p>
+    <a class="tm-link" href="/services/book-a-viewing.html">Book a visit <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+  </section>
+</main>
 
 <!-- ============ FOOTER ============ -->
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-col footer-brand">
-      <a href="index.html" class="logo">Signature <span>Pianos</span></a>
-      <p class="footer-tagline">Find the piano that moves you.</p>
+<footer class="sp-footer">
+  <div class="sp-footer-inner">
+    <a href="/" class="sp-footer-logo"><img src="/media/brand/logo-ink.svg" width="1542" height="592" alt="Signature Pianos"></a>
+    <p class="sp-footer-tagline">Pre-loved Japanese pianos, hand-picked in Japan and checked in Melbourne.</p>
+    <div class="sp-footer-links" role="navigation" aria-label="Footer">
+      <a href="/instruments/">Pianos</a>
+      <a href="/services/book-a-viewing.html">Book a visit</a>
+      <a href="/services/tuning-servicing.html">Tuning</a>
+      <a href="/services/delivery-warranty.html">Delivery &amp; warranty</a>
+      <a href="/teachers.html">Teachers</a>
+      <a href="/blog">Blog</a>
+      <a href="/about.html">About</a>
     </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Explore</div>
-      <a href="instruments/index.html" class="footer-link">Instruments</a>
-      <a href="index.html#matcher" class="footer-link">Find my piano</a>
-      <a href="teachers.html" class="footer-link">Teachers</a>
-      <a href="teachers-match.html" class="footer-link">Find a teacher</a>
-      <a href="#" class="footer-link">Our story</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Visit</div>
-      <p class="footer-contact">Melbourne, VIC<br>Australia</p>
-      <a href="tel:+61300000000" class="footer-link">+61 3 0000 0000</a>
-      <a href="mailto:info@signaturepianos.com.au" class="footer-link">info@signaturepianos.com.au</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Follow</div>
-      <div class="footer-socials">
-        <a href="#" class="footer-social" aria-label="Instagram"><i class="ti ti-brand-instagram"></i></a>
-        <a href="#" class="footer-social" aria-label="YouTube"><i class="ti ti-brand-youtube"></i></a>
-        <a href="#" class="footer-social" aria-label="Facebook"><i class="ti ti-brand-facebook"></i></a>
-      </div>
+    <address class="sp-footer-contact">
+      <span class="sp-line"><a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="tel:+61479128955">0479 128 955</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></span>
+    </address>
+    <div class="sp-footer-socials">
+      <a href="#" aria-label="Instagram"><i class="ti ti-brand-instagram" aria-hidden="true"></i></a>
+      <a href="#" aria-label="Facebook"><i class="ti ti-brand-facebook" aria-hidden="true"></i></a>
     </div>
   </div>
-  <div class="footer-bottom">
-    <p>© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
-  </div>
+  <div class="sp-footer-bottom">© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></div>
 </footer>
 
-<script src="teachers-data.js"></script>
+<script src="/js/teachmusic.js"></script>
 <script>
   /* -------- NAV: scrolled-state + dropdowns -------- */
   (function setupNav() {
@@ -936,389 +844,401 @@
   })();
 
   /* ============================================================
-     Teacher matching quiz
-     - 6 sequential questions, each renders a fresh card.
-     - Answers stored in `answers`; we score every teacher at the
-       end and show the top 3 with a "Why we matched you" line.
-     - Match scoring favours hard constraints (suburb, level) over
-       preferences (style, format) so the top results never feel
-       wrong, just sometimes broader than expected.
+     Teacher quiz: five questions, then the three live TeachMusic
+     listings that fit most closely. Every question maps to a field the
+     listings really carry: ages, the style tags in instruments,
+     modes, the pin (for distance) and price_from_cents.
      ============================================================ */
+  (function quiz() {
+    const TM = window.TeachMusic;
+    const esc = TM.esc;
+    const box = document.getElementById('quiz');
+    const SAVE_KEY = 'sp-teacher-quiz';
 
-  const root = document.getElementById('quizRoot');
+    const QUESTIONS = [
+      {
+        id: 'age',
+        title: 'Who are the lessons for?',
+        hint: 'Some teachers only take adults. Others specialise in young children.',
+        options: [
+          { value: 'preschool', label: 'A young child', sub: 'Under school age' },
+          { value: 'children', label: 'A child', sub: 'Primary school age' },
+          { value: 'teens', label: 'A teenager', sub: 'High school age' },
+          { value: 'adults', label: 'An adult', sub: 'Starting out or coming back' },
+        ],
+      },
+      {
+        id: 'style',
+        title: 'What would they like to play?',
+        hint: 'Pick the closest. Most teachers cover more than one style.',
+        options: [
+          { value: 'classical', label: 'Classical', sub: 'Exam pieces, recitals and the classics' },
+          { value: 'pop', label: 'Pop and contemporary', sub: 'Songs from the radio, film and games' },
+          { value: 'jazz', label: 'Jazz and blues', sub: 'Chords, improvising and swing' },
+          { value: '', label: 'Not sure yet', sub: 'Any style is fine' },
+        ],
+      },
+      {
+        id: 'mode',
+        title: 'Where would lessons happen?',
+        hint: 'Teachers say on TeachMusic where they teach.',
+        options: [
+          { value: 'studio', label: 'At the teacher’s studio', sub: 'You travel to them' },
+          { value: 'mobile', label: 'At home', sub: 'The teacher comes to you' },
+          { value: 'online', label: 'Online', sub: 'Lessons over video' },
+          { value: '', label: 'Any of these', sub: 'Whatever suits the teacher' },
+        ],
+      },
+      {
+        id: 'near',
+        kind: 'suburb',
+        title: 'Which suburb are you in?',
+        hint: 'We’ll put closer teachers first. Skip this if lessons will be online.',
+      },
+      {
+        id: 'max',
+        kind: 'price',
+        title: 'What would you like to spend?',
+        hint: 'This is each teacher’s starting price per lesson, usually for 30 minutes.',
+      },
+    ];
 
-  /* ----- question definitions -----
-     `field` matches the corresponding facet on TEACHERS rows so
-     scoring can read t[field] generically. */
-  const questions = [
-    {
-      id: 'skillLevel',
-      eyebrow: 'Question 1 of 6',
-      title: 'Where are you <em>starting</em> from?',
-      sub: 'Be honest — knowing your level helps us match teaching pace, not just credentials.',
-      cols: 3,
-      options: [
-        { value: 'beginner',     label: 'Complete beginner', sub: 'Never touched a piano, or just messing around', icon: 'ti-seedling' },
-        { value: 'intermediate', label: 'Intermediate',      sub: 'Played for a few years, reading music comfortably', icon: 'ti-music' },
-        { value: 'advanced',     label: 'Advanced',          sub: 'Diploma-grade work, competition or audition prep',  icon: 'ti-trophy' },
-      ],
-    },
-    {
-      id: 'ageGroup',
-      eyebrow: 'Question 2 of 6',
-      title: 'Who\'s the <em>lesson</em> for?',
-      sub: 'Some teachers specialise in young learners, others in adult returners. We pick the right one for the right student.',
-      cols: 3,
-      options: [
-        { value: 'kids',   label: 'A child',         sub: 'Aged 4 to 12 — first instrument or early grades',  icon: 'ti-baby-carriage' },
-        { value: 'teens',  label: 'A teen',          sub: 'Aged 13 to 17 — VCE, AMEB, or returning seriously', icon: 'ti-school' },
-        { value: 'adults', label: 'Me (or an adult)', sub: 'Adult learner — beginner, returner or improver',    icon: 'ti-user-heart' },
-      ],
-    },
-    {
-      id: 'style',
-      eyebrow: 'Question 3 of 6',
-      title: 'What kind of <em>music</em> are you drawn to?',
-      sub: 'Pick the one that excites you most. We\'ll find a teacher who lives in that world.',
-      cols: 2,
-      options: [
-        { value: 'Classical',    label: 'Classical',     sub: 'Bach to Rachmaninov, exam repertoire, recitals', icon: 'ti-music' },
-        { value: 'Jazz',         label: 'Jazz',          sub: 'Standards, improvisation, comping',              icon: 'ti-microphone-2' },
-        { value: 'Contemporary', label: 'Contemporary',  sub: 'Pop, film, indie — songs you already love',      icon: 'ti-headphones' },
-        { value: 'Songwriting',  label: 'Songwriting',   sub: 'Use piano to write and arrange your own music',  icon: 'ti-pencil' },
-      ],
-    },
-    {
-      id: 'format',
-      eyebrow: 'Question 4 of 6',
-      title: 'In-person or <em>online</em>?',
-      sub: 'Online works well for most levels and is more flexible. In-person is unbeatable for first-time students.',
-      cols: 3,
-      options: [
-        { value: 'in-person', label: 'In-person',     sub: 'At their studio or sometimes yours',  icon: 'ti-building-store' },
-        { value: 'online',    label: 'Online',        sub: 'Flexible scheduling, Zoom or similar', icon: 'ti-device-laptop' },
-        { value: '',          label: 'Either works',  sub: 'Open to whichever fits the teacher',  icon: 'ti-arrows-shuffle' },
-      ],
-    },
-    {
-      id: 'suburb',
-      eyebrow: 'Question 5 of 6',
-      title: 'Which part of <em>Melbourne</em>?',
-      sub: 'We\'ll prioritise teachers in your area for in-person, but always show online options too.',
-      cols: 3,
-      options: [
-        { value: 'inner-north', label: 'Inner north',   sub: 'Carlton, Fitzroy, Brunswick, Northcote', icon: 'ti-map-pin' },
-        { value: 'inner-east',  label: 'Inner east',    sub: 'South Yarra, Prahran, Hawthorn, Camberwell', icon: 'ti-map-pin' },
-        { value: 'inner-south', label: 'Inner south',   sub: 'St Kilda, Brighton, Elwood',           icon: 'ti-map-pin' },
-        { value: 'outer-east',  label: 'Outer east',    sub: 'Doncaster, Glen Waverley, Box Hill',   icon: 'ti-map-pin' },
-        { value: '',            label: 'Doesn\'t matter', sub: 'Show me the best teacher regardless',   icon: 'ti-arrows-shuffle' },
-      ],
-    },
-    {
-      id: 'budget',
-      eyebrow: 'Question 6 of 6',
-      title: 'What\'s your <em>budget</em> per hour?',
-      sub: 'Most lessons in Melbourne run 30–60 minutes. We\'ll only show teachers in your range.',
-      slider: true,
-    },
-  ];
+    // Style tags in TeachMusic's taxonomy, grouped the way a parent would say it
+    const STYLE_GROUPS = {
+      classical: ['classical', 'baroque'],
+      pop: ['pop', 'contemporary', 'rock', 'film-game-music', 'indie', 'soul', 'rnb', 'k-pop', 'folk', 'country', 'electronic', 'hip-hop', 'funk'],
+      jazz: ['jazz', 'blues', 'swing', 'boogie-woogie', 'ragtime', 'bossa-nova', 'latin', 'gospel'],
+    };
+    const AGE_WORD = { preschool: 'preschoolers', children: 'children', teens: 'teenagers', adults: 'adults' };
+    const MODE_WHY = { studio: 'Teaches at their studio', mobile: 'Comes to your home', online: 'Teaches online' };
+    const PRICE = { min: 30, max: 120, step: 5, start: 80 };
 
-  /* Suburb groups — used to translate the question 5 selection into
-     the suburb names on each teacher record. */
-  const SUBURB_GROUPS = {
-    'inner-north': ['Carlton', 'Fitzroy', 'Brunswick', 'Northcote'],
-    'inner-east':  ['South Yarra', 'Prahran', 'Hawthorn', 'Camberwell'],
-    'inner-south': ['St Kilda', 'Brighton', 'Elwood'],
-    'outer-east':  ['Doncaster', 'Glen Waverley', 'Box Hill'],
-  };
+    let answers = {};
+    let step = 0;
+    let teachers = null;   // the live list, once loaded
+    let pointerPick = false;
 
-  const answers = {};
-  let step = 0;
+    // Start loading straight away so the results are instant
+    const loading = TM.load().then((list) => {
+      teachers = list;
+      const prices = list.map((t) => t.priceFrom).filter((c) => c != null).map((c) => c / 100);
+      if (prices.length) PRICE.max = Math.max(120, Math.ceil(Math.max(...prices) / 10) * 10 + 10);
+      return list;
+    });
+    loading.catch(() => {}); // shown when the results are asked for
 
-  function render() {
-    if (step >= questions.length) {
-      renderResults();
-      return;
+    function save() {
+      try { sessionStorage.setItem(SAVE_KEY, JSON.stringify(answers)); } catch (e) { /* not important */ }
+    }
+    function restore() {
+      try { return JSON.parse(sessionStorage.getItem(SAVE_KEY) || 'null'); } catch (e) { return null; }
     }
 
-    const q = questions[step];
-    const pct = (step / questions.length) * 100;
+    function focusHeading(scroll) {
+      const h = box.querySelector('[data-focus]');
+      if (!h) return;
+      h.focus({ preventScroll: true });
+      if (scroll) {
+        const top = box.getBoundingClientRect().top;
+        if (top < 0 || top > window.innerHeight * 0.6) box.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+      }
+    }
 
-    root.innerHTML = `
-      <div class="quiz-stage">
-        <div class="quiz-card">
-          <div class="progress-row">
-            <span class="progress-label">Find your teacher</span>
-            <div class="progress-track"><div class="progress-fill" style="width: ${pct}%"></div></div>
-            <span class="progress-step"><strong>${step + 1}</strong> / ${questions.length}</span>
-          </div>
+    /* ---------- One question ---------- */
+    function renderStep(moveFocus) {
+      const q = QUESTIONS[step];
+      box.classList.remove('is-results');
+      const last = step === QUESTIONS.length - 1;
+      let body = '';
+      if (q.options) {
+        body = '<fieldset class="tq-options"><legend class="tm-sr">' + esc(q.title) + '</legend>' +
+          q.options.map((o) =>
+            '<label class="tq-option"><input type="radio" name="' + q.id + '" value="' + esc(o.value) + '"' +
+              (answers[q.id] === o.value ? ' checked' : '') + '>' +
+              '<span><strong>' + esc(o.label) + '</strong><small>' + esc(o.sub) + '</small></span></label>').join('') +
+          '</fieldset>';
+      } else if (q.kind === 'suburb') {
+        const near = answers.near;
+        body = '<div class="tq-field">' +
+            '<label for="suburb">Suburb</label>' +
+            '<input type="text" id="suburb" autocomplete="off" spellcheck="false" placeholder="For example, Box Hill"' +
+              ' role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suburbList" aria-describedby="suburbMsg"' +
+              ' value="' + esc(near ? near.name : '') + '">' +
+            '<ul class="tq-suggest" id="suburbList" role="listbox" aria-label="Suburbs" hidden></ul>' +
+            '<p class="tq-field-msg" id="suburbMsg" aria-live="polite"></p>' +
+          '</div>';
+      } else if (q.kind === 'price') {
+        const v = answers.max == null ? (answers.maxSet ? PRICE.max : PRICE.start) : answers.max;
+        body = '<div class="tq-price">' +
+            '<p class="tq-price-value" id="priceValue" aria-hidden="true"></p>' +
+            '<p class="tq-price-unit" id="priceUnit" aria-hidden="true"></p>' +
+            '<input type="range" class="tq-range" id="priceRange" min="' + PRICE.min + '" max="' + PRICE.max + '" step="' + PRICE.step + '" value="' + v + '" aria-label="Most you’d spend per lesson">' +
+            '<div class="tq-range-ends" aria-hidden="true"><span>$' + PRICE.min + '</span><span>No limit</span></div>' +
+          '</div>';
+      }
+      const answered = q.options ? answers[q.id] !== undefined : true;
+      box.innerHTML =
+        '<p class="tq-step">Question ' + (step + 1) + ' of ' + QUESTIONS.length + '</p>' +
+        '<span class="tq-progress" aria-hidden="true"><span style="width:' + ((step + 1) / QUESTIONS.length * 100) + '%"></span></span>' +
+        '<h2 class="tq-q" tabindex="-1" data-focus>' + esc(q.title) + '</h2>' +
+        '<p class="tq-hint">' + esc(q.hint) + '</p>' +
+        body +
+        '<div class="tq-nav">' +
+          '<button type="button" class="tm-link tq-back"' + (step === 0 ? ' hidden' : '') + '><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>' +
+          '<div class="tq-nav-end">' +
+            (q.kind === 'suburb' ? '<button type="button" class="tm-link tq-skip">Skip</button>' : '') +
+            '<button type="button" class="tq-next"' + (answered ? '' : ' disabled') + '>' +
+              (last ? 'Show my three' : 'Continue') + ' <i class="ti ti-arrow-right" aria-hidden="true"></i></button>' +
+          '</div>' +
+        '</div>';
 
-          <div class="question">
-            <p class="question-eyebrow">${q.eyebrow}</p>
-            <h1 class="question-title">${q.title}</h1>
-            ${q.sub ? `<p class="question-sub">${q.sub}</p>` : ''}
-            ${q.slider ? renderSlider() : renderOptions(q)}
-            <div class="quiz-nav">
-              <button class="quiz-btn text" type="button" id="backBtn" ${step === 0 ? 'disabled' : ''}>
-                <i class="ti ti-arrow-left"></i> Back
-              </button>
-              <button class="quiz-btn primary" type="button" id="nextBtn">
-                ${step === questions.length - 1 ? 'See my matches' : 'Continue'}
-                <i class="ti ti-arrow-right"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
+      const next = box.querySelector('.tq-next');
+      box.querySelector('.tq-back').addEventListener('click', () => { step--; renderStep(true); });
 
-    /* Wire option clicks (non-slider questions). Selection persists
-       across steps so going back shows the previous answer. */
-    if (!q.slider) {
-      root.querySelectorAll('.option').forEach(opt => {
-        if (opt.dataset.value === String(answers[q.id] ?? '__nope__')) {
-          opt.classList.add('selected');
+      if (q.options) {
+        const group = box.querySelector('.tq-options');
+        // Tapping an answer moves on; arrow keys only choose, so keyboard users press Continue
+        group.addEventListener('pointerdown', () => { pointerPick = true; });
+        group.addEventListener('change', (e) => {
+          answers[q.id] = e.target.value;
+          save();
+          next.disabled = false;
+          if (pointerPick) setTimeout(() => { if (QUESTIONS[step] === q) go(); }, 260);
+          pointerPick = false;
+        });
+        next.addEventListener('click', go);
+      } else if (q.kind === 'suburb') {
+        wireSuburb(next);
+      } else if (q.kind === 'price') {
+        const range = box.querySelector('#priceRange');
+        const valueEl = box.querySelector('#priceValue');
+        const unitEl = box.querySelector('#priceUnit');
+        const draw = () => {
+          const v = Number(range.value);
+          const none = v >= PRICE.max;
+          range.style.setProperty('--fill', ((v - PRICE.min) / (PRICE.max - PRICE.min) * 100) + '%');
+          valueEl.textContent = none ? 'No limit' : '$' + v;
+          unitEl.textContent = none ? 'Show every price' : 'or less, per lesson';
+          range.setAttribute('aria-valuetext', none ? 'No limit' : '$' + v + ' or less per lesson');
+          answers.max = none ? null : v;
+          answers.maxSet = true;
+        };
+        range.addEventListener('input', () => { draw(); save(); });
+        draw();
+        next.addEventListener('click', go);
+      }
+      if (moveFocus) focusHeading(true);
+    }
+
+    function go() {
+      if (step < QUESTIONS.length - 1) { step++; renderStep(true); }
+      else { save(); showResults(true); }
+    }
+
+    /* ---------- Suburb, from TeachMusic's own suburb list ---------- */
+    function wireSuburb(next) {
+      const input = box.querySelector('#suburb');
+      const list = box.querySelector('#suburbList');
+      const msg = box.querySelector('#suburbMsg');
+      let options = [];
+      let active = -1;
+      let lookup = 0;
+      let timer = null;
+
+      const close = () => { list.hidden = true; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); active = -1; };
+      const draw = () => {
+        if (!options.length) { close(); return; }
+        list.innerHTML = options.map((s, i) => '<li role="option" id="sub-' + i + '" data-i="' + i + '" aria-selected="' + (i === active) + '">' +
+          esc(s.name) + ' <span>' + esc(s.postcode || '') + '</span></li>').join('');
+        list.hidden = false;
+        input.setAttribute('aria-expanded', 'true');
+        if (active >= 0) input.setAttribute('aria-activedescendant', 'sub-' + active);
+      };
+      const pick = (s) => {
+        answers.near = { name: s.name, lat: s.lat, lng: s.lng };
+        save();
+        input.value = s.name;
+        msg.textContent = 'Got it: ' + s.name + (s.postcode ? ' ' + s.postcode : '') + '.';
+        options = [];
+        close();
+      };
+
+      input.addEventListener('input', () => {
+        answers.near = null;
+        msg.textContent = '';
+        clearTimeout(timer);
+        const text = input.value;
+        timer = setTimeout(() => {
+          const id = ++lookup;
+          TM.findSuburbs(text, 6).then((rows) => {
+            if (id !== lookup) return;
+            options = rows; active = -1; draw();
+          }).catch(() => { options = []; close(); });
+        }, 200);
+      });
+      input.addEventListener('keydown', (e) => {
+        if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && options.length) {
+          e.preventDefault();
+          active = e.key === 'ArrowDown' ? (active + 1) % options.length : (active <= 0 ? options.length - 1 : active - 1);
+          draw();
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (!list.hidden && options.length) pick(options[Math.max(0, active)]);
+          else next.click();
+        } else if (e.key === 'Escape') {
+          close();
         }
-        opt.addEventListener('click', () => {
-          root.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
-          opt.classList.add('selected');
-          answers[q.id] = opt.dataset.value;
+      });
+      input.addEventListener('blur', () => setTimeout(close, 150));
+      list.addEventListener('mousedown', (e) => {
+        const li = e.target.closest('li[data-i]');
+        if (!li) return;
+        e.preventDefault();
+        pick(options[Number(li.dataset.i)]);
+      });
+
+      box.querySelector('.tq-skip').addEventListener('click', () => { answers.near = null; save(); go(); });
+      next.addEventListener('click', () => {
+        const text = input.value.trim();
+        if (!text) { answers.near = null; save(); go(); return; }
+        if (answers.near && answers.near.name.toLowerCase() === text.toLowerCase()) { go(); return; }
+        next.disabled = true;
+        TM.resolveSuburb(text).then((s) => {
+          next.disabled = false;
+          if (s) { pick(s); go(); }
+          else { msg.textContent = 'We couldn’t find that suburb. Choose one from the list, or skip this question.'; input.focus(); }
+        }).catch(() => {
+          next.disabled = false;
+          msg.textContent = 'We couldn’t check that suburb just now. You can skip this question.';
         });
       });
-    } else {
-      /* Slider: initialise to previous answer or sensible default */
-      const slider = root.querySelector('#budgetSlider');
-      const value = root.querySelector('#budgetValue');
-      const initial = answers.budget ?? 90;
-      slider.value = initial;
-      value.textContent = initial;
-      answers.budget = initial;
-      updateSliderFill(slider);
-      slider.addEventListener('input', () => {
-        answers.budget = Number(slider.value);
-        value.textContent = slider.value;
-        updateSliderFill(slider);
+    }
+
+    /* ---------- Scoring: facts from each listing, weighed against the answers ---------- */
+    function score(t, a) {
+      let s = 0;
+      let misses = 0;
+      const why = [];
+
+      if (a.age) {
+        const exact = t.ages.indexOf(a.age) !== -1;
+        const close = (a.age === 'preschool' && t.ages.indexOf('children') !== -1) || (a.age === 'children' && t.ages.indexOf('preschool') !== -1);
+        if (exact) { s += 25; why.push([25, 'Teaches ' + AGE_WORD[a.age]]); }
+        else if (close) { s += 10; why.push([10, 'Teaches ' + (a.age === 'preschool' ? 'children' : 'preschoolers')]); }
+        else if (t.ages.length) { s -= 30; misses++; }
+        if (a.age !== 'adults' && t.childSafe) { s += 8; why.push([18, 'Child safety check verified by TeachMusic']); }
+      }
+
+      if (a.style) {
+        const group = STYLE_GROUPS[a.style] || [];
+        const hit = t.tags.filter((tag) => group.indexOf(tag) !== -1)[0];
+        if (hit) {
+          const name = TM.tagName(hit);
+          s += 15;
+          why.push([15, 'Teaches ' + (/^(R&B|K-Pop)$/.test(name) ? name : name.toLowerCase())]);
+        }
+        else if (t.tags.some((tag) => TM.tagCategory(tag) === 'style')) s -= 6;
+      }
+
+      if (a.mode) {
+        if (t.modes.indexOf(a.mode) !== -1) { s += 20; why.push([20, MODE_WHY[a.mode]]); }
+        else if (t.modes.length) { s -= 30; misses++; }
+      }
+
+      // Distance counts unless the lessons are online
+      if (a.near && a.mode !== 'online') {
+        const d = TM.distanceKm(a.near, t);
+        if (d != null) {
+          s += Math.max(0, 30 * (1 - d / 25)) - Math.max(0, (d - 25) * 0.6);
+          if (a.mode === 'mobile' && t.travelKm && d > t.travelKm) { s -= 12; misses++; }
+          why.push([d < 10 ? 22 : 8, TM.kmLine(d) + ' from ' + a.near.name]);
+        }
+      }
+
+      if (a.max != null) {
+        if (t.priceFrom == null) s -= 4;
+        else if (t.priceFrom <= a.max * 100) { s += 14; why.push([12, 'From ' + TM.dollars(t.priceFrom) + ' per lesson, within your budget']); }
+        else { s -= (t.priceFrom / 100 - a.max) * 1.2; misses++; }
+      }
+
+      if (t.trial) { s += 3; why.push([6, TM.trialLine(t)]); }
+      // A full, claimed profile edges ahead of a thin one, the way TeachMusic ranks them
+      s += (t.claimed ? 4 : 0) + Math.min(7, t.completeness / 10);
+
+      why.sort((x, y) => y[0] - x[0]);
+      return { t, s, misses, why: why.map((w) => w[1]).slice(0, 3) };
+    }
+
+    /* ---------- Results ---------- */
+    function showResults(moveFocus) {
+      box.classList.add('is-results');
+      box.innerHTML = '<p class="tq-step">Your shortlist</p><p class="tq-busy" role="status">Finding your three teachers on TeachMusic</p>' +
+        '<div class="tq-grid" aria-hidden="true">' + TM.skeletons(3) + '</div>';
+      try { history.replaceState(null, '', location.pathname + '#results'); } catch (e) { /* file:// */ }
+
+      loading.then(() => {
+        const ranked = teachers.map((t) => score(t, answers)).sort((a, b) => b.s - a.s);
+        const top = ranked.slice(0, 3);
+        const nearUrl = '/teachers.html' + (answers.near ? '?near=' + encodeURIComponent(answers.near.name) : '');
+        const note = !top.length
+          ? ''
+          : top[0].misses
+            ? 'None of the teachers on TeachMusic match everything you asked for, so these are the closest. Their profiles say more.'
+            : 'Ranked on your answers, using what each teacher lists on TeachMusic. Have a look at their profiles, then get in touch there.';
+        box.innerHTML =
+          '<p class="tq-step">Your shortlist</p>' +
+          '<h2 class="tq-results-title" tabindex="-1" data-focus>' + (top.length === 3 ? 'Three teachers to start with' : 'Teachers to start with') + '</h2>' +
+          '<p class="tq-results-note">' + esc(note) + '</p>' +
+          (top.length
+            ? '<div class="tq-grid">' + top.map((r) => TM.card(r.t, { reasons: r.why })).join('') + '</div>'
+            : '<p class="tq-results-note">There are no piano teachers listed right now. Please check back soon.</p>') +
+          '<div class="tq-after">' +
+            '<a class="tm-link" href="' + esc(nearUrl) + '">See every teacher' + (answers.near ? ', nearest first' : '') + ' <i class="ti ti-arrow-right" aria-hidden="true"></i></a>' +
+            '<button type="button" class="tm-link tq-restart"><i class="ti ti-refresh" aria-hidden="true"></i> Start again</button>' +
+          '</div>';
+        box.querySelector('.tq-restart').addEventListener('click', restart);
+        if (moveFocus) focusHeading(true);
+      }).catch((err) => {
+        console.error(err);
+        box.innerHTML =
+          '<p class="tq-step">Your shortlist</p>' +
+          '<h2 class="tq-results-title" tabindex="-1" data-focus>TeachMusic isn’t answering</h2>' +
+          '<p class="tq-results-note">We couldn’t load the teachers just now, so we can’t rank them. Your answers are kept: try again in a moment, or browse the teachers on TeachMusic.</p>' +
+          '<div class="tq-after">' +
+            '<button type="button" class="tm-link tq-retry">Try again <i class="ti ti-refresh" aria-hidden="true"></i></button>' +
+            '<a class="tm-card-ext" href="' + TM.BROWSE_URL + '" target="_blank" rel="noopener">Piano teachers in Melbourne on TeachMusic</a>' +
+          '</div>';
+        box.querySelector('.tq-retry').addEventListener('click', () => location.reload());
+        if (moveFocus) focusHeading(true);
       });
     }
 
-    root.querySelector('#backBtn').addEventListener('click', () => {
-      if (step > 0) { step--; render(); }
-    });
-    root.querySelector('#nextBtn').addEventListener('click', () => {
-      /* Block forward navigation if the user hasn't selected an option
-         on a multiple-choice step. Sliders always have a value. */
-      if (!q.slider && answers[q.id] === undefined) {
-        const navBtn = root.querySelector('#nextBtn');
-        navBtn.animate(
-          [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }],
-          { duration: 250 }
-        );
-        return;
-      }
-      step++;
-      render();
-    });
-  }
-
-  function renderOptions(q) {
-    const cls = q.cols === 3 ? 'options-3' : (q.cols === 2 ? 'options-2' : '');
-    return `
-      <div class="options ${cls}">
-        ${q.options.map(opt => `
-          <button class="option" type="button" data-value="${opt.value}">
-            <span class="option-icon"><i class="ti ${opt.icon}"></i></span>
-            <span class="option-text">
-              <p class="option-label">${opt.label}</p>
-              ${opt.sub ? `<p class="option-sub">${opt.sub}</p>` : ''}
-            </span>
-          </button>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  function renderSlider() {
-    return `
-      <div class="budget-display">
-        <p class="budget-value">$<em id="budgetValue">90</em></p>
-        <p class="budget-unit">per hour</p>
-      </div>
-      <input type="range" id="budgetSlider" class="quiz-slider" min="40" max="150" step="5" value="90">
-      <div class="slider-range">
-        <span>$40</span>
-        <span>$150+</span>
-      </div>
-    `;
-  }
-
-  function updateSliderFill(slider) {
-    const pct = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
-    slider.style.setProperty('--fill', pct + '%');
-  }
-
-  /* ============================================================
-     Scoring
-     We assign points per matching facet. A "why" string is built
-     in parallel so the result card can show the user the reasons
-     this teacher matched.
-     ============================================================ */
-  function scoreTeacher(t) {
-    let score = 0;
-    const reasons = [];
-
-    /* Skill level — hard signal. Big bonus if exact match, penalty if missing. */
-    if (answers.skillLevel) {
-      if (t.skillLevels.includes(answers.skillLevel)) {
-        score += 30;
-        if (answers.skillLevel === 'advanced') reasons.push('teaches at advanced level');
-        else if (answers.skillLevel === 'beginner') reasons.push('welcomes complete beginners');
-        else reasons.push('experienced with intermediate students');
-      } else {
-        score -= 40;  /* almost always disqualifying */
-      }
-    }
-
-    /* Age group — also fairly hard. */
-    if (answers.ageGroup) {
-      if (t.studentAges.includes(answers.ageGroup)) {
-        score += 25;
-        if (answers.ageGroup === 'kids') reasons.push('specialises in young learners');
-        else if (answers.ageGroup === 'adults') reasons.push('focuses on adult students');
-      } else {
-        score -= 30;
-      }
-    }
-
-    /* Style — strong preference, not disqualifying. */
-    if (answers.style) {
-      if (t.styles.includes(answers.style)) {
-        score += 22;
-        reasons.push(`teaches ${answers.style.toLowerCase()}`);
-      } else {
-        score -= 4;
-      }
-    }
-
-    /* Format — soft preference, only counted when the user picked a specific value. */
-    if (answers.format) {
-      if (t.formats.includes(answers.format)) {
-        score += 12;
-      } else {
-        score -= 18;
-      }
-    }
-
-    /* Suburb area — geographic preference. */
-    if (answers.suburb && SUBURB_GROUPS[answers.suburb]) {
-      if (SUBURB_GROUPS[answers.suburb].includes(t.suburb)) {
-        score += 18;
-        reasons.push(`based in ${t.suburb}`);
-      } else if (t.formats.includes('online')) {
-        /* Online teachers can serve any area — small consolation bonus. */
-        score += 2;
-      }
-    }
-
-    /* Budget — soft cap. Above budget reduces score sharply; far below adds a small bonus. */
-    if (answers.budget) {
-      if (t.rate <= answers.budget) {
-        score += 10;
-        if (t.rate <= answers.budget * 0.75) reasons.push('comfortably within your budget');
-      } else {
-        const over = t.rate - answers.budget;
-        score -= over * 0.5;  /* sliding penalty */
-      }
-    }
-
-    return { teacher: t, score, reasons };
-  }
-
-  function renderResults() {
-    const ranked = TEACHERS.map(scoreTeacher).sort((a, b) => b.score - a.score);
-    /* Keep only positively-scored matches so we don't recommend a
-       fundamentally wrong teacher just to fill 3 cards. */
-    const top = ranked.filter(r => r.score > 0).slice(0, 3);
-
-    if (top.length === 0) {
-      root.innerHTML = `
-        <div class="results-stage">
-          <div class="results-header">
-            <p class="results-eyebrow">Hmm</p>
-            <h1 class="results-title">No <em>strong</em> matches yet.</h1>
-            <p class="results-sub">Your filters were a little too specific. Try the directory directly and adjust as you go.</p>
-          </div>
-          <div class="no-match">
-            <h3>Let's keep looking.</h3>
-            <p>Browse all 12 teachers and use the filters to narrow down.</p>
-            <a href="teachers.html" class="quiz-btn primary" style="text-decoration: none;">
-              Browse all teachers <i class="ti ti-arrow-right"></i>
-            </a>
-          </div>
-        </div>
-      `;
-      return;
-    }
-
-    root.innerHTML = `
-      <div class="results-stage">
-        <div class="results-header">
-          <p class="results-eyebrow">Your matches</p>
-          <h1 class="results-title">Your <em>three best</em> teachers.</h1>
-          <p class="results-sub">Ranked by how closely they match what you told us. Book a trial lesson — most offer a free or discounted first session.</p>
-        </div>
-
-        <div class="results-grid">
-          ${top.map((r, i) => makeResultCard(r, i)).join('')}
-        </div>
-
-        <div class="results-actions">
-          <p class="results-secondary">Not quite right? You can also browse the full directory.</p>
-          <a href="teachers.html" class="quiz-btn" style="text-decoration: none;">
-            <i class="ti ti-search"></i> Browse all teachers
-          </a>
-          <button class="quiz-btn text" type="button" id="restartBtn" style="margin-left: 16px;">
-            <i class="ti ti-refresh"></i> Retake quiz
-          </button>
-        </div>
-      </div>
-    `;
-
-    document.getElementById('restartBtn').addEventListener('click', () => {
+    function restart() {
+      answers = {};
       step = 0;
-      Object.keys(answers).forEach(k => delete answers[k]);
-      render();
-    });
-  }
+      try { sessionStorage.removeItem(SAVE_KEY); } catch (e) { /* not important */ }
+      try { history.replaceState(null, '', location.pathname); } catch (e) { /* file:// */ }
+      renderStep(true);
+    }
 
-  function makeResultCard(result, rank) {
-    const t = result.teacher;
-    const initials = t.name.split(' ').map(s => s[0]).slice(0, 2).join('');
-    const isTop = rank === 0;
-    /* Build the "why" line from the top 2 reasons so it stays scannable */
-    const whyText = result.reasons.slice(0, 2).join(' · ') || 'Strong overall fit';
-
-    return `
-      <a href="teacher.html?id=${t.id}" class="result-card ${isTop ? 'top-match' : ''}">
-        ${isTop ? '<span class="result-rank">Best match</span>' : ''}
-        <div class="result-card-image">
-          <span class="result-card-initials">${initials}</span>
-        </div>
-        <div class="result-card-body">
-          <p class="result-card-suburb">${t.suburb} · ${t.rateLabel}</p>
-          <h3 class="result-card-name">${t.name}</h3>
-          <p class="result-card-headline">${t.headline}</p>
-          <p class="result-why"><strong>Why we matched you:</strong> ${whyText}</p>
-          <div class="result-card-cta">
-            <span>View profile</span>
-            <i class="ti ti-arrow-right"></i>
-          </div>
-        </div>
-      </a>
-    `;
-  }
-
-  render();
+    // Coming back from a teacher's profile: show the same three again
+    const saved = restore();
+    if (location.hash === '#results' && saved) {
+      answers = saved;
+      step = QUESTIONS.length - 1;
+      showResults(false);
+    } else {
+      renderStep(false);
+    }
+  })();
 </script>
 
+<div class="sp-bottombar" role="navigation" aria-label="Quick contact">
+  <a href="tel:+61479128955"><i class="ti ti-phone" aria-hidden="true"></i>Call</a>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener"><i class="ti ti-map-pin" aria-hidden="true"></i>Directions</a>
+  <a class="sp-bottombar-book" href="/services/book-a-viewing.html">Book a visit</a>
+</div>
+<script src="/js/signature-nav.js" defer></script>
+<script src="/js/signature-book.js" defer></script>
 </body>
 </html>
