@@ -120,18 +120,29 @@
       <!-- ============ AUTO-WRITER ============ -->
       <section class="pane" data-pane="loop">
         <div class="admin-card">
-          <h2 class="admin-card-title">Automatic blog writer</h2>
+          <h2 class="admin-card-title">SEO engine</h2>
           <p style="font-size:14px;color:var(--admin-text-muted);line-height:1.7;">
-            A scheduled job runs <strong>Monday, Wednesday &amp; Friday</strong>. Each run researches new
-            Yamaha &amp; digital piano releases and trending buyer questions, then writes a full,
-            SEO + AI-search optimised article and saves it here as a <strong>draft</strong>.
-            Nothing goes live until you review it on the <strong>Blog</strong> tab and hit Publish.
+            <strong>Every second day</strong> the SEO engine does one job for the Journal: the monthly review,
+            a recheck of a live article, the next article from the topic plan, or research for the plan.
+            New articles arrive on the <strong>Blog</strong> tab as <strong>drafts</strong>, and rechecks as
+            <strong>suggested updates</strong> on the live post, with an email each time. Nothing changes on the
+            site until you press Publish or Save. While 5 items are waiting for you, it stops writing and
+            prepares the plan instead.
           </p>
           <p style="font-size:13px;color:var(--admin-text-faint);margin-top:12px;">
-            To change the schedule, edit <code>vercel.json</code>. To run one now for testing, use the button below.
+            Schedule and run history: <a href="https://claude.ai/code/routines" target="_blank" rel="noopener">claude.ai/code/routines</a>.
+            How it works: <code>MARKETING_SETUP.md</code>.
           </p>
-          <button class="btn-outline" id="runLoopBtn" onclick="runLoopNow()"><i class="ti ti-player-play"></i> Generate one now</button>
-          <div class="hint" id="loopNote" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="admin-card" style="margin-top:18px;">
+          <h2 class="admin-card-title">Recent runs</h2>
+          <div id="engineRuns"><div class="hint">Loading…</div></div>
+        </div>
+
+        <div class="admin-card" style="margin-top:18px;">
+          <h2 class="admin-card-title">Up next in the topic plan</h2>
+          <div id="engineQueue"><div class="hint">Loading…</div></div>
         </div>
 
         <div class="admin-card" style="margin-top:18px;">
@@ -160,6 +171,7 @@
     <button onclick="closeSlidePanel('editPanel')" class="slide-panel-close" aria-label="Close">&times;</button>
   </div>
   <div class="slide-panel-body" style="padding:20px;">
+    <div id="engineNotes"></div>
     <input type="hidden" id="editId">
     <div class="admin-form-row"><label class="admin-label">Title</label><input id="fTitle" class="admin-input"></div>
     <div class="admin-form-row"><label class="admin-label">Slug</label><input id="fSlug" class="admin-input"><div class="hint">URL: /blog/<span id="slugPreview"></span></div></div>
@@ -180,11 +192,14 @@
 <script src="js/admin-nav.js"></script>
 <script>
 let currentPost = null
+let currentSeo = null        // the post's blog_post_seo row (SEO engine bookkeeping)
+let loadedProposal = null    // a suggested update loaded into the editor, applied on Save
 
 ;(async function init() {
   const admin = await checkAdminAuth()
   if (!admin) return
   loadPosts()
+  loadEngine()
 })()
 
 /* ---- tabs ---- */
@@ -221,11 +236,15 @@ async function loadPosts() {
       list.innerHTML = `<div class="empty-state"><i class="ti ti-article"></i><p>No posts yet. Write your first one above.</p></div>`
       return
     }
+    // Posts with a suggested update from the SEO engine waiting for review.
+    const { data: proposals } = await adminSupabase
+      .from('blog_post_seo').select('post_id').not('proposed_update', 'is', null)
+    const suggested = new Set((proposals || []).map(r => r.post_id))
     list.innerHTML = posts.map(p => `
       <div class="post-row">
         <div>
           <div class="t">${esc(p.title)}</div>
-          <div class="s">${p.source === 'auto' ? 'Auto · ' : ''}${fmtDate(p.created_at)}</div>
+          <div class="s">${p.source === 'auto' ? 'Auto · ' : ''}${fmtDate(p.created_at)}${suggested.has(p.id) ? ' · <strong>Update suggested</strong>' : ''}</div>
         </div>
         <span class="${p.status === 'published' ? 'pill pill--green' : 'pill pill--amber'}">${p.status}</span>
         <span class="post-actions">
@@ -299,7 +318,69 @@ async function editPost(id) {
   document.getElementById('previewLink').href = `/blog/${p.slug}`
   updatePubToggle(p.status)
   document.getElementById('fSlug').oninput = e => document.getElementById('slugPreview').textContent = e.target.value
+  loadedProposal = null
+  const { data: seo } = await adminSupabase.from('blog_post_seo').select('*').eq('post_id', id).maybeSingle()
+  currentSeo = seo || null
+  renderEngineNotes()
   openSlidePanel('editPanel')
+}
+
+/*
+ * The SEO engine's notes for the open post: a suggested update to a live
+ * article (load it into the editor, read it, Save to apply; or dismiss it)
+ * and the research behind the article.
+ */
+function renderEngineNotes() {
+  const box = document.getElementById('engineNotes')
+  const s = currentSeo
+  if (!s) { box.innerHTML = ''; return }
+  const u = s.proposed_update
+  const changes = u && Array.isArray(u.notes) ? u.notes : []
+  box.innerHTML = `
+    ${u ? `
+      <div class="admin-card" style="border-left:3px solid var(--admin-gold);margin-bottom:16px;">
+        <div style="font-weight:500;font-size:14px;">Suggested update from the SEO engine · ${fmtDate(u.proposed_at)}</div>
+        <ul style="font-size:13px;color:var(--admin-text-muted);margin:8px 0 12px;padding-left:18px;line-height:1.6;">
+          ${changes.map(c => `<li>${esc(c)}</li>`).join('')}
+        </ul>
+        ${loadedProposal
+          ? `<div class="hint">Loaded into the editor below. Read it through, then <strong>Save</strong> to apply it${u.faq ? ' (the FAQ updates too)' : ''}.</div>`
+          : `<button class="btn-gold" onclick="loadProposal()"><i class="ti ti-download"></i> Load into editor</button>
+             <button class="btn-outline" onclick="dismissProposal()" style="margin-left:6px;">Dismiss</button>`}
+      </div>` : ''}
+    ${s.research_notes ? `
+      <details style="margin-bottom:16px;font-size:13px;">
+        <summary style="cursor:pointer;color:var(--admin-text-muted);">Engine research notes${s.primary_keyword ? ` · written for “${esc(s.primary_keyword)}”` : ''}</summary>
+        <div style="white-space:pre-wrap;line-height:1.6;margin-top:8px;color:var(--admin-text-muted);">${esc(s.research_notes)}</div>
+      </details>` : ''}`
+}
+
+function loadProposal() {
+  const u = currentSeo && currentSeo.proposed_update
+  if (!u) return
+  if (u.title) document.getElementById('fTitle').value = u.title
+  if (u.meta_description) document.getElementById('fMeta').value = u.meta_description
+  if (u.excerpt) document.getElementById('fExcerpt').value = u.excerpt
+  if (u.body_html) document.getElementById('fBody').value = u.body_html
+  loadedProposal = u
+  renderEngineNotes()
+}
+
+// Clears the suggestion and counts the article as checked, so the engine
+// doesn't suggest the same thing again on its next run.
+async function dismissProposal() {
+  const u = currentSeo && currentSeo.proposed_update
+  if (!u || !confirm('Dismiss this suggested update? The live article stays as it is.')) return
+  const { error } = await adminSupabase.from('blog_post_seo').update({
+    proposed_update: null,
+    reverify_by: u.reverify_by || currentSeo.reverify_by,
+    last_checked_at: new Date().toISOString(),
+  }).eq('post_id', currentSeo.post_id)
+  if (error) { showToast(error.message, 'error'); return }
+  currentSeo.proposed_update = null
+  renderEngineNotes()
+  showToast('Suggestion dismissed', 'success')
+  loadPosts()
 }
 
 function updatePubToggle(status) {
@@ -318,9 +399,24 @@ async function saveEdit() {
     excerpt: document.getElementById('fExcerpt').value.trim(),
     body_html: document.getElementById('fBody').value,
   }
+  const applying = loadedProposal
+  if (applying && Array.isArray(applying.faq)) patch.faq = applying.faq
   const { error } = await adminSupabase.from('blog_posts').update(patch).eq('id', id)
   if (error) { showToast(error.message, 'error'); return }
-  showToast('Saved', 'success')
+  if (applying) {
+    // Applied: clear the suggestion and set the next recheck it proposed.
+    const { error: seoError } = await adminSupabase.from('blog_post_seo').update({
+      proposed_update: null,
+      reverify_by: applying.reverify_by || currentSeo.reverify_by,
+      reverify_notes: applying.reverify_notes || currentSeo.reverify_notes,
+      last_checked_at: new Date().toISOString(),
+    }).eq('post_id', id)
+    if (seoError) { showToast(seoError.message, 'error'); return }
+    currentSeo.proposed_update = null
+    loadedProposal = null
+    renderEngineNotes()
+  }
+  showToast(applying ? 'Update applied' : 'Saved', 'success')
   loadPosts()
 }
 
@@ -390,27 +486,43 @@ function renderAudit(r) {
     </div>`
 }
 
-/* ============ AUTO-WRITER ============ */
-async function runLoopNow() {
-  const btn = document.getElementById('runLoopBtn')
-  const note = document.getElementById('loopNote')
-  const original = btn.innerHTML
-  btn.disabled = true
-  btn.innerHTML = `<i class="ti ti-loader spinner"></i> Researching & writing…`
-  note.textContent = ''
-  try {
-    const { jobId } = await apiPost('/api/run-blog-writer', {})
-    const job = await pollBlogJob(jobId)
-    note.innerHTML = `Created draft: <strong>${esc(job.title || 'Untitled')}</strong>. Check the Blog tab.`
-    showToast('Draft created', 'success')
-    await loadPosts()
-  } catch (err) {
-    note.textContent = ''
-    showToast(err.message, 'error')
-  } finally {
-    btn.disabled = false
-    btn.innerHTML = original
-  }
+/* ============ SEO ENGINE ============ */
+const RUN_LABELS = {
+  setup: 'Installed', draft: 'New draft', refresh: 'Suggested update', checked: 'Rechecked',
+  queue: 'Topic plan', review: 'Monthly review', ping: 'Sent to search engines', error: 'Failed',
+}
+
+async function loadEngine() {
+  const runsBox = document.getElementById('engineRuns')
+  const queueBox = document.getElementById('engineQueue')
+  const [{ data: runs, error: runsError }, { data: queue, error: queueError }] = await Promise.all([
+    adminSupabase.from('seo_engine_runs').select('ran_at, action, summary, emailed').order('ran_at', { ascending: false }).limit(12),
+    adminSupabase.from('blog_topic_queue').select('priority, working_title, primary_keyword, serp_verdict').eq('status', 'queued').order('priority').limit(6),
+  ])
+  runsBox.innerHTML = runsError
+    ? `<div class="hint">Couldn't load runs.</div>`
+    : !runs.length
+      ? `<div class="hint">No runs yet.</div>`
+      : runs.map(r => `
+        <div class="post-row" style="grid-template-columns:1fr auto;">
+          <div>
+            <div class="t">${esc(r.summary)}</div>
+            <div class="s">${fmtDate(r.ran_at)}${r.emailed ? ' · emailed' : ''}</div>
+          </div>
+          <span class="${r.action === 'error' ? 'pill pill--red' : r.action === 'draft' || r.action === 'refresh' ? 'pill pill--amber' : 'pill pill--grey'}">${RUN_LABELS[r.action] || r.action}</span>
+        </div>`).join('')
+  queueBox.innerHTML = queueError
+    ? `<div class="hint">Couldn't load the plan.</div>`
+    : !queue.length
+      ? `<div class="hint">The plan is empty; the engine researches new topics on its next run.</div>`
+      : queue.map(t => `
+        <div class="post-row" style="grid-template-columns:1fr auto;">
+          <div>
+            <div class="t">${esc(t.working_title)}</div>
+            <div class="s">Search: “${esc(t.primary_keyword)}”${t.serp_verdict ? ` · competition: ${esc(t.serp_verdict)}` : ''}</div>
+          </div>
+          <span class="pill pill--grey">#${t.priority}</span>
+        </div>`).join('')
 }
 
 /* ---- top searches (Google Search Console) ---- */

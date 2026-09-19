@@ -1,5 +1,12 @@
-# Claude Code metadata
-.claude/
+# Claude Code metadata. The SEO engine skill is the exception: the cloud
+# routine runs it from a fresh checkout, so it has to be in the repo.
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/seo-engine/
+
+# SEO engine scratch (drafts before they're saved to the admin)
+tools/seo/drafts/
 
 # OS noise
 .DS_Store

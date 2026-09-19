@@ -82,19 +82,61 @@ Anthropic calls use `fetch`, so nothing to install.
 
 After deploy:
 - `/blog` is live (empty until you publish a post).
-- The auto-writer runs **Mon/Wed/Fri at 23:00 UTC** (~9–10am Melbourne). Change
-  the schedule in `vercel.json` (`crons` → `/api/cron-blog-writer`).
+- The Vercel auto-writer cron is retired (September 2026): its research and
+  writing outran the function time limit. The SEO engine below replaces it.
 
-> **Vercel plan note:** there are now 2 cron jobs (delivery + blog). The Hobby
-> plan allows 2 crons at once-per-day frequency — this fits. If you add more,
-> you may need the Pro plan.
+## 5. The SEO engine (every second day)
+
+A Claude Code routine in Anthropic's cloud runs `/seo-engine`
+(`.claude/skills/seo-engine/SKILL.md`) every second day at about 6am
+Melbourne time. Each run does one job, in this order:
+
+1. **Monthly review** (first run of the month): rankings, Search Console, what
+   to fix, next month's plan. Emailed to Eric.
+2. **Queue work** if 5 items already wait for Eric: the engine stops writing
+   and prepares the next topics, with a "waiting for you" email at most weekly.
+3. **Refresh** a live article whose recheck date has passed. The result is a
+   *suggested update*: the live page doesn't change until Eric loads it into
+   the editor and saves.
+4. **Research topics** if the plan is empty.
+5. Otherwise **write the next article** in the plan (`blog_topic_queue`): what
+   ranks, the sources, the draft, the checker, then a draft on the Blog tab and
+   an email.
+
+It runs where the old writer couldn't: the heavy work happens in the routine,
+and the site only receives the finished draft. The routine never holds a
+database key. It reaches the site through one narrow door, `POST
+/api/seo-engine` (`lib/seo-engine.js`), locked with `SEO_ENGINE_SECRET`. That
+door can read the blog, save drafts, suggest updates, work the topic plan and
+email Eric, and nothing else. It can't publish.
+
+Setup, once:
+
+| Where | What |
+|---|---|
+| Supabase | `supabase/seo_engine.sql` (applied 19 September 2026). |
+| Vercel env | `SEO_ENGINE_SECRET`: a long random string (same value as below). Redeploy after adding it. |
+| claude.ai/code → the routine's environment | Env var `SEO_ENGINE_SECRET` (same value). Network access: **Full** (it researches the web and calls signaturepianos.com.au). |
+| `.env.local` | `SEO_ENGINE_SECRET` (same value), to run `/seo-engine` by hand from this machine. |
+
+Optional: the Search Console variables above also feed the engine's monthly
+review (`engine.mjs insights`). Newly published posts are sent to Bing and
+other IndexNow engines automatically (the key file is
+`dd3206669f43824113d38e94137005ad.txt` at the site root).
+
+Run history: Admin → Marketing → *Auto-writer* tab, or claude.ai/code/routines.
+The engine's own records live in `blog_post_seo` (per-post keyword, recheck
+date, research notes, suggested update) and `seo_engine_runs`, kept off
+`blog_posts` so its bookkeeping never changes an article's public "updated" date.
 
 ## 4. Use it
 
 Admin → **Marketing**:
 - **Blog tab** → type a topic → *Generate draft* → review in the editor → *Publish*.
 - **Website audit tab** → paste a URL → *Run audit*.
-- **Auto-writer tab** → *Generate one now* to test the research-and-write loop.
+- **Auto-writer tab** → the SEO engine's recent runs and the next topics in the plan.
+- A post with **Update suggested** → *Edit* → *Load into editor* → read → *Save*
+  (or *Dismiss*).
 
 ## Cost (rough)
 
@@ -112,7 +154,13 @@ lib/blog-render.js             # public HTML shell
 api/marketing-audit.js         # POST audit (admin)
 api/blog-generate.js           # POST generate draft (admin)
 api/run-blog-writer.js         # POST run auto-writer now (admin)
-api/cron-blog-writer.js        # auto-loop (cron, Mon/Wed/Fri)
+api/cron-blog-writer.js        # old auto-loop (cron retired; kept for reference)
+api/seo-engine.js              # the SEO engine's door (SEO_ENGINE_SECRET)
+lib/seo-engine.js              # its actions + which job runs next
+lib/seo-draft-check.js         # mechanical rule checks for drafts
+tools/seo/engine.mjs           # the command line the routine drives
+.claude/skills/seo-engine/     # the routine's instructions (/seo-engine)
+supabase/seo_engine.sql        # blog_post_seo + seo_engine_runs
 api/blog.js                    # GET /blog index
 api/blog-post.js               # GET /blog/:slug
 api/sitemap.js                 # GET /sitemap.xml
