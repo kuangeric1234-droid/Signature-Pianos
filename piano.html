@@ -924,8 +924,8 @@ function upsertSeoMeta(title, desc){
 
       <div class="product-meta-row">
         <div class="product-meta">
-          <div class="product-meta-label">Condition</div>
-          <div class="product-meta-value" id="productCondition">-</div>
+          <div class="product-meta-label">Height</div>
+          <div class="product-meta-value" id="productHeight">-</div>
         </div>
         <div class="product-meta">
           <div class="product-meta-label">Year</div>
@@ -1142,8 +1142,9 @@ function upsertSeoMeta(title, desc){
     // Page meta
     const pianoName = `${piano.brand || ''} ${piano.model || ''}`.trim()
     document.title = `${pianoName} ${piano.year || ''} | Signature Pianos Melbourne`.replace('  ', ' ')
-    document.getElementById('docDesc')?.setAttribute('content', piano.description_short || piano.description || '')
-    upsertSeoMeta(document.title, piano.description_short || piano.description || '')
+    const metaDesc = withoutGrade(piano.description_short || piano.description)
+    document.getElementById('docDesc')?.setAttribute('content', metaDesc)
+    upsertSeoMeta(document.title, metaDesc)
 
     // Breadcrumb
     const catKey = { acoustic_upright: 'upright', acoustic_grand: 'grand', digital: 'digital' }[piano.type]
@@ -1161,18 +1162,8 @@ function upsertSeoMeta(title, desc){
       if (!a.closest('nav, .sp-footer, .sp-bottombar')) a.dataset.piano = `${pianoName}${piano.year ? ' (' + piano.year + ')' : ''}`
     })
 
-    // Condition — new A+/B+ grading, styled as a pill
-    const condEl = document.getElementById('productCondition')
-    condEl.textContent = piano.condition
-    condEl.style.cssText = `
-      display: inline-block;
-      background: var(--sp-ivory-deep);
-      color: var(--sp-ink);
-      padding: 5px 10px 4px;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.2em;
-    `
+    const height = parseDims(piano.dimensions_cm).height
+    document.getElementById('productHeight').textContent = height ? `${height} cm` : '-'
 
     document.getElementById('productYear').textContent = piano.year
     document.getElementById('productOrigin').textContent = 'Japan'
@@ -1180,12 +1171,26 @@ function upsertSeoMeta(title, desc){
       ? '$' + Number(piano.sale_price).toLocaleString('en-AU') : 'Price on request'
 
     // Description
-    document.getElementById('productSummary').textContent = piano.description_short || ''
-    document.getElementById('productDescription').textContent = piano.description || ''
+    document.getElementById('productSummary').textContent = withoutGrade(piano.description_short)
+    document.getElementById('productDescription').textContent = withoutGrade(piano.description)
 
     renderGallery(piano)
     renderSpecs(piano)
     renderActions(piano)
+  }
+
+  // dimensions_cm is stored as JSON text
+  function parseDims(d) {
+    if (typeof d === 'string') { try { return JSON.parse(d) || {} } catch (e) { return {} } }
+    return d || {}
+  }
+
+  // Grades are internal; strip "in B+ condition" style phrases from stock copy
+  function withoutGrade(text) {
+    return String(text || '')
+      .replace(/,?\s*(?:in\s+)?(?:[AB][+-]?|near-mint|mint|excellent|good)\s+condition\b/gi, '')
+      .replace(/\s+([,.;])/g, '$1')
+      .trim()
   }
 
   function renderGallery(piano) {
@@ -1237,15 +1242,14 @@ function upsertSeoMeta(title, desc){
     const specsTable = document.getElementById('specsTable')
     if (!specsTable) return
 
-    const dims = piano.dimensions_cm || {}
+    const dims = parseDims(piano.dimensions_cm)
 
     const specs = [
-      ['Brand', 'Yamaha'],
+      ['Brand', piano.brand || '-'],
       ['Model', piano.model],
       ['Type', formatType(piano.type)],
       ['Year made', piano.year],
       ['Serial number', piano.serial_number],
-      ['Condition', piano.condition],
       ['Origin', 'Japan'],
       ['Weight', piano.weight_kg ? `${piano.weight_kg} kg` : '-'],
       ['Height', dims.height ? `${dims.height} cm` : '-'],
@@ -1366,19 +1370,19 @@ function upsertSeoMeta(title, desc){
 
     let { data: related, error } = await _supabase
       .from('pianos')
-      .select('id, brand, model, year, condition, sale_price, description_short, images, type')
+      .select('id, brand, model, year, sale_price, description_short, images, type')
       .eq('stock_status', 'available')
-      .eq('condition', piano.condition)
+      .eq('type', piano.type)
       .neq('id', piano.id)
       .limit(3)
 
     if (error) console.error('[piano] related load failed', error)
 
-    // Fall back to any other available piano if we didn't get 3 same-grade.
+    // Fall back to any other available piano if we didn't get 3 of the same type.
     if (!related || related.length < 3) {
       const { data: extra, error: extraErr } = await _supabase
         .from('pianos')
-        .select('id, brand, model, year, condition, sale_price, description_short, images, type')
+        .select('id, brand, model, year, sale_price, description_short, images, type')
         .eq('stock_status', 'available')
         .neq('id', piano.id)
         .limit(3)
@@ -1392,7 +1396,7 @@ function upsertSeoMeta(title, desc){
       return
     }
 
-    // Update the section heading to match the piano's condition grade.
+    // Section heading word under the related grid.
     const relatedCategoryEl = document.getElementById('relatedCategory')
     if (relatedCategoryEl) relatedCategoryEl.textContent = 'pianos'
 
@@ -1405,7 +1409,6 @@ function upsertSeoMeta(title, desc){
           ${photo
             ? `<img src="${photo}" alt="${name}" loading="lazy">`
             : `<div class="sp-photo-empty"><img src="/media/brand/monogram-ink.svg" alt=""><span>Photographs soon</span></div>`}
-          ${p.condition ? `<span class="related-card-badge">${p.condition}</span>` : ''}
         </div>
         <div class="related-card-body">
           <h3 class="related-card-name">${name}</h3>

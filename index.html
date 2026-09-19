@@ -1879,57 +1879,56 @@
 <!-- ============ MATCHER ============ -->
 <section class="matcher" id="matcher" data-chapter>
   <div class="matcher-inner">
-    <div class="section-label reveal">Intelligent Matching</div>
+    <div class="section-label reveal">Piano finder</div>
     <h2 class="section-h2 reveal">Answer 3 questions.<br/>Find your <em>perfect</em> piano.</h2>
-    <p class="section-body reveal">Our AI-powered finder asks about your skill level, space, and budget, then matches you to instruments in our live Melbourne inventory.</p>
+    <p class="section-body reveal">Tell us who's playing, where the piano will live and your budget. We'll match you with the pianos in our Mount Waverley showroom today.</p>
 
     <div class="steps reveal-stagger">
       <div class="step active" data-step="0">
         <div class="step-num">01</div>
-        <h3 class="step-title">Your level</h3>
-        <p class="step-hint">Beginner through professional</p>
+        <h3 class="step-title">Who's playing</h3>
+        <p class="step-hint">First lessons through to advanced</p>
       </div>
       <div class="step" data-step="1">
         <div class="step-num">02</div>
         <h3 class="step-title">Your space</h3>
-        <p class="step-hint">Room size and acoustic needs</p>
+        <p class="step-hint">Where the piano will live</p>
       </div>
       <div class="step" data-step="2">
         <div class="step-num">03</div>
         <h3 class="step-title">Your budget</h3>
-        <p class="step-hint">We have options at every level</p>
+        <p class="step-hint">Matched to the prices in stock</p>
       </div>
     </div>
 
     <div class="selects reveal">
       <div class="select-field">
-        <label class="select-label" for="q-level">Skill</label>
+        <label class="select-label" for="q-level">Who's playing</label>
         <select id="q-level">
-          <option value="beginner">I'm just starting out</option>
-          <option value="intermediate">I've been playing a few years</option>
-          <option value="student">I'm a serious student</option>
-          <option value="pro">I'm a professional</option>
+          <option value="beginner">A beginner, child or adult</option>
+          <option value="intermediate">Someone a few years in</option>
+          <option value="student">A serious student, sitting exams</option>
+          <option value="pro">An advanced player</option>
         </select>
       </div>
       <div class="select-field">
         <label class="select-label" for="q-space">Space</label>
         <select id="q-space">
-          <option value="small">Small apartment</option>
-          <option value="medium">Medium sized room</option>
-          <option value="large">Large living area</option>
-          <option value="studio">Studio or venue</option>
+          <option value="small">An apartment or small room</option>
+          <option value="medium" selected>A family living room</option>
+          <option value="large">A large room or studio</option>
         </select>
       </div>
       <div class="select-field">
         <label class="select-label" for="q-budget">Budget</label>
         <select id="q-budget">
-          <option value="b1">Under $3,000</option>
-          <option value="b2">$3,000 - $8,000</option>
-          <option value="b3">$8,000 - $20,000</option>
-          <option value="b4">$20,000+</option>
+          <option value="b1">Under $5,000</option>
+          <option value="b2" selected>$5,000 to $7,000</option>
+          <option value="b3">$7,000 to $10,000</option>
+          <option value="b4">$10,000 and over</option>
         </select>
       </div>
-      <button class="find-btn" id="findBtn">Find my match <i class="ti ti-arrow-right"></i></button>
+      <button class="find-btn" id="findBtn" type="button">Find my match <i class="ti ti-arrow-right"></i></button>
     </div>
   </div>
 </section>
@@ -2015,18 +2014,6 @@
 </footer>
 
 <!-- ============ POPUP ============ -->
-<div class="overlay" id="overlay"></div>
-<div class="match-result-popup" id="popup" role="dialog" aria-modal="true" aria-labelledby="popupName">
-  <button class="popup-close" id="popupClose" aria-label="Close"><i class="ti ti-x"></i></button>
-  <div class="popup-label">Matched for you</div>
-  <h3 class="popup-piano-name" id="popupName">Kawai K-300</h3>
-  <p class="popup-reason" id="popupReason">Perfect for a medium room, ideal for serious students.</p>
-  <div class="popup-price" id="popupPrice">From $9,400</div>
-  <div class="popup-actions">
-    <button class="btn-primary">View this piano <i class="ti ti-arrow-right"></i></button>
-    <button class="btn-link">See all matches</button>
-  </div>
-</div>
 
 <!-- ============ SCRIPTS ============ -->
 
@@ -2468,69 +2455,7 @@
     );
   });
 
-  /* -------- MATCHER -------- */
-  const steps = document.querySelectorAll('.step');
-  const selects = ['q-level', 'q-space', 'q-budget'].map(id => document.getElementById(id));
-  selects.forEach((sel, i) => {
-    sel.addEventListener('focus', () => setActiveStep(i));
-    sel.addEventListener('change', () => setActiveStep(Math.min(i + 1, 2)));
-  });
-  function setActiveStep(i) {
-    steps.forEach((s, idx) => s.classList.toggle('active', idx === i));
-  }
-
-  /* Match logic — picks a sensible piano from a small bank */
-  const bank = {
-    'beginner|small|b1':     { name: 'Casio Privia PX-S1100', reason: 'A slim digital that fits anywhere and feels right under beginner hands.', price: 'From $1,099' },
-    'beginner|small|b2':     { name: 'Roland FP-30X',         reason: 'A trusted first piano: weighted keys, honest tone, room to grow.',         price: 'From $1,399' },
-    'beginner|medium|b1':    { name: 'Yamaha P-145',          reason: 'Yamaha tone, beginner-friendly, ideal for a family living room.',           price: 'From $1,199' },
-    'beginner|medium|b2':    { name: 'Kawai KDP120',          reason: 'A console digital that feels like a real piano without the upkeep.',         price: 'From $2,299' },
-    'intermediate|medium|b2':{ name: 'Yamaha b2 Upright',     reason: 'Acoustic warmth in a compact upright. Melbourne homes love this one.',      price: 'From $7,800' },
-    'intermediate|large|b3': { name: 'Kawai K-300',           reason: 'Concert tone in a contemporary upright. A buy-once instrument.',             price: 'From $9,400' },
-    'student|medium|b3':     { name: 'Kawai K-500',           reason: 'Built for serious practice: refined action, rich sustain.',                 price: 'From $12,200' },
-    'student|large|b3':      { name: 'Yamaha U1',             reason: 'The studio upright generations of pianists have trained on.',                 price: 'From $11,500' },
-    'student|large|b4':      { name: 'Kawai GL-30 Grand',     reason: 'A baby grand with the voicing serious students need.',                       price: 'From $24,800' },
-    'pro|studio|b4':         { name: 'Yamaha C3X Grand',      reason: 'A concert-ready studio grand. Recording, performance, teaching.',            price: 'From $38,500' },
-    'pro|large|b4':          { name: 'Shigeru Kawai SK-2',    reason: 'Hand-finished in Ryuyo. The instrument you keep for life.',                  price: 'From $69,900' }
-  };
-  function pickPiano(level, space, budget) {
-    const exact = bank[`${level}|${space}|${budget}`];
-    if (exact) return exact;
-    const sameLevel = Object.entries(bank).find(([k]) => k.startsWith(level + '|'));
-    if (sameLevel) return sameLevel[1];
-    return { name: 'Kawai K-300', reason: 'A confident all-rounder, the piano we recommend most.', price: 'From $9,400' };
-  }
-
-  const overlay = document.getElementById('overlay');
-  const popup = document.getElementById('popup');
-  gsap.set(popup, { xPercent: -50, yPercent: -50 });
-
-  document.getElementById('findBtn').addEventListener('click', () => {
-    const [lv, sp, bd] = selects.map(s => s.value);
-    const match = pickPiano(lv, sp, bd);
-    document.getElementById('popupName').textContent = match.name;
-    document.getElementById('popupReason').textContent = match.reason;
-    document.getElementById('popupPrice').textContent = match.price;
-    overlay.classList.add('active');
-    popup.classList.add('active');
-    gsap.fromTo(popup,
-      { opacity: 0, y: 60, scale: 0.95, xPercent: -50, yPercent: -50 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'back.out(1.4)' }
-    );
-  });
-  function closePopup() {
-    gsap.to(popup, {
-      opacity: 0, y: 40, scale: 0.96, duration: 0.3, ease: 'power2.in',
-      onComplete: () => {
-        popup.classList.remove('active');
-        overlay.classList.remove('active');
-        gsap.set(popup, { y: 0, scale: 1, xPercent: -50, yPercent: -50 });
-      }
-    });
-  }
-  document.getElementById('popupClose').addEventListener('click', closePopup);
-  overlay.addEventListener('click', closePopup);
-  window.addEventListener('keydown', e => { if (e.key === 'Escape' && popup.classList.contains('active')) closePopup(); });
+  /* -------- MATCHER: js/signature-matcher.js matches against live stock -------- */
 
   /* -------- BUYER'S GUIDE FORM --------
      Placeholder submit — swap the body of the handler for a real
@@ -2560,5 +2485,6 @@
 </div>
 <script src="/js/signature-nav.js" defer></script>
 <script src="/js/signature-book.js" defer></script>
+<script src="/js/signature-matcher.js" defer></script>
 </body>
 </html>

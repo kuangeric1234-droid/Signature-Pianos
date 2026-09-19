@@ -881,3 +881,79 @@ html.sp-book-open body { overflow: hidden; }
   text-underline-offset: 4px;
 }
 .sp-map[data-sp-map] { display: block !important; border-radius: 0 !important; padding: 0 !important; overflow: hidden; }
+
+/* ---------- Piano finder results (js/signature-matcher.js) ---------- */
+.sp-match { margin-top: 72px; text-align: left; }
+.sp-match[hidden] { display: none; }
+.sp-match-label { margin: 0 0 12px; }
+.sp-match-title {
+  margin: 0;
+  font-size: clamp(34px, 3.4vw, 52px);
+  line-height: 0.9;
+  color: var(--sp-ink);
+}
+.sp-match-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 48px 36px;
+  margin-top: 40px;
+}
+.sp-match-card { display: flex; flex-direction: column; color: var(--sp-ink); }
+.sp-match-photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--sp-ivory-deep);
+}
+.sp-match-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--sp-ease); }
+.sp-match-card:hover .sp-match-photo img { transform: scale(1.04); }
+.sp-match-photo.is-empty { display: grid; place-items: center; align-content: center; gap: 14px; }
+.sp-match-photo.is-empty img { width: 52px; height: auto; opacity: 0.55; transform: none !important; }
+.sp-match-photo.is-empty span { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--sp-ink-soft); }
+.sp-match-body { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+.sp-match-name { margin: 0 0 6px; font-size: 30px; line-height: 0.9; }
+.sp-match-name a { color: inherit; }
+.sp-match-facts { margin: 0; font-size: 15px; color: var(--sp-ink-soft); }
+.sp-match-why { list-style: none; margin: 16px 0 0; padding: 0; }
+.sp-match-why li {
+  position: relative;
+  padding: 7px 0 7px 22px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--sp-ink);
+  border-top: 1px solid var(--sp-rule);
+}
+.sp-match-why li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15px;
+  width: 10px;
+  height: 1px;
+  background: var(--sp-ink);
+}
+.sp-match-actions { display: flex; flex-wrap: wrap; gap: 6px 26px; margin-top: 16px; }
+.sp-match-link {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sp-ink);
+  padding: 6px 0;
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+  transition: background-size 0.6s var(--sp-ease);
+}
+.sp-match-link i { display: inline-block; margin-left: 6px; transition: transform 0.6s var(--sp-ease); }
+.sp-match-link:hover { background-size: 100% 1px; }
+.sp-match-link:hover i { transform: translateX(6px); }
+.sp-match-note { margin: 28px 0 0; max-width: 60ch; font-size: 16px; line-height: 1.7; color: var(--sp-ink-soft); }
+.sp-match-note a,
+.sp-match-foot a { color: var(--sp-ink); text-decoration: underline; text-underline-offset: 4px; }
+.sp-match-foot { margin: 36px 0 0; font-size: 14px; color: var(--sp-ink-soft); }
+.find-btn.is-loading { opacity: 0.6; cursor: progress; }
+
+@media (max-width: 960px) {
+  .sp-match { margin-top: 56px; }
+  .sp-match-grid { grid-template-columns: 1fr; gap: 44px; }
+}

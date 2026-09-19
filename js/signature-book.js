@@ -309,5 +309,6 @@
     window.addEventListener('load', function () { open(''); });
   }
 
-  window.spBook = { open: open, close: close, page: PAGE };
+  // supabase(): the on-demand client, shared with js/signature-matcher.js
+  window.spBook = { open: open, close: close, page: PAGE, supabase: loadSupabase };
 })();

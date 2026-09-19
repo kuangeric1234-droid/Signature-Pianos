@@ -841,9 +841,16 @@
     return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
   }
 
+  // dimensions_cm is stored as JSON text
+  function parseDims(d) {
+    if (typeof d === 'string') { try { return JSON.parse(d) || {} } catch (e) { return {} } }
+    return d || {}
+  }
+
   function renderPianoCard(piano) {
     const name = `${piano.brand || ''} ${piano.model || ''}`.trim()
-    const facts = [piano.year, piano.finish || piano.colour, piano.condition ? `Condition ${piano.condition}` : '']
+    const height = parseDims(piano.dimensions_cm).height
+    const facts = [piano.year, height ? `${height} cm tall` : '', piano.finish || piano.colour]
       .filter(Boolean).join(' · ')
     const price = Number(piano.sale_price) > 0 ? '$' + Number(piano.sale_price).toLocaleString('en-AU') : 'Price on request'
     const photo = piano.images && piano.images[0]
@@ -854,7 +861,6 @@
       <a class="piano-card" href="/piano.html?id=${encodeURIComponent(piano.id)}">
         <div class="card-image${photo ? '' : ' card-image--empty'}">
           ${image}
-          ${piano.condition ? `<span class="card-badge">${esc(piano.condition)}</span>` : ''}
         </div>
         <div class="card-body">
           <span class="card-tag">${formatType(piano.type)}</span>
