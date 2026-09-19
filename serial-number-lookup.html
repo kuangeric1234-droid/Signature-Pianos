@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>How Old Is My Piano? Yamaha &amp; Kawai Serial Number Lookup | Signature Pianos</title>
+<meta name="description" content="Type in a Yamaha or Kawai serial number to see the year your piano was made, from the makers' own charts. Plus where to find the number on an upright or grand." />
+
+<link rel="canonical" href="https://signaturepianos.com.au/serial-number-lookup.html" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Signature Pianos" />
+<meta property="og:locale" content="en_AU" />
+<meta property="og:url" content="https://signaturepianos.com.au/serial-number-lookup.html" />
+<meta property="og:title" content="How old is my piano? Yamaha &amp; Kawai serial number lookup" />
+<meta property="og:description" content="Type in a Yamaha or Kawai serial number to see the year your piano was made, from the makers' own charts." />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="How old is my piano? Yamaha &amp; Kawai serial number lookup" />
+<meta name="twitter:description" content="Type in a Yamaha or Kawai serial number to see the year your piano was made, from the makers' own charts." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://signaturepianos.com.au/"},
+{"@type":"ListItem","position":2,"name":"Serial number lookup","item":"https://signaturepianos.com.au/serial-number-lookup.html"}]},
+{"@type":"WebApplication","name":"Yamaha and Kawai piano serial number lookup","url":"https://signaturepianos.com.au/serial-number-lookup.html","applicationCategory":"ReferenceApplication","operatingSystem":"Any","isAccessibleForFree":true,"description":"Find the year a Yamaha or Kawai piano was made from its serial number.","provider":{"@type":"MusicStore","@id":"https://signaturepianos.com.au/#store","name":"Signature Pianos"}}]}
+</script>
+
+<style>
+  :root {
+    --bg-1: #F3F0E9;
+    --bg-2: #E9E5DB;
+    --bg-3: #DCE6ED;
+    --gold: #16222E;
+    --gold-light: #3A4855;
+    --text-1: #16222E;
+    --text-2: #3A4855;
+    --text-3: #3A4855;
+    --border: rgba(22, 34, 46, 0.15);
+    --border-hover: rgba(22, 34, 46, 0.4);
+    --error: rgba(220, 80, 80, 0.6);
+    --error-text: #e89696;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-1);
+    color: var(--text-1);
+    font-family: var(--font-body);
+    font-weight: 300;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; }
+  ::selection { background: var(--gold); color: var(--bg-1); }
+
+  /* ============ NAV (matches sibling pages) ============ */
+  nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 100;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    background: rgba(243, 240, 233, 0.88);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    transition: padding 0.35s ease, background 0.35s ease;
+  }
+  nav.scrolled { background: rgba(243, 240, 233, 0.96); padding: 12px 32px; }
+
+  .logo {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 24px;
+    letter-spacing: 0.01em;
+    color: var(--text-1);
+    flex-shrink: 0;
+  }
+  .logo span { color: var(--gold); font-style: italic; font-weight: 400; }
+
+  .nav-links { display: flex; align-items: center; gap: 32px; }
+
+  .nav-link-plain {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    transition: color 0.25s ease;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .nav-link-plain:hover { color: var(--text-1); }
+
+  .nav-item--dropdown { position: relative; }
+  .nav-link-trigger {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    background: transparent;
+    border: 0;
+    padding: 6px 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.25s ease;
+  }
+  .nav-link-trigger:hover,
+  .nav-item--open .nav-link-trigger { color: var(--text-1); }
+  .nav-item--active .nav-link-trigger { color: var(--text-1); }
+  .nav-chevron { font-size: 14px; color: var(--gold); transition: transform 0.25s ease; opacity: 0.8; }
+  .nav-item--open .nav-chevron { transform: rotate(180deg); }
+
+  .nav-dropdown {
+    position: absolute;
+    top: calc(100% + 14px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    display: grid;
+    gap: 4px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    box-shadow: 0 30px 60px -20px rgba(22, 34, 46, 0.34);
+    transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
+    z-index: 110;
+  }
+  .nav-item--open .nav-dropdown {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+  .nav-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -14px; left: 0; right: 0;
+    height: 14px;
+  }
+
+  .nav-dropdown--pianos {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    width: clamp(520px, 38vw, 620px);
+    gap: 6px 12px;
+  }
+  .nav-dropdown--services {
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    width: clamp(620px, 44vw, 720px);
+    gap: 6px 8px;
+  }
+  .nav-dropdown--teachers {
+    grid-template-columns: 1fr;
+    width: clamp(540px, 40vw, 640px);
+    gap: 0;
+    padding: 14px;
+  }
+
+  .nav-dd-section { padding: 8px 4px; }
+  .nav-dd-section + .nav-dd-section {
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+    padding-top: 16px;
+  }
+  .nav-dd-section-label {
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin: 2px 14px 12px;
+  }
+  .nav-dd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+
+  .nav-dd-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s ease;
+  }
+  .nav-dd-item:hover { background: rgba(22, 34, 46, 0.07); }
+  .nav-dd-item.is-current { background: rgba(22, 34, 46, 0.10); }
+  .nav-dd-item.is-current h4 { color: var(--gold); }
+  .nav-dd-icon { font-size: 20px; color: var(--gold); margin-top: 2px; flex-shrink: 0; }
+  .nav-dd-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .nav-dd-text h4 {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-1);
+    margin: 0;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.3;
+  }
+  .nav-dd-text p { font-size: 12px; color: var(--text-3); margin: 0; line-height: 1.4; }
+
+  .nav-ctas { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  .nav-account-trigger {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--gold);
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+  .nav-account-trigger:hover,
+  .nav-item--account.nav-item--open .nav-account-trigger {
+    border-color: var(--gold);
+    background: rgba(22, 34, 46, 0.10);
+  }
+  .nav-dropdown--account {
+    grid-template-columns: 1fr;
+    width: clamp(320px, 26vw, 420px);
+    left: auto;
+    right: 0;
+    transform: translateY(-6px);
+    gap: 2px;
+  }
+  .nav-item--open .nav-dropdown--account { transform: translateY(0); }
+
+  .nav-cta {
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    background: transparent;
+    padding: 11px 22px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .nav-cta:hover { background: var(--gold); color: var(--bg-1); }
+
+  .nav-burger { display: none; background: none; border: 0; color: var(--text-1); font-size: 24px; cursor: pointer; }
+
+  /* ============ SERIAL NUMBER LOOKUP ============ */
+  .sr-only {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  /* The one filled button (brand/tokens.css) */
+  .sp-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px 32px 16px;
+    font-family: var(--sp-font-text);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: var(--sp-ink);
+    color: var(--sp-white);
+    border: 1px solid var(--sp-ink);
+    border-radius: 0;
+    transition: background 0.4s linear, color 0.4s linear, border-color 0.4s linear;
+  }
+  .sp-button:hover { background: transparent; color: var(--sp-ink); }
+
+  .sn-heading { margin: 0; color: var(--sp-ink); }
+  .sn-heading .sp-display { font-size: clamp(56px, 7.2vw, 124px); }
+  .sn-heading .sp-script { font-size: clamp(64px, 7.4vw, 128px); margin-left: 0.7em; }
+  .sn-heading--center { text-align: center; }
+  .sn-heading--center .sp-script { margin-left: 0; }
+  .sn-body {
+    margin: 0;
+    max-width: 52ch;
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--sp-ink-soft);
+  }
+  .sn-body a,
+  .sn-faq-a a,
+  .sn-chart-note a {
+    color: var(--sp-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--border-hover);
+    text-underline-offset: 4px;
+    transition: text-decoration-color 0.4s linear;
+  }
+  .sn-body a:hover,
+  .sn-faq-a a:hover,
+  .sn-chart-note a:hover { text-decoration-color: currentColor; }
+  .sn-textlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+    padding: 8px 0;
+    background: linear-gradient(currentColor, currentColor) 0 calc(100% - 4px) / 0 1px no-repeat;
+    transition: background-size 0.6s var(--sp-ease);
+  }
+  .sn-textlink:hover { background-size: 100% 1px; }
+  .sn-textlink i { transition: transform 0.6s var(--sp-ease); }
+  .sn-textlink:hover i { transform: translateX(6px); }
+  .sn-textlink--down:hover i { transform: translateY(4px); }
+
+  /* ---- §1 The lookup ---- */
+  .sn-hero {
+    padding: calc(var(--topbar-h, 34px) + clamp(120px, 12vw, 170px)) 40px clamp(88px, 9vw, 130px);
+  }
+  .sn-hero-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    gap: clamp(48px, 6vw, 110px);
+    align-items: end;
+  }
+  .sn-intro .sp-label { margin: 0 0 26px; }
+  .sn-intro .sn-body { margin-top: 30px; }
+
+  .sn-form { margin-top: 44px; }
+  .sn-makers {
+    display: flex;
+    gap: 34px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .sn-makers legend { padding: 0; margin-bottom: 8px; }
+  .sn-maker { position: relative; cursor: pointer; }
+  .sn-maker input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+  .sn-maker span {
+    display: block;
+    padding: 6px 0 10px;
+    font-family: var(--sp-font-display);
+    font-weight: 500;
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    text-transform: uppercase;
+    font-size: clamp(38px, 3.6vw, 52px);
+    line-height: 0.9;
+    color: var(--sp-ink);
+    opacity: 0.32;
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+    transition: opacity 0.4s linear, background-size 0.6s var(--sp-ease);
+  }
+  .sn-maker:hover span { opacity: 0.6; }
+  .sn-maker input:checked + span { opacity: 1; background-size: 100% 1px; }
+  .sn-maker input:focus-visible + span { outline: 2px solid var(--sp-ink); outline-offset: 4px; }
+
+  .sn-entry {
+    display: flex;
+    align-items: flex-end;
+    gap: 22px;
+    margin-top: 34px;
+  }
+  .sn-field { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .sn-field label { margin-bottom: 4px; }
+  .sn-field input {
+    width: 100%;
+    padding: 8px 0 10px;
+    font-family: var(--sp-font-text);
+    font-size: clamp(24px, 2.2vw, 30px);
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    color: var(--sp-ink);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--border-hover);
+    border-radius: 0;
+    outline: none;
+    transition: border-color 0.4s linear, box-shadow 0.4s linear;
+  }
+  .sn-field input::placeholder { color: var(--sp-ink-soft); opacity: 0.45; letter-spacing: 0.06em; }
+  .sn-field input:focus { border-bottom-color: var(--sp-ink); box-shadow: 0 1px 0 var(--sp-ink); }
+  .sn-submit { flex-shrink: 0; cursor: pointer; }
+  .sn-submit i { font-size: 16px; transition: transform 0.6s var(--sp-ease); }
+  .sn-submit:hover i { transform: translateX(4px); }
+  .sn-form-foot { margin: 22px 0 0; font-size: 15px; color: var(--sp-ink-soft); }
+  .sn-form-foot .sn-textlink { margin-left: 8px; font-size: 12px; }
+
+  /* The arch: where the answer appears */
+  .sn-window { display: flex; flex-direction: column; align-items: center; }
+  .sn-arch {
+    position: relative;
+    width: min(100%, 470px);
+    min-height: 560px;
+    padding: 170px clamp(24px, 3.4vw, 44px) 46px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: center;
+    background: var(--sp-mist);
+    color: var(--sp-ink);
+    border-radius: 100vw 100vw 0 0;
+  }
+  .sn-out { width: 100%; }
+  .sn-out-label { margin: 0; }
+  .sn-out-year {
+    display: block;
+    margin: 18px 0 0;
+    overflow: hidden;
+    font-family: var(--sp-font-display);
+    font-weight: 500;
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-size: clamp(120px, 12vw, 176px);
+    line-height: 0.86;
+    letter-spacing: -0.005em;
+    color: var(--sp-ink);
+    font-variant-numeric: lining-nums;
+  }
+  .sn-out-year span { display: block; padding-top: 0.04em; }
+  .sn-out-year.is-muted { opacity: 0.28; }
+  .sn-out-year.is-long { font-size: clamp(80px, 7.6vw, 112px); }
+  .sn-out-script {
+    display: block;
+    margin: -0.24em 0 0;
+    font-family: var(--sp-font-script);
+    font-size: clamp(56px, 5vw, 72px);
+    line-height: 1;
+    color: var(--sp-ink);
+  }
+  .sn-out-script:empty { display: none; }
+  .sn-out-facts {
+    margin: 26px 0 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--sp-rule);
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--sp-ink-soft);
+    text-wrap: pretty;
+  }
+  .sn-out-facts strong { color: var(--sp-ink); font-weight: 500; }
+  .sn-out-facts p { margin: 0; }
+  .sn-out-facts p + p { margin-top: 10px; }
+  .sn-out-pin {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 10px;
+    border-radius: 50%;
+    background: var(--sp-felt);
+    vertical-align: 2px;
+  }
+  .sn-out-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 26px;
+    margin-top: 22px;
+  }
+  .sn-out-links:empty { display: none; }
+  .sn-out-links .sn-textlink { font-size: 11.5px; }
+
+  /* The answer rises into place from behind a mask */
+  .sn-out.is-new .sn-out-year span { animation: sn-rise 0.9s var(--sp-ease) both; }
+  .sn-out.is-new .sn-out-script,
+  .sn-out.is-new .sn-out-facts,
+  .sn-out.is-new .sn-out-links { animation: sn-fade 0.6s linear 0.25s both; }
+  @keyframes sn-rise { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes sn-fade { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ---- §2 Where to find the number ---- */
+  .sn-where {
+    padding: clamp(96px, 10vw, 150px) 40px;
+    border-top: 1px solid var(--border);
+  }
+  .sn-where-inner { max-width: 1240px; margin: 0 auto; }
+  .sn-where-head { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .sn-where-head .sn-body { margin-top: 26px; }
+  .sn-where-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 56px clamp(40px, 6vw, 96px);
+    margin-top: clamp(56px, 6vw, 84px);
+  }
+  .sn-where-card { margin: 0; }
+  .sn-where-art {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 3;
+    background: var(--sp-ivory-deep);
+  }
+  .sn-where-art svg { width: 88%; height: auto; overflow: visible; }
+  .sn-where-card figcaption { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .sn-where-card h3 { margin: 0 0 12px; font-size: 32px; line-height: 0.9; color: var(--sp-ink); }
+  .sn-where-card ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+  .sn-where-card li {
+    position: relative;
+    padding: 6px 0 6px 34px;
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--sp-ink-soft);
+    counter-increment: step;
+  }
+  .sn-where-card li::before {
+    content: counter(step, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 9px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    color: var(--sp-ink);
+  }
+  .sn-art-line { fill: none; stroke: var(--sp-ink); stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+  .sn-art-thin { fill: none; stroke: var(--sp-ink); stroke-width: 0.8; opacity: 0.55; }
+  .sn-art-fill { fill: var(--sp-ivory); stroke: var(--sp-ink); stroke-width: 1.3; }
+  .sn-art-lens { fill: var(--sp-ivory); }
+  .sn-art-key { fill: var(--sp-ink); }
+  .sn-art-pin { fill: var(--sp-felt); }
+  .sn-art-ring { fill: none; stroke: var(--sp-felt); stroke-width: 1.2; }
+  .sn-art-text {
+    font-family: var(--sp-font-text);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    fill: var(--sp-ink);
+  }
+  .sn-art-stamp {
+    font-family: var(--sp-font-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: 22px;
+    letter-spacing: 0.06em;
+    fill: var(--sp-ink);
+  }
+
+  /* ---- §3 The charts ---- */
+  .sn-charts {
+    padding: clamp(96px, 10vw, 150px) 40px;
+    border-top: 1px solid var(--border);
+  }
+  .sn-charts-inner { max-width: 1240px; margin: 0 auto; }
+  .sn-charts-head { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .sn-charts-head .sn-body { margin-top: 26px; }
+  .sn-chart-groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 56px clamp(40px, 6vw, 96px);
+    margin-top: clamp(56px, 6vw, 84px);
+    align-items: start;
+  }
+  .sn-chart-group > h3 {
+    margin: 0;
+    padding-bottom: 16px;
+    font-size: clamp(44px, 4.4vw, 64px);
+    line-height: 0.9;
+    color: var(--sp-ink);
+    border-bottom: 1px solid var(--sp-ink);
+  }
+  .sn-chart { border-bottom: 1px solid var(--border); }
+  .sn-chart summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 20px 0;
+    cursor: pointer;
+    list-style: none;
+  }
+  .sn-chart summary::-webkit-details-marker { display: none; }
+  .sn-chart-title { font-size: 17px; font-weight: 500; color: var(--sp-ink); }
+  .sn-chart-title small {
+    display: block;
+    margin-top: 2px;
+    font-size: 14.5px;
+    font-weight: 400;
+    color: var(--sp-ink-soft);
+  }
+  .sn-chart-toggle {
+    flex-shrink: 0;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+  }
+  .sn-chart-toggle::after { content: ' +'; }
+  .sn-chart[open] .sn-chart-toggle::after { content: ' \2212'; }
+  .sn-chart-toggle .is-open { display: none; }
+  .sn-chart[open] .sn-chart-toggle .is-open { display: inline; }
+  .sn-chart[open] .sn-chart-toggle .is-shut { display: none; }
+  .sn-rows {
+    margin: 0 0 26px;
+    columns: 3 150px;
+    column-gap: 30px;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .sn-rows > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 5px 8px;
+    break-inside: avoid;
+    border-bottom: 1px solid var(--sp-rule);
+    font-size: 14.5px;
+    line-height: 1.5;
+    transition: background 0.4s linear;
+  }
+  .sn-rows dt { font-weight: 500; color: var(--sp-ink); }
+  .sn-rows dd { margin: 0; color: var(--sp-ink-soft); }
+  .sn-rows > div.is-match { background: var(--sp-ink); }
+  .sn-rows > div.is-match dt,
+  .sn-rows > div.is-match dd { color: var(--sp-ivory); }
+  .sn-chart-sub {
+    margin: 30px 0 10px;
+    font-family: var(--sp-font-text);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+  }
+  .sn-chart-note + .sn-chart-sub { margin-top: 0; }
+  .sn-chart-note {
+    margin: 0 0 26px;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--sp-ink-soft);
+  }
+  .sn-chart-source {
+    margin: 22px 0 0;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--sp-ink-soft);
+  }
+  .sn-chart-source a { color: var(--sp-ink); text-decoration: underline; text-decoration-color: var(--border-hover); text-underline-offset: 4px; }
+
+  /* ---- §4 Questions ---- */
+  .sn-faq {
+    padding: clamp(96px, 10vw, 150px) 40px;
+    border-top: 1px solid var(--border);
+  }
+  .sn-faq-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: clamp(48px, 6vw, 110px);
+    align-items: start;
+  }
+  .sn-faq-list { border-top: 1px solid var(--sp-ink); }
+  .sn-faq-item { border-bottom: 1px solid var(--border); }
+  .sn-faq-item summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 24px 0;
+    cursor: pointer;
+    list-style: none;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--sp-ink);
+  }
+  .sn-faq-item summary::-webkit-details-marker { display: none; }
+  .sn-faq-item summary i { display: inline-block; flex-shrink: 0; font-size: 18px; transition: transform 0.6s var(--sp-ease); }
+  .sn-faq-item[open] summary i { transform: rotate(45deg); }
+  .sn-faq-a { padding: 0 0 26px; max-width: 62ch; }
+  .sn-faq-a p { margin: 0; font-size: 16.5px; line-height: 1.7; color: var(--sp-ink-soft); }
+  .sn-faq-a p + p { margin-top: 12px; }
+
+  /* ---- §5 Next step ---- */
+  .sn-next {
+    padding: clamp(96px, 10vw, 150px) 40px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+  .sn-next-inner { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
+  .sn-next .sn-body { margin-top: 30px; }
+  .sn-next-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 18px 34px;
+    margin-top: 40px;
+  }
+
+  /* ============ REVEAL ANIMATIONS ============ */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s linear, transform 0.8s var(--sp-ease);
+  }
+  .reveal.is-in { opacity: 1; transform: none; }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 1080px) {
+    .sn-hero-inner { grid-template-columns: 1fr; align-items: start; }
+    .sn-window { align-items: stretch; }
+    .sn-arch { width: min(100%, 520px); margin: 0 auto; }
+    .sn-faq-inner { grid-template-columns: 1fr; gap: 40px; }
+  }
+
+  @media (max-width: 960px) {
+    nav { padding: 14px 22px; }
+    .nav-links, .nav-ctas { display: none; }
+    .nav-burger { display: inline-flex; }
+
+    .sn-hero { padding: 116px 20px 80px; }
+    .sn-where, .sn-charts, .sn-faq, .sn-next { padding: 84px 20px; }
+    .sn-where-grid, .sn-chart-groups { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 560px) {
+    .sn-heading .sp-display { font-size: 15vw; }
+    .sn-heading .sp-script { font-size: 17vw; margin-left: 0.4em; }
+    .sn-heading--center .sp-script { margin-left: 0; }
+    .sn-makers { gap: 26px; }
+    .sn-entry { flex-direction: column; align-items: stretch; gap: 20px; }
+    .sn-submit { width: 100%; }
+    .sn-arch { min-height: 500px; padding-top: 150px; }
+    .sn-out-year { font-size: 32vw; }
+    .sn-rows { columns: 2; column-gap: 18px; }
+    .sn-rows > div { padding: 5px 4px; font-size: 14px; }
+    .sn-faq-item summary { font-size: 17px; }
+    .sn-next-actions { flex-direction: column; width: 100%; }
+    .sn-next-actions .sp-button { width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal { transition: none; opacity: 1; transform: none; }
+    .sn-out.is-new .sn-out-year span,
+    .sn-out.is-new .sn-out-script,
+    .sn-out.is-new .sn-out-facts,
+    .sn-out.is-new .sn-out-links { animation: none; }
+    .sn-maker span, .sn-field input, .sn-rows > div { transition: none; }
+  }
+</style>
+<link rel="stylesheet" href="/css/signature-theme.css" />
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/media/brand/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<div class="sp-topbar" role="region" aria-label="Contact details">
+  <span>Pianos imported direct from Japan</span>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley</a>
+  <a class="sp-topbar-phone" href="tel:+61479128955">0479 128 955</a>
+</div>
+
+<nav id="nav">
+  <a href="/" class="logo" aria-label="Signature Pianos home">Signature <span>Pianos</span></a>
+  <div class="nav-links">
+    <div class="nav-item nav-item--dropdown nav-item--active">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Pianos <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--pianos" role="menu">
+        <a href="/instruments/?cat=upright" class="nav-dd-item">
+          <i class="ti ti-bookmark nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese uprights</h4><p>Hand-picked in Japan, checked in Melbourne</p></div>
+        </a>
+        <a href="/instruments/?cat=grand" class="nav-dd-item">
+          <i class="ti ti-crown nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Pre-loved Japanese grands</h4><p>Salon and concert grands from Yamaha and Kawai</p></div>
+        </a>
+        <a href="/instruments/?cat=digital" class="nav-dd-item">
+          <i class="ti ti-music nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Roland, Kawai, Casio and Yamaha, coming soon</p></div>
+        </a>
+        <a href="/blog" class="nav-dd-item">
+          <i class="ti ti-book nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Buying advice</h4><p>Plain answers before you choose a piano</p></div>
+        </a>
+        <a href="/serial-number-lookup.html" class="nav-dd-item nav-dd-item--wide is-current" aria-current="page">
+          <i class="ti ti-calendar-search nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>How old is my piano?</h4><p>Look up a Yamaha or Kawai serial number</p></div>
+        </a>
+      </div>
+    </div>
+    <div class="nav-item nav-item--dropdown">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Services <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--services" role="menu">
+        <a href="/services/delivery-warranty.html" class="nav-dd-item">
+          <i class="ti ti-truck-delivery nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White-glove delivery and a 10-year warranty</p></div>
+        </a>
+        <a href="/services/book-a-viewing.html" class="nav-dd-item">
+          <i class="ti ti-calendar-event nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Book a visit</h4><p>Play the pianos in our Mount Waverley showroom</p></div>
+        </a>
+        <a href="/services/tuning-servicing.html" class="nav-dd-item">
+          <i class="ti ti-tool nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Tuning and care for pianos across Melbourne</p></div>
+        </a>
+      </div>
+    </div>
+    <div class="nav-item nav-item--dropdown">
+      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
+        Teachers <i class="ti ti-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--teachers" role="menu">
+        <div class="nav-dd-section">
+          <div class="nav-dd-section-label">For students</div>
+          <div class="nav-dd-grid">
+            <a href="/teachers.html" class="nav-dd-item">
+              <i class="ti ti-search nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Piano teachers across Melbourne, via TeachMusic</p></div>
+            </a>
+            <a href="/teachers-match.html" class="nav-dd-item">
+              <i class="ti ti-map-pin nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>Match me with a teacher</h4><p>A few quick questions, three suggestions</p></div>
+            </a>
+          </div>
+        </div>
+        <div class="nav-dd-section">
+          <div class="nav-dd-section-label">For teachers</div>
+          <div class="nav-dd-grid">
+            <a href="https://www.teachmusic.com.au/for-teachers" class="nav-dd-item" target="_blank" rel="noopener">
+              <i class="ti ti-list-details nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>List your studio</h4><p>Reach new students on TeachMusic, our sister platform</p></div>
+            </a>
+            <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
+              <i class="ti ti-layout-grid nav-dd-icon"></i>
+              <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <a href="/blog" class="nav-link-plain">Blog</a>
+    <a href="/about.html" class="nav-link-plain">About</a>
+  </div>
+
+  <div class="nav-ctas">
+    <div class="nav-item nav-item--dropdown nav-item--account">
+      <button class="nav-account-trigger" type="button" aria-expanded="false" aria-haspopup="true" aria-label="Account">
+        <i class="ti ti-user"></i>
+      </button>
+      <div class="nav-dropdown nav-dropdown--account" role="menu">
+        <a href="/portal" class="nav-dd-item">
+          <i class="ti ti-user nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track your delivery and warranty</p></div>
+        </a>
+        <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
+          <i class="ti ti-music nav-dd-icon"></i>
+          <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
+        </a>
+      </div>
+    </div>
+    <a class="nav-cta" href="/services/book-a-viewing.html">Book a visit</a>
+  </div>
+  <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+  <a class="sp-nav-call" href="tel:+61479128955" aria-label="Call Signature Pianos on 0479 128 955"><i class="ti ti-phone" aria-hidden="true"></i></a>
+</nav>
+
+<main id="main">
+
+<!-- ============ §1 THE LOOKUP ============ -->
+<section class="sn-hero" aria-labelledby="snTitle">
+  <div class="sn-hero-inner">
+    <div class="sn-intro">
+      <p class="sp-label">Serial number lookup</p>
+      <h1 class="sn-heading" id="snTitle">
+        <span class="sp-display">How old is</span>
+        <span class="sp-script">your piano</span>
+      </h1>
+      <p class="sn-body">Yamaha and Kawai both began in Hamamatsu, Japan, and both number every piano they build. Type in yours to see the year it was made, from the makers&rsquo; own charts.</p>
+
+      <form class="sn-form" id="snForm" novalidate>
+        <fieldset class="sn-makers">
+          <legend class="sp-label">Maker</legend>
+          <label class="sn-maker"><input type="radio" name="maker" value="yamaha" checked><span>Yamaha</span></label>
+          <label class="sn-maker"><input type="radio" name="maker" value="kawai"><span>Kawai</span></label>
+        </fieldset>
+        <div class="sn-entry">
+          <div class="sn-field">
+            <label class="sp-label" for="snSerial">Serial number</label>
+            <input id="snSerial" name="serial" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="20" placeholder="e.g. 2345678" aria-describedby="snHelp">
+          </div>
+          <button class="sp-button sn-submit" type="submit">Find the year <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+        </div>
+        <p class="sn-form-foot" id="snHelp">Usually 5 to 7 digits, sometimes with a letter in front. <a class="sn-textlink sn-textlink--down" href="#where">Where to look <i class="ti ti-arrow-down" aria-hidden="true"></i></a></p>
+      </form>
+    </div>
+
+    <div class="sn-window">
+      <div class="sn-arch">
+        <div class="sn-out" id="snOut" aria-live="polite">
+          <p class="sn-out-label sp-label">Your piano</p>
+          <p class="sn-out-year is-muted"><span>0000</span></p>
+          <span class="sn-out-script"></span>
+          <div class="sn-out-facts"><p>Choose the maker, type the serial number and the year it was made appears here.</p></div>
+          <div class="sn-out-links"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §2 WHERE TO FIND THE NUMBER ============ -->
+<section class="sn-where" id="where" aria-labelledby="whereTitle">
+  <div class="sn-where-inner">
+    <div class="sn-where-head reveal">
+      <h2 class="sn-heading sn-heading--center" id="whereTitle">
+        <span class="sp-display">Finding</span>
+        <span class="sp-script">the number</span>
+      </h2>
+      <p class="sn-body">Both makers stamp the serial number into the gold-coloured iron frame inside the piano, usually beside the model name. If a tuner has left a tuning card inside, it may be written there too.</p>
+    </div>
+    <div class="sn-where-grid">
+      <figure class="sn-where-card reveal">
+        <div class="sn-where-art">
+          <svg viewBox="0 0 480 360" role="img" aria-labelledby="artUprightT" xmlns="http://www.w3.org/2000/svg">
+            <title id="artUprightT">An upright piano with its top lid lifted. The model and serial number are stamped at the top right of the iron frame inside.</title>
+            <defs><clipPath id="artUprightLens"><circle cx="394" cy="134" r="74"/></clipPath></defs>
+            <!-- lid lifted from the back -->
+            <path class="sn-art-line" d="M46 98 L58 54 L282 54 L294 98"/>
+            <line class="sn-art-thin" x1="58" y1="54" x2="282" y2="54"/>
+            <!-- cabinet -->
+            <rect class="sn-art-line" x="40" y="98" width="260" height="228"/>
+            <line class="sn-art-line" x1="40" y1="110" x2="300" y2="110"/>
+            <rect class="sn-art-thin" x="60" y="122" width="220" height="56"/>
+            <!-- keys and cheeks -->
+            <rect class="sn-art-fill" x="40" y="182" width="14" height="30"/>
+            <rect class="sn-art-fill" x="286" y="182" width="14" height="30"/>
+            <rect class="sn-art-line" x="54" y="190" width="232" height="16"/>
+            <g class="sn-art-key">
+              <rect x="64" y="190" width="4" height="9"/><rect x="72" y="190" width="4" height="9"/><rect x="84" y="190" width="4" height="9"/><rect x="92" y="190" width="4" height="9"/><rect x="100" y="190" width="4" height="9"/>
+              <rect x="116" y="190" width="4" height="9"/><rect x="124" y="190" width="4" height="9"/><rect x="136" y="190" width="4" height="9"/><rect x="144" y="190" width="4" height="9"/><rect x="152" y="190" width="4" height="9"/>
+              <rect x="168" y="190" width="4" height="9"/><rect x="176" y="190" width="4" height="9"/><rect x="188" y="190" width="4" height="9"/><rect x="196" y="190" width="4" height="9"/><rect x="204" y="190" width="4" height="9"/>
+              <rect x="220" y="190" width="4" height="9"/><rect x="228" y="190" width="4" height="9"/><rect x="240" y="190" width="4" height="9"/><rect x="248" y="190" width="4" height="9"/><rect x="256" y="190" width="4" height="9"/>
+              <rect x="270" y="190" width="4" height="9"/>
+            </g>
+            <line class="sn-art-line" x1="40" y1="212" x2="300" y2="212"/>
+            <rect class="sn-art-thin" x="60" y="226" width="220" height="80"/>
+            <!-- toe blocks and pedals -->
+            <line class="sn-art-line" x1="54" y1="212" x2="54" y2="326"/>
+            <line class="sn-art-line" x1="286" y1="212" x2="286" y2="326"/>
+            <rect class="sn-art-key" x="154" y="314" width="8" height="4"/><rect class="sn-art-key" x="166" y="314" width="8" height="4"/><rect class="sn-art-key" x="178" y="314" width="8" height="4"/>
+            <line class="sn-art-line" x1="26" y1="326" x2="314" y2="326"/>
+            <!-- the spot, and a line out to the lens -->
+            <circle class="sn-art-pin" cx="252" cy="104" r="5"/>
+            <path class="sn-art-thin" d="M257 104 L314 104"/>
+            <!-- the lens: looking down onto the top of the frame -->
+            <circle class="sn-art-lens" cx="394" cy="134" r="74"/>
+            <g clip-path="url(#artUprightLens)">
+              <path class="sn-art-line" d="M308 98 C358 90 428 90 488 98"/>
+              <path class="sn-art-thin" d="M308 106 C358 98 428 98 488 106"/>
+              <g class="sn-art-key">
+                <circle cx="324" cy="120" r="2.6"/><circle cx="340" cy="116" r="2.6"/><circle cx="356" cy="120" r="2.6"/><circle cx="372" cy="116" r="2.6"/><circle cx="388" cy="120" r="2.6"/><circle cx="404" cy="116" r="2.6"/><circle cx="420" cy="120" r="2.6"/><circle cx="436" cy="116" r="2.6"/><circle cx="452" cy="120" r="2.6"/><circle cx="468" cy="116" r="2.6"/>
+                <circle cx="332" cy="182" r="2.6"/><circle cx="348" cy="186" r="2.6"/><circle cx="364" cy="182" r="2.6"/><circle cx="380" cy="186" r="2.6"/><circle cx="396" cy="182" r="2.6"/><circle cx="412" cy="186" r="2.6"/><circle cx="428" cy="182" r="2.6"/><circle cx="444" cy="186" r="2.6"/><circle cx="460" cy="182" r="2.6"/>
+              </g>
+              <text class="sn-art-stamp" x="394" y="160" text-anchor="middle">No. 2345678</text>
+            </g>
+            <circle class="sn-art-line" cx="394" cy="134" r="74"/>
+            <circle class="sn-art-ring" cx="394" cy="134" r="80"/>
+            <text class="sn-art-text" x="394" y="38" text-anchor="middle">Top right of the frame</text>
+          </svg>
+        </div>
+        <figcaption>
+          <h3>Upright piano</h3>
+          <ol>
+            <li>Clear the top of the piano and lift the lid.</li>
+            <li>Look down at the gold-coloured frame. The number is usually at the top right, near the tuning pins. On some pianos it&rsquo;s in the middle.</li>
+            <li>Copy every digit, and any letter in front. If there&rsquo;s a gap between the letter and the number, type the gap too.</li>
+          </ol>
+        </figcaption>
+      </figure>
+      <figure class="sn-where-card reveal">
+        <div class="sn-where-art">
+          <svg viewBox="0 0 480 360" role="img" aria-labelledby="artGrandT" xmlns="http://www.w3.org/2000/svg">
+            <title id="artGrandT">A grand piano seen from above with the lid open. The model and serial number are stamped on the treble (right-hand) end of the iron frame, near the keyboard.</title>
+            <defs><clipPath id="artGrandLens"><circle cx="394" cy="134" r="74"/></clipPath></defs>
+            <!-- the case, from above: straight bass side, rounded tail, curved treble side -->
+            <path class="sn-art-line" d="M58 300 L58 70 C58 42 76 26 104 26 C140 26 158 54 170 98 C182 146 214 170 246 196 C268 214 278 240 278 268 L278 300 Z"/>
+            <!-- the frame and strings -->
+            <path class="sn-art-thin" d="M72 250 L72 76 C72 54 86 40 106 40 C134 40 148 64 158 102 C170 150 204 176 234 202 C254 220 264 238 264 250 Z"/>
+            <g class="sn-art-thin">
+              <line x1="90" y1="238" x2="90" y2="62"/><line x1="108" y1="238" x2="108" y2="52"/><line x1="126" y1="238" x2="130" y2="62"/>
+              <line x1="144" y1="238" x2="150" y2="96"/><line x1="162" y1="238" x2="170" y2="140"/><line x1="180" y1="238" x2="188" y2="164"/>
+              <line x1="198" y1="238" x2="206" y2="184"/><line x1="216" y1="238" x2="224" y2="200"/><line x1="234" y1="238" x2="240" y2="216"/>
+            </g>
+            <!-- tuning pins -->
+            <g class="sn-art-key">
+              <circle cx="84" cy="244" r="1.8"/><circle cx="96" cy="244" r="1.8"/><circle cx="108" cy="244" r="1.8"/><circle cx="120" cy="244" r="1.8"/><circle cx="132" cy="244" r="1.8"/><circle cx="144" cy="244" r="1.8"/><circle cx="156" cy="244" r="1.8"/><circle cx="168" cy="244" r="1.8"/><circle cx="180" cy="244" r="1.8"/><circle cx="192" cy="244" r="1.8"/><circle cx="204" cy="244" r="1.8"/><circle cx="216" cy="244" r="1.8"/><circle cx="228" cy="244" r="1.8"/><circle cx="240" cy="244" r="1.8"/><circle cx="252" cy="244" r="1.8"/>
+            </g>
+            <!-- music desk, keys, cheeks -->
+            <rect class="sn-art-fill" x="92" y="262" width="152" height="10"/>
+            <rect class="sn-art-line" x="58" y="300" width="220" height="24"/>
+            <rect class="sn-art-fill" x="48" y="292" width="14" height="36"/>
+            <rect class="sn-art-fill" x="274" y="292" width="14" height="36"/>
+            <g class="sn-art-key">
+              <rect x="70" y="300" width="4" height="13"/><rect x="80" y="300" width="4" height="13"/><rect x="96" y="300" width="4" height="13"/><rect x="106" y="300" width="4" height="13"/><rect x="116" y="300" width="4" height="13"/>
+              <rect x="134" y="300" width="4" height="13"/><rect x="144" y="300" width="4" height="13"/><rect x="160" y="300" width="4" height="13"/><rect x="170" y="300" width="4" height="13"/><rect x="180" y="300" width="4" height="13"/>
+              <rect x="198" y="300" width="4" height="13"/><rect x="208" y="300" width="4" height="13"/><rect x="224" y="300" width="4" height="13"/><rect x="234" y="300" width="4" height="13"/><rect x="244" y="300" width="4" height="13"/>
+              <rect x="262" y="300" width="4" height="13"/>
+            </g>
+            <!-- the spot, and a line out to the lens -->
+            <circle class="sn-art-pin" cx="246" cy="254" r="5"/>
+            <path class="sn-art-thin" d="M251 254 L300 254 L338 188"/>
+            <!-- the lens: the frame between the tuning pins and the music desk -->
+            <circle class="sn-art-lens" cx="394" cy="134" r="74"/>
+            <g clip-path="url(#artGrandLens)">
+              <g class="sn-art-key">
+                <circle cx="324" cy="98" r="2.6"/><circle cx="340" cy="94" r="2.6"/><circle cx="356" cy="98" r="2.6"/><circle cx="372" cy="94" r="2.6"/><circle cx="388" cy="98" r="2.6"/><circle cx="404" cy="94" r="2.6"/><circle cx="420" cy="98" r="2.6"/><circle cx="436" cy="94" r="2.6"/><circle cx="452" cy="98" r="2.6"/><circle cx="468" cy="94" r="2.6"/>
+              </g>
+              <text class="sn-art-stamp" x="394" y="142" text-anchor="middle">No. 6123456</text>
+              <rect class="sn-art-fill" x="300" y="172" width="200" height="16"/>
+            </g>
+            <circle class="sn-art-line" cx="394" cy="134" r="74"/>
+            <circle class="sn-art-ring" cx="394" cy="134" r="80"/>
+            <text class="sn-art-text" x="394" y="38" text-anchor="middle">Treble end of the frame</text>
+          </svg>
+        </div>
+        <figcaption>
+          <h3>Grand piano</h3>
+          <ol>
+            <li>Open the lid, or just its front section on the keyboard side.</li>
+            <li>Look at the right-hand end of the frame, near the tuning pins under the music desk (the stand that holds the sheet music).</li>
+            <li>On some Kawai grands you need to slide the music desk out to see it. A torch helps.</li>
+          </ol>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §3 THE MAKERS' CHARTS ============ -->
+<section class="sn-charts" id="charts" aria-labelledby="chartsTitle">
+  <div class="sn-charts-inner">
+    <div class="sn-charts-head reveal">
+      <h2 class="sn-heading sn-heading--center" id="chartsTitle">
+        <span class="sp-display">The makers&rsquo;</span>
+        <span class="sp-script">own charts</span>
+      </h2>
+      <p class="sn-body">Every answer above comes from these tables, published by Yamaha and Kawai. Each row is the first serial number of that year, so a piano made that year has a number between its row and the next.</p>
+    </div>
+    <div class="sn-chart-groups">
+      <div class="sn-chart-group reveal">
+        <h3>Yamaha</h3>
+        <details class="sn-chart" id="chart-yamaha-japan">
+          <summary><span class="sn-chart-title">Made in Japan<small>No letter before the number &middot; 1926 to 2025</small></span><span class="sn-chart-toggle"><span class="is-shut">Show</span><span class="is-open">Hide</span></span></summary>
+          <p class="sn-chart-note">The first serial number of each year, for uprights and grands built in Japan. Early on the chart only gains a row every 10,000 pianos, so some rows cover several years.</p>
+          <dl class="sn-rows" data-chart="yamaha-japan" data-maker="yamaha" data-place="made in Japan" data-made="made in Japan">
+            <div><dt>1926&ndash;33</dt><dd>10,000</dd></div>
+            <div><dt>1934&ndash;37</dt><dd>20,000</dd></div>
+            <div><dt>1938&ndash;46</dt><dd>30,000</dd></div>
+            <div><dt>1947&ndash;51</dt><dd>40,000</dd></div>
+            <div><dt>1952&ndash;53</dt><dd>50,000</dd></div>
+            <div><dt>1954&ndash;55</dt><dd>60,000</dd></div>
+            <div><dt>1956</dt><dd>70,000</dd></div>
+            <div><dt>1957</dt><dd>80,000</dd></div>
+            <div><dt>1958</dt><dd>90,000</dd></div>
+            <div><dt>1959</dt><dd>100,000</dd></div>
+            <div><dt>1960</dt><dd>120,000</dd></div>
+            <div><dt>1961</dt><dd>150,000</dd></div>
+            <div><dt>1962</dt><dd>180,000</dd></div>
+            <div><dt>1963</dt><dd>230,000</dd></div>
+            <div><dt>1964</dt><dd>300,000</dd></div>
+            <div><dt>1965</dt><dd>370,000</dd></div>
+            <div><dt>1966</dt><dd>460,000</dd></div>
+            <div><dt>1967</dt><dd>570,000</dd></div>
+            <div><dt>1968</dt><dd>700,000</dd></div>
+            <div><dt>1969</dt><dd>820,000</dd></div>
+            <div><dt>1970</dt><dd>980,000</dd></div>
+            <div><dt>1971</dt><dd>1,150,000</dd></div>
+            <div><dt>1972</dt><dd>1,340,000</dd></div>
+            <div><dt>1973</dt><dd>1,540,000</dd></div>
+            <div><dt>1974</dt><dd>1,740,000</dd></div>
+            <div><dt>1975</dt><dd>1,950,000</dd></div>
+            <div><dt>1976</dt><dd>2,150,000</dd></div>
+            <div><dt>1977</dt><dd>2,360,000</dd></div>
+            <div><dt>1978</dt><dd>2,570,000</dd></div>
+            <div><dt>1979</dt><dd>2,800,000</dd></div>
+            <div><dt>1980</dt><dd>3,030,000</dd></div>
+            <div><dt>1981</dt><dd>3,260,000</dd></div>
+            <div><dt>1982</dt><dd>3,480,000</dd></div>
+            <div><dt>1983</dt><dd>3,680,000</dd></div>
+            <div><dt>1984</dt><dd>3,890,000</dd></div>
+            <div><dt>1985</dt><dd>4,040,000</dd></div>
+            <div><dt>1986</dt><dd>4,210,000</dd></div>
+            <div><dt>1987</dt><dd>4,360,000</dd></div>
+            <div><dt>1988</dt><dd>4,560,000</dd></div>
+            <div><dt>1989</dt><dd>4,680,000</dd></div>
+            <div><dt>1990</dt><dd>4,820,000</dd></div>
+            <div><dt>1991</dt><dd>4,960,000</dd></div>
+            <div><dt>1992</dt><dd>5,080,000</dd></div>
+            <div><dt>1993</dt><dd>5,190,000</dd></div>
+            <div><dt>1994</dt><dd>5,300,000</dd></div>
+            <div><dt>1995</dt><dd>5,390,000</dd></div>
+            <div><dt>1996</dt><dd>5,460,000</dd></div>
+            <div><dt>1997</dt><dd>5,520,000</dd></div>
+            <div><dt>1998</dt><dd>5,590,000</dd></div>
+            <div><dt>1999</dt><dd>5,810,000</dd></div>
+            <div><dt>2000</dt><dd>5,860,000</dd></div>
+            <div><dt>2001</dt><dd>5,920,000</dd></div>
+            <div><dt>2002</dt><dd>5,970,000</dd></div>
+            <div><dt>2003</dt><dd>6,020,000</dd></div>
+            <div><dt>2004</dt><dd>6,060,000</dd></div>
+            <div><dt>2005</dt><dd>6,100,000</dd></div>
+            <div><dt>2006</dt><dd>6,150,000</dd></div>
+            <div><dt>2007</dt><dd>6,180,000</dd></div>
+            <div><dt>2008</dt><dd>6,220,000</dd></div>
+            <div><dt>2009</dt><dd>6,250,000</dd></div>
+            <div><dt>2010</dt><dd>6,280,000</dd></div>
+            <div><dt>2011</dt><dd>6,310,000</dd></div>
+            <div><dt>2012</dt><dd>6,340,000</dd></div>
+            <div><dt>2013</dt><dd>6,360,000</dd></div>
+            <div><dt>2014</dt><dd>6,380,000</dd></div>
+            <div><dt>2015</dt><dd>6,400,000</dd></div>
+            <div><dt>2016</dt><dd>6,420,000</dd></div>
+            <div><dt>2017</dt><dd>6,440,000</dd></div>
+            <div><dt>2018</dt><dd>6,460,000</dd></div>
+            <div><dt>2019</dt><dd>6,480,000</dd></div>
+            <div><dt>2020</dt><dd>6,500,000</dd></div>
+            <div><dt>2021</dt><dd>6,520,000</dd></div>
+            <div><dt>2022</dt><dd>6,540,000</dd></div>
+            <div><dt>2023</dt><dd>6,560,000</dd></div>
+            <div><dt>2024</dt><dd>6,580,000</dd></div>
+            <div><dt>2025</dt><dd>6,600,000</dd></div>
+          </dl>
+          <p class="sn-chart-source">Source: Yamaha Corporation, <a href="https://download.yamaha.com/files/tcm:39-1124086/" target="_blank" rel="noopener">acoustic pianos by year and serial number</a> (2025, in Japanese), also printed by <a href="https://www.yamahapianoservice.co.jp/kaitori/piano_no/" target="_blank" rel="noopener">Yamaha Piano Service</a>. Yamaha notes the numbers may vary either side of each new year.</p>
+        </details>
+        <details class="sn-chart" id="chart-yamaha-other">
+          <summary><span class="sn-chart-title">Made outside Japan<small>A letter joined to the front of the number</small></span><span class="sn-chart-toggle"><span class="is-shut">Show</span><span class="is-open">Hide</span></span></summary>
+          <p class="sn-chart-note">Yamaha has also built pianos in Indonesia, China, the United States and Taiwan. Those serials start with a letter, joined to the number.</p>
+          <h4 class="sn-chart-sub">J &middot; Jakarta, Indonesia</h4>
+          <dl class="sn-rows" data-chart="yamaha-jakarta" data-maker="yamaha" data-place="made in Indonesia" data-made="made in Indonesia">
+            <div><dt>1998</dt><dd>J1500000</dd></div>
+            <div><dt>1999</dt><dd>J1600001</dd></div>
+            <div><dt>2000</dt><dd>J1700559</dd></div>
+            <div><dt>2001</dt><dd>J1802250</dd></div>
+            <div><dt>2002</dt><dd>J1904634</dd></div>
+            <div><dt>2003</dt><dd>J2008354</dd></div>
+            <div><dt>2004</dt><dd>J2109546</dd></div>
+            <div><dt>2005</dt><dd>J2212096</dd></div>
+            <div><dt>2006</dt><dd>J2317402</dd></div>
+            <div><dt>2007</dt><dd>J2422310</dd></div>
+            <div><dt>2008</dt><dd>J2526623</dd></div>
+            <div><dt>2009</dt><dd>J2631503</dd></div>
+            <div><dt>2010</dt><dd>J2733874</dd></div>
+            <div><dt>2011</dt><dd>J2837851</dd></div>
+            <div><dt>2012</dt><dd>J2942840</dd></div>
+            <div><dt>2013</dt><dd>J3000000</dd></div>
+            <div><dt>2014</dt><dd>J3100000</dd></div>
+            <div><dt>2015</dt><dd>J3200000</dd></div>
+            <div><dt>2016</dt><dd>J3300000</dd></div>
+            <div><dt>2017</dt><dd>J3400000</dd></div>
+            <div><dt>2018</dt><dd>J3500000</dd></div>
+            <div><dt>2019</dt><dd>J3600000</dd></div>
+            <div><dt>2020</dt><dd>J3700000</dd></div>
+            <div><dt>2021</dt><dd>J3800000</dd></div>
+            <div><dt>2022</dt><dd>J3900000</dd></div>
+          </dl>
+          <h4 class="sn-chart-sub">H &middot; Hangzhou, China</h4>
+          <dl class="sn-rows" data-chart="yamaha-hangzhou" data-maker="yamaha" data-place="made in China" data-made="made in China">
+            <div><dt>2004</dt><dd>H0004000</dd></div>
+            <div><dt>2005</dt><dd>H0004900</dd></div>
+            <div><dt>2006</dt><dd>H0010900</dd></div>
+            <div><dt>2007</dt><dd>H0020700</dd></div>
+            <div><dt>2008</dt><dd>H0039900</dd></div>
+            <div><dt>2009</dt><dd>H0071498</dd></div>
+            <div><dt>2010</dt><dd>H0105429</dd></div>
+            <div><dt>2011</dt><dd>H0150753</dd></div>
+            <div><dt>2012</dt><dd>H0201988</dd></div>
+            <div><dt>2013</dt><dd>H0257154</dd></div>
+            <div><dt>2014</dt><dd>H0306726</dd></div>
+            <div><dt>2015</dt><dd>H0359873</dd></div>
+            <div><dt>2016</dt><dd>H0414970</dd></div>
+            <div><dt>2017</dt><dd>H0471933</dd></div>
+            <div><dt>2018</dt><dd>H0535799</dd></div>
+            <div><dt>2019</dt><dd>H0604133</dd></div>
+            <div><dt>2020</dt><dd>H0673783</dd></div>
+            <div><dt>2021</dt><dd>H0727175</dd></div>
+          </dl>
+          <h4 class="sn-chart-sub">T &middot; Thomaston, Georgia, USA</h4>
+          <dl class="sn-rows" data-chart="yamaha-thomaston" data-maker="yamaha" data-place="made in the USA" data-made="made in America">
+            <div><dt>1986</dt><dd>T100001</dd></div>
+            <div><dt>1987</dt><dd>T101856</dd></div>
+            <div><dt>1988</dt><dd>T110501</dd></div>
+            <div><dt>1989</dt><dd>T122421</dd></div>
+            <div><dt>1990</dt><dd>T132706</dd></div>
+            <div><dt>1991</dt><dd>T143101</dd></div>
+            <div><dt>1992</dt><dd>T155131</dd></div>
+            <div><dt>1993</dt><dd>T167386</dd></div>
+            <div><dt>1994</dt><dd>T177711</dd></div>
+            <div><dt>1995</dt><dd>T189741</dd></div>
+            <div><dt>1996</dt><dd>T202945</dd></div>
+            <div><dt>1997</dt><dd>T212917</dd></div>
+            <div><dt>1998</dt><dd>T224053</dd></div>
+            <div><dt>1999</dt><dd>T237164</dd></div>
+            <div><dt>2000</dt><dd>T251146</dd></div>
+            <div><dt>2001</dt><dd>T265755</dd></div>
+            <div><dt>2002</dt><dd>T275258</dd></div>
+            <div><dt>2003</dt><dd>T283503</dd></div>
+            <div><dt>2004</dt><dd>T294877</dd></div>
+          </dl>
+          <p class="sn-chart-note">Before June 1986 Thomaston used a T5 series:</p>
+          <dl class="sn-rows" data-chart="yamaha-thomaston-t5" data-maker="yamaha" data-place="made in the USA" data-made="made in America" data-closed>
+            <div><dt>1983</dt><dd>T500101</dd></div>
+            <div><dt>1984</dt><dd>T500422</dd></div>
+            <div><dt>1985</dt><dd>T500998</dd></div>
+            <div><dt>1986</dt><dd>T502874</dd></div>
+          </dl>
+          <h4 class="sn-chart-sub">U &middot; South Haven, Michigan, USA</h4>
+          <dl class="sn-rows" data-chart="yamaha-south-haven" data-maker="yamaha" data-place="made in the USA" data-made="made in America">
+            <div><dt>1974</dt><dd>U101000</dd></div>
+            <div><dt>1975</dt><dd>U102000</dd></div>
+            <div><dt>1976</dt><dd>U107000</dd></div>
+            <div><dt>1977</dt><dd>U110000</dd></div>
+            <div><dt>1978</dt><dd>U117000</dd></div>
+            <div><dt>1979</dt><dd>U124000</dd></div>
+            <div><dt>1980</dt><dd>U132000</dd></div>
+            <div><dt>1981</dt><dd>U141000</dd></div>
+            <div><dt>1982</dt><dd>U150000</dd></div>
+            <div><dt>1983</dt><dd>U160000</dd></div>
+            <div><dt>1984</dt><dd>U167000</dd></div>
+            <div><dt>1985</dt><dd>U174000</dd></div>
+            <div><dt>1986</dt><dd>U186000</dd></div>
+          </dl>
+          <h4 class="sn-chart-sub">YT &middot; Taoyuan, Taiwan</h4>
+          <dl class="sn-rows" data-chart="yamaha-taiwan" data-maker="yamaha" data-place="made in Taiwan" data-made="made in Taiwan">
+            <div><dt>2004</dt><dd>YT277800</dd></div>
+            <div><dt>2005</dt><dd>YT281000</dd></div>
+            <div><dt>2006</dt><dd>YT285000</dd></div>
+          </dl>
+          <p class="sn-chart-source">Source: Yamaha Corporation of America, <a href="https://usa.yamaha.com/support/finding_age_of_yamaha_piano/index.html" target="_blank" rel="noopener">finding the age of your Yamaha piano</a>, and <a href="https://ca.yamaha.com/en/support/serial-numbers/index.html" target="_blank" rel="noopener">Yamaha Canada</a> for the Jakarta numbers from 1999 to 2012. Pianos built at Kemble in England (an E before the number) have no published chart.</p>
+        </details>
+      </div>
+      <div class="sn-chart-group reveal">
+        <h3>Kawai</h3>
+        <details class="sn-chart" id="chart-kawai-japan">
+          <summary><span class="sn-chart-title">Made in Japan<small>No letter before the number &middot; 1927 to 2026</small></span><span class="sn-chart-toggle"><span class="is-shut">Show</span><span class="is-open">Hide</span></span></summary>
+          <p class="sn-chart-note">The first serial number of each year, for uprights and grands built in Japan. Some rows cover several years where Kawai gives no figure.</p>
+          <dl class="sn-rows" data-chart="kawai-japan" data-maker="kawai" data-place="made in Japan" data-made="made in Japan">
+            <div><dt>1927&ndash;29</dt><dd>4,200</dd></div>
+            <div><dt>1930&ndash;34</dt><dd>6,000</dd></div>
+            <div><dt>1935&ndash;39</dt><dd>8,350</dd></div>
+            <div><dt>1940&ndash;44</dt><dd>9,600</dd></div>
+            <div><dt>1945&ndash;49</dt><dd>12,000</dd></div>
+            <div><dt>1950&ndash;51</dt><dd>14,200</dd></div>
+            <div><dt>1952</dt><dd>15,000</dd></div>
+            <div><dt>1953</dt><dd>16,200</dd></div>
+            <div><dt>1954</dt><dd>18,600</dd></div>
+            <div><dt>1955</dt><dd>20,590</dd></div>
+            <div><dt>1956</dt><dd>21,300</dd></div>
+            <div><dt>1957</dt><dd>22,500</dd></div>
+            <div><dt>1958&ndash;59</dt><dd>23,200</dd></div>
+            <div><dt>1960</dt><dd>26,000</dd></div>
+            <div><dt>1961</dt><dd>34,500</dd></div>
+            <div><dt>1962</dt><dd>75,760</dd></div>
+            <div><dt>1963</dt><dd>85,622</dd></div>
+            <div><dt>1964</dt><dd>132,307</dd></div>
+            <div><dt>1965</dt><dd>163,178</dd></div>
+            <div><dt>1966</dt><dd>203,433</dd></div>
+            <div><dt>1967</dt><dd>251,660</dd></div>
+            <div><dt>1968</dt><dd>303,686</dd></div>
+            <div><dt>1969</dt><dd>369,088</dd></div>
+            <div><dt>1970</dt><dd>425,121</dd></div>
+            <div><dt>1971</dt><dd>488,834</dd></div>
+            <div><dt>1972</dt><dd>558,216</dd></div>
+            <div><dt>1973</dt><dd>633,601</dd></div>
+            <div><dt>1974</dt><dd>718,768</dd></div>
+            <div><dt>1975</dt><dd>785,568</dd></div>
+            <div><dt>1976</dt><dd>844,362</dd></div>
+            <div><dt>1977</dt><dd>904,384</dd></div>
+            <div><dt>1978</dt><dd>973,490</dd></div>
+            <div><dt>1979</dt><dd>1,067,130</dd></div>
+            <div><dt>1980</dt><dd>1,126,366</dd></div>
+            <div><dt>1981</dt><dd>1,219,355</dd></div>
+            <div><dt>1982</dt><dd>1,300,000</dd></div>
+            <div><dt>1983</dt><dd>1,380,000</dd></div>
+            <div><dt>1984</dt><dd>1,475,000</dd></div>
+            <div><dt>1985</dt><dd>1,550,000</dd></div>
+            <div><dt>1986</dt><dd>1,630,500</dd></div>
+            <div><dt>1987</dt><dd>1,706,250</dd></div>
+            <div><dt>1988</dt><dd>1,784,800</dd></div>
+            <div><dt>1989</dt><dd>1,857,681</dd></div>
+            <div><dt>1990</dt><dd>1,927,022</dd></div>
+            <div><dt>1991</dt><dd>1,994,844</dd></div>
+            <div><dt>1992</dt><dd>2,056,461</dd></div>
+            <div><dt>1993</dt><dd>2,112,730</dd></div>
+            <div><dt>1994</dt><dd>2,160,709</dd></div>
+            <div><dt>1995</dt><dd>2,200,992</dd></div>
+            <div><dt>1996</dt><dd>2,246,731</dd></div>
+            <div><dt>1997</dt><dd>2,282,625</dd></div>
+            <div><dt>1998</dt><dd>2,320,144</dd></div>
+            <div><dt>1999</dt><dd>2,353,463</dd></div>
+            <div><dt>2000</dt><dd>2,382,528</dd></div>
+            <div><dt>2001</dt><dd>2,412,288</dd></div>
+            <div><dt>2002</dt><dd>2,441,771</dd></div>
+            <div><dt>2003</dt><dd>2,468,404</dd></div>
+            <div><dt>2004</dt><dd>2,496,522</dd></div>
+            <div><dt>2005</dt><dd>2,520,139</dd></div>
+            <div><dt>2006</dt><dd>2,544,464</dd></div>
+            <div><dt>2007</dt><dd>2,565,955</dd></div>
+            <div><dt>2008</dt><dd>2,585,211</dd></div>
+            <div><dt>2009</dt><dd>2,602,991</dd></div>
+            <div><dt>2010</dt><dd>2,615,721</dd></div>
+            <div><dt>2011</dt><dd>2,628,810</dd></div>
+            <div><dt>2012</dt><dd>2,641,039</dd></div>
+            <div><dt>2013</dt><dd>2,653,199</dd></div>
+            <div><dt>2014</dt><dd>2,663,534</dd></div>
+            <div><dt>2015</dt><dd>2,676,423</dd></div>
+            <div><dt>2016</dt><dd>2,688,177</dd></div>
+            <div><dt>2017</dt><dd>2,700,611</dd></div>
+            <div><dt>2018</dt><dd>2,711,953</dd></div>
+            <div><dt>2019</dt><dd>2,723,556</dd></div>
+            <div><dt>2020</dt><dd>2,736,010</dd></div>
+            <div><dt>2021</dt><dd>2,746,844</dd></div>
+            <div><dt>2022</dt><dd>2,760,790</dd></div>
+            <div><dt>2023</dt><dd>2,774,896</dd></div>
+            <div><dt>2024</dt><dd>2,787,214</dd></div>
+            <div><dt>2025</dt><dd>2,796,467</dd></div>
+            <div><dt>2026</dt><dd>2,804,200</dd></div>
+          </dl>
+          <p class="sn-chart-source">Source: Kawai America&rsquo;s <a href="https://kawaius.com/serial-number" target="_blank" rel="noopener">serial number lookup</a>. To 1987 it matches the table on <a href="https://www.kawai-global.com/support/faq/can-you-tell-me-how-old-my-kawai-acoustic-piano-is-or-when-it-was-produced/" target="_blank" rel="noopener">Kawai&rsquo;s head-office site</a>, which rounds its later figures. Kawai notes the numbers are approximate and that models weren&rsquo;t always numbered in order.</p>
+        </details>
+        <details class="sn-chart" id="chart-kawai-other">
+          <summary><span class="sn-chart-title">Made outside Japan<small>F or A joined to the front of the number</small></span><span class="sn-chart-toggle"><span class="is-shut">Show</span><span class="is-open">Hide</span></span></summary>
+          <p class="sn-chart-note">Kawai also builds pianos in Indonesia (serials starting with F), and built them in North Carolina, USA, from 1988 to 2004 (serials starting with A).</p>
+          <h4 class="sn-chart-sub">F &middot; Karawang, Indonesia</h4>
+          <dl class="sn-rows" data-chart="kawai-indonesia" data-maker="kawai" data-place="made in Indonesia" data-made="made in Indonesia">
+            <div><dt>2002</dt><dd>F000011</dd></div>
+            <div><dt>2003</dt><dd>F000121</dd></div>
+            <div><dt>2004</dt><dd>F002350</dd></div>
+            <div><dt>2005</dt><dd>F004997</dd></div>
+            <div><dt>2006</dt><dd>F010530</dd></div>
+            <div><dt>2007</dt><dd>F018472</dd></div>
+            <div><dt>2008</dt><dd>F030293</dd></div>
+            <div><dt>2009</dt><dd>F040329</dd></div>
+            <div><dt>2010</dt><dd>F048793</dd></div>
+            <div><dt>2011</dt><dd>F059268</dd></div>
+            <div><dt>2012</dt><dd>F069566</dd></div>
+            <div><dt>2013</dt><dd>F080819</dd></div>
+            <div><dt>2014</dt><dd>F091370</dd></div>
+            <div><dt>2015</dt><dd>F101577</dd></div>
+            <div><dt>2016</dt><dd>F112442</dd></div>
+            <div><dt>2017</dt><dd>F122845</dd></div>
+            <div><dt>2018</dt><dd>F133444</dd></div>
+            <div><dt>2019</dt><dd>F144492</dd></div>
+            <div><dt>2020</dt><dd>F155593</dd></div>
+            <div><dt>2021</dt><dd>F165047</dd></div>
+            <div><dt>2022</dt><dd>F177225</dd></div>
+            <div><dt>2023</dt><dd>F190983</dd></div>
+            <div><dt>2024</dt><dd>F201381</dd></div>
+            <div><dt>2025</dt><dd>F208916</dd></div>
+            <div><dt>2026</dt><dd>F217367</dd></div>
+          </dl>
+          <h4 class="sn-chart-sub">A &middot; Lincolnton, North Carolina, USA</h4>
+          <dl class="sn-rows" data-chart="kawai-usa" data-maker="kawai" data-place="made in the USA" data-made="made in America" data-closed>
+            <div><dt>1988</dt><dd>A6904</dd></div>
+            <div><dt>1989</dt><dd>A7500</dd></div>
+            <div><dt>1990</dt><dd>A10200</dd></div>
+            <div><dt>1991</dt><dd>A21300</dd></div>
+            <div><dt>1992</dt><dd>A30515</dd></div>
+            <div><dt>1993</dt><dd>A39267</dd></div>
+            <div><dt>1994</dt><dd>A49071</dd></div>
+            <div><dt>1995</dt><dd>A56689</dd></div>
+            <div><dt>1996</dt><dd>A64000</dd></div>
+            <div><dt>1997</dt><dd>A74000</dd></div>
+            <div><dt>1998</dt><dd>A81000</dd></div>
+            <div><dt>1999</dt><dd>A90000</dd></div>
+            <div><dt>2000</dt><dd>A96000</dd></div>
+            <div><dt>2001</dt><dd>A100000</dd></div>
+            <div><dt>2002</dt><dd>A104000</dd></div>
+            <div><dt>2003</dt><dd>A111000</dd></div>
+            <div><dt>2004</dt><dd>A115300</dd></div>
+          </dl>
+          <p class="sn-chart-source">Sources: Kawai America&rsquo;s <a href="https://kawaius.com/serial-number" target="_blank" rel="noopener">serial number lookup</a> (Indonesia) and <a href="https://www.kawai-global.com/support/faq/can-you-tell-me-how-old-my-kawai-acoustic-piano-is-or-when-it-was-produced/" target="_blank" rel="noopener">Kawai&rsquo;s head-office table</a> (USA).</p>
+        </details>
+        <details class="sn-chart" id="chart-kawai-runs">
+          <summary><span class="sn-chart-title">Smaller Japanese runs<small>S, E or C before the number, and two plain-number series</small></span><span class="sn-chart-toggle"><span class="is-shut">Show</span><span class="is-open">Hide</span></span></summary>
+          <p class="sn-chart-note">Kawai America&rsquo;s lookup also lists these shorter runs from Japan. Kawai doesn&rsquo;t say which models used them. The plain-number runs overlap the main chart, so when a number fits both we show both readings.</p>
+          <h4 class="sn-chart-sub">S</h4>
+          <dl class="sn-rows" data-chart="kawai-s" data-maker="kawai" data-place="made in Japan" data-made="made in Japan" data-closed>
+            <div><dt>1987</dt><dd>S128917</dd></div>
+            <div><dt>1988</dt><dd>S130034</dd></div>
+            <div><dt>1989</dt><dd>S130368</dd></div>
+            <div><dt>1990</dt><dd>S131758</dd></div>
+            <div><dt>1991</dt><dd>S132359</dd></div>
+            <div><dt>1992</dt><dd>S133215</dd></div>
+            <div><dt>1993</dt><dd>S133302</dd></div>
+            <div><dt>1994</dt><dd>S133447</dd></div>
+            <div><dt>1995</dt><dd>S133502</dd></div>
+            <div><dt>1996</dt><dd>S133529</dd></div>
+            <div><dt>1997</dt><dd>S133552</dd></div>
+          </dl>
+          <h4 class="sn-chart-sub">E</h4>
+          <dl class="sn-rows" data-chart="kawai-e" data-maker="kawai" data-place="made in Japan" data-made="made in Japan" data-closed>
+            <div><dt>1995</dt><dd>E10001</dd></div>
+            <div><dt>1996</dt><dd>E12764</dd></div>
+            <div><dt>1997</dt><dd>E13955</dd></div>
+            <div><dt>1998</dt><dd>E15241</dd></div>
+            <div><dt>1999</dt><dd>E16781</dd></div>
+            <div><dt>2000</dt><dd>E17023</dd></div>
+            <div><dt>2001</dt><dd>E17163</dd></div>
+            <div><dt>2002</dt><dd>E17313</dd></div>
+          </dl>
+          <h4 class="sn-chart-sub">C</h4>
+          <dl class="sn-rows" data-chart="kawai-c" data-maker="kawai" data-place="made in Japan" data-made="made in Japan" data-closed>
+            <div><dt>1999</dt><dd>C10001</dd></div>
+            <div><dt>2000</dt><dd>C10071</dd></div>
+            <div><dt>2001</dt><dd>C10511</dd></div>
+            <div><dt>2002</dt><dd>C10793</dd></div>
+            <div><dt>2003</dt><dd>C11127</dd></div>
+          </dl>
+          <h4 class="sn-chart-sub">Five-digit numbers, 1987 to 2008</h4>
+          <dl class="sn-rows" data-chart="kawai-japan-5" data-maker="kawai" data-place="made in Japan" data-made="made in Japan" data-closed>
+            <div><dt>1987</dt><dd>38,947</dd></div>
+            <div><dt>1988</dt><dd>39,977</dd></div>
+            <div><dt>1989</dt><dd>40,927</dd></div>
+            <div><dt>1990</dt><dd>41,997</dd></div>
+            <div><dt>1991</dt><dd>43,191</dd></div>
+            <div><dt>1992</dt><dd>44,161</dd></div>
+            <div><dt>1993</dt><dd>45,011</dd></div>
+            <div><dt>1994</dt><dd>45,751</dd></div>
+            <div><dt>1995</dt><dd>46,451</dd></div>
+            <div><dt>1996</dt><dd>47,092</dd></div>
+            <div><dt>1997</dt><dd>47,432</dd></div>
+            <div><dt>1998</dt><dd>47,875</dd></div>
+            <div><dt>1999</dt><dd>48,212</dd></div>
+            <div><dt>2000</dt><dd>48,497</dd></div>
+            <div><dt>2001</dt><dd>48,752</dd></div>
+            <div><dt>2002</dt><dd>48,992</dd></div>
+            <div><dt>2003</dt><dd>49,187</dd></div>
+            <div><dt>2004</dt><dd>49,228</dd></div>
+            <div><dt>2005</dt><dd>49,293</dd></div>
+            <div><dt>2006</dt><dd>49,303</dd></div>
+            <div><dt>2007</dt><dd>49,351</dd></div>
+            <div><dt>2008</dt><dd>49,377</dd></div>
+          </dl>
+          <h4 class="sn-chart-sub">Six-digit numbers, from 1987</h4>
+          <dl class="sn-rows" data-chart="kawai-japan-6" data-maker="kawai" data-place="made in Japan" data-made="made in Japan">
+            <div><dt>1987</dt><dd>104,726</dd></div>
+            <div><dt>1988</dt><dd>106,344</dd></div>
+            <div><dt>1989</dt><dd>108,237</dd></div>
+            <div><dt>1990</dt><dd>110,060</dd></div>
+            <div><dt>1991</dt><dd>112,168</dd></div>
+            <div><dt>1992</dt><dd>113,639</dd></div>
+            <div><dt>1993</dt><dd>115,347</dd></div>
+            <div><dt>1994</dt><dd>116,875</dd></div>
+            <div><dt>1995</dt><dd>118,139</dd></div>
+            <div><dt>1996</dt><dd>119,199</dd></div>
+            <div><dt>1997</dt><dd>119,940</dd></div>
+            <div><dt>1998</dt><dd>120,859</dd></div>
+            <div><dt>1999</dt><dd>121,557</dd></div>
+            <div><dt>2000</dt><dd>122,150</dd></div>
+            <div><dt>2001</dt><dd>122,641</dd></div>
+            <div><dt>2002</dt><dd>123,167</dd></div>
+            <div><dt>2003</dt><dd>123,566</dd></div>
+            <div><dt>2004</dt><dd>123,783</dd></div>
+            <div><dt>2005</dt><dd>124,025</dd></div>
+            <div><dt>2006</dt><dd>124,209</dd></div>
+            <div><dt>2007</dt><dd>124,524</dd></div>
+            <div><dt>2008</dt><dd>124,865</dd></div>
+            <div><dt>2009</dt><dd>125,081</dd></div>
+            <div><dt>2010</dt><dd>125,304</dd></div>
+            <div><dt>2011</dt><dd>125,510</dd></div>
+            <div><dt>2012</dt><dd>125,649</dd></div>
+            <div><dt>2013</dt><dd>125,808</dd></div>
+            <div><dt>2014</dt><dd>125,945</dd></div>
+            <div><dt>2015</dt><dd>126,062</dd></div>
+            <div><dt>2016</dt><dd>126,128</dd></div>
+            <div><dt>2017</dt><dd>126,189</dd></div>
+            <div><dt>2018</dt><dd>126,240</dd></div>
+            <div><dt>2019</dt><dd>126,261</dd></div>
+            <div><dt>2020</dt><dd>126,318</dd></div>
+            <div><dt>2021</dt><dd>126,345</dd></div>
+            <div><dt>2022</dt><dd>126,365</dd></div>
+            <div><dt>2023</dt><dd>126,403</dd></div>
+            <div><dt>2024</dt><dd>126,435</dd></div>
+            <div><dt>2025</dt><dd>126,445</dd></div>
+            <div><dt>2026</dt><dd>126,462</dd></div>
+          </dl>
+          <p class="sn-chart-source">Source: Kawai America&rsquo;s <a href="https://kawaius.com/serial-number" target="_blank" rel="noopener">serial number lookup</a>.</p>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §4 QUESTIONS ============ -->
+<section class="sn-faq" aria-labelledby="faqTitle">
+  <div class="sn-faq-inner">
+    <h2 class="sn-heading reveal" id="faqTitle">
+      <span class="sp-display">Good</span>
+      <span class="sp-script">questions</span>
+    </h2>
+    <div class="sn-faq-list reveal">
+      <details class="sn-faq-item">
+        <summary>How exact is the year? <i class="ti ti-plus" aria-hidden="true"></i></summary>
+        <div class="sn-faq-a"><p>Close, but not to the month. The charts give the first serial number of each year, and both makers say the real dates can vary either side, partly because different models were numbered in batches. Treat the answer as the year your piano was made, give or take a few months.</p><p>A piano can also sit in a warehouse or showroom for a while, so the year it was first sold may be a year or two later.</p></div>
+      </details>
+      <details class="sn-faq-item">
+        <summary>My serial number has a letter in it <i class="ti ti-plus" aria-hidden="true"></i></summary>
+        <div class="sn-faq-a"><p>On a Yamaha, a letter joined to the front of the number names the factory: J for Jakarta in Indonesia, H for Hangzhou in China, T or U for the United States and YT for Taiwan. A letter stamped with a gap before the number is usually part of the model name, and the piano was made in Japan.</p><p>On a Kawai, F means Indonesia and A means the United States. Kawai says to ignore any other letter at the start.</p><p>Type the number as you see it, gap and all, and the lookup will read it the right way.</p></div>
+      </details>
+      <details class="sn-faq-item">
+        <summary>Can the number tell me the model? <i class="ti ti-plus" aria-hidden="true"></i></summary>
+        <div class="sn-faq-a"><p>Not on its own. The model name, such as U1 or C3 on a Yamaha or K-300 on a Kawai, is usually stamped or printed beside the serial number.</p></div>
+      </details>
+      <details class="sn-faq-item">
+        <summary>Does the age of a piano matter? <i class="ti ti-plus" aria-hidden="true"></i></summary>
+        <div class="sn-faq-a"><p>Less than you might think. How a piano was looked after matters more than when it was made: a well-kept Japanese piano from the 1980s can play better than a neglected one from 2010.</p><p>Age tells a technician where to look, because hammers, strings and tuning pins wear with playing and with the weather. That&rsquo;s why every piano we sell is checked in our Melbourne workshop and comes with a 10-year warranty.</p></div>
+      </details>
+      <details class="sn-faq-item">
+        <summary>What if my piano isn&rsquo;t a Yamaha or Kawai? <i class="ti ti-plus" aria-hidden="true"></i></summary>
+        <div class="sn-faq-a"><p>Most makers kept serial records. The Pierce Piano Atlas collects them for thousands of brands, and a piano technician can usually date a piano from its number and case.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §5 NEXT STEP ============ -->
+<section class="sn-next" aria-labelledby="nextTitle">
+  <div class="sn-next-inner reveal">
+    <h2 class="sn-heading sn-heading--center" id="nextTitle">
+      <span class="sp-display">Hand-picked</span>
+      <span class="sp-script">in Japan</span>
+    </h2>
+    <p class="sn-body">Every pre-loved Yamaha and Kawai in our Mount Waverley showroom was chosen by hand in Japan and checked in our Melbourne workshop. Each comes with white-glove delivery, a 10-year warranty and its first tuning 3 to 4 weeks after it arrives.</p>
+    <div class="sn-next-actions">
+      <a class="sp-button" href="/services/book-a-viewing.html">Book a visit</a>
+      <a class="sn-textlink" href="/instruments/">See the pianos <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="sp-footer">
+  <div class="sp-footer-inner">
+    <a href="/" class="sp-footer-logo"><img src="/media/brand/logo-ink.svg" width="1542" height="592" alt="Signature Pianos"></a>
+    <p class="sp-footer-tagline">Pre-loved Japanese pianos, hand-picked in Japan and checked in Melbourne.</p>
+    <div class="sp-footer-links" role="navigation" aria-label="Footer">
+      <a href="/instruments/">Pianos</a>
+      <a href="/services/book-a-viewing.html">Book a visit</a>
+      <a href="/services/tuning-servicing.html">Tuning</a>
+      <a href="/services/delivery-warranty.html">Delivery &amp; warranty</a>
+      <a href="/teachers.html">Teachers</a>
+      <a href="/blog">Blog</a>
+      <a href="/about.html">About</a>
+    </div>
+    <address class="sp-footer-contact">
+      <span class="sp-line"><a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="tel:+61479128955">0479 128 955</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></span>
+    </address>
+    <div class="sp-footer-socials">
+      <a href="#" aria-label="Instagram"><i class="ti ti-brand-instagram" aria-hidden="true"></i></a>
+      <a href="#" aria-label="Facebook"><i class="ti ti-brand-facebook" aria-hidden="true"></i></a>
+    </div>
+  </div>
+  <div class="sp-footer-bottom">© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></div>
+</footer>
+
+<script>
+  /* -------- NAV: scrolled-state + dropdowns -------- */
+  (function setupNav() {
+    const nav = document.getElementById('nav');
+    if (nav) {
+      const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 60);
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    }
+    const items = document.querySelectorAll('.nav-item--dropdown');
+    const TRIGGER_SEL = '.nav-link-trigger, .nav-account-trigger';
+    const closeAll = (except) => {
+      items.forEach(it => {
+        if (it === except) return;
+        it.classList.remove('nav-item--open');
+        it.querySelector(TRIGGER_SEL)?.setAttribute('aria-expanded', 'false');
+      });
+    };
+    items.forEach(item => {
+      const trigger = item.querySelector(TRIGGER_SEL);
+      if (!trigger) return;
+      const open  = () => { item.classList.add('nav-item--open'); trigger.setAttribute('aria-expanded', 'true'); closeAll(item); };
+      const close = () => { item.classList.remove('nav-item--open'); trigger.setAttribute('aria-expanded', 'false'); };
+      item.addEventListener('mouseenter', open);
+      item.addEventListener('mouseleave', close);
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        item.classList.contains('nav-item--open') ? close() : open();
+      });
+      item.querySelectorAll('.nav-dd-item').forEach(link => link.addEventListener('click', close));
+    });
+    document.addEventListener('click', () => closeAll(null));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(null); });
+  })();
+
+  /* -------- REVEAL: IntersectionObserver fade-in -------- */
+  (function setupReveals() {
+    const targets = document.querySelectorAll('.reveal, .reveal-stagger');
+    if (!('IntersectionObserver' in window) || !targets.length) {
+      targets.forEach(t => t.classList.add('is-in'));
+      return;
+    }
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-in');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+    targets.forEach(t => obs.observe(t));
+  })();
+</script>
+
+<div class="sp-bottombar" role="navigation" aria-label="Quick contact">
+  <a href="tel:+61479128955"><i class="ti ti-phone" aria-hidden="true"></i>Call</a>
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener"><i class="ti ti-map-pin" aria-hidden="true"></i>Directions</a>
+  <a class="sp-bottombar-book" href="/services/book-a-viewing.html">Book a visit</a>
+</div>
+<script src="/js/signature-nav.js" defer></script>
+<script src="/js/signature-book.js" defer></script>
+<script src="/js/serial-lookup.js" defer></script>
+</body>
+</html>

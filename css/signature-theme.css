@@ -276,6 +276,13 @@ nav#nav .nav-links .nav-dropdown--teachers { width: min(600px, calc(100vw - 48px
 nav#nav .nav-links .nav-dropdown--services { width: min(680px, calc(100vw - 48px)); }
 .nav-dd-item { border-radius: 0; }
 .nav-dd-item:hover { background: var(--bg-2); }
+/* A tool, not a category: its own full-width row under a hairline */
+.nav-dropdown .nav-dd-item--wide {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  box-shadow: inset 0 1px 0 var(--border);
+  padding-top: 18px;
+}
 .nav-dd-icon { color: var(--ink-2); }
 .nav-dd-text h4 {
   font-family: var(--font-body);
@@ -993,7 +1000,8 @@ body.home .matcher,
 .tq-arch,
 .tp-piano,
 .bl-visit,
-.bl-inline-cta {
+.bl-inline-cta,
+.sn-arch {
   background-color: var(--sp-charcoal);
   color: var(--sp-on-charcoal);
   --ink: var(--sp-on-charcoal);
@@ -1088,9 +1096,11 @@ body.home .matcher .sp-match-photo.is-empty img { filter: brightness(0) invert(1
    photos stay white) */
 .nav-cta,
 .sp-bottombar a.sp-bottombar-book,
-.bl-empty .bl-button {
+.bl-empty .bl-button,
+.sn-next .sp-button {
   background: var(--sp-charcoal);
   border-color: var(--sp-charcoal);
 }
 .nav-cta:hover,
-.bl-empty .bl-button:hover { background: transparent; color: var(--sp-charcoal); }
+.bl-empty .bl-button:hover,
+.sn-next .sp-button:hover { background: transparent; color: var(--sp-charcoal); }

@@ -36,6 +36,7 @@ module.exports = async (req, res) => {
     `- [Book a visit](${SITE_URL}/services/book-a-viewing.html): Play the pianos in the Mount Waverley showroom.`,
     `- [Delivery and warranty](${SITE_URL}/services/delivery-warranty.html): White-glove delivery and the 10-year warranty.`,
     `- [Tuning and servicing](${SITE_URL}/services/tuning-servicing.html): Tuning and care for pianos across Melbourne.`,
+    `- [How old is my piano?](${SITE_URL}/serial-number-lookup.html): Yamaha and Kawai serial number lookup, from the makers' own charts.`,
     `- [Find a teacher](${SITE_URL}/teachers.html): Piano teachers across Melbourne, via TeachMusic.`,
     `- [About](${SITE_URL}/about.html): Who we are and how we help.`,
     `- [Blog](${SITE_URL}/blog): Buying advice and piano care from the showroom.`,
