@@ -957,3 +957,140 @@ html.sp-book-open body { overflow: hidden; }
   .sp-match { margin-top: 56px; }
   .sp-match-grid { grid-template-columns: 1fr; gap: 44px; }
 }
+
+/* ==========================================================================
+   Trial: dark charcoal in place of the Mist blues
+   --------------------------------------------------------------------------
+   Every Mist and Mist Light section (top bar, Book a visit card, the arches,
+   the home collection and piano finder, the teachers and blog bands) turns
+   charcoal with white type. Inside those sections the shared colour tokens
+   flip, so text, hairlines and buttons follow without page edits; the
+   filled buttons invert to a white fill with a charcoal label. Small Mist
+   tints (hover fills, slider tracks, image placeholders) go to Ivory Deep.
+   Delete this block to go back to the blue.
+   ========================================================================== */
+:root {
+  --sp-charcoal: #2B2D30;
+  --sp-charcoal-raised: #37393D;
+  --sp-on-charcoal: #FFFFFF;
+  --sp-on-charcoal-soft: #C9CBCE;
+  --sp-mist: var(--sp-charcoal);
+  --sp-mist-light: var(--sp-charcoal);
+  --bg-3: var(--sp-ivory-deep);
+}
+body.home {
+  --h-mist: var(--sp-charcoal);
+  --h-mist-2: var(--h-ivory-2);
+}
+
+.sp-topbar,
+.sp-book-card,
+body.home .h-arch-shape,
+body.home .h-collection,
+body.home .matcher,
+.td-arch,
+.td-more,
+.tq-arch,
+.tp-piano,
+.bl-visit,
+.bl-inline-cta {
+  background-color: var(--sp-charcoal);
+  color: var(--sp-on-charcoal);
+  --ink: var(--sp-on-charcoal);
+  --sp-ink: var(--sp-on-charcoal);
+  --h-ink: var(--sp-on-charcoal);
+  --text-1: var(--sp-on-charcoal);
+  --gold: var(--sp-on-charcoal);
+  --ink-2: var(--sp-on-charcoal-soft);
+  --sp-ink-soft: var(--sp-on-charcoal-soft);
+  --h-ink-2: var(--sp-on-charcoal-soft);
+  --text-2: var(--sp-on-charcoal-soft);
+  --text-3: var(--sp-on-charcoal-soft);
+  --gold-light: var(--sp-on-charcoal-soft);
+  --bg-1: var(--sp-charcoal);
+  --bg-2: var(--sp-charcoal-raised);
+  --bg-3: var(--sp-charcoal);
+  --ivory: var(--sp-charcoal);
+  --ivory-2: var(--sp-charcoal-raised);
+  --sp-ivory: var(--sp-charcoal);
+  --sp-ivory-deep: var(--sp-charcoal-raised);
+  --h-ivory: var(--sp-charcoal);
+  --h-ivory-2: var(--sp-charcoal-raised);
+  --felt: #D9A0A9;
+  --sp-felt: #D9A0A9;
+  --border: rgba(255, 255, 255, 0.18);
+  --border-hover: rgba(255, 255, 255, 0.45);
+  --sp-rule: rgba(255, 255, 255, 0.16);
+}
+
+/* Filled buttons: white fill, charcoal label; hover still fades to outline */
+body.home .matcher .btn-primary,
+.bl-visit .bl-button,
+.tq-arch .tq-next,
+.sp-book-send,
+.sp-book-chips input:checked + span,
+.tq-option input:checked + span { color: var(--sp-charcoal); }
+body.home .matcher .btn-primary:hover,
+.bl-visit .bl-button:hover,
+.tq-arch .tq-next:hover:not(:disabled),
+.sp-book-send:hover { color: var(--sp-on-charcoal); }
+.sp-book-done:hover { color: var(--sp-charcoal); }
+.tq-option input:checked + span small { color: #55585C; }
+
+/* Hairlines the pages draw in Ink */
+.sp-book-card::before { border-color: rgba(255, 255, 255, 0.16); }
+.sp-book-close:hover { background: rgba(255, 255, 255, 0.08); }
+.sp-book-rule { background: rgba(255, 255, 255, 0.22); }
+.sp-book-field input,
+.sp-book-field select,
+.sp-book-field textarea,
+.sp-book-chips span,
+.tq-option span { border-color: rgba(255, 255, 255, 0.4); }
+.sp-book-field input:focus,
+.sp-book-field select:focus,
+.sp-book-field textarea:focus,
+.sp-book-chips label:hover span,
+.sp-book-chips input:checked + span,
+.tq-option:hover span,
+.tq-option input:checked + span { border-color: var(--sp-on-charcoal); }
+.sp-book-field.is-invalid input,
+.sp-book-field.is-invalid select { border-bottom-color: var(--felt); }
+.sp-book-field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23FFFFFF' stroke-width='1.3'/%3E%3C/svg%3E");
+}
+.sp-book-field select option,
+body.home .matcher select option { background: var(--sp-charcoal); color: var(--sp-on-charcoal); }
+body.home .h-reasons li,
+.td-more-aside,
+.tq-arch .tm-card-body,
+.tq-after { border-top-color: rgba(255, 255, 255, 0.3); }
+body.home .h-card-all { border-color: rgba(255, 255, 255, 0.3); }
+body.home .matcher .step.active {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 60%), var(--sp-charcoal);
+}
+.tq-progress { background: rgba(255, 255, 255, 0.25); }
+.tq-field input[type="text"] { border-bottom-color: rgba(255, 255, 255, 0.5); }
+.tq-field input[type="text"]:focus { border-bottom-color: var(--sp-on-charcoal); }
+.tq-range::-webkit-slider-runnable-track {
+  background: linear-gradient(#FFFFFF, #FFFFFF) 0 0 / var(--fill, 50%) 100% no-repeat, rgba(255, 255, 255, 0.3);
+}
+.tq-range::-moz-range-track { background: rgba(255, 255, 255, 0.3); }
+.tq-arch .tm-card-photo { background: var(--sp-charcoal-raised); }
+
+/* The Ink monogram reads white on charcoal */
+.sp-book-seal img,
+body.home .matcher .sp-match-photo.is-empty img { filter: brightness(0) invert(1); }
+
+/* Map and photo placeholders: Ivory Deep, not charcoal */
+.td-map-wrap { background: var(--sp-ivory-deep); }
+
+/* The filled "Book a visit" buttons in charcoal too (the white ones over
+   photos stay white) */
+.nav-cta,
+.sp-bottombar a.sp-bottombar-book,
+.bl-empty .bl-button {
+  background: var(--sp-charcoal);
+  border-color: var(--sp-charcoal);
+}
+.nav-cta:hover,
+.bl-empty .bl-button:hover { background: transparent; color: var(--sp-charcoal); }

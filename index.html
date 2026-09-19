@@ -1162,7 +1162,7 @@
     left: clamp(24px, 8vw, 140px);
     bottom: 16vh;
     margin: 0;
-    max-width: 640px;
+    max-width: 760px;
   }
   .h-quote blockquote p {
     margin: 0;
@@ -1173,7 +1173,9 @@
     font-size: clamp(30px, 3.4vw, 50px);
     line-height: 1.12;
     text-transform: uppercase;
+    text-wrap: balance;
   }
+  .h-quote .h-nowrap { white-space: nowrap; }
   .h-quote blockquote footer { margin-top: 26px; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255, 255, 255, 0.82); }
 
   /* ============ 05 GRAND PIANOS ============ */
@@ -1713,7 +1715,7 @@
 <section class="h-concept" id="guide" data-chapter aria-labelledby="guideTitle">
   <div class="h-concept-pin">
     <p class="h-label h-concept-label">The Signature buyer's guide</p>
-    <h2 class="h-concept-statement" id="guideTitle">Choosing a pre-loved Japanese piano? Our free buyer's guide walks you through it, step by step.</h2>
+    <h2 class="h-concept-statement" id="guideTitle">Buying a pre-loved Japanese piano? Get our free guide.</h2>
     <div class="h-concept-form">
       <form class="playable-guide-form" id="playableGuideForm" novalidate>
         <div class="pg-row">
@@ -1740,7 +1742,7 @@
          alt="Inside a grand piano: the strings, red felt and polished wooden rim">
   </figure>
   <blockquote>
-    <p data-reveal="lines">Japan's finest pre-loved pianos used to reach Melbourne through a chain of dealers. I bring them here myself, so families pay for the piano, not the markup.</p>
+    <p data-reveal="lines">Hand-picked in Japan.<br>An heirloom for <span class="h-nowrap">your family.</span></p>
     <footer>Eric Kuang - Signature Pianos</footer>
   </blockquote>
 </section>
