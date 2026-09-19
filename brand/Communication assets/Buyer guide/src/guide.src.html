@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>The Yamaha Buyer's Guide · Signature Pianos</title>
+<style>
+@font-face{font-family:"Italianno";src:url("assets/Italianno-Regular.woff2")}
+@font-face{font-family:"Jost";src:url("assets/Jost-Light.woff2");font-weight:300}
+@font-face{font-family:"Jost";src:url("assets/Jost-Regular.woff2");font-weight:400}
+@font-face{font-family:"Jost";src:url("assets/Jost-Medium.woff2");font-weight:500}
+@font-face{font-family:"SP Display";src:url("assets/NotoSerifDisplay-ExtraCondensedRegular.woff2");font-weight:400}
+@font-face{font-family:"SP Display";src:url("assets/NotoSerifDisplay-ExtraCondensedMedium.woff2");font-weight:500}
+@page{size:210mm 297mm;margin:0}
+:root{--ink:#16222E;--ink2:#3A4855;--ivory:#F3F0E9;--ivory2:#E9E5DB;--mist:#BCCEDA;--mist2:#DCE6ED;--felt:#4A1520;--white:#FFFFFF;--rule:rgba(22,34,46,.16)}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#D9D5CB}
+body{font-family:"Jost","Helvetica Neue",Arial,sans-serif;color:var(--ink2);font-size:9.4pt;line-height:1.6;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-variant-numeric:tabular-nums}
+.page{position:relative;width:210mm;height:297mm;overflow:hidden;background:var(--ivory);padding:17mm 17mm 21mm;display:flex;flex-direction:column;page-break-after:always;margin:0 auto 6mm}
+.page:last-child{page-break-after:auto}
+@media print{html,body{background:none}.page{margin:0}}
+.page.mistp{background:var(--mist2)}
+.page.felt{background:var(--felt);color:var(--ivory)}
+.page.bleed{padding:0}
+/* the site's grammar: tracked label, condensed capitals crossed by a script word */
+.lbl{font-size:6.6pt;letter-spacing:.3em;text-transform:uppercase;color:var(--ink2);line-height:1}
+.felt .lbl{color:var(--ivory)}
+.hd{font-family:"SP Display",Didot,Georgia,serif;font-weight:500;text-transform:uppercase;font-size:40pt;line-height:.88;letter-spacing:-.005em;color:var(--ink);margin:6mm 0 0;text-wrap:balance}
+.hd .sc{display:block;font-family:"Italianno",cursive;font-weight:400;text-transform:none;letter-spacing:0;line-height:1;font-size:1.06em;margin:-.3em 0 0 1.2em;color:var(--ink)}
+.felt .hd,.felt .hd .sc{color:var(--ivory)}
+.lead{font-size:11.2pt;line-height:1.55;color:var(--ink);margin:5mm 0 0;max-width:150mm}
+.felt .lead{color:var(--ivory)}
+p{margin:0 0 2.6mm}
+.body{font-size:9.4pt;line-height:1.62}
+.cols2{columns:2;column-gap:8mm}
+.cols2 p{break-inside:avoid-column}
+h3{font-family:"SP Display",Georgia,serif;font-weight:500;text-transform:uppercase;font-size:15pt;line-height:.95;color:var(--ink);margin:0 0 2mm;letter-spacing:0}
+h4{font-family:"Jost";font-weight:500;font-size:9.6pt;color:var(--ink);margin:0 0 1.2mm}
+.k{display:block;font-size:6pt;letter-spacing:.3em;text-transform:uppercase;color:var(--ink2);margin-bottom:2.4mm;line-height:1}
+.felt .k{color:var(--ivory)}
+.ftr,.pno{position:absolute;bottom:9mm;font-size:5.8pt;letter-spacing:.3em;text-transform:uppercase;color:var(--ink2);line-height:1}
+.ftr{left:17mm}.pno{right:17mm}
+.felt .ftr,.felt .pno{color:var(--ivory)}
+.grow{flex:1;min-height:0}
+.grid{display:grid;gap:5mm}
+.panel{background:var(--white);padding:4.6mm 5mm}
+.panel.iv{background:var(--ivory2)}
+.panel.mi{background:var(--mist2)}
+.panel p{font-size:8.6pt;line-height:1.58}
+.rule{border-top:.25mm solid var(--rule);padding-top:3mm}
+.arch{border-radius:999px 999px 0 0;overflow:hidden}
+.arch img,.fill img{width:100%;height:100%;object-fit:cover;display:block}
+.fill{position:relative;overflow:hidden}
+.cap{font-size:7pt;line-height:1.5;color:var(--ink2);margin-top:1.8mm}
+.felt-rule{width:12mm;height:.6mm;background:var(--felt);margin:5mm 0}
+figure{margin:0}
+svg{display:block;width:100%;height:auto}
+/* facts strip: four big numbers */
+.facts{display:grid;grid-template-columns:repeat(4,1fr);border-top:.25mm solid var(--rule);border-bottom:.25mm solid var(--rule)}
+.facts div{padding:3mm 0 2.6mm}
+.facts div+div{border-left:.25mm solid var(--rule);padding-left:4mm}
+.facts b{display:block;font-family:"SP Display",Georgia,serif;font-weight:500;font-size:20pt;line-height:1;color:var(--ink)}
+.facts span{display:block;font-size:6pt;letter-spacing:.24em;text-transform:uppercase;margin-top:1.4mm}
+/* tables */
+table{border-collapse:collapse;width:100%}
+th,td{text-align:left;vertical-align:top;padding:1.7mm 2.6mm 1.7mm 0;border-bottom:.25mm solid var(--rule);font-size:8pt;line-height:1.45}
+th{font-weight:400;font-size:5.8pt;letter-spacing:.24em;text-transform:uppercase;color:var(--ink2);padding-bottom:1.4mm}
+td b{font-weight:500;color:var(--ink)}
+td.m{font-family:"SP Display",Georgia,serif;font-weight:500;font-size:11pt;line-height:1.05;color:var(--ink);white-space:nowrap}
+td.n{white-space:nowrap}
+.tag{display:inline-block;font-size:5.6pt;letter-spacing:.2em;text-transform:uppercase;border:.25mm solid currentColor;padding:.8mm 1.4mm .7mm;line-height:1;margin-left:1.5mm;vertical-align:1px}
+.tag.jp{color:var(--felt)}
+.note{font-size:7.2pt;line-height:1.5;color:var(--ink2)}
+.num{display:inline-flex;align-items:center;justify-content:center;width:4.6mm;height:4.6mm;border-radius:50%;background:var(--ink);color:#fff;font-size:6.4pt;font-weight:500;flex:none}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:1.6mm 6mm;font-size:8.2pt;line-height:1.35}
+.legend div{display:flex;gap:2.2mm;align-items:flex-start}
+.check li{margin:0 0 2mm;padding-left:0}
+ul{margin:0;padding-left:4mm}
+li{margin-bottom:1.4mm}
+</style>
+</head>
+<body>
+
+<!-- ================= COVER ================= -->
+<section class="page bleed" style="display:block">
+  <img src="assets/logo-ink.svg" alt="Signature Pianos" style="position:absolute;left:17mm;top:17mm;width:40mm">
+  <div class="lbl" style="position:absolute;right:17mm;top:22mm;text-align:right;line-height:1.9">The Signature buyer's guide<br>2026 edition</div>
+  <div class="arch" style="position:absolute;left:17mm;right:17mm;top:46mm;height:132mm"><img src="assets/unit-yu33.webp" alt="A pre-loved Yamaha YU33 upright, photographed in Japan before import" style="object-position:50% 40%"></div>
+  <div style="position:absolute;left:17mm;right:17mm;top:188mm">
+    <div class="hd" style="font-size:58pt;margin:0">Yamaha pianos<span class="sc" style="margin-left:1.3em">pre-loved</span></div>
+    <p class="lead" style="margin-top:6mm;max-width:140mm">Every Yamaha upright and grand you are likely to meet as a Japanese import, from 1970 to today: what each model is, what changed from one to the next, and which one suits your home.</p>
+  </div>
+  <div class="lbl" style="position:absolute;left:17mm;bottom:14mm">Hand-picked in Japan · Checked in Melbourne</div>
+</section>
+
+<!-- ================= CONTENTS ================= -->
+<section class="page">
+  <div class="lbl">Contents</div>
+  <div class="hd">Inside this guide<span class="sc">page by page</span></div>
+  <div id="toc" class="grow" style="columns:2;column-gap:10mm;margin-top:9mm"></div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= WELCOME ================= -->
+<section class="page" data-toc="A word before you start">
+  <div class="lbl">A word before you start</div>
+  <div class="hd">Why Japan<span class="sc">and why Yamaha</span></div>
+  <div class="grid grow" style="grid-template-columns:1.25fr 1fr;margin-top:8mm;gap:9mm">
+    <div class="body">
+      <p class="lead" style="margin:0 0 5mm">Most of the pianos in our showroom were made in Japan and spent years in Japanese homes before they came to us.</p>
+      <p>Japan fell in love with the piano in the 1970s and 1980s. By the late 1990s, a study of the industry estimated, Japanese homes owned six to seven million of them. Many were bought for children's lessons and kept in family living rooms for decades. Condition still varies from one piano to the next, which is why we check every one.</p>
+      <p>I choose each piano in Japan myself, have it photographed there before it ships, and bring it straight to Melbourne, where we check it again in our Mount Waverley workshop before it goes on the showroom floor. With no chain of dealers in between, you pay for the piano, not the markup.</p>
+      <p>This guide is what I would tell you across the showroom: which Yamaha is which, what changed from one model to the next, and how to choose the right one for the person who will play it and the room it will live in. Come and play any of them. That is still the best test there is.</p>
+      <p style="margin-top:6mm;font-family:Italianno;font-size:30pt;line-height:1;color:var(--ink)">Eric Kuang</p>
+      <p class="note" style="margin:0">Founder, Signature Pianos · 0479 128 955 · eric@signaturepianos.com.au</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5mm">
+      <div class="arch" style="flex:1;min-height:0"><img src="assets/detail-hammers.webp" alt="The hammers and strings inside a pre-loved Yamaha upright"></div>
+    </div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= HOW TO CHOOSE ================= -->
+<section class="page" data-toc="How to choose">
+  <div class="lbl">Start here</div>
+  <div class="hd">Four questions<span class="sc">before you look</span></div>
+  <p class="lead">Most people choose a piano by how it looks. The better way is to answer four questions first. The right model usually falls out of the answers.</p>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:7mm">
+    <div class="panel"><span class="k">1 · Who will play it?</span><h3>A beginner, a student, or you</h3><p>A child starting lessons needs an instrument that holds its tuning and has an even, responsive touch. A well-kept 121&nbsp;cm upright does that. A student working through the grades, or an adult coming back to the piano, will hear and feel the extra string length and soundboard of a 131&nbsp;cm upright. Serious students and teachers often end up at a grand.</p></div>
+    <div class="panel"><span class="k">2 · Where will it live?</span><h3>The room decides the size</h3><p>An upright wants an inside wall, away from windows, heaters and air-conditioning vents. It needs about 1.6&nbsp;m of wall and room in front for the stool. A grand needs its full length plus about 60&nbsp;cm behind the keys for the stool, and sounds best in a room larger than it is. Measure doorways and stairs as well as the room.</p></div>
+    <div class="panel"><span class="k">3 · Does it need to be quiet?</span><h3>Neighbours, babies, late practice</h3><p>Almost every Japanese upright has a middle pedal that drops a strip of felt in front of the strings and makes the piano much quieter. If that is not quiet enough, a Yamaha Silent piano lets you play through headphones and switch back to the acoustic sound whenever you like. See page <span data-ref="silent"></span>.</p></div>
+    <div class="panel"><span class="k">4 · What is the budget?</span><h3>Age, size and condition</h3><p>Three things set the price of a pre-loved Yamaha: the era it was built in, its size, and the condition it is in today. Two pianos of the same model can be far apart. Page <span data-ref="budget"></span> gives the ranges we see, so you can match a model to what you want to spend before you fall for one.</p></div>
+  </div>
+  <div style="margin-top:7mm"><span class="k">A quick match</span>
+    <table>
+      <tr><th>If this is you</th><th>Start with</th><th>Pages</th></tr>
+      <tr><td><b>A child starting lessons, or a smaller room</b></td><td>A 121 cm upright: U1A, U10A, U100, YU11, YUS1</td><td class="n"><span data-ref="u1"></span>, <span data-ref="yu11"></span></td></tr>
+      <tr><td><b>A student working through the grades</b></td><td>A 131 cm upright: U3, U30A, UX3, YU33, YUS3</td><td class="n"><span data-ref="u3"></span>, <span data-ref="yu11"></span></td></tr>
+      <tr><td><b>An advanced student or teacher</b></td><td>A top upright (UX50A, YU50, YUS5) or a grand (G3, C3)</td><td class="n"><span data-ref="top"></span>, <span data-ref="c3"></span></td></tr>
+      <tr><td><b>An apartment, or practice late at night</b></td><td>A Silent upright: YU11 or YU33 with SG2 or SH2, YUS with SH</td><td class="n"><span data-ref="silent"></span></td></tr>
+      <tr><td><b>A first grand, in a room about 4 m square</b></td><td>GB1K, GC1, G1, C1</td><td class="n"><span data-ref="small-grands"></span></td></tr>
+    </table>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= UPRIGHT OR GRAND ================= -->
+<section class="page" data-toc="Upright or grand?">
+  <div class="lbl">Start here</div>
+  <div class="hd">Upright or grand<span class="sc">what changes</span></div>
+  <p class="lead">Both have 88 keys, a cast-iron frame, steel strings and a spruce soundboard. The difference is which way everything faces, and what that does to the touch, the sound and the space it takes.</p>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:7mm;gap:8mm">
+    <figure><!--draw:u131--><p class="cap">An upright, front view. Strings run vertically behind the keys, so the piano stands against a wall.</p></figure>
+    <figure style="padding:0 6mm"><!--draw:grand-c3--><p class="cap">A grand from above. Strings run away from the player, so the piano needs floor space rather than wall.</p></figure>
+  </div>
+  <table style="margin-top:6mm">
+    <tr><th style="width:34mm"></th><th>Upright</th><th>Grand</th></tr>
+    <tr><td><b>Strings and soundboard</b></td><td>Vertical, facing the wall</td><td>Horizontal, facing the ceiling, with the lid to direct the sound</td></tr>
+    <tr><td><b>How the hammers return</b></td><td>A spring pulls each hammer back from the string</td><td>Gravity and a repetition lever reset the hammer, so a note can be repeated faster</td></tr>
+    <tr><td><b>Space</b></td><td>About 150–156 cm of wall, 61–66 cm deep</td><td>About 150 cm wide and 150–230 cm long, plus room to sit</td></tr>
+    <tr><td><b>Quiet options</b></td><td>Muffler pedal on most Japanese models; Silent systems</td><td>A hand-operated practice muffler on many Japanese grands; Silent systems on some</td></tr>
+    <tr><td><b>Who it suits</b></td><td>Most homes, beginners through to advanced students</td><td>Advanced students, teachers, performers, and rooms that can give it space</td></tr>
+  </table>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= ANATOMY ================= -->
+<section class="page" data-toc="Inside an upright">
+  <div class="lbl">Start here</div>
+  <div class="hd">Inside an upright<span class="sc">part by part</span></div>
+  <p class="lead">Knowing the names helps when you compare models, and when a technician tells you what a piano needs.</p>
+  <div class="grid grow" style="grid-template-columns:78mm 1fr;margin-top:6mm;gap:8mm;align-items:start">
+    <figure><!--draw:section--><p class="cap">An upright seen from the side, front to the right. The hammers are drawn in Hammer Felt, the colour our brand takes its accent from.</p></figure>
+    <div>
+      <div class="legend" style="grid-template-columns:1fr">
+        <div><span class="num">1</span><span><b style="font-weight:500;color:var(--ink)">Top lid</b> · lifts to open up the sound</span></div>
+        <div><span class="num">2</span><span><b style="font-weight:500;color:var(--ink)">Music desk</b> · holds the score</span></div>
+        <div><span class="num">3</span><span><b style="font-weight:500;color:var(--ink)">Fallboard</b> · the key cover, with the maker's name</span></div>
+        <div><span class="num">4</span><span><b style="font-weight:500;color:var(--ink)">Keys</b> · 88 levers, 52 white and 36 black</span></div>
+        <div><span class="num">5</span><span><b style="font-weight:500;color:var(--ink)">Key slip</b> · the rail in front of the keys</span></div>
+        <div><span class="num">6</span><span><b style="font-weight:500;color:var(--ink)">Action</b> · the mechanism that turns a key press into a hammer blow, dozens of small parts for every note</span></div>
+        <div><span class="num">7</span><span><b style="font-weight:500;color:var(--ink)">Hammers</b> · wooden cores covered in pressed wool felt</span></div>
+        <div><span class="num">8</span><span><b style="font-weight:500;color:var(--ink)">Dampers</b> · felt pads that stop each string when you let go</span></div>
+        <div><span class="num">9</span><span><b style="font-weight:500;color:var(--ink)">Strings</b> · about 220 of them, one to three per note</span></div>
+        <div><span class="num">10</span><span><b style="font-weight:500;color:var(--ink)">Tuning pins and pin block</b> · the pins a tuner turns, held in layers of hardwood</span></div>
+        <div><span class="num">11</span><span><b style="font-weight:500;color:var(--ink)">Iron frame</b> · cast iron that holds the combined pull of the strings, about 18 to 20 tonnes</span></div>
+        <div><span class="num">12</span><span><b style="font-weight:500;color:var(--ink)">Bridges</b> · carry each string's vibration into the soundboard</span></div>
+        <div><span class="num">13</span><span><b style="font-weight:500;color:var(--ink)">Soundboard</b> · a thin spruce panel that turns vibration into sound</span></div>
+        <div><span class="num">14</span><span><b style="font-weight:500;color:var(--ink)">Back posts</b> · the timber frame behind it all; Yamaha's X models brace it in an X</span></div>
+        <div><span class="num">15</span><span><b style="font-weight:500;color:var(--ink)">Pedals</b> · three on almost every Yamaha upright</span></div>
+        <div><span class="num">16</span><span><b style="font-weight:500;color:var(--ink)">Pedal rods</b> · carry each pedal up to the action</span></div>
+        <div><span class="num">17</span><span><b style="font-weight:500;color:var(--ink)">Lower panel</b> · lifts off for the tuner</span></div>
+        <div><span class="num">18</span><span><b style="font-weight:500;color:var(--ink)">Legs and toe blocks</b> · carry the front of the piano</span></div>
+        <div><span class="num">19</span><span><b style="font-weight:500;color:var(--ink)">Castors</b> · for moving it across a room, not between rooms</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= PEDALS ================= -->
+<section class="page" data-toc="The three pedals">
+  <div class="lbl">Start here</div>
+  <div class="hd">Three pedals<span class="sc">three jobs</span></div>
+  <p class="lead">Every Yamaha upright in this guide has three pedals. The right and left ones are always the same. The middle one is the one to ask about.</p>
+  <div class="grid grow" style="grid-template-columns:1fr 1fr;margin-top:7mm;gap:8mm">
+    <div class="arch"><img src="assets/detail-pedals.webp" alt="The three brass pedals of a Yamaha upright"></div>
+    <div style="display:flex;flex-direction:column;gap:4.4mm">
+      <div class="rule"><span class="k">Right</span><h3>Sustain</h3><p class="body">Also called the damper pedal. It lifts every damper off the strings, so notes keep ringing after you let go of the keys. It is the pedal you will use most.</p></div>
+      <div class="rule"><span class="k">Left</span><h3>Soft</h3><p class="body">On an upright it moves all the hammers closer to the strings, so they strike with less speed and the sound is softer. On a grand it shifts the whole action sideways instead.</p></div>
+      <div class="rule"><span class="k">Middle, on most models</span><h3>Muffler</h3><p class="body">Also called the practice pedal. It lowers a strip of felt between the hammers and the strings and makes the piano much quieter. Most Japanese uprights have it, and it can be locked on for evening practice.</p></div>
+      <div class="rule"><span class="k">Middle, on some models</span><h3>Sostenuto</h3><p class="body">Holds up the dampers of only the notes you are playing when you press it, so those notes ring on while the rest of the piano plays normally. Most Yamaha grands have one, though many Japanese grands from the 1970s to the mid-1980s have only two pedals. Some premium uprights have one too (marked in the model pages).</p></div>
+    </div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= NAMES AND SERIALS ================= -->
+<section class="page" data-toc="Reading the name and serial" data-anchor="serials">
+  <div class="lbl">Start here</div>
+  <div class="hd">The name<span class="sc">and the number</span></div>
+  <p class="lead">Every Yamaha has its model name and serial number stamped on the gold iron frame, at the upper right, where you can see them with the top lid open. Between them they tell you what the piano is and roughly when it was made.</p>
+  <div class="grid grow" style="grid-template-columns:1.25fr 1fr;margin-top:7mm;gap:8mm">
+    <div>
+      <span class="k">Reading the model name</span>
+      <table>
+        <tr><td class="m" style="width:24mm">U</td><td>The upright line.</td></tr>
+        <tr><td class="m">1 · 2 · 3 · 5</td><td>Size and grade: 1 is 121&nbsp;cm, 2 is 127&nbsp;cm, 3 is 131&nbsp;cm, and 5 is the top 131&nbsp;cm model.</td></tr>
+        <tr><td class="m">F G H M A</td><td>The generation, not the grade. A U1H is not better than a U1M, just older. Yamaha used A twice: in the 1950s, and from 1982 to 1987.</td></tr>
+        <tr><td class="m">10 · 100</td><td>Later generations: 10, 30 and 50 from 1987 to 1994, then 100, 300 and 500 until 1997.</td></tr>
+        <tr><td class="m">Bl Wn Tk MhC</td><td>The finish: black, walnut, teak, and Chippendale cabinets (C) in mahogany, walnut or birch.</td></tr>
+        <tr><td class="m">X</td><td>An X-type back post, on the higher-grade UX models (page <span data-ref="ux"></span>).</td></tr>
+        <tr><td class="m">YUA YUX YUS</td><td>X-series models from 1978 to 1982.</td></tr>
+        <tr><td class="m">YU · YUS1</td><td>Japanese-market names from 1997, and the higher-grade YUS from 2006.</td></tr>
+        <tr><td class="m">J · Q</td><td>Codes on new pianos in Australian shops: J for Indonesian-built, Q for the Japan-built export U1 and U3.</td></tr>
+        <tr><td class="m">S SX SG SH</td><td>A Silent piano. See page <span data-ref="silent"></span>.</td></tr>
+      </table>
+    </div>
+    <div>
+      <span class="k">Serial number to year</span>
+      <table>
+        <tr><th>Year</th><th>First serial</th><th>Year</th><th>First serial</th></tr>
+        <tr><td><b>1970</b></td><td>c. 1,000,000</td><td><b>1999</b></td><td>5,810,000</td></tr>
+        <tr><td><b>1972</b></td><td>1,340,000</td><td><b>2000</b></td><td>5,860,000</td></tr>
+        <tr><td><b>1974</b></td><td>1,740,000</td><td><b>2001</b></td><td>5,920,000</td></tr>
+        <tr><td><b>1976</b></td><td>2,150,000</td><td><b>2002</b></td><td>5,970,000</td></tr>
+        <tr><td><b>1978</b></td><td>2,570,000</td><td><b>2003</b></td><td>6,020,000</td></tr>
+        <tr><td><b>1980</b></td><td>3,030,000</td><td><b>2004</b></td><td>6,060,000</td></tr>
+        <tr><td><b>1982</b></td><td>3,480,000</td><td><b>2005</b></td><td>6,100,000</td></tr>
+        <tr><td><b>1984</b></td><td>3,890,000</td><td><b>2006</b></td><td>6,150,000</td></tr>
+        <tr><td><b>1986</b></td><td>4,210,000</td><td><b>2008</b></td><td>6,220,000</td></tr>
+        <tr><td><b>1988</b></td><td>4,560,000</td><td><b>2010</b></td><td>6,280,000</td></tr>
+        <tr><td><b>1990</b></td><td>4,820,000</td><td><b>2012</b></td><td>6,340,000</td></tr>
+        <tr><td><b>1992</b></td><td>5,080,000</td><td><b>2014</b></td><td>6,380,000</td></tr>
+        <tr><td><b>1994</b></td><td>5,300,000</td><td><b>2016</b></td><td>6,420,000</td></tr>
+        <tr><td><b>1996</b></td><td>5,460,000</td><td><b>2018</b></td><td>6,460,000</td></tr>
+        <tr><td><b>1997</b></td><td>5,520,000</td><td><b>2020</b></td><td>6,500,000</td></tr>
+        <tr><td><b>1998</b></td><td>5,590,000</td><td><b>2025</b></td><td>6,600,000</td></tr>
+      </table>
+      <p class="note" style="margin-top:3mm">The first serial number of each year for Japan-built Yamaha pianos, uprights and grands together, from Yamaha Japan. Yamaha notes the year boundaries can shift a little, so read the result as "about". The 1970 figure is estimated from Yamaha's model records. Example: serial 3,500,000 was made in about 1982.</p>
+    </div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= FAMILY TREE ================= -->
+<section class="page" data-toc="Fifty years of uprights" data-anchor="heights">
+  <div class="lbl">Uprights · 1970 to today</div>
+  <div class="hd">Fifty years<span class="sc">at a glance</span></div>
+  <p class="lead" style="max-width:none">Every model in the U, UX, YU and YUS families, placed by the months Yamaha built it. Read down a lane to follow one size through the decades.</p>
+  <figure class="grow" style="margin-top:5mm;min-height:0"><!--draw:family--></figure>
+  <p class="cap" style="margin-top:2mm">Shaded: the YU and YUS names used in Japan from August 1997. Lanes group models by size. The YU10 and YU30 were higher-grade models: in 2006 their place passed to the YUS1 and YUS3, while the YU11 and YU33 took the standard line. Not shown: the 127 cm U2 (1972–1987) and UX2 (1983–1988), and the U1E and U3E, which ended in March 1970. Source: Yamaha Japan's model list.</p>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+
+<!-- ================= VINTAGE OPENER ================= -->
+<section class="page mistp" data-toc="Uprights, 1970 to 1997">
+  <div class="lbl">Uprights · 1970 to 1997</div>
+  <div class="hd" style="font-size:52pt">The classic Yamaha<span class="sc">made for Japan</span></div>
+  <p class="lead">The pianos that made Yamaha's name: the U1 and U3 through their long run of generations, and the X-series models that sat above them. Built in Japan for Japanese homes, they are among the Yamahas most often imported to Australia today.</p>
+  <div class="grid grow" style="grid-template-columns:1fr 1fr;margin-top:8mm;gap:8mm">
+    <div class="arch"><img src="assets/unit-u3h.webp" alt="A pre-loved Yamaha U3H, photographed in Japan before import" style="object-position:40% 50%"></div>
+    <div style="display:flex;flex-direction:column;gap:4mm">
+      <div class="rule"><span class="k">121 cm</span><h3>The U1</h3><p class="body">U1F to U100. The compact Yamaha.</p></div>
+      <div class="rule"><span class="k">131 cm</span><h3>The U3</h3><p class="body">U3F to U300. The one most people picture.</p></div>
+      <div class="rule"><span class="k">121 and 131 cm</span><h3>The X series</h3><p class="body">UX, UX1, UX3 and their successors: a higher grade with an X-braced back.</p></div>
+      <div class="rule"><span class="k">131 cm</span><h3>Top of the range</h3><p class="body">UX5 to UX500, and the YUA before them: agraffes, a grand-style music desk and, from the UX5, a sostenuto pedal.</p></div>
+      <div class="panel" style="margin-top:auto"><span class="k">Why the dimensions differ</span><p>Listings often quote today's U1 and U3 figures (153&nbsp;cm wide, 228 and 246&nbsp;kg) for older pianos. The older U1s are narrower and lighter (about 150&nbsp;cm wide, 210–220&nbsp;kg); the U3H, U3M and U3A are about 154&nbsp;cm wide and 240–248&nbsp;kg. The figures on these pages are for the model itself.</p></div>
+    </div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= U1 LINE ================= -->
+<section class="page" data-toc="The U1, 1970 to 1997" data-anchor="u1">
+  <div class="lbl">Uprights · 1970 to 1997 · 121 cm</div>
+  <div class="hd">The U1<span class="sc">the compact classic</span></div>
+  <p class="lead">The 121&nbsp;cm Yamaha, made in one generation after another until Yamaha renamed it the YU1 for Japan in 1997. Every model here has three pedals; from the U1H on, the middle one is a muffler.</p>
+  <div class="facts" style="margin-top:6mm"><div><b>1970–1997</b><span>Built</span></div><div><b>121</b><span>Height, cm</span></div><div><b>150</b><span>Width, cm</span></div><div><b>210–220</b><span>Weight, kg</span></div></div>
+  <table style="margin-top:6mm">
+    <tr><th>Model</th><th>Built</th><th>Serials, about</th><th>What to know</th></tr>
+    <tr><td class="m">U1F</td><td class="n">Mar 1970 – Mar 1971</td><td class="n">1.00 – 1.20 million</td><td>Made in black, Queensland walnut or sapele.</td></tr>
+    <tr><td class="m">U1G</td><td class="n">Mar 1971 – May 1972</td><td class="n">1.20 – 1.40 million</td><td>A short generation of about a year.</td></tr>
+    <tr><td class="m">U1H</td><td class="n">May 1972 – Sep 1980</td><td class="n">1.40 – 3.20 million</td><td>The longest-running U1, made for eight years. Early ones came in black, walnut or sapele; black only from about serial 2,000,000.</td></tr>
+    <tr><td class="m">U1M</td><td class="n">Sep 1980 – Dec 1982</td><td class="n">3.20 – 3.65 million</td><td>A two-year generation between the U1H and the U1A.</td></tr>
+    <tr><td class="m">U1A</td><td class="n">Dec 1982 – Mar 1987</td><td class="n">3.65 – 4.43 million</td><td>A long-seller, in Yamaha's own words.</td></tr>
+    <tr><td class="m">U10Bl</td><td class="n">Apr 1987 – Sep 1989</td><td class="n">4.43 – 4.80 million</td><td>The new naming: 10 for the model, Bl for black. Also made in walnut (U10Wn), teak (U10Tk) and Chippendale cabinets.</td></tr>
+    <tr><td class="m">U10A</td><td class="n">Oct 1989 – Mar 1994</td><td class="n">4.80 – 5.30 million</td><td>Yamaha's "standard 121 cm model" of its day. Wood-grain versions were renamed W1AWn and W1ABiC.</td></tr>
+    <tr><td class="m">U100</td><td class="n">Mar 1994 – Aug 1997</td><td class="n">5.32 – 5.55 million</td><td>The last U1 made for Japan. A factory Silent version, the U100SX, was made from 1995.</td></tr>
+  </table>
+  <div class="grid grow" style="grid-template-columns:50mm 1fr 1fr;margin-top:6mm;gap:6mm;align-items:start">
+    <figure><!--draw:u1-vintage--><p class="cap">About 121 × 150 × 61 cm.</p></figure>
+    <div class="panel"><span class="k">Who it suits</span><p>Beginners, home practice, and any room where 121&nbsp;cm fits better than 131. A well-kept U1 from the 1980s or 1990s is a sensible first real piano for a child who has started lessons.</p></div>
+    <div class="panel iv"><span class="k">Good to know</span><p>The U1H and U1A are the ones most often seen. A U1H is at least 46 years old now, so its condition matters more than its model letter. Ask what has been replaced.</p></div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= U3 LINE ================= -->
+<section class="page" data-toc="The U3, 1970 to 1997" data-anchor="u3">
+  <div class="lbl">Uprights · 1970 to 1997 · 131 cm</div>
+  <div class="hd">The U3<span class="sc">the one everyone knows</span></div>
+  <p class="lead">The 131&nbsp;cm U3 is the piano most people picture when they hear "Yamaha upright". The extra ten centimetres buy longer bass strings and a larger soundboard, and with them a fuller bass.</p>
+  <div class="facts" style="margin-top:6mm"><div><b>1970–1997</b><span>Built</span></div><div><b>131</b><span>Height, cm</span></div><div><b>153–154</b><span>Width, cm</span></div><div><b>235–248</b><span>Weight, kg</span></div></div>
+  <div class="grid grow" style="grid-template-columns:1.55fr 1fr;margin-top:6mm;gap:7mm">
+    <div>
+      <table>
+        <tr><th>Model</th><th>Built</th><th>Serials, about</th><th>What to know</th></tr>
+        <tr><td class="m">U3F</td><td class="n">Mar 1970 – Mar 1971</td><td class="n">1.00 – 1.20 m</td><td>The start of the 1970s.</td></tr>
+        <tr><td class="m">U3G</td><td class="n">Mar 1971 – Apr 1972</td><td class="n">1.20 – 1.40 m</td><td>A one-year generation.</td></tr>
+        <tr><td class="m">U3H</td><td class="n">Apr 1972 – Sep 1980</td><td class="n">1.40 – 3.20 m</td><td>The longest-running U3. About 131 × 154 × 65 cm and 248 kg.</td></tr>
+        <tr><td class="m">U3M</td><td class="n">Sep 1980 – Dec 1982</td><td class="n">3.20 – 3.65 m</td><td>Hammers made for the model, underfelted.</td></tr>
+        <tr><td class="m">U3A</td><td class="n">Dec 1982 – Feb 1987</td><td class="n">3.65 – 4.43 m</td><td>About 242 kg.</td></tr>
+        <tr><td class="m">U30Bl</td><td class="n">Apr 1987 – Sep 1989</td><td class="n">4.43 – 4.75 m</td><td>The new naming, and a slightly narrower cabinet at 153 cm. Also in walnut, sapele, rosewood and Chippendale cabinets.</td></tr>
+        <tr><td class="m">U30A</td><td class="n">Oct 1989 – Mar 1994</td><td class="n">4.75 – 5.30 m</td><td>All 88 hammers underfelted. The first factory Silent U3, the U30AS, from late 1993.</td></tr>
+        <tr><td class="m">U300</td><td class="n">Mar 1994 – Aug 1997</td><td class="n">5.32 – 5.55 m</td><td>The last U3 made for Japan, with a slightly larger music desk. Silent versions U300S and U300SX.</td></tr>
+      </table>
+    </div>
+    <figure style="display:flex;flex-direction:column"><div class="arch" style="flex:1;min-height:0"><img src="assets/unit-u3h.webp" alt="A pre-loved Yamaha U3H" style="object-position:35% 50%"></div><p class="cap">A U3H photographed in Japan before import.</p></figure>
+  </div>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:6mm">
+    <div class="panel"><span class="k">Who it suits</span><p>From the first lesson to the final grades. If the room allows 131&nbsp;cm and the budget allows a U3, it is the one to try first.</p></div>
+    <div class="panel iv"><span class="k">Good to know</span><p>From the U3H on, the middle pedal is a muffler. In between the U1 and U3, Yamaha also made a 127&nbsp;cm U2 (U2H, U2M and U2A, 1972 to 1987). "m" in the serial column means millions.</p></div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= X SERIES 131 ================= -->
+<section class="page" data-toc="The X series, 131 cm" data-anchor="ux">
+  <div class="lbl">Uprights · 1975 to 1997 · 131 cm, higher grade</div>
+  <div class="hd">The X series<span class="sc">a braced back</span></div>
+  <p class="lead">From 1975 Yamaha built a higher grade alongside the U models. Behind the soundboard, the timber back posts are arranged in an X instead of running straight up and down. The X models also gained a tone escape, and later agraffes and a large grand-style music desk.</p>
+  <div class="grid grow" style="grid-template-columns:1.55fr 1fr;margin-top:6mm;gap:7mm;align-items:start">
+    <table>
+      <tr><th>Model</th><th>Built</th><th>What to know</th></tr>
+      <tr><td class="m">UX</td><td class="n">May 1975 – Sep 1980</td><td>The first X back post. About 250 kg.</td></tr>
+      <tr><td class="m">YUX</td><td class="n">Sep 1980 – Dec 1982</td><td>The UX's successor, with a tone escape in the upper front panel and underfelted hammers.</td></tr>
+      <tr><td class="m">UX3</td><td class="n">Dec 1982 – Mar 1988</td><td>Tone escape through slits either side of the upper front panel.</td></tr>
+      <tr><td class="m">UX30Bl</td><td class="n">Apr 1988 – Mar 1990</td><td>Gains the large grand-style music desk, with a tone escape behind it.</td></tr>
+      <tr><td class="m">UX30A</td><td class="n">Apr 1990 – Mar 1994</td><td>Adds agraffes in the tenor and bass, an aliquot (extra resonating strings) in the treble, an overhanging bass bridge and walnut hammer mouldings. About 245 kg.</td></tr>
+      <tr><td class="m">UX300</td><td class="n">Mar 1994 – Aug 1997</td><td>Agraffes, large music desk with tone escape, mahogany trim. The last 131 cm X model. About 250 kg.</td></tr>
+    </table>
+    <figure style="display:flex;flex-direction:column;align-self:stretch"><div class="arch" style="flex:1;min-height:0"><img src="assets/unit-ux30a.webp" alt="A pre-loved Yamaha UX30A" style="object-position:45% 50%"></div><p class="cap">A UX30A photographed in Japan before import.</p></figure>
+  </div>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:6mm">
+    <div class="panel"><span class="k">Who it suits</span><p>Players who want more resonance, and more of the sound coming straight towards them, than a U3 of the same years. All are 131 × 153–154 × 65&nbsp;cm.</p></div>
+    <div class="panel iv"><span class="k">Good to know</span><p>The UX3 and UX300 have the muffler pedal in the middle, and the UX30A almost certainly does too. Japanese dealers often replace the bass strings on X models from about 1978 to 1983 when they recondition them, so ask whether that has been done.</p></div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= X SERIES 121 ================= -->
+<section class="page" data-toc="The X series, 121 cm" data-anchor="ux121">
+  <div class="lbl">Uprights · 1980 to 1997 · 121 cm, higher grade</div>
+  <div class="hd">The compact X<span class="sc">higher grade, 121 cm</span></div>
+  <p class="lead">The X-series ideas in the 121&nbsp;cm size: the braced back, a tone escape, and from 1990 the large grand-style music desk, unusual on a piano this size.</p>
+  <table style="margin-top:6mm">
+    <tr><th>Model</th><th>Built</th><th>Size and weight</th><th>What to know</th></tr>
+    <tr><td class="m">YUS</td><td class="n">Sep 1980 – Dec 1982</td><td class="n">121 × 150 × 61 cm · 218 kg</td><td>The first 121 cm X model, with a tone escape and underfelted hammers. Not related to the YUS1 of 2006.</td></tr>
+    <tr><td class="m">UX1</td><td class="n">Dec 1982 – Mar 1988</td><td class="n">121 × 150 × 61 cm · 219 kg</td><td>Slit tone escape, underfelted hammers. Yamaha notes it was popular with intermediate and advanced players.</td></tr>
+    <tr><td class="m">UX10Bl</td><td class="n">Apr 1988 – Mar 1990</td><td class="n">121 × 151 × 62 cm · about 225 kg</td><td>Tone escape.</td></tr>
+    <tr><td class="m">UX10A</td><td class="n">Apr 1990 – Mar 1994</td><td class="n">121 × 151 × 62 cm · about 230 kg</td><td>The large grand-style music desk arrives on the 121 cm size.</td></tr>
+    <tr><td class="m">UX100</td><td class="n">Mar 1994 – Aug 1997</td><td class="n">121 × 151 × 62 cm · about 232 kg</td><td>Large music desk with tone escape and mahogany-effect trim. The last 121 cm X model.</td></tr>
+  </table>
+  <div class="grid grow" style="grid-template-columns:50mm 1fr 1fr;margin-top:7mm;gap:6mm;align-items:start">
+    <figure><!--draw:u1-vintage--><p class="cap">The 121 cm X models share the U1's height.</p></figure>
+    <div class="panel"><span class="k">Who it suits</span><p>A student or adult who wants the higher grade but has a room, or a budget, for 121&nbsp;cm. Heard side by side with a U1 of the same year, the difference is in the sound more than the size.</p></div>
+    <div class="panel iv"><span class="k">Good to know</span><p>A 127&nbsp;cm UX2 was also made, from 1983 to 1988. Wood-grain versions include the UX10Wn and WX1AWn. A listing that says just "YUS" is this 1980–1982 model, not a modern YUS1.</p></div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= TOP OF THE RANGE ================= -->
+<section class="page" data-toc="Top of the range, 1978 to 1997" data-anchor="top">
+  <div class="lbl">Uprights · 1978 to 1997 · 131 cm, top of the range</div>
+  <div class="hd">Top of the range<span class="sc">grand ideas</span></div>
+  <p class="lead">The best upright Yamaha made in each generation, borrowing from its grands: agraffes in the tenor and bass, a large music desk that lets the sound out and, from the UX5, a sostenuto pedal in the middle, with the muffler moved to a hand lever.</p>
+  <div class="facts" style="margin-top:6mm"><div><b>1978–1997</b><span>Built</span></div><div><b>131</b><span>Height, cm</span></div><div><b>153–156</b><span>Width, cm</span></div><div><b>245–270</b><span>Weight, kg</span></div></div>
+  <table style="margin-top:6mm">
+    <tr><th>Model</th><th>Built</th><th>What to know</th></tr>
+    <tr><td class="m">YUA</td><td class="n">Sep 1978 – Dec 1982</td><td>The top upright of its time: X back post, agraffes, an aliquot in the treble, an overhanging bass bridge and a large music desk with tone escape. About 247 kg. Muffler on a hand lever. Sources disagree on the middle pedal (sostenuto, or a bass-only sustain), so try it.</td></tr>
+    <tr><td class="m">UX5</td><td class="n">Dec 1982 – Mar 1988</td><td>Sostenuto middle pedal, agraffes in the tenor and bass, and a music desk that slides forward to open a tone escape. About 249 kg.</td></tr>
+    <tr><td class="m">UX50Bl</td><td class="n">Apr 1988 – Mar 1990</td><td>The same features with the large music desk and tone escape.</td></tr>
+    <tr><td class="m">UX50A</td><td class="n">Apr 1990 – Mar 1994</td><td>A larger cabinet, 156 × 66 cm, about 265 kg. The top model of its generation.</td></tr>
+    <tr><td class="m">UX500</td><td class="n">Mar 1994 – Aug 1997</td><td>The last of the line, with mahogany side panels. About 270 kg. Followed in 1997 by the YU5 (page <span data-ref="yu5"></span>).</td></tr>
+  </table>
+  <div class="grid" style="grid-template-columns:50mm 1fr 1fr;margin-top:7mm;gap:6mm;align-items:start">
+    <figure><!--draw:u131-wide--><p class="cap">The UX50A at about 131 × 156 × 66 cm.</p></figure>
+    <div class="panel"><span class="k">Who it suits</span><p>Advanced students and teachers who want grand-piano features in an upright, and repertoire that uses the sostenuto pedal.</p></div>
+    <div class="panel iv"><span class="k">Good to know</span><p>Because the middle pedal is a sostenuto, the practice muffler is a hand lever rather than a pedal. Ask to be shown how it works. Wood-grain versions include the UX50WnC and UX500WnC.</p></div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+
+<!-- ================= MODERN UPRIGHTS OPENER ================= -->
+<section class="page mistp" data-toc="Uprights, 1997 to today">
+  <div class="lbl">Uprights · 1997 to today</div>
+  <div class="hd" style="font-size:52pt">The modern Yamaha<span class="sc">a new name</span></div>
+  <p class="lead">In August 1997 Yamaha stopped selling the U1 and U3 in Japan and gave its Japanese uprights new names. Outside Japan, Yamaha kept selling Japan-built U1 and U3 export models. So a modern Yamaha that comes to us from Japan is almost always a YU or a YUS.</p>
+  <div class="grid grow" style="grid-template-columns:1fr 1fr;margin-top:8mm;gap:8mm">
+    <div class="arch"><img src="assets/unit-yus5-walnut.webp" alt="A pre-loved Yamaha YUS5 in walnut, photographed in Japan before import" style="object-position:50% 45%"></div>
+    <div style="display:flex;flex-direction:column;gap:4mm">
+      <div class="rule"><span class="k">1997 to 2001</span><h3>YU1 · YU3 · YU5</h3><p class="body">The first YU models. They take over from the U100, the U300 and the X series.</p></div>
+      <div class="rule"><span class="k">2001 to 2006</span><h3>YU10 · YU30 · YU50</h3><p class="body">A tone escape on every model, and more finishes, including walnut and Chippendale cabinets.</p></div>
+      <div class="rule"><span class="k">2006 to today</span><h3>YU11 · YU33</h3><p class="body">The Japanese-market U1 and U3, still made at Yamaha's Kakegawa factory.</p></div>
+      <div class="rule"><span class="k">2006 to today</span><h3>YUS1 · YUS3 · YUS5</h3><p class="body">The higher grade, sold in Japan and around the world, including new in Australia.</p></div>
+      <div class="panel" style="margin-top:auto"><span class="k">What about the U1Q and U3Q?</span><p>You will see these names in Australian shops selling new pianos. They are distributors' stock codes for the U1 and U3 made in Japan for export (the "Q" versions), as against the Indonesian-made U1J. Yamaha's own pages simply call them the U1 and U3. The Japanese-market equivalents are the YU11 and YU33.</p></div>
+    </div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= YU1 YU3 YU5 ================= -->
+<section class="page" data-toc="YU1, YU3 and YU5" data-anchor="yu5">
+  <div class="lbl">Uprights · 1997 to 2001 · Made for Japan</div>
+  <div class="hd">YU1 · YU3 · YU5<span class="sc">the first YU</span></div>
+  <p class="lead">The YU1 and YU3 took over from the U100 and U300 in 1997. The YU5 took the place at the top of the range that the X-series uprights had held until that year.</p>
+  <div class="facts" style="margin-top:6mm"><div><b>1997–2001</b><span>Built</span></div><div><b>121 · 131</b><span>Height, cm</span></div><div><b>153</b><span>Width, cm</span></div><div><b>228–241</b><span>Weight, kg</span></div></div>
+  <div style="margin-top:6mm">
+    <table>
+      <tr><th>Model</th><th>Built</th><th>Size</th><th>What sets it apart</th></tr>
+      <tr><td class="m">YU1</td><td class="n">Aug 1997 – Jul 2001</td><td class="n">121 cm · 228 kg</td><td>The 121 cm model, following the U100. Underfelted hammers (a second layer of felt under the outer one) throughout.</td></tr>
+      <tr><td class="m">YU3</td><td class="n">Sep 1997 – Jul 2001</td><td class="n">131 cm · 235 kg</td><td>The 131 cm model. Followed by the YU30 in 2001, and in 2006 by two models: the YU33 and the higher-grade YUS3.</td></tr>
+      <tr><td class="m">YU5</td><td class="n">Aug 1997 – Jul 2001</td><td class="n">131 cm · 241 kg</td><td>The top model. Agraffes (brass string guides, as on a grand) in the bass and middle, grand-type hammer felt, and a pull-out music desk that opens a path for the sound.</td></tr>
+    </table>
+  </div>
+  <figure style="margin:6mm auto 0;width:118mm"><!--draw:lineup-yu--><p class="cap" style="text-align:center">The two heights at one scale. The extra 10&nbsp;cm buys longer bass strings and a larger soundboard.</p></figure>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:6mm">
+    <div class="panel"><span class="k">Who it suits</span><p>Anyone who wants a Japan-made Yamaha from the late 1990s with the modern YU touch. The YU1 suits a beginner or a small room; the YU3 and YU5 give a student the longer strings and bigger soundboard of a 131&nbsp;cm piano.</p></div>
+    <div class="panel iv"><span class="k">Good to know</span><p>All three have the muffler pedal in the middle. Silent versions exist: YU1S and YU3S (1997–1999, the first generation) and YU1SZ, YU3SZ and YU5SZ (1999–2001). Serial numbers run from about 5,550,000 to 5,950,000.</p></div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= YU10 YU30 YU50 ================= -->
+<section class="page" data-toc="YU10, YU30 and YU50" data-anchor="yu10">
+  <div class="lbl">Uprights · 2001 to 2006 · Made for Japan</div>
+  <div class="hd">YU10 · YU30 · YU50<span class="sc">the tone-escape years</span></div>
+  <p class="lead">From August 2001 to September 2006. The YU10 and YU30 have a tone escape (an opening in the cabinet that lets more sound out towards the player) and a soft-landing fallboard, and Japanese dealers rank all three alongside today's higher-grade YUS.</p>
+  <table style="margin-top:6mm">
+    <tr><th>Model</th><th>Size</th><th>Weight</th><th>What sets it apart</th></tr>
+    <tr><td class="m">YU10</td><td class="n">121 × 152 × 61 cm</td><td class="n">234 kg</td><td>Underfelted hammers, tone escape, soft-landing fallboard. The 121 cm model, and the one with the most versions (below).</td></tr>
+    <tr><td class="m">YU30</td><td class="n">131 × 152 × 65 cm</td><td class="n">242 kg</td><td>The 131 cm model, with the same features. Limited editions: YU30LE (2002), YU30BM (2002–04) and YU30CE (2004–05), with mahogany trim or upgraded keytops.</td></tr>
+    <tr><td class="m">YU50</td><td class="n">131 × 152 × 65 cm</td><td class="n">249 kg</td><td>The top grade: white keytops in Yamaha's "New Ivory 2", natural-wood black keys, agraffes in the middle and bass, grand-type hammers and a large music desk. The YUS5's predecessor. Its middle pedal is a muffler, not a sostenuto.</td></tr>
+  </table>
+  <div style="margin-top:6mm"><span class="k">Every YU10, from Yamaha's own list</span></div>
+  <table>
+    <tr><th>Name</th><th>Built</th><th>What it is</th></tr>
+    <tr><td class="m">YU10</td><td class="n">Aug 2001 – Sep 2006</td><td>Polished black</td></tr>
+    <tr><td class="m">YU10Wn</td><td class="n">Aug 2001 – Sep 2006</td><td>American walnut</td></tr>
+    <tr><td class="m">YU10WnC</td><td class="n">Aug 2001 – Jul 2006</td><td>Walnut in a Chippendale cabinet, with curved (cabriole) legs</td></tr>
+    <tr><td class="m">YU10MhC</td><td class="n">Aug 2001 – Sep 2006</td><td>Mahogany in a Chippendale cabinet</td></tr>
+    <tr><td class="m">YU10SB</td><td class="n">Aug 2001 – Sep 2006</td><td>Factory Silent piano (SB generation), about 238 kg. Also made as YU10Wn-SB and YU10WnC-SB.</td></tr>
+    <tr><td class="m">YU10SEB</td><td class="n">Aug 2001 – Sep 2006</td><td>"Silent Ensemble": Silent, plus recording and playback. Also in walnut, mahogany, bright ivory and white. <b>Recalled, see below.</b></td></tr>
+  </table>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:6mm">
+    <div class="panel"><span class="k">Who it suits</span><p>Families who want the extra features of a higher-grade Yamaha without the price of a recent YUS. The YU10 in walnut or a Chippendale cabinet also suits a room where the piano is part of the furniture.</p></div>
+    <div class="panel iv" style="border-left:.8mm solid var(--felt)"><span class="k" style="color:var(--felt)">Recall · Silent Ensemble</span><p>In 2009 Yamaha recalled its Silent Ensemble uprights (YU10SEB, YU30SEB, YU50SEB, YUS1–5SEB and related models) with serial numbers 6,095,681 to 6,264,935, because a part in the soft-pedal control could smoke or catch fire. Yamaha replaced the part free. On any SEB piano, check the serial and ask whether the part has been replaced.</p></div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= YU11 YU33 ================= -->
+<section class="page" data-toc="YU11 and YU33" data-anchor="yu11">
+  <div class="lbl">Uprights · 2006 to today · Made for Japan</div>
+  <div class="hd">YU11 · YU33<span class="sc">the modern U1 and U3</span></div>
+  <p class="lead">Yamaha Japan describes the YU11 as the 121&nbsp;cm model of its long-established U series. Put simply, the YU11 and YU33 are the Japanese-market U1 and U3, built at Kakegawa from September 2006 and still in production.</p>
+  <div class="facts" style="margin-top:6mm"><div><b>2006–</b><span>Built</span></div><div><b>121 · 131</b><span>Height, cm</span></div><div><b>153</b><span>Width, cm</span></div><div><b>228 · 246</b><span>Weight, kg</span></div></div>
+  <div class="grid grow" style="grid-template-columns:1fr 1.15fr;margin-top:6mm;gap:8mm">
+    <figure style="display:flex;flex-direction:column"><div class="arch" style="flex:1;min-height:0"><img src="assets/unit-yu33.webp" alt="A pre-loved Yamaha YU33, photographed in Japan before import" style="object-position:50% 45%"></div><p class="cap">A YU33 photographed in Japan before import.</p></figure>
+    <div style="display:flex;flex-direction:column;gap:4mm">
+      <table>
+        <tr><th>Model</th><th>Size</th><th>What sets it apart</th></tr>
+        <tr><td class="m">YU11</td><td class="n">121 cm · 228 kg</td><td>Underfelted hammers, soft-landing fallboard, muffler pedal.</td></tr>
+        <tr><td class="m">YU33</td><td class="n">131 cm · 246 kg</td><td>The same size and weight as the export U3. Five back posts, underfelted hammers with two kinds of felt in the treble, nickel-plated tuning pins and a larger music desk.</td></tr>
+        <tr><td class="m">YU11W<br>YU33W</td><td class="n">2006 – 2010</td><td>Wood-grain (walnut) versions.</td></tr>
+      </table>
+      <div class="panel"><span class="k">Who it suits</span><p>The YU33 is the modern equivalent of the piano Yamaha is best known for, and a sound choice for any student from the first lesson to the final grades. The YU11 does the same job where the room or the budget calls for 121&nbsp;cm.</p></div>
+      <div class="panel iv"><span class="k">Good to know</span><p>No tone escape, lid prop or fallboard lock: those are the extras you pay for in a YUS. Yamaha itself notes that thick music books can be hard to rest on the YU11's music desk. Silent versions: SD (2006–2012), SG (2008–2012), SG2 (2013–2018), SH2 (2018–2021) and today's SH3.</p></div>
+    </div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= YUS ================= -->
+<section class="page" data-toc="YUS1, YUS3 and YUS5">
+  <div class="lbl">Uprights · 2006 to today · Japan and export</div>
+  <div class="hd">YUS1 · YUS3 · YUS5<span class="sc">the higher grade</span></div>
+  <p class="lead">In 2006 the YUS took the YU10, YU30 and YU50's place at the top of the range. They are still made today, in Japan and for export, and are sold new in Australia.</p>
+  <div class="facts" style="margin-top:6mm"><div><b>2006–</b><span>Built</span></div><div><b>121 · 131</b><span>Height, cm</span></div><div><b>152</b><span>Width, cm</span></div><div><b>229–253</b><span>Weight, kg</span></div></div>
+  <table style="margin-top:6mm">
+    <tr><th>Model</th><th>Size</th><th>Middle pedal</th><th>What sets it apart</th></tr>
+    <tr><td class="m">YUS1</td><td class="n">121 × 152 × 62 cm · 229 kg</td><td class="n">Muffler</td><td>Tone escape at the lower front panel and behind the fallboard, lid prop, fallboard lock, soft-landing fallboard.</td></tr>
+    <tr><td class="m">YUS3</td><td class="n">131 × 152 × 65 cm · 247 kg</td><td class="n">Muffler</td><td>The same features at 131 cm.</td></tr>
+    <tr><td class="m">YUS5</td><td class="n">131 × 152 × 65 cm · 253 kg</td><td class="n">Sostenuto</td><td>Ivorite white keytops and natural-wood black keys. The music desk opens forward, with tone escapes in the upper and lower front panels.</td></tr>
+  </table>
+  <div class="grid grow" style="grid-template-columns:1fr 1fr;margin-top:6mm;gap:8mm">
+    <div style="display:flex;flex-direction:column;gap:4mm">
+      <div class="panel"><span class="k">What the extra grade buys</span><p>Yamaha has skilled technicians voice each YUS. For the current YUS1 and YUS3 it describes the hammer felt and strings as equivalent to those of its CFX concert grand. The exact materials have changed since 2006, so ask about the year of the piano in front of you.</p></div>
+      <div class="panel"><span class="k">Who it suits</span><p>Advanced students, teachers and adults who want the most from an upright before moving to a grand. The YUS5's sostenuto pedal matters for exam and recital repertoire that asks for it.</p></div>
+      <div class="panel iv" style="border-left:.8mm solid var(--felt)"><span class="k" style="color:var(--felt)">A name to watch</span><p>An unrelated Yamaha called simply "YUS" was built from 1980 to 1982, part of the X series (page <span data-ref="ux121"></span>). A listing that says "YUS" without a 1, 3 or 5 is that older piano.</p></div>
+    </div>
+    <figure style="display:flex;flex-direction:column"><div class="arch" style="flex:1;min-height:0"><img src="assets/unit-yus5-walnut.webp" alt="A pre-loved Yamaha YUS5 in walnut" style="object-position:50% 45%"></div><p class="cap">A YUS5 in American walnut, photographed in Japan before import. Finishes include polished black, walnut (Wn) and mahogany Chippendale (MhC).</p></figure>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= SILENT ================= -->
+<section class="page" data-toc="Silent pianos" data-anchor="silent">
+  <div class="lbl">Uprights · Silent and hybrid</div>
+  <div class="hd">Silent pianos<span class="sc">play at midnight</span></div>
+  <p class="lead">Since 1993 Yamaha has made acoustic pianos that can go quiet. Press the middle pedal (a lever on some models) and a rail stops the hammers just short of the strings, sensors read every key, and you hear a sampled Yamaha grand through headphones. Release it and it is an ordinary acoustic piano again.</p>
+  <div class="grid grow" style="grid-template-columns:1.2fr 1fr;margin-top:7mm;gap:8mm">
+    <div>
+      <span class="k">Reading the letters after the model name</span>
+      <table>
+        <tr><th>Letters</th><th>Built</th><th>What it is</th></tr>
+        <tr><td class="m">S</td><td class="n">1993 – 1999</td><td>The first Silent pianos</td></tr>
+        <tr><td class="m">SX · SZ</td><td class="n">1995 – 2001</td><td>Silent, later versions</td></tr>
+        <tr><td class="m">SB</td><td class="n">2001 – 2006</td><td>Silent, on the YU10, YU30 and YU50</td></tr>
+        <tr><td class="m">SD · SG</td><td class="n">2006 – 2012</td><td>Silent, standard (SD) and higher grade (SG)</td></tr>
+        <tr><td class="m">SG2</td><td class="n">2013 – 2018</td><td>Sampled from Yamaha's CFIIIS concert grand</td></tr>
+        <tr><td class="m">SH</td><td class="n">2013 – 2018</td><td>Sampled from the CFX concert grand, recorded binaurally for headphones</td></tr>
+        <tr><td class="m">SH2 · SC2</td><td class="n">2018 – 2021</td><td>CFX and Bösendorfer Imperial samples</td></tr>
+        <tr><td class="m">SH3 · SC3</td><td class="n">2022 –</td><td>The current generation</td></tr>
+        <tr><td class="m">SXG · SEB</td><td class="n">1997 – 2008</td><td>Silent Ensemble: Silent plus recording and playback</td></tr>
+        <tr><td class="m">DKV · ENST</td><td class="n">2009 –</td><td>Disklavier: the piano plays itself</td></tr>
+        <tr><td class="m">TA</td><td class="n">2015 –</td><td>TransAcoustic: the soundboard becomes the speaker, so digital sounds come from the piano itself</td></tr>
+      </table>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4mm">
+      <div class="panel"><span class="k">Who it suits</span><p>Apartments, shared walls, shift workers, and anyone who practises when the house is asleep. Headphones also let a beginner practise without an audience.</p></div>
+      <div class="panel iv"><span class="k">Good to know</span><p>On a Silent piano the middle pedal usually becomes the silent control, so there is no separate muffler felt. Japanese mains power is 100 volts, so the silent unit's power supply needs to be checked or changed for Australia's 230 volts. Each generation uses newer samples, so the later the letters, the better the headphone piano generally sounds.</p></div>
+      <div class="panel iv" style="border-left:.8mm solid var(--felt)"><span class="k" style="color:var(--felt)">Recall</span><p>Silent Ensemble (SEB) pianos with serial numbers 6,095,681 to 6,264,935 were recalled by Yamaha in 2009 because a part could smoke or catch fire. See page <span data-ref="yu10"></span>.</p></div>
+    </div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= GRANDS OPENER ================= -->
+<section class="page mistp" data-toc="Grand pianos">
+  <div class="lbl">Grands · 1970 to today</div>
+  <div class="hd" style="font-size:52pt">Grand pianos<span class="sc">pre-loved</span></div>
+  <p class="lead">A grand is the step many students and teachers are working towards: an action that repeats notes faster, a soundboard that faces the room, and a lid to shape the sound. These are the Yamaha grands you are likely to meet as Japanese imports.</p>
+  <div class="grid grow" style="grid-template-columns:1fr 1fr;margin-top:8mm;gap:8mm">
+    <div class="arch"><img src="assets/grand-c3x.webp" alt="A pre-loved Yamaha C3X grand in polished ebony, lid open" style="object-position:50% 60%"></div>
+    <div style="display:flex;flex-direction:column;gap:4mm">
+      <div class="rule"><span class="k">1971 to 1994</span><h3>The G series</h3><p class="body">G1, G2, G3 and G5: Yamaha's grands for the home.</p></div>
+      <div class="rule"><span class="k">1967 to 2012</span><h3>The C series</h3><p class="body">C1 to C7, and above all the C3: the conservatory grands.</p></div>
+      <div class="rule"><span class="k">2012 to today</span><h3>The CX series</h3><p class="body">The C series rebuilt with what Yamaha learned from its CFX concert grand.</p></div>
+      <div class="rule"><span class="k">1993 to today</span><h3>Smaller grands</h3><p class="body">A1, GB1K, GC1 and GC2, for rooms that can't take a C3.</p></div>
+      <div class="panel" style="margin-top:auto"><span class="k">The number is the size</span><p>Japanese dealers group grands by the number in the name: 1 is about 161&nbsp;cm long, 2 is 169–173&nbsp;cm, 3 is 183–186&nbsp;cm, 5 is 200&nbsp;cm, 6 is 212&nbsp;cm and 7 is 223–227&nbsp;cm. So a G3 and a C3 are close in size; the letter tells you the series.</p></div>
+    </div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= GRAND SIZES AND ROOMS ================= -->
+<section class="page" data-toc="Grand sizes and your room" data-anchor="grand-sizes">
+  <div class="lbl">Grands · Size and room</div>
+  <div class="hd">Size and room<span class="sc">measure twice</span></div>
+  <p class="lead">A grand's length is measured from the front of the keys to the tail. More length means longer strings and a larger soundboard, so more power and a fuller bass. It also means more floor.</p>
+  <figure style="margin-top:6mm"><!--draw:grand-lineup--><p class="cap">Yamaha grands drawn to one scale, seen from above with the keyboard at the bottom. The GB1K is 146&nbsp;cm wide, the C1 to C5 149&nbsp;cm, and the C6 and C7 154–155&nbsp;cm.</p></figure>
+  <div class="grid grow" style="grid-template-columns:1.1fr 1fr;margin-top:6mm;gap:8mm;align-items:start">
+    <div>
+      <span class="k">Yamaha's rule of thumb for the room</span>
+      <table>
+        <tr><th>Grand</th><th>Length</th><th>Walls add up to</th><th>About a square room of</th></tr>
+        <tr><td class="m">GB1K</td><td>151 cm</td><td>15.1 m</td><td>3.8 × 3.8 m</td></tr>
+        <tr><td class="m">C1 · G1</td><td>161 cm</td><td>16.1 m</td><td>4.0 × 4.0 m</td></tr>
+        <tr><td class="m">C2 · G2</td><td>173 cm</td><td>17.3 m</td><td>4.3 × 4.3 m</td></tr>
+        <tr><td class="m">G3</td><td>183 cm</td><td>18.3 m</td><td>4.6 × 4.6 m</td></tr>
+        <tr><td class="m">C3</td><td>186 cm</td><td>18.6 m</td><td>4.7 × 4.7 m</td></tr>
+        <tr><td class="m">C5</td><td>200 cm</td><td>20.0 m</td><td>5.0 × 5.0 m</td></tr>
+        <tr><td class="m">C7</td><td>227 cm</td><td>22.7 m</td><td>5.7 × 5.7 m</td></tr>
+      </table>
+      <p class="note" style="margin-top:2.4mm">Yamaha suggests the room's walls should add up to at least ten times the piano's length, with about 60&nbsp;cm behind the keys for the stool.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4mm">
+      <div class="panel"><span class="k">Floors</span><p>Grands weigh from about 260&nbsp;kg to 415&nbsp;kg on three legs. On a ground floor that is rarely a concern. For an upper floor or an older suspended timber floor, ask a builder or engineer first.</p></div>
+      <div class="panel"><span class="k">Getting it in</span><p>The legs and pedal lyre come off and the body travels on its side on a piano board. Measure doorways, corridors and turns, and tell us about stairs before delivery day.</p></div>
+      <div class="panel iv"><span class="k">Where it goes</span><p>Away from direct sun, air-conditioning vents, bathrooms and in-floor heating, with the curved side and the open lid facing into the room.</p></div>
+    </div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= G SERIES ================= -->
+<section class="page" data-toc="The G series, 1971 to 1994">
+  <div class="lbl">Grands · 1971 to 1994 · Made for Japan</div>
+  <div class="hd">The G series<span class="sc">the home grand</span></div>
+  <p class="lead">From 1971 to 1994 the G series was Yamaha's grand for the home, sold below the C series. Japanese dealers describe its tone as softer, and the C's as brighter and clearer. In 1994 the new C1 and C2 took over the G's sizes.</p>
+  <div class="facts" style="margin-top:6mm"><div><b>1971–1994</b><span>Built</span></div><div><b>161–200</b><span>Length, cm</span></div><div><b>148–149</b><span>Width, cm</span></div><div><b>290–340</b><span>Weight, kg</span></div></div>
+  <table style="margin-top:6mm">
+    <tr><th>Model</th><th>Built</th><th>Length · weight</th><th>What to know</th></tr>
+    <tr><td class="m">G1B · G1E</td><td class="n">Apr 1988 – Sep 1994</td><td class="n">161 cm · 290 kg</td><td>Three pedals with sostenuto, and on Japanese examples a hand-operated practice muffler. Older G1s were made for export.</td></tr>
+    <tr><td class="m">G2E</td><td class="n">Jan 1971 – Sep 1985</td><td class="n">169 cm · 300 kg</td><td>Usually two pedals, without sostenuto.</td></tr>
+    <tr><td class="m">G2A · G2B</td><td class="n">Sep 1985 – Sep 1990</td><td class="n">not confirmed</td><td>The G2 had grown from 169 to 173 cm by 1990; the exact point is not confirmed.</td></tr>
+    <tr><td class="m">G2E</td><td class="n">Oct 1990 – Sep 1994</td><td class="n">173 cm · 300 kg</td><td>Three pedals with sostenuto; hand muffler. Also made in a Chippendale cabinet.</td></tr>
+    <tr><td class="m">G3E</td><td class="n">Jan 1971 – Sep 1985</td><td class="n">183 cm · 310–315 kg</td><td>Usually two pedals.</td></tr>
+    <tr><td class="m">G3A · G3B</td><td class="n">Sep 1985 – Sep 1990</td><td class="n">about 183 cm</td><td>The generations between.</td></tr>
+    <tr><td class="m">G3E</td><td class="n">Oct 1990 – Sep 1994</td><td class="n">183 cm · 315 kg</td><td>Three pedals; practice muffler as standard.</td></tr>
+    <tr><td class="m">G5E</td><td class="n">Jan 1971 – Sep 1985</td><td class="n">200 cm · 340 kg</td><td>A 1976 example has two pedals.</td></tr>
+    <tr><td class="m">G5A · G5B</td><td class="n">Sep 1985 – Sep 1990</td><td class="n">not confirmed</td><td>The generations between.</td></tr>
+    <tr><td class="m">G5E</td><td class="n">Oct 1990 – Sep 1994</td><td class="n">200 cm · 340 kg</td><td>A 1991 example has three pedals.</td></tr>
+  </table>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:6mm">
+    <div class="panel"><span class="k">Who it suits</span><p>A family home and a student's practice, where a grand's touch matters more than a concert sound. A G2 suits a smaller living room; a G3 wants a room of about 4.6&nbsp;m square.</p></div>
+    <div class="panel iv" style="border-left:.8mm solid var(--felt)"><span class="k" style="color:var(--felt)">The same name twice</span><p>Yamaha used the letter E twice: a G2E, G3E or G5E can be from 1971–1985 or from 1990–1994, and they differ (often two pedals against three). Always date a grand by its serial number. There was no G7 made for Japan after 1967.</p></div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= C3 ================= -->
+<section class="page" data-toc="The C3, generation by generation" data-anchor="c3">
+  <div class="lbl">Grands · 1967 to 2012 · 183–186 cm</div>
+  <div class="hd">The C3<span class="sc">the conservatory grand</span></div>
+  <p class="lead">Launched in 1967, the same year as Yamaha's CF concert grand. No other Yamaha grand has been made in as many generations, and the changes between them are worth knowing.</p>
+  <table style="margin-top:6mm">
+    <tr><th>Model</th><th>Built</th><th>What changed</th></tr>
+    <tr><td class="m">C3</td><td class="n">Jul 1967 – Dec 1970</td><td>The first C3, 183 cm long.</td></tr>
+    <tr><td class="m">C3B</td><td class="n">Jan 1971 – Sep 1979</td><td>183 cm, about 315 kg.</td></tr>
+    <tr><td class="m">C3</td><td class="n">Oct 1979 – Jan 1985</td><td>Now 186 cm and 320 kg, the size it has kept since. A 1980 example has only two pedals, so check.</td></tr>
+    <tr><td class="m">C3A</td><td class="n">Jan 1985 – Aug 1988</td><td>A 1986 example has three pedals.</td></tr>
+    <tr><td class="m">C3B</td><td class="n">Sep 1988 – Sep 1990</td><td>A short generation.</td></tr>
+    <tr><td class="m">C3E</td><td class="n">Oct 1990 – Sep 1994</td><td>Revised materials, according to Japanese dealers.</td></tr>
+    <tr><td class="m">C3</td><td class="n">Oct 1994 – Sep 1999</td><td>Launched alongside the new C1, C2 and C6.</td></tr>
+    <tr><td class="m">C3L</td><td class="n">Oct 1999 – Jun 2007</td><td>Yamaha revised the bass strings, stiffened the treble hammer shanks and set the long bridge on a maple and mahogany base, as on its concert grand. Adds a lid-prop stopper, a soft-close fallboard and "New Ivory" keytops.</td></tr>
+    <tr><td class="m">C3LA</td><td class="n">Oct 2003 – Jun 2007</td><td>Soundboard spruce and string wire from the same sources as Yamaha's S series.</td></tr>
+    <tr><td class="m">C3</td><td class="n">Jun 2007 – Aug 2012</td><td>Ivorite keytops, the curved music desk of the S series, three lid-prop positions, a key lock.</td></tr>
+    <tr><td class="m">C3A</td><td class="n">Jun 2007 – May 2008</td><td>The Artistic Edition, made for a year, with S-grade soundboard and wire and hand-wound bass strings.</td></tr>
+    <tr><td class="m">C3XA</td><td class="n">Sep 2008 – Jul 2012</td><td>Soundboard, ribs and back posts re-specified, and new string wire. Followed by the C3X.</td></tr>
+  </table>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:6mm">
+    <div class="panel"><span class="k">Who it suits</span><p>Serious students, teachers and performers, and homes with a room of about 4.7&nbsp;m square or more. From 1979 the C3 is 186 × 149 × 101&nbsp;cm and about 320&nbsp;kg.</p></div>
+    <div class="panel iv" style="border-left:.8mm solid var(--felt)"><span class="k" style="color:var(--felt)">Letters used twice</span><p>C3B means 1971–1979 or 1988–1990. C3A means 1985–1988 or 2007–2008. A plain C3 was sold in four separate periods. The serial number is the only reliable way to date one.</p></div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= C1 TO C7 ================= -->
+<section class="page" data-toc="C1 to C7">
+  <div class="lbl">Grands · 1967 to 2012 · The other C sizes</div>
+  <div class="hd">C1 to C7<span class="sc">one family, five sizes</span></div>
+  <p class="lead">The C3's design in every size from 161 to 227&nbsp;cm. The suffixes follow the same pattern as the C3, so a C5L or C7LA belongs to the same generation as a C3L or C3LA.</p>
+  <table style="margin-top:6mm">
+    <tr><th>Size</th><th>Generations</th><th>Length × width</th><th>Weight</th><th>What to know</th></tr>
+    <tr><td class="m">C1</td><td>C1 1994–99 · C1L 1999–2007 · C1 2007–12</td><td class="n">161 × 149 cm</td><td class="n">290 kg</td><td>The smallest C, from 1994. The C1L has acrylic keytops, a step below the C3L's.</td></tr>
+    <tr><td class="m">C2</td><td>C2 1994–99 · C2L 1999–2007 · C2 2007–12</td><td class="n">173 × 149 cm</td><td class="n">300–305 kg</td><td>Also made in a Chippendale cabinet.</td></tr>
+    <tr><td class="m">C5</td><td>C5 1979–85 · C5A · C5B · C5E · C5 1994–99 · C5L · C5LA · C5 2007–12</td><td class="n">200 × 149 cm</td><td class="n">340–355 kg</td><td>Japanese dealers call it ample for a home and able to serve a small hall.</td></tr>
+    <tr><td class="m">C6</td><td>C6 1994–99 · C6L · C6LA · C6 2007–12 · C6XA</td><td class="n">212 × 154 cm</td><td class="n">400–405 kg</td><td>Added in 1994.</td></tr>
+    <tr><td class="m">C7</td><td>C7 1967–75 · C7B · C7 · C7A · C7B · C7E · C7 · C7L · C7LA · C7 2007–12</td><td class="n">227 × 155 cm</td><td class="n">395–415 kg</td><td>The semi-concert grand. 1980s examples measure about 223 cm.</td></tr>
+  </table>
+  <div class="grid grow" style="grid-template-columns:1fr 1fr;margin-top:6mm;gap:8mm">
+    <div style="display:flex;flex-direction:column;gap:4mm">
+      <div class="panel"><span class="k">C3 or C5?</span><p>Same width and height. The C5 is 14&nbsp;cm longer and about 30&nbsp;kg heavier, with a longer bass. If the room is 5&nbsp;m square or more, it is worth playing both.</p></div>
+      <div class="panel"><span class="k">G or C?</span><p>Yamaha priced the C above the G. In 1990 to 1994 a new G3E listed at ¥1,050,000 in Japan and a C3E at ¥1,300,000; a G5E at ¥1,350,000 and a C5E at ¥1,700,000.</p></div>
+    </div>
+    <div class="arch"><img src="assets/strings.webp" alt="Inside a grand piano: the strings, red felt and polished rim"></div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= CX ================= -->
+<section class="page" data-toc="The CX series, 2012 to today">
+  <div class="lbl">Grands · 2012 to today</div>
+  <div class="hd">The CX series<span class="sc">since 2012</span></div>
+  <p class="lead">In October 2012 the CX series replaced the C series. Yamaha describes it as the C rebuilt with what it learned developing the CFX, its concert grand.</p>
+  <div class="grid" style="grid-template-columns:1.25fr 1fr;margin-top:6mm;gap:8mm;align-items:start">
+    <table>
+      <tr><th>Model</th><th>Length × width</th><th>Weight</th></tr>
+      <tr><td class="m">C1X</td><td class="n">161 × 149 cm</td><td class="n">290 kg</td></tr>
+      <tr><td class="m">C2X</td><td class="n">173 × 149 cm</td><td class="n">305 kg</td></tr>
+      <tr><td class="m">C3X</td><td class="n">186 × 149 cm</td><td class="n">320 kg</td></tr>
+      <tr><td class="m">C5X</td><td class="n">200 × 149 cm</td><td class="n">350 kg</td></tr>
+      <tr><td class="m">C6X</td><td class="n">212 × 154 cm</td><td class="n">405 kg</td></tr>
+      <tr><td class="m">C7X</td><td class="n">227 × 155 cm</td><td class="n">415 kg</td></tr>
+    </table>
+    <div>
+      <span class="k">What changed, in Yamaha's words</span>
+      <ul class="body">
+        <li>Hammers use the same felt as the CFX, and the strings use new wire.</li>
+        <li>On the C3X and larger, a back frame about 20% thicker, and the soundboard, ribs and bridge crowned by the CFX's method.</li>
+        <li>A cabinet styled on the CF series, with a sturdier pedal box.</li>
+        <li>Ivorite keytops, three lid-prop positions with a safety stopper, and a key lock.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="grid grow" style="grid-template-columns:1fr 1fr;margin-top:6mm;gap:8mm">
+    <figure style="display:flex;flex-direction:column"><div class="arch" style="flex:1;min-height:0"><img src="assets/grand-c3x.webp" alt="A pre-loved 2016 Yamaha C3X" style="object-position:50% 60%"></div><p class="cap">A pre-loved 2016 C3X with a Silent system.</p></figure>
+    <div style="display:flex;flex-direction:column;gap:4mm">
+      <div class="panel"><span class="k">Alongside the CX</span><p><b style="font-weight:500;color:var(--ink)">C1TD and C3TD</b> (from 2012): the older C cabinet, priced below the CX. <b style="font-weight:500;color:var(--ink)">C3X espressivo</b> (2021, revised 2026): a higher-grade C3X. <b style="font-weight:500;color:var(--ink)">SX series</b> (S3X from 2017, S6X from 2018): thicker rim laminations and a CFX-type European spruce soundboard.</p></div>
+      <div class="panel"><span class="k">Who it suits</span><p>Performers, teachers and advanced students who want a recent Yamaha grand, and buyers who would otherwise buy new.</p></div>
+      <div class="panel iv"><span class="k">Silent grands</span><p>Silent versions add letters after the name, for example C3X-SH3. SH is the 2013 generation, SH2 2018 and SH3 2022. See page <span data-ref="silent"></span> for how Silent pianos work.</p></div>
+    </div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= SMALLER GRANDS ================= -->
+<section class="page" data-toc="Smaller grands" data-anchor="small-grands">
+  <div class="lbl">Grands · 1993 to today · Under 175 cm</div>
+  <div class="hd">Smaller grands<span class="sc">for smaller rooms</span></div>
+  <p class="lead">Grands for rooms that cannot take a C3, and budgets that cannot either. The differences between them are mostly in where they were made and what the middle pedal does.</p>
+  <table style="margin-top:6mm">
+    <tr><th>Model</th><th>Built</th><th>Length · weight</th><th>What to know</th></tr>
+    <tr><td class="m">A1 · A1R · A1L</td><td class="n">Oct 1993 – Feb 2011</td><td class="n">149 cm · 269 kg</td><td>Japan's smallest Yamaha grand of its time, with a sostenuto pedal. Yamaha described it as fitting a room of about 10 m².</td></tr>
+    <tr><td class="m">Z1 · Z1B</td><td class="n">Nov 2003 – Feb 2007</td><td class="n">151 cm · 273 kg</td><td>Two pedals only, no sostenuto.</td></tr>
+    <tr><td class="m">GB1K</td><td class="n">2009 – 2025</td><td class="n">151 cm · 261 kg</td><td>Made in Indonesia. On the Australian model the middle pedal sustains only the bass; the Japanese model has a sostenuto. Production ended when Yamaha Indonesia stopped making pianos in December 2025.</td></tr>
+    <tr><td class="m">GC1</td><td class="n">export model</td><td class="n">161 cm · 285–290 kg</td><td>Made in Japan, with a simpler cabinet and synthetic keytops than the C1. The 2009 update added a sostenuto and a soft-close fallboard. Sold in Japan only as a Silent piano (GC1S, GC1SN, GC1SG).</td></tr>
+    <tr><td class="m">GC2</td><td class="n">2009 –</td><td class="n">173 cm · 305 kg</td><td>The size of the C2 at a lower price.</td></tr>
+    <tr><td class="m">GCB · GC1</td><td class="n">2026 –</td><td class="n">151 cm · 275 kg (GCB)</td><td>A new GC series made at Kakegawa, sharing the CX's basic design. Too new to be found pre-loved yet.</td></tr>
+  </table>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:6mm">
+    <div class="panel"><span class="k">Who it suits</span><p>A first grand for a home that wants one, in a room of about 4&nbsp;m square. Play a good 131&nbsp;cm upright as well before you decide: at this length the two are closer than most people expect.</p></div>
+    <div class="panel iv"><span class="k">Middle pedals, again</span><p>Ask what the middle pedal does on the piano in front of you: sostenuto, bass sustain, or nothing on a two-pedal model. It depends on the model, the market it was made for and the year.</p></div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= BUDGET ================= -->
+<section class="page" data-toc="What to budget" data-anchor="budget">
+  <div class="lbl">Before you buy</div>
+  <div class="hd">What to budget<span class="sc">by era and size</span></div>
+  <p class="lead">Indicative prices for pre-loved Yamahas in Victoria and New South Wales, September 2026. Each piano is priced on its own condition, so use these to match a model to a budget, then come and look at the piano.</p>
+  <div class="grid grow" style="grid-template-columns:1fr 1fr;margin-top:7mm;gap:8mm;align-items:start">
+    <div>
+      <span class="k">Uprights</span>
+      <table>
+        <tr><th>Models</th><th>Built</th><th style="text-align:right">About</th></tr>
+        <tr><td><b>U1H · U1M · U1A</b></td><td class="n">1972–1987</td><td class="n" style="text-align:right">$4,000 – $5,800</td></tr>
+        <tr><td><b>U10Bl · U10A · U100</b></td><td class="n">1987–1997</td><td class="n" style="text-align:right">$5,500 – $6,700</td></tr>
+        <tr><td><b>U3H · U3M · U3A</b></td><td class="n">1972–1987</td><td class="n" style="text-align:right">$4,500 – $6,700</td></tr>
+        <tr><td><b>U30Bl · U30A · U300</b></td><td class="n">1987–1997</td><td class="n" style="text-align:right">$5,800 – $7,900</td></tr>
+        <tr><td><b>X series, 121 and 131 cm</b></td><td class="n">1975–1997</td><td class="n" style="text-align:right">$5,000 – $10,000</td></tr>
+        <tr><td><b>YUA · UX5 to UX500</b></td><td class="n">1978–1997</td><td class="n" style="text-align:right">$6,500 – $13,500</td></tr>
+        <tr><td><b>YU1 · YU3 · YU5</b></td><td class="n">1997–2001</td><td class="n" style="text-align:right">$7,000 – $9,500*</td></tr>
+        <tr><td><b>YU10 · YU30 · YU50</b></td><td class="n">2001–2006</td><td class="n" style="text-align:right">$7,500 – $11,500</td></tr>
+        <tr><td><b>YU11 · YU33</b></td><td class="n">2006 –</td><td class="n" style="text-align:right">$9,000 – $13,000*</td></tr>
+        <tr><td><b>YUS1 · YUS3 · YUS5</b></td><td class="n">2006 –</td><td class="n" style="text-align:right">$11,000 – $17,000</td></tr>
+      </table>
+    </div>
+    <div>
+      <span class="k">Grands</span>
+      <table>
+        <tr><th>Models</th><th>Built</th><th style="text-align:right">About</th></tr>
+        <tr><td><b>G1 · G2 · G3 · G5</b></td><td class="n">1971–1994</td><td class="n" style="text-align:right">$12,000 – $20,000</td></tr>
+        <tr><td><b>C3 · C3A · C3B · C3E · C3</b></td><td class="n">1979–1999</td><td class="n" style="text-align:right">$17,000 – $25,000</td></tr>
+        <tr><td><b>C3L · C3LA · C3 · C3XA</b></td><td class="n">1999–2012</td><td class="n" style="text-align:right">$25,000 – $37,000</td></tr>
+        <tr><td><b>C5 and C7</b></td><td class="n">1979–2012</td><td class="n" style="text-align:right">$28,000 – $45,000</td></tr>
+        <tr><td><b>CX series</b></td><td class="n">2012 –</td><td class="n" style="text-align:right">$35,000 – $45,000*</td></tr>
+        <tr><td><b>GB1K · GC1 · GC2</b></td><td class="n">2009 –</td><td class="n" style="text-align:right">$10,000 – $19,000*</td></tr>
+      </table>
+      <div class="panel iv" style="margin-top:6mm"><span class="k">What moves the price</span><p>Condition first: hammers, strings and action work done recently are worth paying for. Then the finish (walnut and Chippendale cabinets cost more), a Silent system, and how recent the generation is.</p></div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:4mm">Ranges are drawn from asking prices for comparable pianos in Victoria and New South Wales in September 2026. * An estimate: few comparable pianos were on sale, so these are set below the price of the same model new. For current stock and exact prices, see signaturepianos.com.au or call 0479 128 955.</p>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= IMPORTS: AN HONEST NOTE ================= -->
+<section class="page" data-toc="Made for Japan: an honest note">
+  <div class="lbl">Before you buy</div>
+  <div class="hd">Made for Japan<span class="sc">an honest note</span></div>
+  <p class="lead">Pianos first sold in Japan and later brought to another country are sometimes called "grey imports". You may read warnings about them, so here are the facts on both sides.</p>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:7mm;gap:8mm">
+    <div class="rule"><span class="k">What Yamaha says</span><p class="body">Yamaha says it seasons the wood in each piano for the climate of the country it is first sold in, and that a piano made for Japan's humid climate can suffer in very dry indoor air. Yamaha gives no factory warranty on pianos outside the country of their first sale, and Yamaha Australia's warranty excludes pianos bought or imported from overseas.</p></div>
+    <div class="rule"><span class="k">What independent experts say</span><p class="body">The independent guide Piano Buyer looked into these warnings and called them exaggerated. Its advice: choose a piano from the mid-1980s or later in good condition, keep the humidity steady where the air is very dry, and buy with a warranty of at least five years from the seller.</p></div>
+  </div>
+  <div class="panel" style="margin-top:6mm;border-left:.8mm solid var(--felt)"><span class="k" style="color:var(--felt)">What we do about it</span><p style="font-size:9.2pt">Every piano we sell comes with our own 10-year warranty, and every one is checked in our Mount Waverley workshop before it goes on sale. We tell you the year of every piano we sell.</p></div>
+  <div class="grid grow" style="grid-template-columns:1fr 1.2fr;margin-top:6mm;gap:8mm">
+    <div class="arch"><img src="assets/detail-action.webp" alt="The action of a pre-loved Yamaha upright"></div>
+    <div>
+      <span class="k">Looking after it in Melbourne</span>
+      <h3>Steady air, regular tuning</h3>
+      <p class="body">A piano is mostly wood, and wood moves with the air around it. In Melbourne the harm comes from indoor heating in winter and hot, dry northerly days in summer.</p>
+      <ul class="body" style="margin-top:2mm">
+        <li>Place it against an inside wall, out of direct sun, and away from heaters, fireplaces and air-conditioning vents.</li>
+        <li>Keep the room's humidity as steady as you can. A small humidifier helps in winter if your heating dries the air.</li>
+        <li>Have it tuned at least once a year, and twice if it is played every day.</li>
+        <li>Keep the lid closed when it is not being played, and dust it with a soft dry cloth.</li>
+        <li>Use piano movers to move it, even to another room.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+
+
+<!-- ================= VIEWING CHECKLIST ================= -->
+<section class="page" data-toc="Viewing checklist">
+  <div class="lbl">Before you buy</div>
+  <div class="hd">Ten checks<span class="sc">on any piano</span></div>
+  <p class="lead">Use this list on any pre-loved piano, ours or anyone else's. Bring the person who will play it, and give it at least twenty minutes.</p>
+  <div class="grid grow" style="grid-template-columns:1fr 1fr;margin-top:7mm;gap:0 9mm;align-content:start">
+    <div class="rule" style="padding-bottom:3mm"><span class="k">1 · Every key</span><p class="body">Play each key softly, then firmly. Listen for notes that buzz, rattle, stick, repeat unevenly, or keep ringing after you let go.</p></div>
+    <div class="rule" style="padding-bottom:3mm"><span class="k">2 · Every pedal</span><p class="body">The sustain pedal should lift all the dampers together and let them fall cleanly. The muffler should drop evenly across the keyboard.</p></div>
+    <div class="rule" style="padding-bottom:3mm"><span class="k">3 · The hammers</span><p class="body">Ask to see inside. Deep grooves in the hammer felt mean heavy playing. Hammers that have been reshaped or replaced are a good sign, not a bad one.</p></div>
+    <div class="rule" style="padding-bottom:3mm"><span class="k">4 · The serial number</span><p class="body">It is stamped on the iron frame, under the lid. Check it against the table on page <span data-ref="serials"></span> to see when the piano was made.</p></div>
+    <div class="rule" style="padding-bottom:3mm"><span class="k">5 · The tuning</span><p class="body">Ask when it was last tuned and whether it holds its tuning. A piano that will not stay in tune needs a technician's opinion before you buy it.</p></div>
+    <div class="rule" style="padding-bottom:3mm"><span class="k">6 · The soundboard</span><p class="body">Fine cracks are common in older pianos and are not always a problem. A buzz that follows certain notes can mean a rib has come loose, which is repairable but worth knowing about.</p></div>
+    <div class="rule" style="padding-bottom:3mm"><span class="k">7 · What has been done</span><p class="body">Ask what work the piano has had: tuning, regulation (adjusting the action), voicing (the tone of the hammers), new strings, hammers or dampers.</p></div>
+    <div class="rule" style="padding-bottom:3mm"><span class="k">8 · The cabinet</span><p class="body">Look at the finish, the lid hinges, the fallboard and the castors. Cosmetic wear is fine if the price reflects it.</p></div>
+    <div class="rule" style="padding-bottom:3mm"><span class="k">9 · The paperwork</span><p class="body">Ask what the warranty covers and for how long, who delivers it, and whether the first tuning in your home is included.</p></div>
+    <div class="rule" style="padding-bottom:3mm"><span class="k">10 · Your ears</span><p class="body">Play the same piece on two or three pianos, one after another. The one you keep coming back to is usually the right one.</p></div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= BUYING FROM US ================= -->
+<section class="page" data-toc="Buying from Signature Pianos">
+  <div class="lbl">Buying from us</div>
+  <div class="hd">From Japan<span class="sc">to your home</span></div>
+  <p class="lead">Every piano we sell was chosen in Japan, photographed there before import, and checked in our Mount Waverley workshop before it reached the showroom floor. This is what comes with it.</p>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:7mm">
+    <div class="panel"><span class="k">Delivery</span><h3>White-glove</h3><p>Tracked from start to finish. You pick the day and time window in your customer portal, we place the piano where you choose, and we send a photo once it is in position.</p></div>
+    <div class="panel"><span class="k">Warranty</span><h3>Ten years</h3><p>A 10-year warranty on every piano, with the certificate emailed to you as soon as delivery is confirmed.</p></div>
+    <div class="panel"><span class="k">Tuning</span><h3>First one included</h3><p>A piano settles into a new room over its first weeks. We come back and tune it three to four weeks after delivery, at no charge.</p></div>
+  </div>
+  <div class="grid grow" style="grid-template-columns:1fr 1fr;margin-top:6mm;gap:8mm">
+    <div class="arch"><img src="assets/detail-keys-walnut.webp" alt="The keys of a pre-loved walnut Yamaha upright"></div>
+    <div>
+      <span class="k">How it works</span>
+      <h3>From our floor to yours</h3>
+      <div class="legend" style="grid-template-columns:1fr;gap:3mm;margin-top:3mm;font-size:9pt;line-height:1.5">
+        <div><span class="num">1</span><span><b style="font-weight:500;color:var(--ink)">Come and play.</b> Book a visit to the Mount Waverley showroom and try as many pianos as you like.</span></div>
+        <div><span class="num">2</span><span><b style="font-weight:500;color:var(--ink)">Choose your piano.</b> We tell you its model and year, and answer anything this guide doesn't.</span></div>
+        <div><span class="num">3</span><span><b style="font-weight:500;color:var(--ink)">Book the delivery.</b> Choose the day and time window that suits you in your customer portal.</span></div>
+        <div><span class="num">4</span><span><b style="font-weight:500;color:var(--ink)">It arrives.</b> White-glove delivery, a photo once it is in place, and your warranty certificate by email.</span></div>
+        <div><span class="num">5</span><span><b style="font-weight:500;color:var(--ink)">We come back.</b> Your first tuning, three to four weeks later, once the piano has settled into the room.</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="ftr">Signature Pianos · The Yamaha buyer's guide</div><div class="pno"></div>
+</section>
+
+<!-- ================= BACK COVER ================= -->
+<section class="page felt" style="display:block">
+  <img src="assets/logo-ivory.svg" alt="Signature Pianos" style="position:absolute;left:50%;top:70mm;width:74mm;transform:translateX(-50%)">
+  <div style="position:absolute;left:0;right:0;top:128mm;text-align:center">
+    <div style="font-family:Italianno;font-size:52pt;line-height:1;color:var(--ivory)">Come and play</div>
+    <p class="lead" style="margin:6mm auto 0;max-width:120mm;text-align:center">Every piano in this guide sounds different in person. Book a visit and play as many as you like.</p>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:30mm;text-align:center;font-size:7pt;letter-spacing:.24em;text-transform:uppercase;line-height:2.1;color:var(--ivory)">
+    63 Blackburn Road, Mount Waverley VIC 3149<br>0479 128 955 · info@signaturepianos.com.au<br>signaturepianos.com.au
+  </div>
+  <div class="lbl" style="position:absolute;left:0;right:0;bottom:14mm;text-align:center">Hand-picked in Japan · Checked in Melbourne</div>
+</section>
+
+
+<script>
+  // page numbers, the contents list and "see page" references, built from the pages themselves
+  const pages = Array.from(document.querySelectorAll('section.page'));
+  pages.forEach((p, i) => { const n = p.querySelector('.pno'); if (n) n.textContent = String(i + 1).padStart(2, '0'); });
+  const toc = document.getElementById('toc');
+  let group = 'Start here', last = null;
+  pages.forEach((p, i) => {
+    if (!p.dataset.toc || !toc) return;
+    const lbl = (p.querySelector('.lbl') || {}).textContent || '';
+    if (p.classList.contains('mistp')) group = p.dataset.toc;
+    else if (/^(Before you buy|Buying from us)/.test(lbl)) group = 'Before you buy';
+    if (group !== last) {
+      const h = document.createElement('div');
+      h.style.cssText = 'break-inside:avoid;break-after:avoid;font-size:6pt;letter-spacing:.3em;text-transform:uppercase;color:#4A1520;margin:' + (last ? '6mm' : '0') + ' 0 1.6mm';
+      h.textContent = group;
+      toc.appendChild(h);
+      last = group;
+    }
+    const row = document.createElement('div');
+    row.style.cssText = 'break-inside:avoid;display:flex;justify-content:space-between;gap:3mm;border-top:.25mm solid rgba(22,34,46,.14);padding:1.9mm 0;font-size:9.4pt;line-height:1.3;color:#16222E';
+    row.innerHTML = '<span>' + p.dataset.toc + '</span><span style="font-size:6.6pt;letter-spacing:.2em;color:#3A4855">' + String(i + 1).padStart(2, '0') + '</span>';
+    toc.appendChild(row);
+  });
+  document.querySelectorAll('[data-ref]').forEach(el => {
+    const target = document.querySelector('[data-anchor="' + el.dataset.ref + '"]');
+    if (target) el.textContent = String(pages.indexOf(target.closest('section.page')) + 1);
+  });
+</script>
+</body>
+</html>

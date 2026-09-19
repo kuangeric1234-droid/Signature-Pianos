@@ -24,6 +24,10 @@
 
 const { createClient } = require('@supabase/supabase-js')
 const { Resend }       = require('resend')
+const { internalRecipients } = require('../lib/notify')
+const {
+  C, esc, layout, hello, p, h2, details, note, button, steps, signOff,
+} = require('../lib/email-brand')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -129,8 +133,8 @@ module.exports = async (req, res) => {
     try {
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
-        subject: `Action required: Sign payment plan contract — ${plan.customer.first_name} ${plan.customer.last_name} · ${plan.plan_number}`,
+        to: internalRecipients(),
+        subject: `Action required: sign payment plan contract — ${plan.customer.first_name} ${plan.customer.last_name} · ${plan.plan_number}`,
         html: ericCountersignEmail({
           plan,
           customer:       plan.customer,
@@ -169,143 +173,82 @@ module.exports = async (req, res) => {
 }
 
 /* ============================================================================
+   Shared bits for the two emails below (brand kit: lib/email-brand.js)
+   ============================================================================ */
+const formatCurrency = (v) =>
+  '$' + Math.abs(v || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+function pianoName(piano) {
+  return `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
+}
+
+/* ============================================================================
    Eric — countersign request email
    ============================================================================ */
 function ericCountersignEmail({ plan, customer, piano, countersignUrl, signed_at }) {
-  const formatCurrency = (v) =>
-    '$' + Math.abs(v || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const formatDate = (d) => {
     if (!d) return '—'
     const dt = new Date(d)
     return dt.toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric' })
   }
+  const name = `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim()
 
-  return `
-    <!DOCTYPE html>
-    <html>
-    <body style="font-family:Arial,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-      <div style="max-width:580px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-        <div style="background:#1a1917;padding:24px 32px;">
-          <div style="font-size:18px;color:#b8935a;font-style:italic;">Signature Pianos</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">Action required — countersignature needed</div>
-        </div>
-        <div style="padding:32px;">
-          <h2 style="color:#1a1917;margin:0 0 16px;">
-            ${customer.first_name} ${customer.last_name} has signed their payment plan contract.
-          </h2>
-          <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-            Please review and countersign to execute the agreement. Once you sign the contract will be emailed to the customer and their piano will be scheduled for delivery.
-          </p>
-          <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:20px 0;">
-            <table style="width:100%;font-size:13px;border-collapse:collapse;">
-              <tr>
-                <td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:40%;">Plan</td>
-                <td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;font-family:monospace;">${plan.plan_number}</td>
-              </tr>
-              <tr>
-                <td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Customer</td>
-                <td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">
-                  ${customer.first_name} ${customer.last_name}<br>
-                  <a href="mailto:${customer.email}" style="color:#b8935a;font-size:12px;">${customer.email}</a><br>
-                  <a href="tel:${customer.phone || ''}" style="color:#b8935a;font-size:12px;">${customer.phone || '—'}</a>
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Piano</td>
-                <td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">
-                  Yamaha ${piano.model} ${piano.year}
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Total</td>
-                <td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;color:#b8935a;">
-                  ${formatCurrency(plan.total_with_surcharge || plan.total_amount)}
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Payment method</td>
-                <td style="padding:7px 0;border-bottom:1px solid #e8e4dd;">
-                  ${plan.payment_method === 'credit_card'
-                    ? `Credit card ···· ${plan.card_last_four || '????'}`
-                    : 'Bank transfer'}
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:7px 0;color:#9a9590;">Customer signed</td>
-                <td style="padding:7px 0;">${formatDate(signed_at?.split('T')[0])}</td>
-              </tr>
-            </table>
-          </div>
-
-          <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:20px;text-align:center;margin:20px 0;">
-            <div style="font-size:14px;font-weight:500;color:#085041;margin-bottom:8px;">Your signature is required</div>
-            <p style="font-size:13px;color:#085041;margin:0 0 16px;line-height:1.5;">
-              Click below to review the contract and add your countersignature. This will execute the agreement and trigger delivery scheduling.
-            </p>
-            <a href="${countersignUrl}"
-               style="display:inline-block;background:#b8935a;color:#000;padding:14px 36px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:500;">
-              Review and countersign →
-            </a>
-          </div>
-
-          <p style="font-size:12px;color:#9a9590;line-height:1.6;">
-            This link is for your use only. Do not share it.
-          </p>
-        </div>
-        <div style="background:#f8f7f5;padding:16px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-          Signature Pianos Admin · signaturepianos.com.au
-        </div>
-      </div>
-    </body>
-    </html>
+  const body = `
+    ${p(`${esc(name)} has signed their payment plan contract.`, { first: true })}
+    ${p('Please review and countersign to execute the agreement. Once you sign, the contract will be emailed to the customer and their piano will be scheduled for delivery.')}
+    ${details([
+      ['Plan', esc(plan.plan_number), true],
+      ['Customer', `${esc(name)}<br>
+        <a href="mailto:${esc(customer?.email || '')}" style="color:${C.ink};">${esc(customer?.email || '')}</a><br>
+        <a href="tel:${esc(customer?.phone || '')}" style="color:${C.ink};">${esc(customer?.phone || '—')}</a>`, true],
+      ['Piano', esc(pianoName(piano))],
+      ['Total', formatCurrency(plan.total_with_surcharge || plan.total_amount), true],
+      ['Payment method', plan.payment_method === 'credit_card'
+        ? `Credit card ···· ${esc(plan.card_last_four || '????')}`
+        : 'Bank transfer'],
+      ['Customer signed', esc(formatDate(signed_at?.split('T')[0]))],
+    ])}
+    ${note('<strong>Your signature is required.</strong> Review the contract and add your countersignature. This will execute the agreement and trigger delivery scheduling.', 'alert')}
+    ${button(countersignUrl, 'Review and countersign')}
+    ${p('This link is for your use only. Do not share it.', { muted: true, small: true, first: true })}
   `
+  return layout({
+    preview: `${name} has signed plan ${plan.plan_number}. Your countersignature is needed.`,
+    label: 'For Signature Pianos',
+    title: 'Countersignature needed',
+    body,
+    internal: true,
+  })
 }
 
 /* ============================================================================
    Customer — "contract received, awaiting countersignature" acknowledgement
    ============================================================================ */
 function customerSignedAcknowledgementEmail({ customer, piano, plan, settings }) {
-  const formatCurrency = (v) =>
-    '$' + Math.abs(v || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-
-  return `
-    <!DOCTYPE html>
-    <html>
-    <body style="font-family:Arial,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-      <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-        <div style="background:#1a1917;padding:32px;text-align:center;">
-          <div style="font-size:20px;color:#b8935a;font-style:italic;">
-            ${settings?.business_name || 'Signature Pianos'}
-          </div>
-        </div>
-        <div style="padding:32px;">
-          <h2 style="color:#1a1917;margin:0 0 16px;">Contract received, ${customer.first_name}.</h2>
-          <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-            Thank you for signing your payment plan agreement. We have received your signature and are reviewing the contract.
-          </p>
-          <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:20px 0;">
-            <div style="font-size:13px;color:#6b6760;line-height:1.8;">
-              Plan: <strong>${plan.plan_number}</strong><br>
-              Piano: <strong>Yamaha ${piano.model} ${piano.year}</strong><br>
-              Total: <strong>${formatCurrency(plan.total_with_surcharge || plan.total_amount)}</strong>
-            </div>
-          </div>
-          <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:14px;margin:16px 0;">
-            <div style="font-size:13px;color:#085041;line-height:1.7;">
-              <strong>What happens next:</strong><br>
-              We will countersign your agreement shortly and send you a fully executed copy. Your piano will then be scheduled for delivery.
-            </div>
-          </div>
-          <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-            If you have any questions please reply to this email.
-          </p>
-        </div>
-        <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-          ${settings?.business_name || 'Signature Pianos'} Melbourne ·
-          ${settings?.website || 'signaturepianos.com.au'}
-        </div>
-      </div>
-    </body>
-    </html>
+  const body = `
+    ${hello(customer?.first_name)}
+    ${p('Thank you for signing your payment plan agreement. We have received your signature and are reviewing the contract.')}
+    ${details([
+      ['Plan', esc(plan.plan_number), true],
+      ['Piano', esc(pianoName(piano))],
+      ['Total', formatCurrency(plan.total_with_surcharge || plan.total_amount), true],
+    ])}
+    ${h2('What happens next')}
+    ${steps([
+      'We will countersign your agreement shortly and send you a fully executed copy.',
+      'Your piano will then be scheduled for delivery.',
+    ])}
+    ${p('If you have any questions, reply to this email.', { first: true })}
+    ${signOff()}
   `
+  return layout({
+    preview: `We have received your signed payment plan agreement, ${plan.plan_number}.`,
+    label: 'Your payment plan',
+    title: 'Contract received',
+    body,
+  })
 }
+
+// Template functions, exposed for email previews. The default export above
+// (the API handler) is unchanged.
+module.exports.templates = { ericCountersignEmail, customerSignedAcknowledgementEmail }

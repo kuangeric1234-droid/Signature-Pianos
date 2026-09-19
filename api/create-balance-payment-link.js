@@ -16,6 +16,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const { createClient } = require('@supabase/supabase-js')
 const { Resend } = require('resend')
+const { layout, hello, p, details, button, signOff } = require('../lib/email-brand')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -83,46 +84,11 @@ module.exports = async (req, res) => {
       console.warn('[create-balance-payment-link] settings load fell back', sErr)
     }
 
-    const fmtCur = (v) => '$' + Math.abs(Number(v || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-
     await resend.emails.send({
       from: FROM,
       to: order.customer.email,
       subject: `Complete your purchase — ${pianoLabel}`,
-      html: `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Complete your purchase, ${esc(order.customer.first_name || 'friend')}.</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        Your ${esc(pianoLabel)} is reserved and waiting for you. Use the button below to pay the balance and confirm your purchase.
-      </p>
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:20px 0;">
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Deposit paid</td><td style="padding:7px 0;color:#1D9E75;border-bottom:1px solid #e8e4dd;text-align:right;">$500.00 ✓</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;">Balance to pay</td><td style="padding:7px 0;font-weight:500;font-size:15px;color:#b8935a;text-align:right;">${fmtCur(Number(order.total || 0) - 500)}</td></tr>
-        </table>
-      </div>
-      <div style="text-align:center;margin:24px 0;">
-        <a href="${paymentLink.url}" style="display:inline-block;background:#b8935a;color:#000;padding:16px 40px;border-radius:4px;text-decoration:none;font-size:15px;font-weight:500;">
-          Pay balance now →
-        </a>
-        <p style="font-size:11px;color:#9a9590;margin:10px 0 0;">Secure payment via Stripe</p>
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        This link is unique to your order. Do not share it. If you have any questions reply to this email.
-      </p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-    </div>
-  </div>
-</body>
-</html>`,
+      html: balancePaymentLinkEmail({ order, pianoLabel, paymentUrl: paymentLink.url, settings }),
     })
 
     return res.status(200).json({ success: true, url: paymentLink.url })
@@ -136,3 +102,32 @@ function esc(s) {
   if (s == null) return ''
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
+
+const fmtCur = (v) => '$' + Math.abs(Number(v || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+/* ---------- Customer: pay the balance on a reserved piano ---------- */
+function balancePaymentLinkEmail({ order, pianoLabel, paymentUrl, settings }) {
+  const body = `
+    ${hello(order.customer?.first_name)}
+    ${p(`Your ${esc(pianoLabel)} is reserved and waiting for you. Use the button below to pay the balance and confirm your purchase.`)}
+    ${details([
+      ['Piano', esc(pianoLabel)],
+      ['Deposit paid', fmtCur(500)],
+      ['Balance to pay', fmtCur(Number(order.total || 0) - 500), true],
+    ])}
+    ${button(paymentUrl, 'Pay balance now')}
+    ${p('Secure payment via Stripe.', { muted: true, small: true })}
+    ${p('This link is unique to your order. Please do not share it. If you have any questions, reply to this email.', { first: true })}
+    ${signOff()}
+  `
+  return layout({
+    preview: `Your ${pianoLabel} is reserved. Balance to pay: ${fmtCur(Number(order.total || 0) - 500)}.`,
+    label: 'Your purchase',
+    title: 'Complete your purchase',
+    body,
+  })
+}
+
+// Template functions, exposed for email previews. The default export above
+// (the API handler) is unchanged.
+module.exports.templates = { balancePaymentLinkEmail }

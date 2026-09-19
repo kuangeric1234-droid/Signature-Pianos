@@ -17,6 +17,9 @@
 
 const { createClient } = require('@supabase/supabase-js')
 const { Resend } = require('resend')
+const { internalRecipients } = require('../lib/notify')
+const { C, layout, hello, p, h2, details, note, button, steps, signOff } = require('../lib/email-brand')
+const { parts } = require('../lib/tuner-emails')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -112,16 +115,9 @@ module.exports = async (req, res) => {
       try {
         await resend.emails.send({
           from: FROM,
-          to: BUSINESS_EMAIL,
+          to: internalRecipients(),
           subject: `Tuner confirmed — ${tuner.name || ''} · ${fmtDateLong(booking.proposed_date)}`.trim(),
-          html: `
-            <h2>Tuner accepted booking</h2>
-            <p>Tuner: ${esc(tuner.name || '—')} (${esc(tuner.email || '—')})</p>
-            <p>Customer: ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}</p>
-            <p>Piano: ${esc((piano.brand || 'Yamaha') + ' ' + (piano.model || '') + ' ' + (piano.year || ''))}</p>
-            <p><strong>Confirmed: ${esc(fmtDateLong(booking.proposed_date))} · ${esc(booking.proposed_time || 'Flexible')}</strong></p>
-            <p>Customer has been notified.</p>
-          `,
+          html: internalTunerAcceptedEmail({ tuner, customer, piano, booking }),
         })
       } catch (mailErr) {
         console.error('[tuner-respond] eric email failed', mailErr)
@@ -151,8 +147,8 @@ module.exports = async (req, res) => {
     try {
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
-        subject: `Tuner proposed new date — ${tuner.name || ''} · ${fmtDateLong(proposed_date)}`.trim(),
+        to: internalRecipients(),
+        subject: `Action needed: tuner proposed a new date — ${tuner.name || ''} · ${fmtDateLong(proposed_date)}`.trim(),
         html: tunerProposedNewEmail({ tuner, customer, piano, booking, proposed_date, proposed_time, notes, settings }),
       })
     } catch (mailErr) {
@@ -184,90 +180,72 @@ function fmtDateLong(d) {
   } catch { return d }
 }
 
-/* ---------- templates ---------- */
+/* ---------- templates (brand kit: lib/email-brand.js) ---------- */
 
+/* To the customer, when the tuner accepts the proposed date. `settings`
+ * is still accepted; contact details come from the brand kit. */
 function customerTuningConfirmedEmail({ customer, piano, confirmedDate, confirmedTime, settings }) {
   const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Your tuning is confirmed, ${esc(customer.first_name || 'friend')}.</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        A certified tuner has been confirmed for your ${esc(pianoLabel)}.
-      </p>
-      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:20px;margin:20px 0;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#085041;margin-bottom:8px;">Confirmed appointment</div>
-        <div style="font-size:18px;font-weight:500;color:#085041;">${esc(confirmedDate)}</div>
-        ${confirmedTime ? `<div style="font-size:14px;color:#085041;margin-top:4px;">${esc(confirmedTime)}</div>` : ''}
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        Please ensure someone is home during the time window. The tuning takes approximately 60–90 minutes. If you need to reschedule please contact us as soon as possible.
-      </p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
-    </div>
-  </div>
-</body>
-</html>`
+  return layout({
+    preview: `Your piano tuning is confirmed for ${confirmedDate}${confirmedTime ? ', ' + confirmedTime : ''}.`,
+    label: 'Your tuning',
+    title: 'Your tuning is confirmed',
+    body:
+      hello(customer.first_name) +
+      p(`A certified tuner has been confirmed for your ${esc(pianoLabel)}.`) +
+      parts.appointment('Your appointment', esc(confirmedDate), confirmedTime ? esc(confirmedTime) : '') +
+      p('Please make sure someone is home during the time window. The tuning takes approximately 60–90 minutes.') +
+      p(`If you need to reschedule, please reply to this email or call ${parts.officePhone()} as soon as possible.`) +
+      signOff(),
+  })
 }
 
+/* To Eric, when the tuner accepts the proposed date. */
+function internalTunerAcceptedEmail({ tuner, customer, piano, booking }) {
+  return layout({
+    internal: true,
+    preview: `${tuner.name || 'The tuner'} accepted ${fmtDateLong(booking.proposed_date)}. The customer has been notified.`,
+    label: 'For Signature Pianos',
+    title: 'Tuner accepted the booking',
+    body:
+      p('The customer has been notified.', { first: true }) +
+      details([
+        ['Tuner', `${esc(tuner.name || '—')} (${esc(tuner.email || '—')})`],
+        ['Customer', esc((customer.first_name || '') + ' ' + (customer.last_name || ''))],
+        ['Piano', esc((piano.brand || 'Yamaha') + ' ' + (piano.model || '') + ' ' + (piano.year || ''))],
+        ['Confirmed', `${esc(fmtDateLong(booking.proposed_date))} · ${esc(booking.proposed_time || 'Flexible')}`, true],
+      ]),
+  })
+}
+
+/* To Eric, when the tuner can't do the proposed date and suggests another. Needs action. */
 function tunerProposedNewEmail({ tuner, customer, piano, booking, proposed_date, proposed_time, notes, settings }) {
   const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:24px 32px;">
-      <div style="font-size:18px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">Tuner proposed new date — action required</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">${esc(tuner.name || 'The tuner')} cannot do the proposed date</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        ${esc(tuner.name || 'The tuner')} has proposed a new date. Please confirm this with the customer and update the booking in admin.
-      </p>
-
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:20px 0;">
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:45%;">Original date</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;text-decoration:line-through;color:#9a9590;">${esc(fmtDateLong(booking.proposed_date))} · ${esc(booking.proposed_time || 'Flexible')}</td></tr>
-          <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Tuner's proposed date</td><td style="padding:8px 0;font-weight:500;border-bottom:1px solid #e8e4dd;color:#b8935a;">${esc(fmtDateLong(proposed_date))}</td></tr>
-          <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Proposed time</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">${esc(proposed_time || '—')}</td></tr>
-          <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Piano</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">${esc(pianoLabel)}</td></tr>
-          <tr><td style="padding:8px 0;color:#9a9590;${notes ? 'border-bottom:1px solid #e8e4dd;' : ''}">Customer</td><td style="padding:8px 0;${notes ? 'border-bottom:1px solid #e8e4dd;' : ''}">
-            ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}<br>
-            <a href="tel:${esc(customer.phone || '')}" style="color:#b8935a;font-size:12px;">${esc(customer.phone || '—')}</a>
-          </td></tr>
-          ${notes ? `
-            <tr><td style="padding:8px 0;color:#9a9590;">Tuner notes</td><td style="padding:8px 0;font-style:italic;color:#6b6760;">${esc(notes)}</td></tr>
-          ` : ''}
-        </table>
-      </div>
-
-      <div style="background:#fff3cd;border-radius:4px;padding:14px;margin-bottom:20px;border-left:3px solid #ffc107;">
-        <div style="font-size:13px;color:#856404;font-weight:500;margin-bottom:4px;">Action required</div>
-        <div style="font-size:12px;color:#856404;line-height:1.6;">
-          1. Call or email the customer to confirm the new date works for them<br>
-          2. Update the tuner booking date in your admin portal<br>
-          3. Send updated confirmation to both tuner and customer
-        </div>
-      </div>
-
-      <a href="https://signaturepianos.com.au/admin/deliveries.html"
-         style="display:inline-block;background:#b8935a;color:#000;padding:12px 24px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:500;">
-        Go to admin portal →
-      </a>
-    </div>
-    <div style="background:#f8f7f5;padding:16px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-    </div>
-  </div>
-</body>
-</html>`
+  const tunerName = tuner.name || 'The tuner'
+  return layout({
+    internal: true,
+    preview: `${tunerName} cannot do the proposed date and has suggested ${fmtDateLong(proposed_date)}. Please confirm with the customer.`,
+    label: 'Action needed',
+    title: 'Tuner proposed a new date',
+    body:
+      p(`${esc(tunerName)} cannot do the proposed date and has proposed a new one. Please confirm this with the customer and update the booking in admin.`, { first: true }) +
+      details([
+        ['Original date', `<span style="text-decoration:line-through;color:${C.inkSoft};">${esc(fmtDateLong(booking.proposed_date))} · ${esc(booking.proposed_time || 'Flexible')}</span>`],
+        ["Tuner's proposed date", esc(fmtDateLong(proposed_date)), true],
+        ['Proposed time', esc(proposed_time || '—'), true],
+        ['Piano', esc(pianoLabel)],
+        ['Customer', `${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}<br>${parts.phoneLink(customer.phone)}`],
+        notes ? ['Tuner notes', `<em>${esc(notes).replace(/\r?\n/g, '<br>')}</em>`] : null,
+      ]) +
+      note('<strong style="font-weight:500;">Action required.</strong> The booking stays pending until you update it.', 'alert') +
+      h2('What to do') +
+      steps([
+        'Call or email the customer to confirm the new date works for them.',
+        'Update the tuner booking date in your admin portal.',
+        'Send the updated confirmation to both the tuner and the customer.',
+      ]) +
+      button('https://signaturepianos.com.au/admin/deliveries.html', 'Go to admin portal'),
+  })
 }
+
+module.exports.templates = { customerTuningConfirmedEmail, internalTunerAcceptedEmail, tunerProposedNewEmail }

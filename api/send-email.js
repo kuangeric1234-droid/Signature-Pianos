@@ -5,6 +5,9 @@
  * JSON of the form { type, ...payload } and this handler fans out to
  * one customer-facing email and one internal notification per `type`.
  *
+ * Every email is built with the brand kit in lib/email-brand.js; internal alerts
+ * go to lib/notify.js internalRecipients() (info@ plus Eric's Gmail).
+ *
  * Required env (configured in the Vercel dashboard):
  *   RESEND_API_KEY  — Resend API key
  *   BUSINESS_EMAIL  — Internal address (e.g. info@signaturepianos.com.au)
@@ -14,6 +17,7 @@
  */
 
 const { Resend } = require('resend')
+const { internalRecipients } = require('../lib/notify')
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const BUSINESS_EMAIL = process.env.BUSINESS_EMAIL
@@ -38,7 +42,7 @@ module.exports = async (req, res) => {
       // Internal notification
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `New viewing request — ${data.first_name} ${data.last_name}`,
         html: viewingInternalEmail(data)
       })
@@ -53,7 +57,7 @@ module.exports = async (req, res) => {
       })
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `New service request — ${data.first_name} ${data.last_name}`,
         html: serviceInternalEmail(data)
       })
@@ -83,7 +87,7 @@ module.exports = async (req, res) => {
       // Eric-facing notification for every Stripe sale.
       await resend.emails.send({
         from: FROM,
-        to: data.email || BUSINESS_EMAIL,
+        to: internalRecipients(data.email),
         subject: `New ${data.payment_type === 'deposit' ? 'deposit' : 'sale'} — ${data.piano_label || 'piano'} (${data.order_number || ''})`,
         html: internalSaleEmail(data)
       })
@@ -98,7 +102,7 @@ module.exports = async (req, res) => {
       const enriched = await enrichDeliveryPreferencesPayload(data)
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `Delivery preferences received — ${enriched.customer_name || 'customer'} · ${enriched.order_number || ''}`,
         html: deliveryPreferencesEmail(enriched)
       })
@@ -118,9 +122,12 @@ module.exports = async (req, res) => {
       })
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `Invoice sent — ${order.invoice_number} to ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
-        html: `<p>Invoice ${esc(order.invoice_number)} was sent to ${esc(customer.email)}.</p>`
+        html: alertEmail({
+          title: 'Invoice sent',
+          rows: [['Invoice', esc(order.invoice_number), true], ['Sent to', esc(customer.email)]]
+        })
       })
     }
 
@@ -143,7 +150,7 @@ module.exports = async (req, res) => {
       }
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `New POS sale — ${order.invoice_number} · ${customer?.first_name || ''} ${customer?.last_name || ''}`.trim(),
         html: posSaleInternalEmail({ customer, piano, order, isAcoustic: true })
       })
@@ -168,7 +175,7 @@ module.exports = async (req, res) => {
       }
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `New digital sale — ${order.invoice_number} · ${customer?.first_name || ''} ${customer?.last_name || ''}`.trim(),
         html: posSaleInternalEmail({ customer, piano, order, isAcoustic: false })
       })
@@ -188,14 +195,14 @@ module.exports = async (req, res) => {
       })
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `Contract sent — ${plan.plan_number} · ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
-        html: `
-          <p>Payment plan contract sent to ${esc(customer.email)}.</p>
-          <p>Plan: ${esc(plan.plan_number || '')}</p>
-          <p>Total: ${planCurrency(plan.total_amount)}</p>
-          <p>Awaiting customer signature.</p>
-        `
+        html: alertEmail({
+          label: 'Payment plan',
+          title: 'Contract sent',
+          rows: [['Sent to', esc(customer.email)], ['Plan', esc(plan.plan_number || ''), true], ['Total', planCurrency(plan.total_amount)]],
+          message: 'Waiting for the customer to sign.'
+        })
       })
     }
 
@@ -218,19 +225,22 @@ module.exports = async (req, res) => {
       }
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `Contract signed — ${plan.plan_number} · ${customer?.first_name || ''} ${customer?.last_name || ''}`.trim(),
-        html: `
-          <h2>Payment plan contract signed</h2>
-          <p>Customer: ${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))} (${esc(customer?.email || '')})</p>
-          <p>Plan: ${esc(plan.plan_number || '')}</p>
-          <p>Piano: ${esc((piano?.brand || '') + ' ' + (piano?.model || '') + ' ' + (piano?.year || ''))}</p>
-          <p>Total: ${planCurrency(plan.total_amount)}</p>
-          <p>Signed at: ${esc(signed_at || '')}</p>
-          <p>Full name confirmed: ${esc(full_name || '')}</p>
-          <p>Signature saved to Supabase Storage: ${esc(contract_url || 'Not saved')}</p>
-          <p>Plan status updated to: active</p>
-        `
+        html: alertEmail({
+          label: 'Payment plan',
+          title: 'Contract signed',
+          rows: [
+            ['Customer', `${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))}<br>${esc(customer?.email || '')}`, true],
+            ['Plan', esc(plan.plan_number || '')],
+            ['Piano', esc((piano?.brand || '') + ' ' + (piano?.model || '') + ' ' + (piano?.year || ''))],
+            ['Total', planCurrency(plan.total_amount)],
+            ['Signed at', esc(signed_at || '')],
+            ['Name confirmed', esc(full_name || '')],
+            ['Signature file', esc(contract_url || 'Not saved')],
+            ['Plan status', 'Active']
+          ]
+        })
       })
     }
 
@@ -248,13 +258,13 @@ module.exports = async (req, res) => {
       })
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `Reminder sent — ${plan.plan_number} · ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
-        html: `
-          <p>Overdue instalment reminder sent to ${esc(customer.email)}.</p>
-          <p>Plan: ${esc(plan.plan_number || '')}</p>
-          <p>Overdue instalments: ${overdueInstalments?.length || 0}</p>
-        `
+        html: alertEmail({
+          label: 'Payment plan',
+          title: 'Overdue reminder sent',
+          rows: [['Sent to', esc(customer.email)], ['Plan', esc(plan.plan_number || ''), true], ['Overdue instalments', String(overdueInstalments?.length || 0)]]
+        })
       })
     }
 
@@ -310,13 +320,14 @@ module.exports = async (req, res) => {
       })
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `Driver assigned — ${driver_name} · ${pianoLabel}`.trim(),
-        html: `
-          <p>Assignment email sent to ${esc(driver_name)} (${esc(driver_email)}).</p>
-          <p>Customer: ${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))}</p>
-          <p>Awaiting driver acceptance.</p>
-        `
+        html: alertEmail({
+          label: 'Delivery',
+          title: 'Delivery partner assigned',
+          rows: [['Partner', `${esc(driver_name)}<br>${esc(driver_email)}`, true], ['Customer', esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))]],
+          message: 'Waiting for the partner to accept a delivery window.'
+        })
       })
     }
 
@@ -343,13 +354,13 @@ module.exports = async (req, res) => {
       })
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: isPickup ? `Pickup link sent to ${driver_name}` : `Delivery link sent to ${driver_name}`,
-        html: `
-          <p>${isPickup ? 'Pickup' : 'Delivery'} photo link sent to ${esc(driver_name)} (${esc(driver_email)}).</p>
-          <p>Piano: ${esc(pianoLabel)}</p>
-          <p>Customer: ${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))}</p>
-        `
+        html: alertEmail({
+          label: 'Delivery',
+          title: isPickup ? 'Pickup link sent' : 'Delivery link sent',
+          rows: [['Partner', `${esc(driver_name)}<br>${esc(driver_email)}`, true], ['Piano', esc(pianoLabel)], ['Customer', esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))]]
+        })
       })
     }
 
@@ -373,12 +384,13 @@ module.exports = async (req, res) => {
       })
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `Delivery confirmed — ${customer.first_name || ''} ${customer.last_name || ''} · ${fmtDelDate(delivery.scheduled_date)}`.trim(),
-        html: `
-          <p>Delivery confirmation sent to ${esc(customer.email)}.</p>
-          <p>Date: ${esc(fmtDelDate(delivery.scheduled_date))} ${esc(delivery.scheduled_time_window || '')}</p>
-        `
+        html: alertEmail({
+          label: 'Delivery',
+          title: 'Delivery date sent to the customer',
+          rows: [['Sent to', esc(customer.email)], ['Date', `${esc(fmtDelDate(delivery.scheduled_date))} ${esc(delivery.scheduled_time_window || '')}`, true]]
+        })
       })
     }
 
@@ -390,117 +402,32 @@ module.exports = async (req, res) => {
 }
 
 /* ===========================================================================
- * Email helpers + templates
+ * Email templates
  * ===========================================================================
- * All four emails share a single dark/gold shell so they read as one brand.
- * Cormorant Garamond is pulled via Google Fonts @import; most clients will
- * fall back to a serif system font, which is acceptable.
+ * Every email here is built from the brand kit in lib/email-brand.js, so the
+ * customer confirmations, invoices, payment-plan emails, driver jobs and the
+ * alerts to Eric all share one look (brand/BRAND-GUIDELINES.md).
  * ======================================================================== */
 
-// Tiny HTML escaper so user-supplied strings can't break the markup.
-function esc(value) {
-  if (value === null || value === undefined) return ''
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
+const B = require('../lib/email-brand')
+const { esc, layout, hello, p, h2, details, note, button, buttonOutline, steps, signOff, visitBlock, BUSINESS, C, TEXT } = B
+
+const ADMIN = `${BUSINESS.siteUrl}/admin`
+const link = (href, text) => `<a href="${esc(href)}" style="color:${C.ink};">${text}</a>`
+const mailto = (email) => email ? link(`mailto:${email}`, esc(email)) : '—'
+const tel = (phone) => phone ? link(`tel:${String(phone).replace(/[^\d+]/g, '')}`, esc(phone)) : '—'
+const fullName = (o) => `${o?.first_name || ''} ${o?.last_name || ''}`.trim()
+const pianoName = (piano, withYear = true) =>
+  `${piano?.brand || ''} ${piano?.model || ''}${withYear && piano?.year ? ' ' + piano.year : ''}`.trim()
+const customerNote = (text) => text ? note(`<span style="font-family:${TEXT};font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${C.inkSoft};">Their message</span><br>${esc(text)}`) : ''
 
 // Pretty-print enum-ish values back into readable English.
 function pretty(value) {
   if (value === null || value === undefined || value === '') return '—'
   if (Array.isArray(value)) return value.length ? value.map(esc).join(', ') : '—'
   if (typeof value === 'boolean') return value ? 'Yes' : 'No'
-  return esc(String(value).replace(/_/g, ' '))
-}
-
-function shell({ preview, body }) {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Signature Pianos</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
-    body { margin: 0; padding: 0; background: #0e0e0d; }
-    /* Outlook-friendly: explicit table layout below */
-  </style>
-</head>
-<body style="margin:0;padding:0;background:#0e0e0d;color:#f5f0e8;font-family:'DM Sans',Helvetica,Arial,sans-serif;font-weight:300;line-height:1.7;">
-  <span style="display:none;visibility:hidden;opacity:0;color:transparent;height:0;width:0;overflow:hidden;">${esc(preview)}</span>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0e0e0d;">
-    <tr>
-      <td align="center" style="padding:40px 20px;">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#1a1a18;border:1px solid rgba(184,147,90,0.3);">
-          <tr>
-            <td style="padding:36px 40px 24px;border-bottom:1px solid rgba(184,147,90,0.15);text-align:center;">
-              <div style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:28px;letter-spacing:0.01em;color:#f5f0e8;">
-                Signature <em style="font-style:italic;color:#b8935a;font-weight:400;">Pianos</em>
-              </div>
-              <div style="font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:0.24em;text-transform:uppercase;color:#9a9590;margin-top:8px;">
-                Melbourne
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:40px;">
-              ${body}
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:24px 40px;border-top:1px solid rgba(184,147,90,0.15);text-align:center;font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:11px;color:#6b6760;letter-spacing:0.08em;">
-              Signature Pianos · Melbourne, VIC · info@signaturepianos.com.au
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`
-}
-
-function h1(text) {
-  return `<h1 style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:32px;line-height:1.15;margin:0 0 18px;color:#f5f0e8;">${text}</h1>`
-}
-
-function p(text, opts = {}) {
-  const color = opts.muted ? '#9a9590' : '#f5f0e8'
-  return `<p style="font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.7;color:${color};margin:0 0 16px;">${text}</p>`
-}
-
-function detailTable(rows) {
-  const tr = rows
-    .map(([label, value, highlight]) => `
-      <tr>
-        <td style="padding:10px 16px 10px 0;border-bottom:1px solid rgba(184,147,90,0.12);font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#9a9590;vertical-align:top;width:40%;">
-          ${esc(label)}
-        </td>
-        <td style="padding:10px 0;border-bottom:1px solid rgba(184,147,90,0.12);font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:14px;color:${highlight ? '#b8935a' : '#f5f0e8'};${highlight ? 'font-weight:500;' : ''}">
-          ${value}
-        </td>
-      </tr>
-    `).join('')
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 24px;">${tr}</table>`
-}
-
-function divider() {
-  return '<div style="height:1px;background:rgba(184,147,90,0.2);margin:24px 0;"></div>'
-}
-
-function signOff(name) {
-  return `
-    ${divider()}
-    <p style="font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:18px;color:#f5f0e8;margin:0 0 6px;">
-      Warmly,
-    </p>
-    <p style="font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:14px;color:#9a9590;margin:0;">
-      ${esc(name || 'Eric')} · Signature Pianos
-    </p>
-  `
+  const s = String(value).replace(/_/g, ' ')
+  return esc(s.charAt(0).toUpperCase() + s.slice(1))
 }
 
 function formatTime(value) {
@@ -508,96 +435,122 @@ function formatTime(value) {
   return map[value] || pretty(value)
 }
 
-function formatDate(value) {
-  if (!value) return '—'
-  try {
-    return new Date(value).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-  } catch {
-    return esc(value)
-  }
+const formatDate = (value) => B.longDate(value)
+
+/* The alert Eric gets for anything that happened without him. */
+function alertEmail({ label = 'For Signature Pianos', title, preview, rows = [], message, action }) {
+  return layout({
+    internal: true,
+    preview: preview || title,
+    label,
+    title,
+    body: details(rows) + (message ? note(message) : '') + (action ? button(action.url, action.text) : '')
+  })
 }
 
-/* ---------- VIEWING — customer confirmation ---------- */
+/* ---------- VIEWING REQUEST — customer ---------- */
 function viewingConfirmationEmail(data) {
   const body = `
-    ${h1(`Hi ${esc(data.first_name)},`)}
-    ${p(`Thanks for booking a viewing with Signature Pianos. We've received your request and will be in touch within 24 hours to confirm your appointment.`)}
-
-    <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:20px;color:#b8935a;margin:32px 0 8px;">Your booking</h2>
-    ${detailTable([
-      ['Preferred date', formatDate(data.preferred_date)],
-      ['Preferred time', formatTime(data.preferred_time)],
-      ['Pianos you want to play', pretty(data.pianos_interested)],
+    ${hello(data.first_name)}
+    ${p(`Thank you for booking a visit. We have your request and will be in touch within 24 hours to confirm a time.`, { muted: true })}
+    ${details([
+      ['Preferred day', formatDate(data.preferred_date), true],
+      ['Preferred time', formatTime(data.preferred_time), true],
+      ['Pianos to play', pretty(data.pianos_interested)]
     ])}
-
-    <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:20px;color:#b8935a;margin:32px 0 8px;">What to expect</h2>
-    ${p(`When you arrive, the pianos you're interested in will already be tuned, positioned and ready to play. Take as long as you need — there's no script, no pressure, and absolutely no obligation to buy. We're here to answer questions, not to sell to you.`, { muted: true })}
-
-    ${divider()}
-
-    <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:20px;color:#b8935a;margin:0 0 8px;">Where to find us</h2>
-    ${p('<!-- TODO: ADD SHOWROOM ADDRESS -->Showroom address — Melbourne, VIC<br>Monday to Saturday 9am–5pm', { muted: true })}
-    ${p('<!-- TODO: ADD PHONE / EMAIL -->Phone coming soon · info@signaturepianos.com.au', { muted: true })}
-
-    ${signOff('Eric Kuang')}
+    ${h2('What to expect')}
+    ${p(`The pianos you are interested in will be tuned and ready to play when you arrive. Take as long as you need. There is no obligation to buy: we are here to answer questions.`, { muted: true })}
+    ${h2('Where to find us')}
+    ${visitBlock()}
+    ${signOff()}
   `
-  return shell({
-    preview: `Your viewing on ${formatDate(data.preferred_date)} — we'll confirm within 24 hours.`,
-    body
+  return layout({
+    preview: `Your visit on ${formatDate(data.preferred_date)}: we'll confirm a time within 24 hours.`,
+    label: 'Your visit',
+    title: 'Thank you for booking',
+    body,
+    footnote: 'You received this email because you booked a visit at signaturepianos.com.au.'
   })
 }
 
-/* ---------- VIEWING — internal notification ---------- */
+/* ---------- VIEWING REQUEST — internal ---------- */
 function viewingInternalEmail(data) {
-  const submittedAt = new Date().toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })
+  const submittedAt = new Date().toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Australia/Melbourne' })
   const body = `
-    ${h1('New viewing request')}
-    ${p(`A new viewing has just been booked through signaturepianos.com.au.`, { muted: true })}
-
-    ${detailTable([
-      ['Customer', `${esc(data.first_name)} ${esc(data.last_name)}`],
-      ['Email', `<a href="mailto:${esc(data.email)}" style="color:#b8935a;text-decoration:none;">${esc(data.email)}</a>`],
-      ['Phone', `<a href="tel:${esc(data.phone)}" style="color:#b8935a;text-decoration:none;">${esc(data.phone)}</a>`],
-      ['Preferred date', formatDate(data.preferred_date)],
-      ['Preferred time', formatTime(data.preferred_time)],
+    ${details([
+      ['Customer', esc(`${data.first_name || ''} ${data.last_name || ''}`.trim()), true],
+      ['Email', mailto(data.email)],
+      ['Phone', tel(data.phone)],
+      ['Preferred day', formatDate(data.preferred_date), true],
+      ['Preferred time', formatTime(data.preferred_time), true],
       ['Pianos of interest', pretty(data.pianos_interested)],
       ['How they heard', pretty(data.how_heard)],
-      ['Message', data.message ? esc(data.message) : '—'],
-      ['Submitted', esc(submittedAt)],
+      ['Submitted', esc(submittedAt)]
     ])}
-
-    ${p(`<!-- TODO: ADD ADMIN DASHBOARD LINK --><a href="#" style="color:#b8935a;text-decoration:none;">View in admin dashboard →</a>`, { muted: true })}
+    ${customerNote(data.message)}
+    ${note('Confirm a time with them, then add it under Enquiries → Viewings calendar → New viewing. That sends their confirmation.', 'mist')}
+    ${button(`${ADMIN}/enquiries.html`, 'Open in the CRM')}
   `
-  return shell({
-    preview: `New viewing — ${data.first_name} ${data.last_name}, ${formatDate(data.preferred_date)}`,
+  return layout({
+    internal: true,
+    preview: `New viewing request: ${data.first_name} ${data.last_name}, ${formatDate(data.preferred_date)}`,
+    label: 'New viewing request',
+    title: esc(`${data.first_name || ''} ${data.last_name || ''}`.trim() || 'New request'),
     body
   })
 }
 
-/* ---------- SERVICE — customer confirmation ---------- */
+/* ---------- SERVICE REQUEST — customer ---------- */
 function serviceConfirmationEmail(data) {
   const body = `
-    ${h1(`Hi ${esc(data.first_name)},`)}
-    ${p(`Thanks for sending through your service request. We've received your details and will be in touch within 24 hours to confirm your appointment.`)}
-
-    <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:20px;color:#b8935a;margin:32px 0 8px;">Your request</h2>
-    ${detailTable([
-      ['Piano', `${esc(data.piano_brand)}${data.piano_age ? ' · ' + pretty(data.piano_age) : ''}`],
+    ${hello(data.first_name)}
+    ${p(`Thank you for your service request. We have your details and will be in touch within 24 hours to arrange a time.`, { muted: true })}
+    ${details([
+      ['Piano', `${esc(data.piano_brand || '—')}${data.piano_age ? ' · ' + pretty(data.piano_age) : ''}`],
       ['Last tuned', pretty(data.last_tuned)],
-      ['Service required', pretty(data.service_required)],
-      ['Preferred timeframe', pretty(data.preferred_timeframe)],
-      ['Suburb', esc(data.suburb)],
+      ['Service', pretty(data.service_required), true],
+      ['When', pretty(data.preferred_timeframe)],
+      ['Suburb', esc(data.suburb || '—')]
     ])}
-
-    ${p(`We aim to respond to every service request within 24 hours. If you need to reach us sooner, give us a call directly.`, { muted: true })}
-
-    ${divider()}
-    ${p('<!-- TODO: ADD PHONE / EMAIL -->Phone coming soon · info@signaturepianos.com.au', { muted: true })}
-
-    ${signOff('Eric Kuang')}
+    ${p(`If you need us sooner, call ${tel(BUSINESS.phone)}.`, { muted: true })}
+    ${signOff()}
   `
-  return shell({
-    preview: `Service request received — we'll be in touch within 24 hours.`,
+  return layout({
+    preview: `Service request received: we'll be in touch within 24 hours.`,
+    label: 'Tuning and service',
+    title: 'We have your request',
+    body,
+    footnote: 'You received this email because you asked for a piano service at signaturepianos.com.au.'
+  })
+}
+
+/* ---------- SERVICE REQUEST — internal ---------- */
+function serviceInternalEmail(data) {
+  const submittedAt = new Date().toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Australia/Melbourne' })
+  const isSig = data.is_signature_piano === true
+  const body = `
+    ${isSig ? note('An existing Signature Pianos customer. Check the piano’s service history before you call.', 'alert') : ''}
+    ${details([
+      ['Customer', esc(`${data.first_name || ''} ${data.last_name || ''}`.trim()), true],
+      ['Email', mailto(data.email)],
+      ['Phone', tel(data.phone)],
+      ['Suburb', esc(data.suburb || '—')],
+      ['Piano brand', esc(data.piano_brand || '—')],
+      ['Piano age', pretty(data.piano_age)],
+      ['Last tuned', pretty(data.last_tuned)],
+      ['Service', pretty(data.service_required), true],
+      ['When', pretty(data.preferred_timeframe)],
+      ['Our customer', isSig ? 'Yes' : 'No'],
+      ['Submitted', esc(submittedAt)]
+    ])}
+    ${customerNote(data.message)}
+    ${button(`${ADMIN}/enquiries.html`, 'Open in the CRM')}
+  `
+  return layout({
+    internal: true,
+    preview: `New service request: ${data.first_name} ${data.last_name}${isSig ? ' (existing customer)' : ''}`,
+    label: 'New service request',
+    title: esc(`${data.first_name || ''} ${data.last_name || ''}`.trim() || 'New request'),
     body
   })
 }
@@ -607,524 +560,529 @@ function overdueReminderEmail(data) {
   const paymentLabels = {
     cash: 'Cash',
     bank_transfer: 'Bank transfer',
-    stripe: 'Stripe',
+    stripe: 'Card (Stripe)',
     card_in_person: 'Card in person',
-    deposit_paid_online: 'Deposit paid online',
+    deposit_paid_online: 'Deposit paid online'
   }
-  const aud = (n) => '$' + Number(n || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  const issued = data.issued_at ? formatDate(data.issued_at) : '—'
-
   const body = `
-    ${h1(`Hi ${esc(data.first_name)},`)}
-    ${p(`This is a friendly reminder that the balance for your recent Signature Pianos purchase is still outstanding. If you've already settled it in the last day or two, please ignore this note — bank transfers can take a moment to land.`)}
-
-    <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:20px;color:#b8935a;margin:32px 0 8px;">Invoice details</h2>
-    ${detailTable([
-      ['Invoice #', esc(data.invoice_number || '—'), true],
-      ['Order #', esc(data.order_number || '—')],
-      ['Issued', esc(issued)],
-      ['Amount due', aud(data.total), true],
-      ['Payment method', esc(paymentLabels[data.payment_method] || data.payment_method || '—')],
+    ${hello(data.first_name)}
+    ${p(`A reminder that the balance for your recent Signature Pianos purchase is still outstanding. If you have paid in the last day or two, please ignore this: bank transfers can take a little time to arrive.`, { muted: true })}
+    ${details([
+      ['Invoice', esc(data.invoice_number || '—'), true],
+      ['Order', esc(data.order_number || '—')],
+      ['Issued', data.issued_at ? formatDate(data.issued_at) : '—'],
+      ['Amount due', B.money(data.total), true],
+      ['Payment method', esc(paymentLabels[data.payment_method] || data.payment_method || '—')]
     ])}
-
-    ${p(`If you'd like to pay by a different method, or if you have any questions about the invoice, just reply to this email and we'll sort it straight away.`, { muted: true })}
-
-    ${signOff('Eric Kuang')}
+    ${p(`If you would like to pay another way, or have a question about the invoice, reply to this email and we will sort it out.`, { muted: true })}
+    ${signOff()}
   `
-  return shell({
-    preview: `Payment reminder — invoice ${data.invoice_number || ''} for ${aud(data.total)}`,
+  return layout({
+    preview: `Payment reminder: invoice ${data.invoice_number || ''} for ${B.money(data.total)}`,
+    label: 'Your invoice',
+    title: 'A reminder about your balance',
     body
   })
 }
 
-/* ---------- PURCHASE CONFIRMATION — customer ---------- */
+/* ---------- PURCHASE CONFIRMATION (Stripe) — customer ---------- */
 function purchaseConfirmationEmail(data) {
-  const aud = (n) => '$' + Number(n || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const isDeposit = data.payment_type === 'deposit'
-
   const body = `
-    ${h1(`Thank you, ${esc(data.first_name) || 'friend'}.`)}
+    ${hello(data.first_name)}
     ${p(isDeposit
-        ? `Your reservation deposit has been received. We've taken your piano off the public catalogue and will hold it for you while we arrange the rest of the purchase.`
-        : `Your purchase has been confirmed. We're packing up your piano now and will have everything ready for delivery to your home.`)}
-
-    <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:20px;color:#b8935a;margin:32px 0 8px;">Your order</h2>
-    ${detailTable([
-      ['Piano',  esc(data.piano_label || '—'), true],
-      ['Order #', esc(data.order_number || '—')],
-      [isDeposit ? 'Deposit paid' : 'Total paid', aud(data.total), true],
+      ? `Your reservation deposit has been received. We have taken your piano off the website and will hold it for you while we arrange the rest of the purchase.`
+      : `Your purchase is confirmed. We are getting your piano ready for delivery to your home.`, { muted: true })}
+    ${details([
+      ['Piano', esc(data.piano_label || '—'), true],
+      ['Order', esc(data.order_number || '—')],
+      [isDeposit ? 'Deposit paid' : 'Total paid', B.money(data.total), true]
     ])}
-
-    <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:20px;color:#b8935a;margin:32px 0 8px;">Next step — choose your delivery window</h2>
-    ${p(`Use the link below to share your three preferred delivery windows. We'll confirm one of them by email or phone within 48 hours.`, { muted: true })}
-
-    <p style="margin:18px 0 24px;">
-      <a href="${esc(data.preferences_url || '#')}"
-         style="display:inline-block;background:#b8935a;color:#0e0e0d;padding:14px 28px;font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:12px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;text-decoration:none;border-radius:3px;">
-        Pick your delivery window →
-      </a>
-    </p>
-
-    ${p(`If the button doesn't work, copy and paste this link into your browser:`, { muted: true })}
-    ${p(`<span style="word-break:break-all;color:#9a9590;font-size:12px;">${esc(data.preferences_url || '')}</span>`, { muted: true })}
-
-    ${signOff('Eric Kuang')}
+    ${h2('Next: choose your delivery window')}
+    ${p(`Share three delivery windows that suit you. We will confirm one of them by email or phone within 48 hours.`, { muted: true })}
+    ${data.preferences_url ? button(data.preferences_url, 'Choose delivery windows') : ''}
+    ${data.preferences_url ? p(`If the button doesn't work, copy this link into your browser:<br><span style="word-break:break-all;">${esc(data.preferences_url)}</span>`, { small: true, muted: true }) : ''}
+    ${signOff()}
   `
-  return shell({
-    preview: isDeposit
-      ? `Deposit received — choose your delivery window`
-      : `Purchase confirmed — choose your delivery window`,
+  return layout({
+    preview: isDeposit ? 'Deposit received: choose your delivery window' : 'Purchase confirmed: choose your delivery window',
+    label: isDeposit ? 'Your reservation' : 'Your purchase',
+    title: isDeposit ? 'Your piano is reserved' : 'Thank you for your purchase',
     body
   })
 }
 
-/* ---------- INTERNAL SALE NOTIFICATION — Eric ---------- */
+/* ---------- SALE (Stripe) — internal ---------- */
 function internalSaleEmail(data) {
-  const aud = (n) => '$' + Number(n || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const isDeposit = data.payment_type === 'deposit'
-  // Treat undefined is_acoustic as acoustic (legacy callers) so the message
-  // stays accurate for the existing call sites; the Stripe webhook always
-  // passes this flag explicitly now.
+  // Treat undefined is_acoustic as acoustic (legacy callers); the Stripe webhook always passes it.
   const isAcoustic = data.is_acoustic === undefined ? true : !!data.is_acoustic
   const body = `
-    ${h1(isDeposit ? 'New deposit paid' : 'New sale completed')}
-    ${p(`A customer has just paid via Stripe Checkout.`, { muted: true })}
-
-    ${detailTable([
+    ${p('A customer has just paid online through Stripe.', { muted: true, first: true })}
+    ${details([
       ['Piano', esc(data.piano_label || '—'), true],
       ['Customer', esc(data.customer || '—')],
-      ['Email', data.customer_email ? `<a href="mailto:${esc(data.customer_email)}" style="color:#b8935a;text-decoration:none;">${esc(data.customer_email)}</a>` : '—'],
-      ['Order #', esc(data.order_number || '—')],
-      [isDeposit ? 'Deposit' : 'Total', aud(data.total), true],
+      ['Email', mailto(data.customer_email)],
+      ['Order', esc(data.order_number || '—')],
+      [isDeposit ? 'Deposit' : 'Total', B.money(data.total), true],
       ['Type', isDeposit ? 'Reservation deposit' : 'Full purchase'],
-      ['Delivery', isAcoustic
-        ? 'Delivery record created — customer sent preference link'
-        : 'Digital piano — no delivery, customer collecting from showroom'],
+      ['Delivery', isAcoustic ? 'Delivery record created; customer sent the delivery-window link' : 'Digital piano: no delivery, collecting from the showroom']
     ])}
-
-    ${p(isAcoustic
-        ? `The order, customer and delivery rows have been created automatically. Open the admin dashboard to assign a delivery partner and confirm timing once the customer submits their preferences.`
-        : `The order and customer rows have been created automatically. No delivery row was created — the customer will collect the instrument from the showroom.`,
-        { muted: true })}
+    ${note(isAcoustic
+      ? 'The order, customer and delivery records were created automatically. Assign a delivery partner once the customer sends their delivery windows.'
+      : 'The order and customer records were created automatically. No delivery record: the customer will collect from the showroom.', 'mist')}
+    ${button(`${ADMIN}/orders.html`, 'Open orders')}
   `
-  return shell({
-    preview: `New ${isDeposit ? 'deposit' : 'sale'} — ${data.piano_label || ''}`,
+  return layout({
+    internal: true,
+    preview: `New ${isDeposit ? 'deposit' : 'sale'}: ${data.piano_label || ''}`,
+    label: isDeposit ? 'New deposit' : 'New sale',
+    title: esc(data.piano_label || (isDeposit ? 'New deposit' : 'New sale')),
     body
   })
 }
 
-/* ---------- DELIVERY PREFERENCES SUBMITTED — internal ----------
- * Branded white-card template (matches invoice + payment-plan emails)
- * so Eric can read the customer's name, contact, piano, address and
- * three preferred windows at a glance without opening admin. */
+/* ---------- DELIVERY PREFERENCES SUBMITTED — internal ---------- */
 function deliveryPreferencesEmail(data) {
-  const name = esc(data.customer_name || '—')
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:24px 32px;">
-      <div style="font-size:18px;color:#b8935a;font-style:italic;">Signature Pianos</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;">Delivery preferences received</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 20px;font-size:18px;">${name} has submitted their delivery preferences</h2>
-
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">Customer &amp; order</div>
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr><td style="padding:6px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:40%;">Customer</td><td style="padding:6px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${name}</td></tr>
-          <tr><td style="padding:6px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Email</td><td style="padding:6px 0;border-bottom:1px solid #e8e4dd;"><a href="mailto:${esc(data.customer_email || '')}" style="color:#b8935a;">${esc(data.customer_email || '—')}</a></td></tr>
-          <tr><td style="padding:6px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Phone</td><td style="padding:6px 0;border-bottom:1px solid #e8e4dd;">${esc(data.customer_phone || '—')}</td></tr>
-          <tr><td style="padding:6px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Order number</td><td style="padding:6px 0;font-weight:500;border-bottom:1px solid #e8e4dd;font-family:monospace;">${esc(data.order_number || '—')}</td></tr>
-          <tr><td style="padding:6px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Invoice</td><td style="padding:6px 0;border-bottom:1px solid #e8e4dd;font-family:monospace;">${esc(data.invoice_number || '—')}</td></tr>
-          <tr><td style="padding:6px 0;color:#9a9590;">Piano</td><td style="padding:6px 0;font-weight:500;">${esc(data.piano || '—')}</td></tr>
-        </table>
-      </div>
-
-      ${data.address ? `
-        <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:8px;">Delivery address</div>
-          <div style="font-size:13px;color:#1a1917;font-weight:500;">${esc(data.address)}</div>
-        </div>
-      ` : ''}
-
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">Preferred delivery windows</div>
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:30%;">1st preference</td><td style="padding:8px 0;font-weight:500;border-bottom:1px solid #e8e4dd;color:#1a1917;">${esc(data.pref1 || '—')}</td></tr>
-          <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">2nd preference</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">${esc(data.pref2 || '—')}</td></tr>
-          <tr><td style="padding:8px 0;color:#9a9590;">3rd preference</td><td style="padding:8px 0;">${esc(data.pref3 || '—')}</td></tr>
-        </table>
-      </div>
-
-      ${data.notes ? `
-        <div style="background:#f8f7f5;border-radius:4px;padding:14px;margin-bottom:20px;">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:6px;">Special instructions</div>
-          <div style="font-size:13px;color:#6b6760;line-height:1.6;">${esc(data.notes)}</div>
-        </div>
-      ` : ''}
-
-      <div style="text-align:center;margin-top:24px;">
-        <a href="https://signaturepianos.com.au/admin/deliveries.html"
-           style="display:inline-block;background:#b8935a;color:#000;padding:12px 28px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:500;">
-          Action in admin portal →
-        </a>
-      </div>
-    </div>
-    <div style="background:#f8f7f5;padding:16px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      Signature Pianos Admin · signaturepianos.com.au
-    </div>
-  </div>
-</body>
-</html>`
+  const body = `
+    ${p(`${esc(data.customer_name || 'The customer')} has chosen their delivery windows.`, { muted: true, first: true })}
+    ${h2('Preferred windows')}
+    ${details([
+      ['1st choice', esc(data.pref1 || '—'), true],
+      ['2nd choice', esc(data.pref2 || '—')],
+      ['3rd choice', esc(data.pref3 || '—')]
+    ])}
+    ${h2('Customer and order')}
+    ${details([
+      ['Customer', esc(data.customer_name || '—'), true],
+      ['Email', mailto(data.customer_email)],
+      ['Phone', tel(data.customer_phone)],
+      ['Delivery address', esc(data.address || '—')],
+      ['Piano', esc(data.piano || '—'), true],
+      ['Order', esc(data.order_number || '—')],
+      ['Invoice', esc(data.invoice_number || '—')]
+    ])}
+    ${data.notes ? note(`<span style="font-family:${TEXT};font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${C.inkSoft};">Special instructions</span><br>${esc(data.notes)}`) : ''}
+    ${button(`${ADMIN}/deliveries.html`, 'Assign a delivery partner')}
+  `
+  return layout({
+    internal: true,
+    preview: `Delivery windows received: ${data.customer_name || ''}`,
+    label: 'Delivery windows received',
+    title: esc(data.customer_name || 'Delivery windows'),
+    body
+  })
 }
 
-/* ============================================================================
- * Invoice + order-confirmation + delivery-confirmation templates.
- * Defined once here, shared by:
- *   - send_invoice (manual resend from admin/orders.html)
- *   - pos_order_confirmation  (admin/orders.html, acoustic)
- *   - digital_order_confirmation (admin/orders.html, digital)
- *   - delivery_confirmed (admin/deliveries.html — admin locks a date)
- *   - stripe-webhook.js calls into the same dispatcher branches by type
- * Style: light card to match invoice PDF layout, distinct from the
- * dark/gold "shell" used by transactional confirmations elsewhere.
- * ======================================================================== */
-
+/* ---------- TAX INVOICE — customer (manual send, POS sales) ---------- */
 function generateInvoiceEmailHTML({ customer, piano, order, settings }) {
   const lineItems = Array.isArray(order?.line_items) ? order.line_items : []
-  const total    = Number(order?.total || 0)
-  const gst      = total / 11
-  const exGST    = total - gst
+  const total = Number(order?.total || 0)
+  const gst = total / 11
+  const exGST = total - gst
   const discount = Number(order?.discount || 0)
-
-  const fmtCur = (val) =>
-    '$' + Math.abs(Number(val || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-
-  const fmtDateAU = (dateStr) => {
-    if (!dateStr) return '—'
-    try {
-      return new Date(dateStr).toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric' })
-    } catch {
-      return esc(dateStr)
-    }
+  const s = settings || {}
+  const fmtDateAU = (d) => {
+    if (!d) return '—'
+    try { return new Date(d).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Australia/Melbourne' }) } catch { return esc(d) }
   }
+  const from = [
+    esc(s.business_name || BUSINESS.name),
+    esc(s.address_line1 || BUSINESS.address1),
+    s.suburb ? esc(`${s.suburb} ${s.state || ''} ${s.postcode || ''}`.trim()) : esc(BUSINESS.address2),
+    esc(s.email || BUSINESS.email),
+    s.abn ? `ABN ${esc(s.abn)}` : ''
+  ].filter(Boolean).join('<br>')
+  const billTo = [
+    `<strong style="font-weight:500;">${esc(fullName(customer) || '—')}</strong>`,
+    customer?.business_name ? esc(customer.business_name) : '',
+    customer?.abn ? `ABN ${esc(customer.abn)}` : '',
+    [customer?.address_line1, customer?.suburb, customer?.state, customer?.postcode].filter(Boolean).map(esc).join(', '),
+    customer?.email ? esc(customer.email) : '',
+    customer?.phone ? esc(customer.phone) : ''
+  ].filter(Boolean).join('<br>')
+  const cell = `padding:11px 0;border-bottom:1px solid ${C.ivoryDeep};font-family:${TEXT};font-size:14px;line-height:20px;color:${C.ink};`
+  const head = `padding:0 0 8px;border-bottom:1px solid ${C.ink};font-family:${TEXT};font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${C.inkSoft};font-weight:400;`
+  const isBank = (order?.payment_method === 'bank_transfer' || order?.payment_method === 'Bank transfer') && s.bank_bsb
+  const isStripe = order?.payment_method === 'stripe' || order?.payment_method === 'Stripe'
 
-  const settingsBlock = `
-    ${settings?.address_line1 ? esc(settings.address_line1) : ''}
-    ${settings?.suburb
-      ? '<br>' + esc(settings.suburb) + ' ' + esc(settings.state || '') + ' ' + esc(settings.postcode || '')
-      : ''}
-    ${settings?.email   ? '<br>' + esc(settings.email)   : ''}
-    ${settings?.website ? '<br>' + esc(settings.website) : ''}
-    ${settings?.abn     ? '<br>ABN: ' + esc(settings.abn) : ''}
+  const body = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:22px;">
+      <tr>
+        <td style="vertical-align:top;width:50%;padding-right:12px;font-family:${TEXT};font-size:13px;line-height:20px;color:${C.inkSoft};">
+          ${B.label('From')}<div style="margin-top:6px;">${from}</div>
+        </td>
+        <td style="vertical-align:top;width:50%;padding-left:12px;font-family:${TEXT};font-size:13px;line-height:20px;color:${C.inkSoft};">
+          ${B.label('Bill to')}<div style="margin-top:6px;color:${C.ink};">${billTo}</div>
+        </td>
+      </tr>
+    </table>
+    ${details([
+      ['Invoice', esc(order?.invoice_number || 'Draft'), true],
+      ['Date', fmtDateAU(order?.created_at)],
+      piano && pianoName(piano) ? ['Piano', esc(pianoName(piano)) + (piano.serial_number ? ` · serial ${esc(piano.serial_number)}` : '')] : null
+    ])}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
+      <tr>
+        <th align="left" style="${head}">Description</th>
+        <th align="center" style="${head}width:40px;">Qty</th>
+        <th align="right" style="${head}">Ex GST</th>
+        <th align="right" style="${head}">Inc GST</th>
+      </tr>
+      ${lineItems.map(item => `
+      <tr>
+        <td style="${cell}">${esc(item.description || '')}</td>
+        <td align="center" style="${cell}color:${C.inkSoft};">${esc(item.qty || 1)}</td>
+        <td align="right" style="${cell}color:${C.inkSoft};">${B.money((Number(item.amount_inc_gst) || 0) / 1.1)}</td>
+        <td align="right" style="${cell}">${B.money(Number(item.amount_inc_gst) || 0)}</td>
+      </tr>`).join('')}
+      ${discount > 0 ? `
+      <tr>
+        <td colspan="3" style="${cell}">Discount</td>
+        <td align="right" style="${cell}">−${B.money(discount)}</td>
+      </tr>` : ''}
+      <tr><td colspan="3" align="right" style="padding:12px 16px 4px 0;font-family:${TEXT};font-size:13px;color:${C.inkSoft};">Ex GST</td><td align="right" style="padding:12px 0 4px;font-family:${TEXT};font-size:13px;color:${C.inkSoft};">${B.money(exGST)}</td></tr>
+      <tr><td colspan="3" align="right" style="padding:4px 16px 12px 0;font-family:${TEXT};font-size:13px;color:${C.inkSoft};">GST (10%)</td><td align="right" style="padding:4px 0 12px;font-family:${TEXT};font-size:13px;color:${C.inkSoft};">${B.money(gst)}</td></tr>
+      <tr><td colspan="3" align="right" style="padding:14px 16px 14px 0;border-top:1px solid ${C.ink};font-family:${TEXT};font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${C.ink};">Total inc GST</td><td align="right" style="padding:14px 0;border-top:1px solid ${C.ink};font-family:${B.DISPLAY};font-weight:500;font-size:24px;color:${C.ink};">${B.money(total)}</td></tr>
+    </table>
+    ${isBank ? note(`${B.label('Payment details')}<div style="margin-top:6px;">Bank: ${esc(s.bank_name || '')}<br>BSB: ${esc(s.bank_bsb)}<br>Account: ${esc(s.bank_account || '')}<br>Account name: ${esc(s.bank_account_name || '')}<br>Reference: ${esc(order.invoice_number || '')}</div>`) : ''}
+    ${isStripe ? note('Paid by card through Stripe. Thank you.', 'mist') : ''}
+    ${p(esc(s.invoice_notes || 'Thank you for choosing Signature Pianos. This piano is covered by a 10-year warranty.'), { small: true, muted: true })}
   `
-
-  const billToExtra = [
-    customer?.address_line1,
-    customer?.suburb,
-    customer?.state,
-    customer?.postcode,
-  ].filter(Boolean).map(esc).join(', ')
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-</head>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-
-    <div style="background:#1a1917;padding:32px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td style="vertical-align:top;">
-            <div style="font-size:22px;color:#b8935a;font-style:italic;margin-bottom:8px;">
-              ${esc(settings?.business_name || 'Signature Pianos')}
-            </div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.5);line-height:1.8;">
-              ${settingsBlock}
-            </div>
-          </td>
-          <td style="vertical-align:top;text-align:right;">
-            <div style="font-size:18px;font-weight:500;color:#b8935a;text-transform:uppercase;letter-spacing:0.1em;">
-              TAX INVOICE
-            </div>
-            <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:8px;line-height:1.8;">
-              ${esc(order?.invoice_number || 'DRAFT')}<br>
-              ${esc(fmtDateAU(order?.created_at))}
-            </div>
-          </td>
-        </tr>
-      </table>
-    </div>
-
-    <div style="padding:32px;">
-
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:24px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:8px;">Bill to</div>
-        <div style="font-size:15px;font-weight:500;color:#1a1917;">
-          ${esc(customer?.first_name || '')} ${esc(customer?.last_name || '')}
-        </div>
-        ${customer?.business_name ? `<div style="font-size:13px;color:#6b6760;">${esc(customer.business_name)}</div>` : ''}
-        ${customer?.abn           ? `<div style="font-size:13px;color:#6b6760;">ABN: ${esc(customer.abn)}</div>` : ''}
-        <div style="font-size:13px;color:#6b6760;margin-top:4px;line-height:1.6;">
-          ${billToExtra}
-          ${customer?.email ? '<br>' + esc(customer.email) : ''}
-          ${customer?.phone ? '<br>' + esc(customer.phone) : ''}
-        </div>
-      </div>
-
-      <table role="presentation" style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px;">
-        <thead>
-          <tr style="background:#f8f7f5;">
-            <th style="padding:10px 12px;text-align:left;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">Description</th>
-            <th style="padding:10px 12px;text-align:center;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;width:50px;">Qty</th>
-            <th style="padding:10px 12px;text-align:right;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">Ex GST</th>
-            <th style="padding:10px 12px;text-align:right;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">Inc GST</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${lineItems.map(item => `
-            <tr>
-              <td style="padding:10px 12px;border-bottom:1px solid #e8e4dd;color:#1a1917;">${esc(item.description || '')}</td>
-              <td style="padding:10px 12px;border-bottom:1px solid #e8e4dd;text-align:center;color:#6b6760;">${esc(item.qty || 1)}</td>
-              <td style="padding:10px 12px;border-bottom:1px solid #e8e4dd;text-align:right;color:#6b6760;">${fmtCur((Number(item.amount_inc_gst) || 0) / 1.1)}</td>
-              <td style="padding:10px 12px;border-bottom:1px solid #e8e4dd;text-align:right;color:#1a1917;">${fmtCur(Number(item.amount_inc_gst) || 0)}</td>
-            </tr>
-          `).join('')}
-          ${discount > 0 ? `
-            <tr>
-              <td colspan="3" style="padding:10px 12px;border-bottom:1px solid #e8e4dd;color:#c0392b;">Discount</td>
-              <td style="padding:10px 12px;border-bottom:1px solid #e8e4dd;text-align:right;color:#c0392b;">-${fmtCur(discount)}</td>
-            </tr>
-          ` : ''}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="3" style="padding:8px 12px;text-align:right;font-size:12px;color:#6b6760;">Ex GST</td>
-            <td style="padding:8px 12px;text-align:right;font-size:12px;color:#6b6760;">${fmtCur(exGST)}</td>
-          </tr>
-          <tr>
-            <td colspan="3" style="padding:8px 12px;text-align:right;font-size:12px;color:#6b6760;">GST (10%)</td>
-            <td style="padding:8px 12px;text-align:right;font-size:12px;color:#6b6760;">${fmtCur(gst)}</td>
-          </tr>
-          <tr style="background:#f8f7f5;">
-            <td colspan="3" style="padding:12px;text-align:right;font-weight:500;color:#1a1917;">Total (inc GST)</td>
-            <td style="padding:12px;text-align:right;font-weight:500;font-size:16px;color:#b8935a;">${fmtCur(total)}</td>
-          </tr>
-        </tfoot>
-      </table>
-
-      ${(order?.payment_method === 'bank_transfer' || order?.payment_method === 'Bank transfer') && settings?.bank_bsb ? `
-        <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:8px;">Payment details</div>
-          <div style="font-size:13px;color:#6b6760;line-height:1.8;">
-            Bank: ${esc(settings.bank_name || '')}<br>
-            BSB: ${esc(settings.bank_bsb)}<br>
-            Account: ${esc(settings.bank_account || '')}<br>
-            Account name: ${esc(settings.bank_account_name || '')}<br>
-            Reference: ${esc(order.invoice_number || '')}
-          </div>
-        </div>
-      ` : ''}
-
-      ${(order?.payment_method === 'stripe' || order?.payment_method === 'Stripe') ? `
-        <div style="background:#e8f5ee;border-radius:4px;padding:12px 16px;margin-bottom:20px;">
-          <div style="font-size:13px;color:#085041;">
-            ✓ Payment received via Stripe
-          </div>
-        </div>
-      ` : ''}
-
-      <div style="font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;padding-top:16px;line-height:1.7;">
-        ${esc(settings?.invoice_notes || 'Thank you for choosing Signature Pianos. This piano is covered by a 10-year warranty.')}
-      </div>
-
-    </div>
-
-    <div style="background:#f8f7f5;padding:20px 32px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne
-      · ${esc(settings?.website || 'signaturepianos.com.au')}
-      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
-    </div>
-
-  </div>
-</body>
-</html>`
+  return layout({
+    preview: `Tax invoice ${order?.invoice_number || ''} for ${B.money(total)}`,
+    label: 'Tax invoice',
+    title: esc(order?.invoice_number || 'Tax invoice'),
+    body
+  })
 }
 
+/* ---------- POS SALE (acoustic) — customer ---------- */
 function posOrderConfirmationEmail({ customer, piano, order, settings, preferenceUrl }) {
-  const fmtCur = (val) =>
-    '$' + Math.abs(Number(val || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-
-  const pianoLabel = `${piano?.brand || ''} ${piano?.model || ''} ${piano?.year || ''}`.trim()
-
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">
-        ${esc(settings?.business_name || 'Signature Pianos')}
-      </div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Thank you, ${esc(customer?.first_name || 'friend')}.</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        Your purchase has been confirmed. Your invoice is attached in a separate email.
-      </p>
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:20px 0;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:8px;">Purchase summary</div>
-        <div style="font-size:13px;color:#6b6760;line-height:1.8;">
-          Piano: ${esc(pianoLabel)}<br>
-          Invoice: ${esc(order?.invoice_number || '')}<br>
-          Total: ${fmtCur(order?.total)}<br>
-          Payment: ${esc(order?.payment_method || '')}
-        </div>
-      </div>
-      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:16px;margin:20px 0;">
-        <div style="font-size:14px;font-weight:500;color:#085041;margin-bottom:8px;">
-          Next step — choose your delivery times
-        </div>
-        <p style="font-size:13px;color:#085041;margin:0 0 16px;line-height:1.6;">
-          Please let us know 3 times that work for you and we will arrange delivery of your piano.
-        </p>
-        <a href="${esc(preferenceUrl || '#')}"
-           style="display:inline-block;background:#b8935a;color:#000;padding:12px 24px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:500;">
-          Choose delivery times →
-        </a>
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        Your piano includes a 10-year warranty and a complimentary first tuning 3–4 weeks after delivery.
-      </p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne
-      · ${esc(settings?.website || 'signaturepianos.com.au')}
-    </div>
-  </div>
-</body>
-</html>`
+  const body = `
+    ${hello(customer?.first_name)}
+    ${p('Your purchase is confirmed. Your tax invoice comes in a separate email.', { muted: true })}
+    ${details([
+      ['Piano', esc(pianoName(piano) || '—'), true],
+      ['Invoice', esc(order?.invoice_number || '—')],
+      ['Total', B.money(order?.total), true],
+      ['Payment', pretty(order?.payment_method)]
+    ])}
+    ${h2('Next: choose your delivery times')}
+    ${p('Tell us three times that suit you and we will arrange delivery of your piano.', { muted: true })}
+    ${preferenceUrl ? button(preferenceUrl, 'Choose delivery times') : ''}
+    ${note('Your piano comes with white-glove delivery, a 10-year warranty, and its first tuning included three to four weeks after delivery.', 'mist')}
+    ${signOff()}
+  `
+  return layout({
+    preview: 'Purchase confirmed: choose your delivery times',
+    label: 'Your purchase',
+    title: 'Thank you for your purchase',
+    body
+  })
 }
 
+/* ---------- POS SALE (digital) — customer ---------- */
 function digitalOrderConfirmationEmail({ customer, piano, order, settings }) {
-  const fmtCur = (val) =>
-    '$' + Math.abs(Number(val || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-
-  const pianoLabel = `${piano?.brand || ''} ${piano?.model || ''}`.trim()
-
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">
-        ${esc(settings?.business_name || 'Signature Pianos')}
-      </div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Thank you, ${esc(customer?.first_name || 'friend')}.</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        Your purchase has been confirmed. Your invoice is attached in a separate email.
-      </p>
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:20px 0;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:8px;">Purchase details</div>
-        <div style="font-size:13px;color:#6b6760;line-height:1.8;">
-          Item: ${esc(pianoLabel)}<br>
-          Invoice: ${esc(order?.invoice_number || '')}<br>
-          Total: ${fmtCur(order?.total)}<br>
-          Payment: ${esc(order?.payment_method || '')}
-        </div>
-      </div>
-      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:16px;margin:20px 0;">
-        <div style="font-size:13px;color:#085041;line-height:1.7;">
-          <strong>Collection details</strong><br>
-          Your instrument is ready for collection from our showroom.
-          We will be in touch shortly to arrange a suitable pickup time that works for you.
-        </div>
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        If you have any questions please reply to this email or call us directly.
-      </p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne
-      · ${esc(settings?.website || 'signaturepianos.com.au')}
-    </div>
-  </div>
-</body>
-</html>`
+  const body = `
+    ${hello(customer?.first_name)}
+    ${p('Your purchase is confirmed. Your tax invoice comes in a separate email.', { muted: true })}
+    ${details([
+      ['Item', esc(pianoName(piano, false) || '—'), true],
+      ['Invoice', esc(order?.invoice_number || '—')],
+      ['Total', B.money(order?.total), true],
+      ['Payment', pretty(order?.payment_method)]
+    ])}
+    ${h2('Collecting it')}
+    ${p('Your instrument is ready to collect from our showroom. We will be in touch shortly to arrange a pickup time that suits you.', { muted: true })}
+    ${visitBlock()}
+    ${signOff()}
+  `
+  return layout({
+    preview: 'Purchase confirmed: ready to collect from the showroom',
+    label: 'Your purchase',
+    title: 'Thank you for your purchase',
+    body
+  })
 }
 
-function deliveryConfirmedEmail({ customer, piano, delivery, settings, formatDate }) {
-  const pianoLabel = `${piano?.brand || ''} ${piano?.model || ''} ${piano?.year || ''}`.trim()
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">
-        ${esc(settings?.business_name || 'Signature Pianos')}
-      </div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Your delivery is confirmed, ${esc(customer?.first_name || 'friend')}.</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        Your ${esc(pianoLabel)} is on its way. Here are your delivery details:
-      </p>
-      <div style="background:#f8f7f5;border-radius:4px;padding:20px;margin:20px 0;">
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr>
-            <td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Piano</td>
-            <td style="padding:8px 0;font-weight:500;border-bottom:1px solid #e8e4dd;text-align:right;">${esc(pianoLabel)}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Delivery date</td>
-            <td style="padding:8px 0;font-weight:500;border-bottom:1px solid #e8e4dd;text-align:right;color:#b8935a;">${esc(formatDate(delivery?.scheduled_date))}</td>
-          </tr>
-          ${delivery?.scheduled_time_window ? `
-            <tr>
-              <td style="padding:8px 0;color:#9a9590;">Time window</td>
-              <td style="padding:8px 0;font-weight:500;text-align:right;">${esc(delivery.scheduled_time_window)}</td>
-            </tr>
-          ` : ''}
-        </table>
-      </div>
-      ${delivery?.notes ? `
-        <div style="background:#f8f7f5;border-radius:4px;padding:14px;margin-bottom:20px;font-size:13px;color:#6b6760;">
-          <strong style="color:#1a1917;display:block;margin-bottom:4px;">Delivery notes:</strong>
-          ${esc(delivery.notes)}
-        </div>
-      ` : ''}
-      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:16px;margin:20px 0;">
-        <div style="font-size:13px;color:#085041;line-height:1.7;">
-          <strong>What happens next:</strong><br>
-          On the morning of delivery you will receive a photo of your piano before it leaves our warehouse.
-          You will also receive a live tracking update when it is on its way to you.
-        </div>
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        If you need to reschedule or have any questions please reply to this email or call us directly.
-      </p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne
-      · ${esc(settings?.website || 'signaturepianos.com.au')}
-      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
-    </div>
-  </div>
-</body>
-</html>`
+/* ---------- DELIVERY DATE CONFIRMED — customer ---------- */
+function deliveryConfirmedEmail({ customer, piano, delivery, settings, formatDate: fmt }) {
+  const body = `
+    ${hello(customer?.first_name)}
+    ${p(`Your delivery date is set. Here are the details for your ${esc(pianoName(piano) || 'piano')}.`, { muted: true })}
+    ${details([
+      ['Piano', esc(pianoName(piano) || '—'), true],
+      ['Delivery date', delivery?.scheduled_date ? formatDate(delivery.scheduled_date) : esc(fmt ? fmt(delivery?.scheduled_date) : '—'), true],
+      delivery?.scheduled_time_window ? ['Time window', esc(delivery.scheduled_time_window), true] : null
+    ])}
+    ${delivery?.notes ? note(`<span style="font-family:${TEXT};font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${C.inkSoft};">Delivery notes</span><br>${esc(delivery.notes)}`) : ''}
+    ${h2('What happens next')}
+    ${steps([
+      'On the morning of delivery we send you a photo of your piano before it leaves our warehouse.',
+      'You get a live tracking link once it is on its way to you.',
+      'Our movers place it where you choose, and we send a photo once it is in position.'
+    ])}
+    ${p(`To reschedule, or with any question, reply to this email or call ${tel(BUSINESS.phone)}.`, { muted: true })}
+    ${signOff()}
+  `
+  return layout({
+    preview: `Delivery booked for ${delivery?.scheduled_date ? formatDate(delivery.scheduled_date) : 'your piano'}`,
+    label: 'Your delivery',
+    title: 'Your delivery is booked',
+    body
+  })
+}
+
+/* ---------- PAYMENT PLAN CONTRACT — customer ---------- */
+function paymentPlanContractEmail({ plan, customer, piano, instalments, settings, signUrl }) {
+  const list = Array.isArray(instalments) ? instalments : []
+  const cell = `padding:10px 0;border-bottom:1px solid ${C.ivoryDeep};font-family:${TEXT};font-size:14px;line-height:20px;color:${C.ink};`
+  const head = `padding:0 0 8px;border-bottom:1px solid ${C.ink};font-family:${TEXT};font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${C.inkSoft};font-weight:400;`
+  const body = `
+    ${hello(customer?.first_name)}
+    ${p('Your payment plan is ready. Please check the details below, then sign the contract to confirm it.', { muted: true })}
+    ${details([
+      ['Plan', esc(plan.plan_number || '—')],
+      ['Piano', esc(pianoName(piano) || '—'), true],
+      ['Total price', planCurrency(plan.total_amount), true],
+      ['Deposit', planCurrency(plan.deposit_amount) + (plan.deposit_paid ? ' (paid)' : '')],
+      ['Instalments', `${esc(plan.number_of_instalments || '')} × ${planCurrency(plan.instalment_amount)} ${esc(plan.instalment_frequency || '')}`],
+      ['Start date', planDateAU(plan.start_date)]
+    ])}
+    ${list.length ? `${h2('Payment schedule')}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;">
+      <tr><th align="left" style="${head}width:40px;">No.</th><th align="left" style="${head}">Due</th><th align="right" style="${head}">Amount</th></tr>
+      ${list.map(ins => `<tr><td style="${cell}color:${C.inkSoft};">${esc(ins.instalment_number)}</td><td style="${cell}">${planDateAU(ins.due_date)}</td><td align="right" style="${cell}">${planCurrency(ins.amount)}</td></tr>`).join('')}
+    </table>` : ''}
+    ${signUrl ? button(signUrl, 'Review and sign') : ''}
+    ${signUrl ? p('Signing takes less than a minute.', { small: true, muted: true }) : ''}
+    ${plan.notes ? note(`Notes: ${esc(plan.notes)}`) : ''}
+    ${p('Any question about your payment plan: reply to this email or call us.', { muted: true })}
+    ${signOff()}
+  `
+  return layout({
+    preview: `Your payment plan ${plan.plan_number || ''} is ready to sign`,
+    label: `Payment plan · ${esc(plan.plan_number || '')}`,
+    title: 'Your payment plan is ready',
+    body
+  })
+}
+
+/* ---------- PAYMENT PLAN SIGNED — customer ---------- */
+function paymentPlanSignedCustomerEmail({ plan, customer, piano, signed_at, settings }) {
+  const body = `
+    ${hello(customer?.first_name)}
+    ${p('Thank you for signing your payment plan contract. It has been saved and your plan is now active.', { muted: true })}
+    ${details([
+      ['Plan', esc(plan.plan_number || '—')],
+      ['Piano', esc(pianoName(piano) || '—'), true],
+      ['Total', planCurrency(plan.total_amount), true],
+      ['Instalments', `${esc(plan.number_of_instalments || '')} × ${planCurrency(plan.instalment_amount)} ${esc(plan.instalment_frequency || '')}`],
+      ['Signed', planDateAU(signed_at)]
+    ])}
+    ${p('We will be in touch to arrange delivery of your piano. Any question, just reply to this email.', { muted: true })}
+    ${signOff()}
+  `
+  return layout({
+    preview: `Contract signed: payment plan ${plan.plan_number || ''} is active`,
+    label: `Payment plan · ${esc(plan.plan_number || '')}`,
+    title: 'Your contract is signed',
+    body
+  })
+}
+
+/* ---------- PAYMENT PLAN OVERDUE — customer ---------- */
+function instalmentReminderEmail({ plan, customer, piano, overdueInstalments, settings }) {
+  const list = Array.isArray(overdueInstalments) ? overdueInstalments : []
+  const totalOverdue = list.reduce((s, i) => s + Number(i.amount || 0), 0)
+  const s = settings || {}
+  const body = `
+    ${hello(customer?.first_name)}
+    ${p(`A reminder about the payment plan for your ${esc(pianoName(piano) || 'piano')}.`, { muted: true })}
+    ${note(`<strong style="font-weight:500;">${list.length} payment${list.length === 1 ? '' : 's'} overdue · ${planCurrency(totalOverdue)} in total</strong>${list.map(ins => `<br>Instalment ${esc(ins.instalment_number)}: ${planCurrency(ins.amount)}, due ${planDateAU(ins.due_date)}`).join('')}`, 'alert')}
+    ${h2('Payment details')}
+    ${details([
+      s.bank_bsb ? ['BSB', esc(s.bank_bsb)] : null,
+      s.bank_account ? ['Account', esc(s.bank_account)] : null,
+      s.bank_account_name ? ['Account name', esc(s.bank_account_name)] : null,
+      ['Reference', esc(plan.plan_number || '—'), true]
+    ])}
+    ${p('If you have already paid, please ignore this reminder. If payments are difficult at the moment, call us and we can talk about your options.', { muted: true })}
+    ${signOff()}
+  `
+  return layout({
+    preview: `Payment reminder for plan ${plan.plan_number || ''}`,
+    label: `Payment plan · ${esc(plan.plan_number || '')}`,
+    title: 'A payment reminder',
+    body
+  })
+}
+
+/* ---------- DRIVER — pickup or delivery photo link ---------- */
+function buildDriverLiveEmail({ isPickup, driver_name, customer, piano, tokenUrl, scheduled_date, scheduled_time }) {
+  const fullAddress = [customer?.address_line1, customer?.suburb, customer?.state, customer?.postcode].filter(Boolean).map(esc).join(', ') || '—'
+  const body = `
+    ${hello(driver_name)}
+    ${p(isPickup
+      ? 'You have a piano pickup for Signature Pianos. Please photograph the piano thoroughly before you move it.'
+      : 'You have a piano delivery for Signature Pianos. Please photograph the piano once it is placed in the customer’s home.', { muted: true })}
+    ${details([
+      ['Piano', esc(`${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()), true],
+      ['Serial', esc(piano?.serial_number || '—')],
+      [isPickup ? 'Pick up from' : 'Deliver to', fullAddress, true],
+      !isPickup ? ['Customer phone', tel(customer?.phone)] : null,
+      scheduled_date ? ['Date', formatDate(scheduled_date), true] : null,
+      scheduled_time ? ['Time window', esc(scheduled_time)] : null
+    ])}
+    ${note(isPickup ? 'Do not move the piano until every photo is uploaded.' : 'Do not leave the property until every photo is uploaded.', 'alert')}
+    ${button(tokenUrl || BUSINESS.siteUrl, isPickup ? 'Upload pickup photos' : 'Upload delivery photos')}
+    ${p('The button opens the upload page, where you can take the photos straight from your phone. This link is unique to this job, so please don’t share it.', { small: true, muted: true })}
+  `
+  return layout({
+    preview: isPickup ? 'Pickup photos needed before you move the piano' : 'Delivery photos needed before you leave',
+    label: isPickup ? 'Piano pickup' : 'Piano delivery',
+    title: isPickup ? 'Photos before you move it' : 'Photos once it’s placed',
+    body
+  })
+}
+
+/* ---------- DRIVER — new delivery assignment ---------- */
+function driverAssignmentEmail({ driver_name, customer, piano, preferences, delivery_address, accept_url, settings }) {
+  const fullAddress = delivery_address
+    ? esc(delivery_address)
+    : [customer?.address_line1, customer?.suburb, customer?.state, customer?.postcode].filter(Boolean).map(esc).join(', ') || '—'
+  const body = `
+    ${hello(driver_name)}
+    ${p('Signature Pianos has a piano delivery for you. Please check the details and accept one of the customer’s preferred windows.', { muted: true })}
+    ${h2('Their preferred windows')}
+    ${details([
+      ['1st choice', esc(preferences?.pref1 || '—'), true],
+      ['2nd choice', esc(preferences?.pref2 || '—')],
+      ['3rd choice', esc(preferences?.pref3 || '—')]
+    ])}
+    ${button(accept_url || BUSINESS.siteUrl, 'Accept this delivery')}
+    ${p('Accepting lets you confirm which window works for you.', { small: true, muted: true })}
+    ${h2('The piano')}
+    ${details([
+      ['Piano', esc(`${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()), true],
+      ['Serial', esc(piano?.serial_number || '—')],
+      ['Weight', `${esc(piano?.weight_kg || 'about 200')} kg`]
+    ])}
+    ${h2('Pick up and deliver')}
+    ${details([
+      ['Pick up from', `Signature Pianos warehouse<br>${BUSINESS.address1}, ${BUSINESS.address2}`],
+      ['Deliver to', fullAddress, true],
+      ['Customer', esc(fullName(customer) || '—')],
+      ['Phone', tel(customer?.phone)]
+    ])}
+    ${p(`If none of the windows work, call the customer on ${tel(customer?.phone)} to agree another time, then reply to this email with the date.`, { muted: true })}
+  `
+  return layout({
+    preview: `New delivery: ${pianoName(piano)} for ${fullName(customer)}`,
+    label: 'Delivery job',
+    title: 'A new delivery for you',
+    body
+  })
+}
+
+/* ---------- POS SALE — internal ---------- */
+function posSaleInternalEmail({ customer, piano, order, isAcoustic }) {
+  return alertEmail({
+    label: isAcoustic ? 'New sale in the showroom' : 'New digital sale',
+    title: esc(pianoName(piano) || 'New sale'),
+    rows: [
+      ['Customer', esc(fullName(customer) || '—'), true],
+      ['Email', mailto(customer?.email)],
+      ['Piano', esc(pianoName(piano)) + (piano?.serial_number ? ` · serial ${esc(piano.serial_number)}` : '')],
+      ['Total', B.money(order?.total), true],
+      ['Invoice', esc(order?.invoice_number || '—')],
+      ['Delivery', isAcoustic ? 'Delivery record created; customer sent the delivery-window link' : 'Digital piano: no delivery, customer collecting']
+    ],
+    action: { url: `${ADMIN}/orders.html`, text: 'Open orders' }
+  })
+}
+
+/* ---------- VIEWING BOOKED (admin calendar) — customer ---------- */
+function viewingConfirmedBookingEmail({ first_name, appointment_date, appointment_time, notes, settings }) {
+  const body = `
+    ${hello(first_name)}
+    ${p('Your viewing at the showroom is booked. We look forward to seeing you.', { muted: true })}
+    ${details([
+      ['Date', formatDate(appointment_date), true],
+      ['Time', esc(appointment_time || '—'), true]
+    ])}
+    ${notes ? note(esc(notes)) : ''}
+    ${h2('Where to find us')}
+    ${visitBlock()}
+    ${p('Parking is available on site. Take as long as you like: there is no pressure to buy. If you need to change the time, reply to this email or give us a call.', { muted: true })}
+    ${signOff()}
+  `
+  return layout({
+    preview: `Your viewing: ${formatDate(appointment_date)} at ${appointment_time || ''}`,
+    label: 'Your viewing',
+    title: 'Your viewing is booked',
+    body
+  })
+}
+
+/* ---------- VIEWING REMINDER (manual button) — customer ---------- */
+function viewingReminderBookingEmail({ first_name, appointment_date, appointment_time, settings }) {
+  const body = `
+    ${hello(first_name)}
+    ${p('A reminder that we are looking forward to seeing you tomorrow.', { muted: true })}
+    ${details([
+      ['Date', formatDate(appointment_date), true],
+      ['Time', esc(appointment_time || '—'), true]
+    ])}
+    ${h2('Where to find us')}
+    ${visitBlock()}
+    ${p('Parking is available on site. If something has come up, reply to this email or call us and we will find another time.', { muted: true })}
+    ${signOff()}
+  `
+  return layout({
+    preview: `Tomorrow at ${appointment_time || ''}: your viewing at Signature Pianos`,
+    label: 'Your viewing',
+    title: 'Your viewing is tomorrow',
+    body
+  })
+}
+
+/* ---------- BALANCE REMINDER (reserved piano) — customer ---------- */
+function balanceReminderEmail({ customer, piano, order, settings }) {
+  const s = settings || {}
+  const total = Number(order?.total)
+  const balance = Number(order?.balance)
+  const depositPaid = Number.isFinite(total) && Number.isFinite(balance) && total > balance ? total - balance : null
+  const body = `
+    ${hello(customer?.first_name)}
+    ${p(`A reminder that the balance for your ${esc(pianoName(piano) || 'piano')} is still to be paid.`, { muted: true })}
+    ${details([
+      ['Piano', esc(pianoName(piano) || '—'), true],
+      depositPaid !== null ? ['Deposit paid', B.money(depositPaid)] : null,
+      ['Balance owing', B.money(order?.balance), true]
+    ])}
+    ${h2('Paying by bank transfer')}
+    ${details([
+      s.bank_bsb ? ['BSB', esc(s.bank_bsb)] : null,
+      s.bank_account ? ['Account', esc(s.bank_account)] : null,
+      s.bank_account_name ? ['Account name', esc(s.bank_account_name)] : null,
+      ['Reference', esc(order?.invoice_number || '—'), true]
+    ])}
+    ${p('Please arrange payment when you can. Any question, just reply to this email.', { muted: true })}
+    ${signOff()}
+  `
+  return layout({
+    preview: `Balance reminder: ${B.money(order?.balance)} for your ${pianoName(piano)}`,
+    label: 'Your reservation',
+    title: 'Your balance payment',
+    body
+  })
 }
 
 /* ============================================================================
- * Payment plan templates (Session 6).
- * Three customer-facing emails: contract, signed-confirmation, overdue
- * reminder. Plus a tiny helper to lazy-load company_settings without
- * pulling in Supabase config at the top of this file.
+ * Data helpers: currency and date formatting for payment plans, and the
+ * server-side lookups some emails need.
  * ======================================================================== */
 
 const planCurrency = (v) =>
@@ -1234,499 +1192,28 @@ async function pickSettings() {
   return supa.from('company_settings').select('*').limit(1).maybeSingle()
 }
 
-function paymentPlanContractEmail({ plan, customer, piano, instalments, settings, signUrl }) {
-  const list = Array.isArray(instalments) ? instalments : []
-  const pianoLabel = `${piano?.brand || ''} ${piano?.model || ''} ${piano?.year || ''}`.trim()
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:8px;">Payment Plan Contract · ${esc(plan.plan_number || '')}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Your payment plan is ready, ${esc(customer?.first_name || 'friend')}.</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        Please review the payment plan details below and sign the contract to confirm your agreement.
-      </p>
-
-      <div style="background:#f8f7f5;border-radius:4px;padding:20px;margin:20px 0;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:12px;">Plan details</div>
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Piano</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;text-align:right;">${esc(pianoLabel)}</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Total price</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;text-align:right;color:#b8935a;">${planCurrency(plan.total_amount)}</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Deposit</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;text-align:right;">${planCurrency(plan.deposit_amount)}${plan.deposit_paid ? ' <span style="color:#1a7f4b;">✓ Paid</span>' : ''}</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Instalments</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;text-align:right;">${esc(plan.number_of_instalments || '')} × ${planCurrency(plan.instalment_amount)} ${esc(plan.instalment_frequency || '')}</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;">Start date</td><td style="padding:7px 0;font-weight:500;text-align:right;">${planDateAU(plan.start_date)}</td></tr>
-        </table>
-      </div>
-
-      <div style="margin:20px 0;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:12px;">Payment schedule</div>
-        <table style="width:100%;font-size:12px;border-collapse:collapse;">
-          <thead>
-            <tr style="background:#f8f7f5;">
-              <th style="padding:8px 10px;text-align:left;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">#</th>
-              <th style="padding:8px 10px;text-align:left;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">Due date</th>
-              <th style="padding:8px 10px;text-align:right;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${list.map(ins => `
-              <tr>
-                <td style="padding:7px 10px;color:#6b6760;border-bottom:1px solid #e8e4dd;">${esc(ins.instalment_number)}</td>
-                <td style="padding:7px 10px;color:#1a1917;border-bottom:1px solid #e8e4dd;">${planDateAU(ins.due_date)}</td>
-                <td style="padding:7px 10px;color:#1a1917;border-bottom:1px solid #e8e4dd;text-align:right;">${planCurrency(ins.amount)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-
-      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:20px;text-align:center;margin:24px 0;">
-        <div style="font-size:15px;font-weight:500;color:#085041;margin-bottom:8px;">Please sign your contract</div>
-        <p style="font-size:13px;color:#085041;margin:0 0 16px;line-height:1.6;">
-          Review and sign the contract to confirm your payment plan agreement. This takes less than a minute.
-        </p>
-        <a href="${esc(signUrl || '#')}" style="display:inline-block;background:#b8935a;color:#000;padding:14px 32px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:500;">
-          Review and sign contract →
-        </a>
-      </div>
-
-      ${plan.notes ? `<p style="font-size:12px;color:#9a9590;font-style:italic;line-height:1.6;">Notes: ${esc(plan.notes)}</p>` : ''}
-
-      <p style="font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;padding-top:16px;margin-top:16px;line-height:1.7;">
-        If you have any questions about your payment plan please reply to this email or contact us directly.
-      </p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-    </div>
-  </div>
-</body>
-</html>`
-}
-
-function paymentPlanSignedCustomerEmail({ plan, customer, piano, signed_at, settings }) {
-  const pianoLabel = `${piano?.brand || ''} ${piano?.model || ''} ${piano?.year || ''}`.trim()
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Contract signed, ${esc(customer?.first_name || 'friend')}.</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        Thank you for signing your payment plan contract. Your agreement has been saved and your plan is now active.
-      </p>
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:20px 0;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:8px;">Plan summary</div>
-        <div style="font-size:13px;color:#6b6760;line-height:1.8;">
-          Plan: ${esc(plan.plan_number || '')}<br>
-          Piano: ${esc(pianoLabel)}<br>
-          Total: ${planCurrency(plan.total_amount)}<br>
-          Instalments: ${esc(plan.number_of_instalments || '')} × ${planCurrency(plan.instalment_amount)} ${esc(plan.instalment_frequency || '')}<br>
-          Signed: ${planDateAU(signed_at)}
-        </div>
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        We will be in touch to arrange delivery of your piano. If you have any questions please contact us.
-      </p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-    </div>
-  </div>
-</body>
-</html>`
-}
-
-function instalmentReminderEmail({ plan, customer, piano, overdueInstalments, settings }) {
-  const list = Array.isArray(overdueInstalments) ? overdueInstalments : []
-  const totalOverdue = list.reduce((s, i) => s + Number(i.amount || 0), 0)
-  const pianoLabel = `${piano?.brand || ''} ${piano?.model || ''} ${piano?.year || ''}`.trim()
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Payment reminder</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        Hi ${esc(customer?.first_name || 'there')}, this is a friendly reminder about your payment plan for your ${esc(pianoLabel)}.
-      </p>
-      <div style="background:#fdecea;border-radius:4px;padding:16px;margin:20px 0;border-left:3px solid #c0392b;">
-        <div style="font-size:13px;font-weight:500;color:#c0392b;margin-bottom:8px;">
-          ${list.length} overdue payment${list.length === 1 ? '' : 's'} · Total ${planCurrency(totalOverdue)}
-        </div>
-        ${list.map(ins => `
-          <div style="font-size:12px;color:#c0392b;margin-top:4px;">
-            Instalment ${esc(ins.instalment_number)}: ${planCurrency(ins.amount)} — was due ${planDateAU(ins.due_date)}
-          </div>
-        `).join('')}
-      </div>
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:20px 0;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:8px;">Payment details</div>
-        <div style="font-size:13px;color:#6b6760;line-height:1.8;">
-          ${settings?.bank_bsb         ? `BSB: ${esc(settings.bank_bsb)}<br>` : ''}
-          ${settings?.bank_account     ? `Account: ${esc(settings.bank_account)}<br>` : ''}
-          ${settings?.bank_account_name ? `Account name: ${esc(settings.bank_account_name)}<br>` : ''}
-          Reference: ${esc(plan.plan_number || '')}
-        </div>
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        If you have already made payment please disregard this reminder. If you are having difficulty with payments please contact us to discuss your options.
-      </p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-    </div>
-  </div>
-</body>
-</html>`
-}
-
-/* ============================================================================
- * Driver pickup / delivery photo-link email.
- * Same layout as api/send-driver-test.js but with real data and no test
- * banner. Adds scheduled date + time rows when present.
- * ======================================================================== */
-function buildDriverLiveEmail({ isPickup, driver_name, customer, piano, tokenUrl, scheduled_date, scheduled_time }) {
-  const fullAddress = [
-    customer?.address_line1, customer?.suburb, customer?.state, customer?.postcode,
-  ].filter(Boolean).map(esc).join(', ') || '—'
-  const fmtDay = (d) => {
-    if (!d) return '—'
-    try { return new Date(d).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }
-    catch { return esc(d) }
-  }
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    body { font-family: Arial, Helvetica, sans-serif; background: #f8f7f5; margin: 0; padding: 40px 20px; }
-    .card { background: #fff; max-width: 560px; margin: 0 auto; border-radius: 8px; overflow: hidden; border: 1px solid #e8e4dd; }
-    .header { background: #1a1917; padding: 32px; text-align: center; }
-    .logo { font-size: 20px; color: #b8935a; font-style: italic; }
-    .body { padding: 32px; }
-    h2 { font-size: 20px; color: #1a1917; margin: 0 0 8px; }
-    p { color: #6b6760; font-size: 14px; line-height: 1.7; margin: 0 0 16px; }
-    .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #9a9590; margin-bottom: 10px; margin-top: 20px; display: block; }
-    .detail-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 4px; }
-    .detail-table td { padding: 8px 0; border-bottom: 1px solid #e8e4dd; }
-    .detail-table td:first-child { color: #9a9590; width: 40%; }
-    .detail-table td:last-child { font-weight: 500; color: #1a1917; }
-    .detail-table tr:last-child td { border-bottom: none; }
-    .action-box { background: #f0f9f4; border: 1px solid #9fe1cb; border-radius: 4px; padding: 20px; text-align: center; margin: 24px 0; }
-    .btn-gold { display: inline-block; background: #b8935a; color: #000; padding: 14px 32px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 500; }
-    .warning { background: #fdecea; border-left: 3px solid #c0392b; padding: 12px 16px; border-radius: 0 4px 4px 0; font-size: 13px; color: #c0392b; margin: 16px 0; }
-    .footer { background: #f8f7f5; padding: 20px; text-align: center; font-size: 12px; color: #9a9590; border-top: 1px solid #e8e4dd; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="header"><div class="logo">Signature Pianos</div></div>
-    <div class="body">
-      <h2>Hi ${esc(driver_name || '')},</h2>
-      <p>
-        ${isPickup
-          ? 'You have a piano pickup for Signature Pianos. Please photograph the piano thoroughly before moving it.'
-          : `You have a piano delivery for Signature Pianos. Please photograph the piano after placing it in the customer's home.`}
-      </p>
-
-      <span class="section-label">Job details</span>
-      <table class="detail-table">
-        <tr><td>Piano</td><td>${esc((piano?.brand || 'Yamaha') + ' ' + (piano?.model || '') + ' ' + (piano?.year || ''))}</td></tr>
-        <tr><td>Serial</td><td style="font-family:monospace;">${esc(piano?.serial_number || '—')}</td></tr>
-        <tr><td>${isPickup ? 'Pickup from' : 'Deliver to'}</td><td>${fullAddress}</td></tr>
-        ${!isPickup ? `<tr><td>Customer phone</td><td><a href="tel:${esc(customer?.phone || '')}" style="color:#b8935a;">${esc(customer?.phone || '—')}</a></td></tr>` : ''}
-        ${scheduled_date ? `<tr><td>Date</td><td style="color:#b8935a;font-weight:500;">${fmtDay(scheduled_date)}</td></tr>` : ''}
-        ${scheduled_time ? `<tr><td>Time window</td><td>${esc(scheduled_time)}</td></tr>` : ''}
-      </table>
-
-      <div class="warning">
-        <strong>Important:</strong>
-        ${isPickup
-          ? 'Do not move the piano until all photos are uploaded.'
-          : 'Do not leave the property until all photos are uploaded.'}
-      </div>
-
-      <div class="action-box">
-        <div style="font-size:15px;font-weight:500;color:#085041;margin-bottom:8px;">
-          ${isPickup ? 'Upload pickup photos' : 'Upload delivery photos'}
-        </div>
-        <p style="font-size:13px;color:#085041;margin:0 0 16px;">
-          Tap the button to open the photo upload page. You can take photos directly from your phone.
-        </p>
-        <a href="${esc(tokenUrl || '#')}" class="btn-gold">
-          ${isPickup ? 'Upload pickup photos →' : 'Upload delivery photos →'}
-        </a>
-        <p style="font-size:11px;color:#9a9590;margin:12px 0 0;">This link is unique to this delivery. Do not share it.</p>
-      </div>
-    </div>
-    <div class="footer">Signature Pianos Melbourne · signaturepianos.com.au</div>
-  </div>
-</body>
-</html>`
-}
-
-/* ============================================================================
- * Driver assignment email — sent when admin assigns a partner. Shows the
- * piano, the customer + delivery address, the warehouse pickup address
- * (63 Blackburn Road, Mount Waverley VIC 3149), and the customer's three
- * preferred windows. CTA points at /delivery/accept/{token}.
- * ======================================================================== */
-function driverAssignmentEmail({ driver_name, customer, piano, preferences, delivery_address, accept_url, settings }) {
-  const fullAddress = delivery_address ||
-    [customer?.address_line1, customer?.suburb, customer?.state, customer?.postcode].filter(Boolean).map(esc).join(', ') || '—'
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:580px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;">Delivery assignment</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 8px;">Hi ${esc(driver_name || '')},</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;margin:0 0 24px;">
-        You have been assigned a piano delivery by Signature Pianos. Please review the details below and accept one of the customer's preferred delivery windows.
-      </p>
-
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">Piano</div>
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:40%;">Instrument</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc((piano?.brand || 'Yamaha') + ' ' + (piano?.model || '') + ' ' + (piano?.year || ''))}</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Serial</td><td style="padding:7px 0;border-bottom:1px solid #e8e4dd;font-family:monospace;">${esc(piano?.serial_number || '—')}</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;">Weight</td><td style="padding:7px 0;">${esc(piano?.weight_kg || '~200')} kg</td></tr>
-        </table>
-      </div>
-
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">Customer &amp; delivery address</div>
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:40%;">Name</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))}</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Phone</td><td style="padding:7px 0;border-bottom:1px solid #e8e4dd;"><a href="tel:${esc(customer?.phone || '')}" style="color:#b8935a;">${esc(customer?.phone || '—')}</a></td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;">Delivery address</td><td style="padding:7px 0;font-weight:500;">${fullAddress}</td></tr>
-        </table>
-      </div>
-
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">Pickup location</div>
-        <div style="font-size:13px;font-weight:500;color:#1a1917;">Signature Pianos Warehouse</div>
-        <div style="font-size:13px;color:#6b6760;margin-top:4px;">63 Blackburn Road, Mount Waverley VIC 3149</div>
-      </div>
-
-      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:20px;margin-bottom:24px;">
-        <div style="font-size:14px;font-weight:500;color:#085041;margin-bottom:12px;">Customer's preferred delivery windows</div>
-        <div style="font-size:13px;color:#085041;line-height:2;">
-          <strong>1st preference:</strong> ${esc(preferences?.pref1 || '—')}<br>
-          <strong>2nd preference:</strong> ${esc(preferences?.pref2 || '—')}<br>
-          <strong>3rd preference:</strong> ${esc(preferences?.pref3 || '—')}
-        </div>
-      </div>
-
-      <div style="text-align:center;margin-bottom:20px;">
-        <a href="${esc(accept_url || '#')}"
-           style="display:inline-block;background:#b8935a;color:#000;padding:14px 36px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:500;">
-          Accept this delivery →
-        </a>
-        <p style="font-size:12px;color:#9a9590;margin:12px 0 0;">
-          Clicking accept will let you confirm which time window works for you.
-        </p>
-      </div>
-
-      <div style="border-top:1px solid #e8e4dd;padding-top:16px;">
-        <p style="font-size:13px;color:#6b6760;line-height:1.7;margin:0;">
-          If none of these windows work please contact the customer directly on
-          <a href="tel:${esc(customer?.phone || '')}" style="color:#b8935a;">${esc(customer?.phone || 'their provided number')}</a>
-          to arrange an alternative time, then reply to this email with the agreed date.
-        </p>
-      </div>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-    </div>
-  </div>
-</body>
-</html>`
-}
-
-function posSaleInternalEmail({ customer, piano, order, isAcoustic }) {
-  const aud = (n) => '$' + Number(n || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  const pianoLabel = `${piano?.brand || ''} ${piano?.model || ''} ${piano?.year || ''}`.trim()
-  return `
-    <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;">
-      <h2 style="color:#1a1917;">New ${isAcoustic ? 'POS' : 'digital'} sale — ${esc(pianoLabel)}</h2>
-      <table style="width:100%;font-size:13px;border-collapse:collapse;">
-        <tr><td style="padding:8px 0;color:#6b6760;border-bottom:1px solid #e8e4dd;">Customer</td>
-            <td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))}</td></tr>
-        <tr><td style="padding:8px 0;color:#6b6760;border-bottom:1px solid #e8e4dd;">Email</td>
-            <td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">${esc(customer?.email || '—')}</td></tr>
-        <tr><td style="padding:8px 0;color:#6b6760;border-bottom:1px solid #e8e4dd;">Piano</td>
-            <td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">${esc(pianoLabel)} ${piano?.serial_number ? ' · Serial ' + esc(piano.serial_number) : ''}</td></tr>
-        <tr><td style="padding:8px 0;color:#6b6760;border-bottom:1px solid #e8e4dd;">Total</td>
-            <td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">${aud(order?.total)}</td></tr>
-        <tr><td style="padding:8px 0;color:#6b6760;border-bottom:1px solid #e8e4dd;">Invoice</td>
-            <td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">${esc(order?.invoice_number || '—')}</td></tr>
-        <tr><td style="padding:8px 0;color:#6b6760;">Delivery</td>
-            <td style="padding:8px 0;">${isAcoustic
-              ? 'Delivery record created — customer sent preference link'
-              : 'Digital piano — no delivery, customer collecting'}</td></tr>
-      </table>
-    </div>
-  `
-}
-
-/* ---------- SERVICE — internal notification ---------- */
-function serviceInternalEmail(data) {
-  const submittedAt = new Date().toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })
-  const isSig = data.is_signature_piano === true
-  const body = `
-    ${h1('New service request')}
-    ${p(`A new tuning / service request has just been submitted.`, { muted: true })}
-
-    ${detailTable([
-      ['Customer', `${esc(data.first_name)} ${esc(data.last_name)}`],
-      ['Email', `<a href="mailto:${esc(data.email)}" style="color:#b8935a;text-decoration:none;">${esc(data.email)}</a>`],
-      ['Phone', `<a href="tel:${esc(data.phone)}" style="color:#b8935a;text-decoration:none;">${esc(data.phone)}</a>`],
-      ['Suburb', esc(data.suburb)],
-      ['Piano brand', esc(data.piano_brand)],
-      ['Piano age', pretty(data.piano_age)],
-      ['Last tuned', pretty(data.last_tuned)],
-      ['Service required', pretty(data.service_required)],
-      ['Preferred timeframe', pretty(data.preferred_timeframe)],
-      ['Signature Pianos customer', isSig ? '★ YES — check service history' : 'No', isSig],
-      ['Message', data.message ? esc(data.message) : '—'],
-      ['Submitted', esc(submittedAt)],
-    ])}
-
-    ${p(`<!-- TODO: ADD ADMIN DASHBOARD LINK --><a href="#" style="color:#b8935a;text-decoration:none;">View in admin dashboard →</a>`, { muted: true })}
-  `
-  return shell({
-    preview: `New service request — ${data.first_name} ${data.last_name}${isSig ? ' (existing customer)' : ''}`,
-    body
-  })
-}
-
-/* ============================================================================
- * Session 13 — viewing appointment + balance reminder templates.
- * All three use the standard white-card layout with the dark header strip.
- * ======================================================================== */
-
-function viewingConfirmedBookingEmail({ first_name, appointment_date, appointment_time, notes, settings }) {
-  const fmt = (d) => { if (!d) return '—'; try { return new Date(d + 'T00:00:00').toLocaleDateString('en-AU', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) } catch { return d } }
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Your viewing is confirmed, ${esc(first_name || 'friend')}.</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">We look forward to seeing you. Here are your appointment details:</p>
-
-      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:20px;margin:20px 0;">
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr><td style="padding:8px 0;color:#085041;border-bottom:1px solid rgba(26,127,75,0.2);width:40%;">Date</td><td style="padding:8px 0;font-weight:500;border-bottom:1px solid rgba(26,127,75,0.2);color:#085041;">${esc(fmt(appointment_date))}</td></tr>
-          <tr><td style="padding:8px 0;color:#085041;border-bottom:1px solid rgba(26,127,75,0.2);">Time</td><td style="padding:8px 0;font-weight:500;border-bottom:1px solid rgba(26,127,75,0.2);color:#085041;">${esc(appointment_time || '—')}</td></tr>
-          <tr><td style="padding:8px 0;color:#085041;">Location</td><td style="padding:8px 0;font-weight:500;color:#085041;">63 Blackburn Road<br>Mount Waverley VIC 3149</td></tr>
-        </table>
-      </div>
-
-      ${notes ? `
-        <div style="background:#f8f7f5;border-radius:4px;padding:14px;margin-bottom:16px;font-size:13px;color:#6b6760;">
-          <strong style="color:#1a1917;">Notes:</strong> ${esc(notes)}
-        </div>
-      ` : ''}
-
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        Parking is available on site. If you need to reschedule please reply to this email or call us directly.
-      </p>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        We have a range of Yamaha uprights available for you to try. Take your time — there is no pressure.
-      </p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
-    </div>
-  </div>
-</body>
-</html>`
-}
-
-function viewingReminderBookingEmail({ first_name, appointment_date, appointment_time, settings }) {
-  const fmt = (d) => { if (!d) return '—'; try { return new Date(d + 'T00:00:00').toLocaleDateString('en-AU', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) } catch { return d } }
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#b8935a;padding:24px 32px;">
-      <div style="font-size:18px;color:#000;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-      <div style="font-size:12px;color:rgba(0,0,0,0.6);margin-top:4px;">⚡ Viewing reminder — tomorrow</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Your viewing is tomorrow, ${esc(first_name || 'friend')}.</h2>
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:16px 0;">
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:35%;">Date</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;color:#1a1917;">${esc(fmt(appointment_date))}</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Time</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc(appointment_time || '—')}</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;">Address</td><td style="padding:7px 0;">63 Blackburn Road<br>Mount Waverley VIC 3149</td></tr>
-        </table>
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">We look forward to seeing you tomorrow. Parking is available on site.</p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-    </div>
-  </div>
-</body>
-</html>`
-}
-
-function balanceReminderEmail({ customer, piano, order, settings }) {
-  const fmtCur = (v) => '$' + Math.abs(Number(v || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Hi ${esc(customer?.first_name || 'friend')} — balance payment reminder</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        Just a friendly reminder that the balance payment for your ${esc(pianoLabel)} is outstanding.
-      </p>
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:20px 0;">
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Piano</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc(pianoLabel)}</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Deposit paid</td><td style="padding:7px 0;color:#1D9E75;border-bottom:1px solid #e8e4dd;">$500.00 ✓</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;">Balance owing</td><td style="padding:7px 0;font-weight:500;font-size:15px;color:#b8935a;">${fmtCur(order?.balance)}</td></tr>
-        </table>
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">Please arrange payment at your earliest convenience. Bank transfer details:</p>
-      <div style="background:#f8f7f5;border-radius:4px;padding:14px;margin:12px 0 20px;font-size:13px;color:#6b6760;line-height:1.8;">
-        ${settings?.bank_bsb         ? `BSB: ${esc(settings.bank_bsb)}<br>` : ''}
-        ${settings?.bank_account     ? `Account: ${esc(settings.bank_account)}<br>` : ''}
-        ${settings?.bank_account_name ? `Account name: ${esc(settings.bank_account_name)}<br>` : ''}
-        Reference: ${esc(order?.invoice_number || '—')}
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">If you have any questions please reply to this email.</p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-    </div>
-  </div>
-</body>
-</html>`
+/* Template functions, exposed for email previews and tests (the default export is the handler). */
+module.exports.templates = {
+  viewingConfirmationEmail,
+  viewingInternalEmail,
+  serviceConfirmationEmail,
+  serviceInternalEmail,
+  overdueReminderEmail,
+  purchaseConfirmationEmail,
+  internalSaleEmail,
+  deliveryPreferencesEmail,
+  generateInvoiceEmailHTML,
+  posOrderConfirmationEmail,
+  digitalOrderConfirmationEmail,
+  deliveryConfirmedEmail,
+  paymentPlanContractEmail,
+  paymentPlanSignedCustomerEmail,
+  instalmentReminderEmail,
+  buildDriverLiveEmail,
+  driverAssignmentEmail,
+  posSaleInternalEmail,
+  viewingConfirmedBookingEmail,
+  viewingReminderBookingEmail,
+  balanceReminderEmail,
+  alertEmail
 }

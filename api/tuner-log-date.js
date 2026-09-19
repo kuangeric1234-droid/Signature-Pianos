@@ -15,7 +15,10 @@
 
 const { createClient } = require('@supabase/supabase-js')
 const { Resend } = require('resend')
+const { internalRecipients } = require('../lib/notify')
 const { generateCalendarLinks } = require('../lib/calendar')
+const { layout, hello, p, h2, details, button, signOff } = require('../lib/email-brand')
+const { parts } = require('../lib/tuner-emails')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -148,17 +151,14 @@ module.exports = async (req, res) => {
     try {
       await resend.emails.send({
         from: FROM,
-        to:   BUSINESS_EMAIL,
+        to:   internalRecipients(),
         subject: `Tuning date logged — ${tuner.name || ''} · ${fmtDateLong(agreed_date)}`.trim(),
-        html: `
-          <h2>Tuner logged agreed date</h2>
-          <p>Tuner: ${esc(tuner.name || '—')} (${esc(tuner.email || '—')})</p>
-          <p>Customer: ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}</p>
-          <p>Piano: ${esc(pianoLabel)}</p>
-          <p><strong>Confirmed: ${esc(fmtDateLong(agreed_date))} · ${esc(agreed_time)}</strong></p>
-          ${notes ? `<p>Notes: ${esc(notes)}</p>` : ''}
-          <p>Both tuner and customer have been notified. Day-before reminders will fire automatically.</p>
-        `,
+        html: internalDateLoggedEmail({
+          tuner, customer, pianoLabel,
+          agreedDate: agreed_date,
+          agreedTime: agreed_time,
+          notes,
+        }),
       })
     } catch (mailErr) {
       console.error('[tuner-log-date] eric email failed', mailErr)
@@ -189,101 +189,72 @@ function fmtDateLong(d) {
   } catch { return d }
 }
 
-/* ---------- templates ---------- */
+/* ---------- templates (brand kit: lib/email-brand.js) ---------- */
 
+/* To the tuner, once they have logged the agreed date. */
 function tunerDateConfirmedEmail({ tuner, customer, piano, pianoLabel, agreedDate, agreedTime, completeUrl, cal }) {
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:580px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">Signature Pianos</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;">Tuning booking confirmed</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 8px;">Booking confirmed, ${esc(tuner.name || '')}.</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;margin:0 0 20px;">
-        Your tuning date has been logged. The customer has been notified.
-      </p>
-
-      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:16px;margin-bottom:20px;text-align:center;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#085041;margin-bottom:6px;">Confirmed</div>
-        <div style="font-size:18px;font-weight:500;color:#085041;">${esc(fmtDateLong(agreedDate))}</div>
-        <div style="font-size:14px;color:#085041;margin-top:4px;">${esc(agreedTime)}</div>
-      </div>
-
-      <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:20px;">
-        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:35%;">Customer</td><td style="padding:8px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}</td></tr>
-        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Phone</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;"><a href="tel:${esc(customer.phone || '')}" style="color:#b8935a;">${esc(customer.phone || '—')}</a></td></tr>
-        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Address</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">${esc([customer.address_line1, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(', ') || '—')}</td></tr>
-        <tr><td style="padding:8px 0;color:#9a9590;">Piano</td><td style="padding:8px 0;">${esc(pianoLabel)} · Serial ${esc(piano.serial_number || '—')}</td></tr>
-      </table>
-
-      <div style="background:#f8f7f5;border-radius:4px;padding:14px;margin-bottom:20px;border:1px solid #e8e4dd;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">Add to your calendar</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <a href="${cal.googleUrl}" target="_blank" rel="noopener"
-             style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #e8e4dd;border-radius:4px;padding:7px 14px;text-decoration:none;font-size:12px;color:#1a1917;font-weight:500;">
-            📅 Google
-          </a>
-          <a href="${cal.outlookUrl}" target="_blank" rel="noopener"
-             style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #e8e4dd;border-radius:4px;padding:7px 14px;text-decoration:none;font-size:12px;color:#1a1917;font-weight:500;">
-            📅 Outlook
-          </a>
-          <a href="${cal.icsDataUrl}" download="tuning.ics"
-             style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #e8e4dd;border-radius:4px;padding:7px 14px;text-decoration:none;font-size:12px;color:#1a1917;font-weight:500;">
-            📅 Apple
-          </a>
-        </div>
-      </div>
-
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;border:1px solid #e8e4dd;">
-        <div style="font-size:12px;font-weight:500;color:#1a1917;margin-bottom:6px;">After you complete the tuning</div>
-        <p style="font-size:12px;color:#6b6760;margin:0 0 10px;line-height:1.5;">
-          Use this link to mark the job as done. The customer will be notified automatically.
-        </p>
-        <a href="${esc(completeUrl)}"
-           style="display:inline-block;background:#1a1917;color:#b8935a;padding:10px 20px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:500;">
-          Mark tuning complete →
-        </a>
-      </div>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      Signature Pianos Melbourne · signaturepianos.com.au
-    </div>
-  </div>
-</body>
-</html>`
+  const address = [customer.address_line1, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(', ')
+  const customerName = ((customer.first_name || '') + ' ' + (customer.last_name || '')).trim()
+  return layout({
+    preview: `Confirmed for ${fmtDateLong(agreedDate)}, ${agreedTime}. ${customerName}, ${pianoLabel}.`,
+    label: 'Tuning booked',
+    title: 'Booking confirmed',
+    body:
+      hello(tuner.name) +
+      p('Your tuning date has been logged and the customer has been notified.') +
+      parts.appointment('Confirmed', esc(fmtDateLong(agreedDate)), esc(agreedTime)) +
+      h2('Customer') +
+      details([
+        ['Customer', esc(customerName) || '—', true],
+        ['Phone', parts.phoneLink(customer.phone)],
+        ['Address', parts.addressBlock(address)],
+        ['Piano', esc(pianoLabel)],
+        ['Serial', esc(piano.serial_number || '—')],
+      ]) +
+      h2('Add to your calendar') +
+      parts.calendarLinks(cal, 'tuning.ics', ['Google', 'Outlook', 'Apple']) +
+      h2('After the tuning') +
+      p('Use this button to mark the job as done. The customer will be notified automatically.') +
+      button(completeUrl, 'Mark tuning complete') +
+      p(`Questions? Reply to this email or call ${parts.officePhone()}.`, { small: true, muted: true }) +
+      signOff(),
+  })
 }
 
+/* To the customer, once the tuner has logged the agreed date. `settings`
+ * is still accepted; contact details come from the brand kit. */
 function customerTuningConfirmedEmail({ customer, piano, pianoLabel, agreedDate, agreedTime, settings }) {
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Your tuning is confirmed, ${esc(customer.first_name || 'friend')}.</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">A certified tuner has been booked for your ${esc(pianoLabel)}.</p>
-      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:20px;margin:20px 0;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#085041;margin-bottom:8px;">Confirmed appointment</div>
-        <div style="font-size:18px;font-weight:500;color:#085041;">${esc(fmtDateLong(agreedDate))}</div>
-        <div style="font-size:14px;color:#085041;margin-top:4px;">${esc(agreedTime)}</div>
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        Please ensure someone is home during the time window. Tuning takes approximately 60–90 minutes.
-      </p>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        You will receive a reminder the day before your appointment. If you need to reschedule please reply to this email as soon as possible.
-      </p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
-    </div>
-  </div>
-</body>
-</html>`
+  return layout({
+    preview: `Your piano tuning is confirmed for ${fmtDateLong(agreedDate)}, ${agreedTime}.`,
+    label: 'Your tuning',
+    title: 'Your tuning is confirmed',
+    body:
+      hello(customer.first_name) +
+      p(`A certified tuner has been booked for your ${esc(pianoLabel)}.`) +
+      parts.appointment('Your appointment', esc(fmtDateLong(agreedDate)), esc(agreedTime)) +
+      p('Please make sure someone is home during the time window. Tuning takes approximately 60–90 minutes.') +
+      p(`You will receive a reminder the day before your appointment. If you need to reschedule, please reply to this email or call ${parts.officePhone()} as soon as possible.`) +
+      signOff(),
+  })
 }
+
+/* To Eric, once the tuner has logged the agreed date. */
+function internalDateLoggedEmail({ tuner, customer, pianoLabel, agreedDate, agreedTime, notes }) {
+  return layout({
+    internal: true,
+    preview: `${tuner.name || 'The tuner'} logged ${fmtDateLong(agreedDate)}, ${agreedTime}.`,
+    label: 'For Signature Pianos',
+    title: 'Tuner logged the agreed date',
+    body:
+      p('Both the tuner and the customer have been notified. Day-before reminders will go out automatically.', { first: true }) +
+      details([
+        ['Tuner', `${esc(tuner.name || '—')} (${esc(tuner.email || '—')})`],
+        ['Customer', esc((customer.first_name || '') + ' ' + (customer.last_name || ''))],
+        ['Piano', esc(pianoLabel)],
+        ['Confirmed', `${esc(fmtDateLong(agreedDate))} · ${esc(agreedTime)}`, true],
+        notes ? ['Notes', esc(notes).replace(/\r?\n/g, '<br>')] : null,
+      ]),
+  })
+}
+
+module.exports.templates = { tunerDateConfirmedEmail, customerTuningConfirmedEmail, internalDateLoggedEmail }

@@ -21,7 +21,11 @@
 
 const { createClient } = require('@supabase/supabase-js')
 const { Resend } = require('resend')
+const { internalRecipients } = require('../lib/notify')
 const { customerTuningReadyEmail, tunerContactEmail } = require('../lib/tuner-emails')
+const {
+  BUSINESS, C, layout, hello, p, h2, details, note, button, signOff, visitBlock, money,
+} = require('../lib/email-brand')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -85,7 +89,7 @@ module.exports = async (req, res) => {
           await resend.emails.send({
             from: FROM,
             to: partner.email,
-            subject: `Reminder: Piano pickup in 3 days — ${fmtDateLong(schedDate)}`,
+            subject: `Reminder: piano pickup in 3 days — ${fmtDateLong(schedDate)}`,
             html: buildReminderEmail({
               driver_name: partner.name, type: '3day',
               scheduled_date: schedDate, piano, customer, pickupUrl,
@@ -108,7 +112,7 @@ module.exports = async (req, res) => {
           await resend.emails.send({
             from: FROM,
             to: partner.email,
-            subject: `Reminder: Piano pickup TODAY — ${fmtDateLong(schedDate)}`,
+            subject: `Reminder: piano pickup today — ${fmtDateLong(schedDate)}`,
             html: buildReminderEmail({
               driver_name: partner.name, type: 'day_of',
               scheduled_date: schedDate, piano, customer, pickupUrl,
@@ -172,8 +176,8 @@ module.exports = async (req, res) => {
           try {
             await resend.emails.send({
               from: FROM,
-              to: process.env.BUSINESS_EMAIL || FROM,
-              subject: `Action required: Assign tuner — ${customer.first_name || ''} ${customer.last_name || ''} · ${pianoLabel}`.trim(),
+              to: internalRecipients(),
+              subject: `Action required: assign a tuner — ${customer.first_name || ''} ${customer.last_name || ''} · ${pianoLabel}`.trim(),
               html: noTunerAssignedEmail({ customer, piano, pianoLabel }),
             })
           } catch (mailErr) {
@@ -256,7 +260,7 @@ module.exports = async (req, res) => {
             await resend.emails.send({
               from: FROM,
               to: booking.tuner.email,
-              subject: `Reminder: Piano tuning tomorrow — ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
+              subject: `Reminder: piano tuning tomorrow — ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
               html: tunerDayBeforeEmail({
                 tuner: booking.tuner, customer, piano,
                 confirmedDate: booking.confirmed_date,
@@ -269,7 +273,7 @@ module.exports = async (req, res) => {
             await resend.emails.send({
               from: FROM,
               to: customer.email,
-              subject: 'Reminder: Your piano tuning is tomorrow — Signature Pianos',
+              subject: 'Reminder: your piano tuning is tomorrow — Signature Pianos',
               html: customerDayBeforeEmail({
                 customer, piano,
                 confirmedDate: booking.confirmed_date,
@@ -315,7 +319,7 @@ module.exports = async (req, res) => {
           await resend.emails.send({
             from: FROM,
             to: appt.email,
-            subject: 'Reminder: Your viewing is tomorrow — Signature Pianos',
+            subject: 'Reminder: your viewing is tomorrow — Signature Pianos',
             html: viewingReminderCronEmail({ appt, settings }),
           })
           await supabase
@@ -455,7 +459,7 @@ module.exports = async (req, res) => {
             await resend.emails.send({
               from: FROM,
               to: customer.email,
-              subject: `Second reminder — Payment overdue ${daysOverdue} days · Plan ${plan.plan_number || ''}`,
+              subject: `Second reminder — payment overdue ${daysOverdue} days · Plan ${plan.plan_number || ''}`,
               html: instalmentOverdueEmail({ customer, piano, plan, instalment: ins, daysOverdue, settings, urgency: 'firm' }),
             })
             await supabase.from('payment_instalments').update({ reminder_7day_sent: true, reminder_7day_sent_at: new Date().toISOString() }).eq('id', ins.id)
@@ -465,24 +469,15 @@ module.exports = async (req, res) => {
             await resend.emails.send({
               from: FROM,
               to: customer.email,
-              subject: `Urgent — Payment overdue ${daysOverdue} days · Plan ${plan.plan_number || ''}`,
+              subject: `Urgent — payment overdue ${daysOverdue} days · Plan ${plan.plan_number || ''}`,
               html: instalmentOverdueEmail({ customer, piano, plan, instalment: ins, daysOverdue, settings, urgency: 'urgent' }),
             })
             // + alert Eric
             await resend.emails.send({
               from: FROM,
-              to: process.env.BUSINESS_EMAIL || FROM,
-              subject: `⚠ Payment plan default risk — ${customer.first_name || ''} ${customer.last_name || ''} · ${daysOverdue} days overdue`,
-              html: `
-                <h2 style="color:#c0392b;">Payment plan overdue ${daysOverdue} days</h2>
-                <p><strong>Customer:</strong> ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))} (${esc(customer.email || '—')} · ${esc(customer.phone || '—')})</p>
-                <p><strong>Plan:</strong> ${esc(plan.plan_number || '—')}</p>
-                <p><strong>Piano:</strong> ${esc((piano?.brand || 'Yamaha') + ' ' + (piano?.model || '') + ' ' + (piano?.year || ''))}</p>
-                <p><strong>Overdue instalment:</strong> #${esc(ins.instalment_number)} — $${Number(ins.amount).toLocaleString('en-AU', {minimumFractionDigits:2})} — due ${esc(ins.due_date)}</p>
-                <p><strong>Days overdue:</strong> ${daysOverdue} days</p>
-                <p style="color:#c0392b;font-weight:bold;">Action required — contact customer directly. Consider initiating default process if no response.</p>
-                <a href="https://signaturepianos.com.au/admin/payment-plans.html" style="display:inline-block;background:#b8935a;color:#000;padding:10px 20px;border-radius:4px;text-decoration:none;font-size:13px;">View in admin →</a>
-              `,
+              to: internalRecipients(),
+              subject: `Payment plan default risk — ${customer.first_name || ''} ${customer.last_name || ''} · ${daysOverdue} days overdue`,
+              html: paymentDefaultRiskEmail({ customer, piano, plan, instalment: ins, daysOverdue }),
             })
             await supabase.from('payment_instalments').update({ reminder_14day_sent: true, reminder_14day_sent_at: new Date().toISOString() }).eq('id', ins.id)
             sent14DayAlerts++
@@ -510,99 +505,10 @@ module.exports = async (req, res) => {
 }
 
 /* ============================================================================
- * Tuner-flow templates used only by this cron handler.
- * Customer heads-up + tuner contact email live in lib/tuner-emails.js
- * since /api/tuner-send-contact.js also fires them.
+ * Email templates used only by this cron handler, built from the brand kit
+ * in lib/email-brand.js. The customer heads-up + tuner contact email live in
+ * lib/tuner-emails.js since /api/tuner-send-contact.js also fires them.
  * ======================================================================== */
-
-function noTunerAssignedEmail({ customer, piano, pianoLabel }) {
-  return `
-    <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;">
-      <h2 style="color:#c0392b;">Action required — No tuner assigned</h2>
-      <p>A tuning job is due today but no tuner has been assigned in the admin portal.</p>
-      <p><strong>Customer:</strong> ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))} (${esc(customer.email || '—')} · ${esc(customer.phone || '—')})</p>
-      <p><strong>Piano:</strong> ${esc(pianoLabel)}</p>
-      <p><strong>Action:</strong> Go to admin/deliveries.html, find this delivery, assign a tuner, then send the contact email manually.</p>
-      <a href="https://signaturepianos.com.au/admin/deliveries.html"
-         style="display:inline-block;background:#b8935a;color:#000;padding:10px 20px;border-radius:4px;text-decoration:none;font-size:13px;">
-        Go to admin portal →
-      </a>
-    </div>
-  `
-}
-
-function tunerDayBeforeEmail({ tuner, customer, piano, confirmedDate, confirmedTime, completeUrl }) {
-  const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
-  const fullAddress = [customer?.address_line1, customer?.suburb, customer?.state, customer?.postcode].filter(Boolean).map(esc).join(', ')
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#b8935a;padding:24px 32px;">
-      <div style="font-size:18px;color:#000;font-style:italic;">Signature Pianos</div>
-      <div style="font-size:12px;color:rgba(0,0,0,0.6);margin-top:4px;">⚡ Tuning reminder — tomorrow</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 8px;">Hi ${esc(tuner?.name || '')} — tuning tomorrow</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;margin:0 0 20px;">This is your reminder for tomorrow's tuning job.</p>
-
-      <div style="background:#fff3cd;border-radius:4px;padding:16px;margin-bottom:20px;border:1px solid #ffc107;text-align:center;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#856404;margin-bottom:6px;">Tomorrow</div>
-        <div style="font-size:18px;font-weight:500;color:#1a1917;">${esc(fmtDateLong(confirmedDate))}</div>
-        <div style="font-size:14px;color:#6b6760;margin-top:4px;">${esc(confirmedTime || 'Flexible')}</div>
-      </div>
-
-      <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:20px;">
-        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:35%;">Customer</td><td style="padding:8px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))}</td></tr>
-        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Phone</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;"><a href="tel:${esc(customer?.phone || '')}" style="color:#b8935a;">${esc(customer?.phone || '—')}</a></td></tr>
-        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Address</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">${fullAddress}</td></tr>
-        <tr><td style="padding:8px 0;color:#9a9590;">Piano</td><td style="padding:8px 0;">${esc(pianoLabel)}</td></tr>
-      </table>
-
-      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:16px;text-align:center;">
-        <div style="font-size:13px;font-weight:500;color:#085041;margin-bottom:8px;">After you complete the tuning</div>
-        <p style="font-size:12px;color:#085041;margin:0 0 12px;">Use this link to mark the job as done. The customer will be notified automatically.</p>
-        <a href="${esc(completeUrl)}" style="display:inline-block;background:#085041;color:#fff;padding:10px 24px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:500;">
-          Mark tuning complete →
-        </a>
-      </div>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      Signature Pianos Melbourne · signaturepianos.com.au
-    </div>
-  </div>
-</body>
-</html>`
-}
-
-function customerDayBeforeEmail({ customer, piano, confirmedDate, confirmedTime, settings }) {
-  const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Your piano tuning is tomorrow, ${esc(customer?.first_name || 'friend')}.</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">Just a friendly reminder that your piano tuning is scheduled for tomorrow.</p>
-      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:16px;margin:20px 0;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#085041;margin-bottom:6px;">Your appointment</div>
-        <div style="font-size:18px;font-weight:500;color:#085041;">${esc(fmtDateLong(confirmedDate))}</div>
-        <div style="font-size:14px;color:#085041;margin-top:4px;">${esc(confirmedTime || 'Your tuner will confirm the time')}</div>
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">Please ensure someone is home during the time window. Tuning takes approximately 60–90 minutes.</p>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">If you need to reschedule please reply to this email or contact us as soon as possible.</p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
-    </div>
-  </div>
-</body>
-</html>`
-}
 
 function esc(s) {
   if (s == null) return ''
@@ -620,6 +526,25 @@ function fmtDateLong(d) {
   } catch { return d }
 }
 
+/* "Sarah Nguyen" from a customer row (raw text: escape before use). */
+function fullName(c) {
+  return `${c?.first_name || ''} ${c?.last_name || ''}`.trim()
+}
+
+/* A tappable phone number. */
+function telLink(phone) {
+  if (!phone) return '—'
+  return `<a href="tel:${esc(phone)}" style="color:${C.ink};">${esc(phone)}</a>`
+}
+
+function mailLink(email) {
+  if (!email) return '—'
+  return `<a href="mailto:${esc(email)}" style="color:${C.ink};">${esc(email)}</a>`
+}
+
+const OUR_PHONE = `<a href="tel:${BUSINESS.phoneHref}" style="color:${C.ink};">${BUSINESS.phone}</a>`
+
+/* ---------- Delivery driver: pickup reminder (3 days out / on the day) ---------- */
 function buildReminderEmail({ driver_name, type, scheduled_date, piano, customer, pickupUrl }) {
   const is3Day = type === '3day'
   const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
@@ -627,199 +552,242 @@ function buildReminderEmail({ driver_name, type, scheduled_date, piano, customer
     customer?.address_line1, customer?.suburb, customer?.state, customer?.postcode,
   ].filter(Boolean).map(esc).join(', ')
 
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:${is3Day ? '#1a1917' : '#b8935a'};padding:24px 32px;">
-      <div style="font-size:18px;color:${is3Day ? '#b8935a' : '#000'};font-style:italic;">Signature Pianos</div>
-      <div style="font-size:13px;color:${is3Day ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.6)'};margin-top:4px;">
-        ${is3Day ? 'Pickup reminder — 3 days' : '⚡ Pickup reminder — TODAY'}
-      </div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 8px;">Hi ${esc(driver_name || '')},</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;margin:0 0 20px;">
-        ${is3Day
-          ? 'This is a reminder that you have a piano pickup in 3 days.'
-          : 'This is your day-of reminder. Your piano pickup is scheduled for today.'}
-      </p>
-
-      <div style="background:${is3Day ? '#f8f7f5' : '#fff3cd'};border-radius:4px;padding:16px;margin-bottom:20px;text-align:center;border:1px solid ${is3Day ? '#e8e4dd' : '#ffc107'};">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:6px;">${is3Day ? 'Scheduled pickup date' : 'TODAY'}</div>
-        <div style="font-size:18px;font-weight:500;color:#1a1917;">${esc(fmtDateLong(scheduled_date))}</div>
-      </div>
-
-      <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:20px;">
-        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:45%;">Piano</td><td style="padding:8px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc(pianoLabel)}</td></tr>
-        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Serial</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;font-family:monospace;">${esc(piano?.serial_number || '—')}</td></tr>
-        <tr><td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Collect from</td><td style="padding:8px 0;border-bottom:1px solid #e8e4dd;">63 Blackburn Road<br>Mount Waverley VIC 3149</td></tr>
-        <tr><td style="padding:8px 0;color:#9a9590;">Deliver to</td><td style="padding:8px 0;">
-          ${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))}<br>
-          ${deliverTo || '—'}<br>
-          ${customer?.phone ? `<a href="tel:${esc(customer.phone)}" style="color:#b8935a;">${esc(customer.phone)}</a>` : ''}
-        </td></tr>
-      </table>
-
-      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:20px;text-align:center;margin-bottom:16px;">
-        <div style="font-size:14px;font-weight:500;color:#085041;margin-bottom:8px;">
-          ${is3Day ? 'Your pickup photo link' : 'Upload pickup photos now'}
-        </div>
-        <p style="font-size:13px;color:#085041;margin:0 0 16px;line-height:1.5;">
-          ${is3Day
-            ? 'Use this link when you collect the piano. Photograph it before moving.'
-            : 'When you collect the piano today, use this link to upload your pickup photos.'}
-        </p>
-        <a href="${esc(pickupUrl)}" style="display:inline-block;background:#b8935a;color:#000;padding:12px 28px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:500;">
-          Upload pickup photos →
-        </a>
-      </div>
-
-      <p style="font-size:12px;color:#9a9590;line-height:1.6;">Questions? Contact Eric at Signature Pianos.</p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      Signature Pianos Melbourne · signaturepianos.com.au
-    </div>
-  </div>
-</body>
-</html>`
+  const body = `
+    ${hello(driver_name)}
+    ${p(is3Day
+      ? 'This is a reminder that you have a piano pickup in 3 days.'
+      : 'This is your day-of reminder. Your piano pickup is scheduled for today.')}
+    ${details([
+      [is3Day ? 'Pickup date' : 'Today', esc(fmtDateLong(scheduled_date)), true],
+      ['Piano', esc(pianoLabel), true],
+      ['Serial', esc(piano?.serial_number || '—')],
+      ['Collect from', `${BUSINESS.address1}<br>${BUSINESS.address2}`],
+      ['Deliver to', [
+        esc(fullName(customer)),
+        deliverTo || '—',
+        customer?.phone ? telLink(customer.phone) : '',
+      ].filter(Boolean).join('<br>')],
+    ])}
+    ${h2(is3Day ? 'Your pickup photo link' : 'Upload pickup photos now')}
+    ${p(is3Day
+      ? 'Use this link when you collect the piano. Photograph it before you move it.'
+      : 'When you collect the piano today, use this link to upload your pickup photos.')}
+    ${button(pickupUrl, 'Upload pickup photos')}
+    ${p(`Questions? Contact Eric at Signature Pianos on ${OUR_PHONE}.`, { muted: true, small: true })}
+  `
+  return layout({
+    preview: is3Day
+      ? `Piano pickup in 3 days: ${fmtDateLong(scheduled_date)}. ${pianoLabel}.`
+      : `Piano pickup today: ${pianoLabel}. Upload your pickup photos with the link inside.`,
+    label: is3Day ? 'Pickup reminder' : 'Pickup today',
+    title: is3Day ? 'Pickup in three days' : 'Your pickup is today',
+    body,
+  })
 }
 
-/* ============================================================================
- * Session 13 — viewing reminder, post-tuning follow-up, Google review
- * request, and instalment overdue templates.
- * ======================================================================== */
+/* ---------- Eric: tuning job due but no tuner assigned ---------- */
+function noTunerAssignedEmail({ customer, piano, pianoLabel }) {
+  const body = `
+    ${p('A tuning job is due today but no tuner has been assigned in the admin portal.', { first: true })}
+    ${details([
+      ['Customer', `${esc(fullName(customer)) || '—'}<br>${mailLink(customer?.email)}<br>${telLink(customer?.phone)}`, true],
+      ['Piano', esc(pianoLabel)],
+    ])}
+    ${note('<strong>Action:</strong> go to admin/deliveries.html, find this delivery, assign a tuner, then send the contact email manually.', 'alert')}
+    ${button('https://signaturepianos.com.au/admin/deliveries.html', 'Go to admin portal')}
+  `
+  return layout({
+    preview: `No tuner assigned: ${fullName(customer)} · ${pianoLabel}`,
+    label: 'For Signature Pianos',
+    title: 'Assign a tuner',
+    body,
+    internal: true,
+  })
+}
 
+/* ---------- Tuner: job reminder the day before ---------- */
+function tunerDayBeforeEmail({ tuner, customer, piano, confirmedDate, confirmedTime, completeUrl }) {
+  const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
+  const fullAddress = [customer?.address_line1, customer?.suburb, customer?.state, customer?.postcode].filter(Boolean).map(esc).join(', ')
+  const body = `
+    ${hello(tuner?.name)}
+    ${p('This is your reminder for tomorrow’s tuning job.')}
+    ${details([
+      ['Tomorrow', esc(fmtDateLong(confirmedDate)), true],
+      ['Time', esc(confirmedTime || 'Flexible')],
+      ['Customer', esc(fullName(customer)), true],
+      ['Phone', telLink(customer?.phone)],
+      ['Address', fullAddress],
+      ['Piano', esc(pianoLabel)],
+    ])}
+    ${h2('After you complete the tuning')}
+    ${p('Use this link to mark the job as done. The customer will be notified automatically.')}
+    ${button(completeUrl, 'Mark tuning complete')}
+  `
+  return layout({
+    preview: `Tuning tomorrow: ${fullName(customer)}, ${fmtDateLong(confirmedDate)}${confirmedTime ? ', ' + confirmedTime : ''}.`,
+    label: 'Tuning reminder',
+    title: 'Tuning tomorrow',
+    body,
+  })
+}
+
+/* ---------- Customer: tuning reminder the day before ---------- */
+function customerDayBeforeEmail({ customer, piano, confirmedDate, confirmedTime, settings }) {
+  const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
+  const body = `
+    ${hello(customer?.first_name)}
+    ${p(`A reminder that the tuning for your ${esc(pianoLabel)} is booked for tomorrow.`)}
+    ${details([
+      ['Date', esc(fmtDateLong(confirmedDate)), true],
+      ['Time', esc(confirmedTime || 'Your tuner will confirm the time')],
+    ])}
+    ${p('Please make sure someone is home during the time window. Tuning takes about 60–90 minutes.', { first: true })}
+    ${p(`If you need to reschedule, reply to this email or call us on ${OUR_PHONE} as soon as you can.`)}
+    ${signOff()}
+  `
+  return layout({
+    preview: `Your piano tuning is tomorrow, ${fmtDateLong(confirmedDate)}.`,
+    label: 'Your tuning',
+    title: 'Your tuning is tomorrow',
+    body,
+  })
+}
+
+/* ---------- Customer: showroom viewing the day before ---------- */
 function viewingReminderCronEmail({ appt, settings }) {
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#b8935a;padding:24px 32px;">
-      <div style="font-size:18px;color:#000;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-      <div style="font-size:12px;color:rgba(0,0,0,0.6);margin-top:4px;">⚡ Viewing reminder — tomorrow</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Your viewing is tomorrow, ${esc(appt.first_name || 'friend')}.</h2>
-      <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin:16px 0;">
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:35%;">Date</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;color:#1a1917;">${esc(fmtDateLong(appt.appointment_date))}</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Time</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc(appt.appointment_time || '—')}</td></tr>
-          <tr><td style="padding:7px 0;color:#9a9590;">Address</td><td style="padding:7px 0;">63 Blackburn Road<br>Mount Waverley VIC 3149</td></tr>
-        </table>
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">We look forward to seeing you tomorrow. Parking is available on site.</p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-    </div>
-  </div>
-</body>
-</html>`
+  const body = `
+    ${hello(appt.first_name)}
+    ${p('We look forward to seeing you tomorrow. Here are your appointment details.')}
+    ${details([
+      ['Date', esc(fmtDateLong(appt.appointment_date)), true],
+      ['Time', esc(appt.appointment_time || '—'), true],
+    ])}
+    ${visitBlock()}
+    ${p('Parking is available on site.', { first: true })}
+    ${signOff()}
+  `
+  return layout({
+    preview: `Your viewing is tomorrow, ${fmtDateLong(appt.appointment_date)}${appt.appointment_time ? ' at ' + appt.appointment_time : ''}.`,
+    label: 'Your viewing',
+    title: 'Your viewing is tomorrow',
+    body,
+  })
 }
 
+/* ---------- Customer: 14 days after the first tuning ---------- */
 function postTuningFollowupEmail({ customer, piano, settings }) {
   const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">How is the piano going, ${esc(customer.first_name || 'friend')}?</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        It has been a couple of weeks since your ${esc(pianoLabel)} was tuned and settled into its new home. We hope you and your family are enjoying it.
-      </p>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        If you have any questions about your piano — whether it is about tuning frequency, care and maintenance, or anything else — please do not hesitate to reach out. We are always happy to help.
-      </p>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">Your piano is covered by your 10-year warranty. Keep this email for your records.</p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
-    </div>
-  </div>
-</body>
-</html>`
+  const body = `
+    ${hello(customer.first_name)}
+    ${p(`It has been a couple of weeks since your ${esc(pianoLabel)} was tuned and settled into its new home. We hope you and your family are enjoying it.`)}
+    ${p(`If you have any questions about your piano, whether about how often to tune it, care and maintenance, or anything else, reply to this email or call us on ${OUR_PHONE}. We are always happy to help.`)}
+    ${note('Your piano is covered by your 10-year warranty. Keep this email for your records.')}
+    ${signOff()}
+  `
+  return layout({
+    preview: `A couple of weeks on from its tuning: how is your ${pianoLabel} going?`,
+    label: 'Your piano',
+    title: 'How is the piano going?',
+    body,
+  })
 }
 
+/* ---------- Customer: Google review request (after the follow-up) ----------
+ * Australian Consumer Law: a plain ask sent to every customer. It does not
+ * suggest what to write, ask only happy customers, or offer anything back. */
 function googleReviewRequestEmail({ customer, piano, settings }) {
   const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''}`.trim()
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Would you mind leaving us a review?</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        Hi ${esc(customer.first_name || 'friend')}, we hope you are loving your ${esc(pianoLabel)}. It means a lot to us that you chose Signature Pianos.
-      </p>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        If you had a great experience we would be so grateful if you could leave us a quick Google review. It only takes a minute and it helps other families find us.
-      </p>
-      <div style="text-align:center;margin:28px 0;">
-        <a href="${esc(settings.google_review_url)}" target="_blank" style="display:inline-block;background:#b8935a;color:#000;padding:14px 36px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:500;">
-          Leave a Google review ★
-        </a>
-      </div>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">And if you know anyone else looking for a quality piano — we would love to help them too. Feel free to send them our way.</p>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">Thank you for being a Signature Pianos customer.</p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-    </div>
-  </div>
-</body>
-</html>`
+  const body = `
+    ${hello(customer.first_name)}
+    ${p(`We hope your ${esc(pianoLabel)} is settling in well. Thank you for choosing Signature Pianos.`)}
+    ${p('If you have a minute, would you leave us a Google review of your experience with us? It helps other families find us.')}
+    ${button(settings.google_review_url, 'Leave a Google review')}
+    ${p('Thank you for being a Signature Pianos customer.', { first: true })}
+    ${signOff()}
+  `
+  return layout({
+    preview: 'Would you mind leaving us a Google review? It takes about a minute.',
+    label: 'A small favour',
+    title: 'Would you leave us a review?',
+    body,
+  })
 }
 
+/* ---------- Customer: payment plan instalment overdue (3 / 7 / 14 days) ---------- */
 function instalmentOverdueEmail({ customer, piano, plan, instalment, daysOverdue, settings, urgency }) {
   const fmtCur = (v) => '$' + Math.abs(Number(v || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const cfg = {
-    gentle: { headerBg: '#1a1917', headerColor: '#b8935a', title: 'Friendly payment reminder',         intro: `This is a gentle reminder that instalment #${instalment.instalment_number} of your payment plan is now ${daysOverdue} days overdue.`, cta: 'Please arrange payment at your earliest convenience.' },
-    firm:   { headerBg: '#633806', headerColor: '#FAC775', title: 'Payment overdue — second reminder', intro: `Your instalment #${instalment.instalment_number} is now ${daysOverdue} days overdue. This is your second reminder.`, cta: 'Please make payment immediately to avoid a late fee.' },
-    urgent: { headerBg: '#c0392b', headerColor: '#fff',    title: 'Urgent — payment overdue',          intro: `Your instalment #${instalment.instalment_number} is now ${daysOverdue} days overdue. This is your final notice before we initiate the default process.`, cta: 'Please contact us immediately to discuss your account.' },
+    gentle: { label: 'Your payment plan', title: 'Payment reminder',        intro: `This is a gentle reminder that instalment #${instalment.instalment_number} of your payment plan is now ${daysOverdue} days overdue.`, cta: 'Please arrange payment at your earliest convenience.' },
+    firm:   { label: 'Second reminder',   title: 'Payment overdue',         intro: `Your instalment #${instalment.instalment_number} is now ${daysOverdue} days overdue. This is your second reminder.`, cta: 'Please make payment immediately to avoid a late fee.' },
+    urgent: { label: 'Final notice',      title: 'Urgent: payment overdue', intro: `Your instalment #${instalment.instalment_number} is now ${daysOverdue} days overdue. This is your final notice before we initiate the default process.`, cta: 'Please contact us immediately to discuss your account.' },
   }[urgency] || {}
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:${cfg.headerBg};padding:24px 32px;">
-      <div style="font-size:18px;color:${cfg.headerColor};font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-      <div style="font-size:12px;color:${cfg.headerColor};opacity:0.7;margin-top:4px;">${esc(cfg.title)}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Hi ${esc(customer.first_name || '')}</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">${esc(cfg.intro)}</p>
-      <div style="background:#fdecea;border-radius:4px;padding:16px;margin:20px 0;border-left:3px solid #c0392b;">
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr><td style="padding:6px 0;color:#c0392b;width:50%;">Plan</td><td style="padding:6px 0;font-weight:500;color:#c0392b;">${esc(plan.plan_number || '—')}</td></tr>
-          <tr><td style="padding:6px 0;color:#c0392b;">Instalment #</td><td style="padding:6px 0;color:#c0392b;">${esc(instalment.instalment_number)}</td></tr>
-          <tr><td style="padding:6px 0;color:#c0392b;">Amount overdue</td><td style="padding:6px 0;font-weight:500;font-size:15px;color:#c0392b;">${fmtCur(instalment.amount)}</td></tr>
-          <tr><td style="padding:6px 0;color:#c0392b;">Days overdue</td><td style="padding:6px 0;font-weight:500;color:#c0392b;">${daysOverdue} days</td></tr>
-        </table>
-      </div>
-      ${settings?.bank_bsb ? `
-        <div style="background:#f8f7f5;border-radius:4px;padding:14px;margin-bottom:16px;font-size:13px;color:#6b6760;line-height:1.8;">
-          BSB: ${esc(settings.bank_bsb)}<br>
-          Account: ${esc(settings.bank_account || '')}<br>
-          Account name: ${esc(settings.bank_account_name || '')}<br>
-          Reference: ${esc(plan.plan_number || '—')}
-        </div>
-      ` : ''}
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">${esc(cfg.cta)}</p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
-    </div>
-  </div>
-</body>
-</html>`
+
+  const body = `
+    ${hello(customer.first_name)}
+    ${p(esc(cfg.intro))}
+    ${details([
+      ['Plan', esc(plan.plan_number || '—'), true],
+      ['Instalment', `#${esc(instalment.instalment_number)}`],
+      ['Amount overdue', fmtCur(instalment.amount), true],
+      ['Days overdue', `${daysOverdue} days`, true],
+    ])}
+    ${settings?.bank_bsb ? `
+      ${h2('Bank transfer details')}
+      ${details([
+        ['BSB', esc(settings.bank_bsb)],
+        ['Account', esc(settings.bank_account || '')],
+        ['Account name', esc(settings.bank_account_name || '')],
+        ['Reference', esc(plan.plan_number || '—'), true],
+      ])}
+    ` : ''}
+    ${urgency === 'gentle' ? p(esc(cfg.cta), { first: true }) : note(esc(cfg.cta), 'alert')}
+    ${p(`Questions about your account? Reply to this email or call us on ${OUR_PHONE}.`, { muted: true, small: true })}
+    ${signOff()}
+  `
+  return layout({
+    preview: `Instalment #${instalment.instalment_number} of plan ${plan.plan_number || ''} is ${daysOverdue} days overdue: ${fmtCur(instalment.amount)}.`,
+    label: cfg.label,
+    title: cfg.title,
+    body,
+  })
+}
+
+/* ---------- Eric: instalment 14+ days overdue (default risk) ---------- */
+function paymentDefaultRiskEmail({ customer, piano, plan, instalment, daysOverdue }) {
+  const body = `
+    ${p(`An instalment on this payment plan is now ${daysOverdue} days overdue. The customer has been sent their final notice.`, { first: true })}
+    ${details([
+      ['Customer', `${esc(fullName(customer)) || '—'}<br>${mailLink(customer?.email)}<br>${telLink(customer?.phone)}`, true],
+      ['Plan', esc(plan.plan_number || '—'), true],
+      ['Piano', esc((piano?.brand || 'Yamaha') + ' ' + (piano?.model || '') + ' ' + (piano?.year || ''))],
+      ['Overdue instalment', `#${esc(instalment.instalment_number)}`],
+      ['Amount', money(instalment.amount), true],
+      ['Due', esc(fmtDateLong(instalment.due_date))],
+      ['Days overdue', `${daysOverdue} days`, true],
+    ])}
+    ${note('<strong>Action required:</strong> contact the customer directly. Consider initiating the default process if there is no response.', 'alert')}
+    ${button('https://signaturepianos.com.au/admin/payment-plans.html', 'View in admin')}
+  `
+  return layout({
+    preview: `${fullName(customer)} · plan ${plan.plan_number || ''} · ${daysOverdue} days overdue`,
+    label: 'For Signature Pianos',
+    title: `Payment plan overdue ${daysOverdue} days`,
+    body,
+    internal: true,
+  })
+}
+
+// Template functions, exposed for email previews. The default export above
+// (the cron handler) is unchanged.
+module.exports.templates = {
+  buildReminderEmail,
+  noTunerAssignedEmail,
+  tunerDayBeforeEmail,
+  customerDayBeforeEmail,
+  viewingReminderCronEmail,
+  postTuningFollowupEmail,
+  googleReviewRequestEmail,
+  instalmentOverdueEmail,
+  paymentDefaultRiskEmail,
 }

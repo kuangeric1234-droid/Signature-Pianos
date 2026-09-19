@@ -16,6 +16,9 @@
 
 const { createClient } = require('@supabase/supabase-js')
 const { Resend } = require('resend')
+const { internalRecipients } = require('../lib/notify')
+const { C, layout, hello, p, details, note, label, button, signOff } = require('../lib/email-brand')
+const { parts } = require('../lib/tuner-emails')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -77,42 +80,7 @@ async function handleGet(req, res) {
   const customer = booking.order && booking.order.customer
   const piano = booking.order && booking.order.piano
   res.setHeader('content-type', 'text/html; charset=utf-8')
-  return res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mark tuning complete — Signature Pianos</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: -apple-system, system-ui, 'Segoe UI', Arial, sans-serif; background: #f8f7f5; margin: 0; padding: 40px 20px; color: #1a1917; }
-    .card { background: #fff; max-width: 480px; margin: 0 auto; border-radius: 8px; padding: 32px; border: 1px solid #e8e4dd; }
-    .logo { text-align: center; font-size: 18px; color: #b8935a; letter-spacing: 0.08em; font-style: italic; margin-bottom: 24px; }
-    h2 { color: #1a1917; font-size: 22px; margin: 0 0 8px; }
-    p { color: #6b6760; font-size: 14px; line-height: 1.65; margin: 0 0 14px; }
-    p strong { color: #1a1917; }
-    label { font-size: 12px; color: #9a9590; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin: 18px 0 6px; }
-    textarea { width: 100%; padding: 12px; border: 1px solid #e8e4dd; border-radius: 4px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 96px; }
-    textarea:focus { outline: none; border-color: #b8935a; box-shadow: 0 0 0 3px rgba(184, 147, 90, 0.15); }
-    button { background: #b8935a; color: #000; border: none; padding: 14px 28px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; width: 100%; margin-top: 16px; }
-    button:hover { background: #a07f4a; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="logo">Signature Pianos</div>
-    <h2>Mark tuning complete</h2>
-    <p>Customer: <strong>${escapeHtml(customer ? customer.first_name + ' ' + customer.last_name : '—')}</strong></p>
-    <p>Piano: <strong>Yamaha ${escapeHtml(piano ? (piano.model || '') + ' ' + (piano.year || '') : '—')}</strong></p>
-    <form method="POST">
-      <input type="hidden" name="token" value="${escapeHtml(token)}">
-      <label for="notes">Notes (optional)</label>
-      <textarea id="notes" name="notes" rows="4" placeholder="Any notes about the tuning — pitch raise needed, action/regulation notes, anything for our records."></textarea>
-      <button type="submit">Mark as complete</button>
-    </form>
-  </div>
-</body>
-</html>`)
+  return res.send(completionFormPage({ customer, piano, token }))
 }
 
 /* ---------- POST: persist completion + send emails ---------- */
@@ -183,13 +151,9 @@ async function handlePost(req, res) {
     try {
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `Tuning complete — ${customer ? customer.first_name + ' ' + customer.last_name : '—'}`,
-        html:
-          `<p>Tuning marked complete by ${escapeHtml(tuner.name || 'tuner')}.</p>` +
-          `<p>Customer: ${escapeHtml(customer ? customer.first_name + ' ' + customer.last_name : '—')}</p>` +
-          `<p>Piano: Yamaha ${escapeHtml(piano ? (piano.model || '') + ' ' + (piano.year || '') : '—')}</p>` +
-          (notes ? `<p>Notes: ${escapeHtml(notes)}</p>` : ''),
+        html: internalTuningCompleteEmail({ tuner, customer, piano, notes }),
       })
     } catch (mailErr) {
       console.error('[tuner-complete] internal email failed', mailErr)
@@ -197,33 +161,10 @@ async function handlePost(req, res) {
   }
 
   res.setHeader('content-type', 'text/html; charset=utf-8')
-  return res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Complete — Signature Pianos</title>
-  <style>
-    body { font-family: -apple-system, system-ui, 'Segoe UI', Arial, sans-serif; background: #f8f7f5; padding: 40px 20px; margin: 0; text-align: center; }
-    .card { background: #fff; max-width: 420px; margin: 0 auto; border-radius: 8px; padding: 40px 32px; border: 1px solid #e8e4dd; }
-    .logo { font-size: 18px; color: #b8935a; letter-spacing: 0.08em; font-style: italic; margin-bottom: 24px; }
-    .tick { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: #e8f5ee; color: #1a7f4b; font-size: 36px; margin-bottom: 18px; }
-    h2 { color: #1a1917; font-size: 22px; margin: 0 0 8px; }
-    p { color: #6b6760; font-size: 14px; line-height: 1.65; margin: 0; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="logo">Signature Pianos</div>
-    <div class="tick">&#10003;</div>
-    <h2>Tuning marked complete.</h2>
-    <p>Thank you ${escapeHtml(tuner.name || '')}. The customer has been notified.</p>
-  </div>
-</body>
-</html>`)
+  return res.send(completionDonePage({ tuner }))
 }
 
-/* ---------- helpers / templates ---------- */
+/* ---------- helpers ---------- */
 
 function formatDate(dateStr) {
   if (!dateStr) return 'TBC'
@@ -243,51 +184,81 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
 
+/* ---------- pages the tuner sees (brand shell in lib/tuner-emails.js) ---------- */
+
+/* Plain message page for error and already-done states. */
 function htmlMessage(title, body) {
-  return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(title)} — Signature Pianos</title>
-<style>
-  body{font-family:-apple-system,system-ui,Arial,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;}
-  .card{background:#fff;max-width:480px;margin:0 auto;border-radius:8px;padding:36px;border:1px solid #e8e4dd;text-align:center;}
-  h2{color:#1a1917;font-size:20px;margin:0 0 12px;}
-  p{color:#6b6760;font-size:14px;line-height:1.7;margin:0;}
-  .logo{font-size:18px;color:#b8935a;letter-spacing:0.08em;font-style:italic;margin-bottom:20px;}
-</style></head><body>
-<div class="card">
-  <div class="logo">Signature Pianos</div>
-  <h2>${escapeHtml(title)}</h2>
-  <p>${escapeHtml(body)}</p>
-</div>
-</body></html>`
+  return parts.tunerPage({
+    title,
+    label: 'Tuning',
+    body: `<p>${escapeHtml(body)}</p>`,
+  })
 }
 
-function customerCompletionEmail({ customer, piano, tuner, notes }) {
-  return `
-    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff;">
-      <div style="background:#1a1917;padding:32px;text-align:center;">
-        <div style="font-size:20px;color:#b8935a;font-style:italic;letter-spacing:0.08em;">Signature Pianos</div>
-      </div>
-      <div style="padding:32px;">
-        <h2 style="color:#1a1917;margin:0 0 12px;">Your piano is perfectly tuned, ${escapeHtml(customer.first_name)}.</h2>
-        <p style="color:#6b6760;font-size:14px;line-height:1.7;margin:0 0 18px;">
-          Your Yamaha ${escapeHtml(piano ? (piano.model || '') : '')} has been professionally tuned by
-          ${escapeHtml(tuner.name || 'one of our certified tuners')}.
-          Enjoy playing — it should sound better than ever.
-        </p>
-        ${notes ? `<p style="color:#6b6760;font-size:13px;font-style:italic;padding:16px;background:#f8f7f5;border-radius:4px;margin:0 0 18px;">Tuner notes: ${escapeHtml(notes)}</p>` : ''}
-        <p style="color:#6b6760;font-size:13px;margin:0 0 18px;">
-          Remember — your piano comes with a 10-year warranty. If you ever need another tuning
-          or have any questions about your instrument, we're always here to help.
-        </p>
-        <a href="https://signaturepianos.com.au/services/tuning-servicing.html"
-           style="display:inline-block;background:#b8935a;color:#000;padding:14px 28px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:500;margin-top:8px;">
-          Book another tuning
-        </a>
-      </div>
-      <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;">
-        Signature Pianos Melbourne · signaturepianos.com.au
-      </div>
-    </div>
-  `
+/* GET: the mark-complete form, with optional notes. */
+function completionFormPage({ customer, piano, token }) {
+  return parts.tunerPage({
+    title: 'Mark tuning complete',
+    label: 'Tuning',
+    body: `
+    <p>Customer: <strong>${escapeHtml(customer ? customer.first_name + ' ' + customer.last_name : '—')}</strong><br>
+    Piano: <strong>Yamaha ${escapeHtml(piano ? (piano.model || '') + ' ' + (piano.year || '') : '—')}</strong></p>
+    <form method="POST">
+      <input type="hidden" name="token" value="${escapeHtml(token)}">
+      <label for="notes">Notes (optional)</label>
+      <textarea id="notes" name="notes" rows="4" placeholder="Any notes about the tuning — pitch raise needed, action/regulation notes, anything for our records."></textarea>
+      <button type="submit">Mark as complete</button>
+    </form>`,
+  })
 }
+
+/* POST: the thank-you page once the booking is marked complete. */
+function completionDonePage({ tuner }) {
+  return parts.tunerPage({
+    title: 'Tuning marked complete',
+    label: 'Tuning',
+    body: `<p>Thank you${tuner && tuner.name ? ' ' + escapeHtml(tuner.name) : ''}. The customer has been notified.</p>`,
+  })
+}
+
+/* ---------- email templates (brand kit: lib/email-brand.js) ---------- */
+
+/* To the customer, once the tuner marks the job complete. */
+function customerCompletionEmail({ customer, piano, tuner, notes }) {
+  const pianoText = `Yamaha ${piano ? (piano.model || '') : ''}`.trim()
+  return layout({
+    preview: `Your ${pianoText} has been tuned by ${tuner.name || 'one of our certified tuners'}.`,
+    label: 'Your tuning',
+    title: 'Your piano has been tuned',
+    body:
+      hello(customer.first_name) +
+      p(`Your ${escapeHtml(pianoText)} has been professionally tuned by ${escapeHtml(tuner.name || 'one of our certified tuners')}. Enjoy playing it.`) +
+      (notes
+        ? note(label('Notes from your tuner') + `<div style="margin-top:8px;color:${C.ink};">${escapeHtml(notes).replace(/\r?\n/g, '<br>')}</div>`)
+        : '') +
+      p(`Remember, your piano comes with a 10-year warranty. If you ever need another tuning or have any questions about your piano, reply to this email or call us on ${parts.officePhone()}. We are here to help.`) +
+      button('https://signaturepianos.com.au/services/tuning-servicing.html', 'Book another tuning') +
+      signOff(),
+  })
+}
+
+/* To Eric, once the tuner marks the job complete. */
+function internalTuningCompleteEmail({ tuner, customer, piano, notes }) {
+  return layout({
+    internal: true,
+    preview: `${tuner.name || 'The tuner'} has marked the tuning complete for ${customer ? customer.first_name + ' ' + customer.last_name : 'a customer'}.`,
+    label: 'For Signature Pianos',
+    title: 'Tuning complete',
+    body:
+      p(`Tuning marked complete by ${escapeHtml(tuner.name || 'tuner')}.`, { first: true }) +
+      details([
+        ['Tuner', escapeHtml(tuner.name || '—')],
+        ['Customer', escapeHtml(customer ? customer.first_name + ' ' + customer.last_name : '—'), true],
+        ['Piano', `Yamaha ${escapeHtml(piano ? (piano.model || '') + ' ' + (piano.year || '') : '—')}`],
+        notes ? ['Notes', escapeHtml(notes).replace(/\r?\n/g, '<br>')] : null,
+      ]),
+  })
+}
+
+module.exports.templates = { customerCompletionEmail, internalTuningCompleteEmail }
+module.exports.pages = { completionFormPage, completionDonePage, htmlMessage }

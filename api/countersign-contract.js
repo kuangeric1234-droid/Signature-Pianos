@@ -26,6 +26,10 @@
 
 const { createClient } = require('@supabase/supabase-js')
 const { Resend }       = require('resend')
+const { internalRecipients } = require('../lib/notify')
+const {
+  C, TEXT, esc, layout, hello, p, h2, details, note, button, divider, signOff,
+} = require('../lib/email-brand')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -226,14 +230,7 @@ module.exports = async (req, res) => {
       : null
 
     // ---- 6. Emails (customer fully executed + Eric notification) ---------
-    const formatCurrency = (v) =>
-      '$' + Math.abs(v || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    const formatDate = (d) => {
-      if (!d) return '—'
-      const [y, m, day] = (String(d).split('T')[0]).split('-')
-      return `${day}/${m}/${y}`
-    }
-
+    // formatCurrency / formatDate live at the bottom of this file.
     try {
       if (customer.email) {
         await resend.emails.send({
@@ -254,20 +251,12 @@ module.exports = async (req, res) => {
     try {
       await resend.emails.send({
         from: FROM,
-        to:   BUSINESS_EMAIL,
+        to:   internalRecipients(),
         subject: `Contract fully executed — ${plan.plan_number} · ${customer.first_name} ${customer.last_name}`,
-        html: `
-          <h2>Payment plan contract fully executed ✓</h2>
-          <p>Customer: ${customer.first_name} ${customer.last_name} (${customer.email})</p>
-          <p>Plan: ${plan.plan_number}</p>
-          <p>Piano: Yamaha ${piano.model} ${piano.year}</p>
-          <p>Total: ${formatCurrency(plan.total_with_surcharge || plan.total_amount)}</p>
-          <p>Countersigned by: ${countersigned_by}</p>
-          <p>Executed at: ${formatDate(countersignedAtIso?.split('T')[0])}</p>
-          ${isAcoustic
-            ? `<p style="color:#1a7f4b;"><strong>✓ Delivery record created</strong> — customer sent delivery preference link.</p>`
-            : '<p>Digital piano — no delivery created.</p>'}
-        `,
+        html: executedInternalEmail({
+          customer, piano, plan, countersigned_by, countersignedAtIso,
+          isAcoustic, formatCurrency, formatDate,
+        }),
       })
     } catch (mailErr) {
       console.error('[countersign] Eric email failed', mailErr)
@@ -287,149 +276,136 @@ function randomToken() {
 }
 
 /* ============================================================================
+   Formatters shared by the handler and the emails below
+   ============================================================================ */
+function formatCurrency(v) {
+  return '$' + Math.abs(v || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function formatDate(d) {
+  if (!d) return '—'
+  const [y, m, day] = (String(d).split('T')[0]).split('-')
+  return `${day}/${m}/${y}`
+}
+
+/* Defaults for the templates, so a preview can call them without passing the formatters. */
+const FORMATTERS = { formatCurrency, formatDate }
+
+function pianoName(piano) {
+  return `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
+}
+
+/* The payment schedule: a line-item table in the kit's detail-table style
+   (hairline rules, tracked-caps column labels, Jost). */
+function scheduleTable(instalments, formatCurrency, formatDate) {
+  const th = (text, align = 'left') =>
+    `<th style="padding:0 0 9px;border-bottom:1px solid ${C.ivoryDeep};font-family:${TEXT};font-size:11px;line-height:16px;letter-spacing:2px;text-transform:uppercase;font-weight:400;color:${C.inkSoft};text-align:${align};">${text}</th>`
+  const td = (html, align = 'left', color = C.ink) =>
+    `<td style="padding:10px 0;border-bottom:1px solid ${C.ivoryDeep};font-family:${TEXT};font-size:15px;line-height:22px;color:${color};text-align:${align};vertical-align:top;">${html}</td>`
+  const rows = (instalments || []).map(ins => `
+    <tr>
+      ${td(esc(ins.instalment_number), 'left', C.inkSoft)}
+      ${td(esc(formatDate(ins.due_date)))}
+      ${td(formatCurrency(ins.amount), 'right')}
+    </tr>`).join('')
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
+    <tr>${th('#')}${th('Due date')}${th('Amount', 'right')}</tr>
+    ${rows}
+  </table>`
+}
+
+/* ============================================================================
    Customer — fully executed agreement email
    ============================================================================ */
 function fullyExecutedCustomerEmail({
   customer, piano, plan, instalments,
-  settings, formatCurrency, formatDate,
+  settings, formatCurrency = FORMATTERS.formatCurrency,
+  formatDate = FORMATTERS.formatDate,
   preferenceUrl, isAcoustic,
 }) {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <body style="font-family:Arial,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-      <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+  const body = `
+    ${hello(customer?.first_name)}
+    ${p('Your payment plan agreement has been signed by both parties and is now fully executed. Please keep this email for your records.')}
+    ${note(`<strong>Fully executed agreement</strong><br>${esc(plan.plan_number)} · Signed by both parties`, 'mist')}
 
-        <div style="background:#1a1917;padding:32px;text-align:center;">
-          <div style="font-size:20px;color:#b8935a;font-style:italic;margin-bottom:4px;">
-            ${settings?.business_name || 'Signature Pianos'}
-          </div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;">
-            Payment Plan Agreement — Fully Executed
-          </div>
-        </div>
+    ${h2('Agreement summary')}
+    ${details([
+      ['Piano', esc(pianoName(piano)), true],
+      ['Total', formatCurrency(plan.total_with_surcharge || plan.total_amount), true],
+      ['Deposit', `${formatCurrency(plan.deposit_amount)} (paid)`],
+      ['Instalments', `${esc(plan.number_of_instalments)} × ${formatCurrency(plan.instalment_amount)} monthly`],
+      ['Payment method', plan.payment_method === 'credit_card'
+        ? `Credit card ···· ${esc(plan.card_last_four)}`
+        : 'Bank transfer'],
+    ])}
 
-        <div style="padding:32px;">
-          <h2 style="color:#1a1917;margin:0 0 16px;">
-            Your agreement is confirmed, ${customer.first_name}.
-          </h2>
-          <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-            Your payment plan agreement has been signed by both parties and is now fully executed. Please keep this email for your records.
-          </p>
+    ${h2('Your payment schedule')}
+    ${scheduleTable(instalments, formatCurrency, formatDate)}
 
-          <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:14px 16px;margin:20px 0;display:flex;align-items:center;gap:10px;">
-            <span style="font-size:24px;">✓</span>
-            <div>
-              <div style="font-size:13px;font-weight:500;color:#085041;">Fully executed agreement</div>
-              <div style="font-size:12px;color:#085041;">${plan.plan_number} · Signed by both parties</div>
-            </div>
-          </div>
+    ${plan.payment_method === 'bank_transfer' && settings?.bank_bsb ? `
+      ${h2('Payment details')}
+      ${details([
+        ['BSB', esc(settings.bank_bsb)],
+        ['Account', esc(settings.bank_account)],
+        ['Account name', esc(settings.bank_account_name)],
+        ['Reference', esc(plan.plan_number), true],
+      ])}
+    ` : ''}
 
-          <div style="background:#f8f7f5;border-radius:4px;padding:16px;margin-bottom:20px;">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">
-              Agreement summary
-            </div>
-            <table style="width:100%;font-size:13px;border-collapse:collapse;">
-              <tr>
-                <td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:45%;">Piano</td>
-                <td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">
-                  Yamaha ${piano.model} ${piano.year}
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Total</td>
-                <td style="padding:7px 0;font-weight:500;border-bottom:1px solid #e8e4dd;color:#b8935a;">
-                  ${formatCurrency(plan.total_with_surcharge || plan.total_amount)}
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Deposit</td>
-                <td style="padding:7px 0;border-bottom:1px solid #e8e4dd;color:#1D9E75;">
-                  ${formatCurrency(plan.deposit_amount)} ✓
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:7px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Instalments</td>
-                <td style="padding:7px 0;border-bottom:1px solid #e8e4dd;">
-                  ${plan.number_of_instalments} × ${formatCurrency(plan.instalment_amount)} monthly
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:7px 0;color:#9a9590;">Payment method</td>
-                <td style="padding:7px 0;">
-                  ${plan.payment_method === 'credit_card'
-                    ? `Credit card ···· ${plan.card_last_four}`
-                    : 'Bank transfer'}
-                </td>
-              </tr>
-            </table>
-          </div>
+    ${isAcoustic && preferenceUrl ? `
+      ${h2('Next step: choose your delivery times')}
+      ${p('Please let us know 3 preferred delivery windows and we will arrange delivery of your piano.')}
+      ${button(preferenceUrl, 'Choose delivery times')}
+    ` : ''}
 
-          <div style="margin-bottom:24px;">
-            <div style="font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:#1a1917;margin-bottom:10px;">
-              Your payment schedule
-            </div>
-            <table style="width:100%;font-size:12px;border-collapse:collapse;">
-              <thead>
-                <tr style="background:#f8f7f5;">
-                  <th style="padding:7px 10px;text-align:left;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">#</th>
-                  <th style="padding:7px 10px;text-align:left;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">Due date</th>
-                  <th style="padding:7px 10px;text-align:right;color:#6b6760;font-weight:500;border-bottom:1px solid #e8e4dd;">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${(instalments || []).map(ins => `
-                  <tr>
-                    <td style="padding:6px 10px;color:#6b6760;border-bottom:1px solid #f0f0f0;">${ins.instalment_number}</td>
-                    <td style="padding:6px 10px;color:#1a1917;border-bottom:1px solid #f0f0f0;">${formatDate(ins.due_date)}</td>
-                    <td style="padding:6px 10px;color:#1a1917;border-bottom:1px solid #f0f0f0;text-align:right;">${formatCurrency(ins.amount)}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-
-          ${plan.payment_method === 'bank_transfer' && settings?.bank_bsb ? `
-            <div style="background:#f8f7f5;border-radius:4px;padding:14px;margin-bottom:20px;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:8px;">
-                Payment details
-              </div>
-              <div style="font-size:13px;color:#6b6760;line-height:1.8;">
-                BSB: ${settings.bank_bsb}<br>
-                Account: ${settings.bank_account}<br>
-                Account name: ${settings.bank_account_name}<br>
-                Reference: <strong>${plan.plan_number}</strong>
-              </div>
-            </div>
-          ` : ''}
-
-          ${isAcoustic && preferenceUrl ? `
-            <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:20px;margin-bottom:20px;">
-              <div style="font-size:14px;font-weight:500;color:#085041;margin-bottom:8px;">
-                Next step — choose your delivery times
-              </div>
-              <p style="font-size:13px;color:#085041;margin:0 0 14px;line-height:1.5;">
-                Please let us know 3 preferred delivery windows and we will arrange delivery of your piano.
-              </p>
-              <a href="${preferenceUrl}"
-                 style="display:inline-block;background:#b8935a;color:#000;padding:12px 24px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:500;">
-                Choose delivery times →
-              </a>
-            </div>
-          ` : ''}
-
-          <div style="font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;padding-top:16px;line-height:1.7;">
-            By signing this agreement you confirmed acceptance of the Signature Pianos payment plan terms and conditions. The instrument remains the property of Signature Pianos until all payments are received in full. This piano is covered by the Signature Pianos 10-year warranty from the date of delivery.
-          </div>
-        </div>
-
-        <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-          ${settings?.business_name || 'Signature Pianos'} Melbourne ·
-          ${settings?.website || 'signaturepianos.com.au'}${settings?.abn ? ` · ABN: ${settings.abn}` : ''}
-        </div>
-
-      </div>
-    </body>
-    </html>
+    ${signOff()}
+    ${divider()}
+    ${p('By signing this agreement you confirmed acceptance of the Signature Pianos payment plan terms and conditions. The instrument remains the property of Signature Pianos until all payments are received in full. This piano is covered by the Signature Pianos 10-year warranty from the date of delivery.', { muted: true, small: true })}
   `
+  return layout({
+    preview: `Your payment plan ${plan.plan_number} is signed by both parties and fully executed.`,
+    label: 'Payment plan agreement',
+    title: 'Your agreement is confirmed',
+    body,
+    footnote: settings?.abn ? `ABN ${esc(settings.abn)}` : '',
+  })
+}
+
+/* ============================================================================
+   Eric — contract fully executed notification
+   ============================================================================ */
+function executedInternalEmail({
+  customer, piano, plan, countersigned_by, countersignedAtIso,
+  isAcoustic, formatCurrency = FORMATTERS.formatCurrency,
+  formatDate = FORMATTERS.formatDate,
+}) {
+  const name = `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim()
+  const body = `
+    ${p('Both signatures are in. The payment plan is now active.', { first: true })}
+    ${details([
+      ['Customer', `${esc(name)}<br><a href="mailto:${esc(customer?.email || '')}" style="color:${C.ink};">${esc(customer?.email || '')}</a>`, true],
+      ['Plan', esc(plan.plan_number), true],
+      ['Piano', esc(pianoName(piano))],
+      ['Total', formatCurrency(plan.total_with_surcharge || plan.total_amount), true],
+      ['Countersigned by', esc(countersigned_by)],
+      ['Executed', esc(formatDate(countersignedAtIso?.split('T')[0]))],
+    ])}
+    ${isAcoustic
+      ? note('<strong>Delivery record created.</strong> The customer has been sent the delivery preference link.', 'mist')
+      : note('Digital piano. No delivery created.')}
+  `
+  return layout({
+    preview: `${plan.plan_number} · ${name} · fully executed`,
+    label: 'For Signature Pianos',
+    title: 'Contract fully executed',
+    body,
+    internal: true,
+  })
+}
+
+// Template functions, exposed for email previews. The default export above
+// (the API handler) is unchanged.
+module.exports.templates = {
+  fullyExecutedCustomerEmail,
+  executedInternalEmail,
 }

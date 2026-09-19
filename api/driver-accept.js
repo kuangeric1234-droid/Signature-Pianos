@@ -15,6 +15,10 @@
 
 const { createClient } = require('@supabase/supabase-js')
 const { Resend } = require('resend')
+const { internalRecipients } = require('../lib/notify')
+const {
+  BUSINESS, C, esc, layout, hello, p, h2, details, note, button, buttonOutline, steps,
+} = require('../lib/email-brand')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -140,20 +144,9 @@ module.exports = async (req, res) => {
     try {
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `Driver accepted — ${partner.name || ''} · ${confirmedDisplay}`.trim(),
-        html: `
-          <h2>Driver accepted delivery</h2>
-          <p>Driver: ${esc(partner.name || '—')} (${esc(partner.email || '—')})</p>
-          <p>Customer: ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}</p>
-          <p>Piano: ${esc((piano.brand || 'Yamaha') + ' ' + (piano.model || '') + ' ' + (piano.year || ''))}</p>
-          <p><strong>Confirmed date: ${esc(confirmedDisplay)}</strong></p>
-          ${notes ? `<p>Driver notes: ${esc(notes)}</p>` : ''}
-          <p>Customer has been notified.</p>
-          <p style="color:#b8935a;">
-            The driver will receive their pickup photo link automatically 3 days before the confirmed date (via the daily cron).
-          </p>
-        `,
+        html: internalDriverAcceptedEmail({ partner, customer, piano, confirmedDate: confirmedDisplay, notes }),
       })
     } catch (mailErr) {
       console.error('[driver-accept] internal email failed', mailErr)
@@ -166,50 +159,68 @@ module.exports = async (req, res) => {
   }
 }
 
-function esc(s) {
-  if (s == null) return ''
-  return String(s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+
+/* ---------- emails (built with lib/email-brand.js) ---------- */
+
+function pianoName(piano) {
+  return `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.replace(/\s+/g, ' ').trim()
 }
 
-function customerDeliveryConfirmedEmail({ customer, piano, confirmedDate, settings }) {
-  const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Your delivery is confirmed, ${esc(customer.first_name || 'friend')}.</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">Great news — your delivery has been confirmed.</p>
-      <div style="background:#f0f9f4;border:1px solid #9fe1cb;border-radius:4px;padding:20px;margin:20px 0;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#085041;margin-bottom:8px;">Confirmed delivery</div>
-        <div style="font-size:18px;font-weight:500;color:#085041;">${esc(confirmedDate)}</div>
-      </div>
-      <table style="width:100%;font-size:13px;border-collapse:collapse;margin:20px 0;">
-        <tr>
-          <td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:45%;">Piano</td>
-          <td style="padding:8px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc(pianoLabel)}</td>
-        </tr>
-        <tr>
-          <td style="padding:8px 0;color:#9a9590;">What to expect</td>
-          <td style="padding:8px 0;font-size:12px;color:#6b6760;line-height:1.6;">
-            On the morning of delivery you will receive a photo of your piano before it leaves. You will also receive a notification when it is on its way.
-          </td>
-        </tr>
-      </table>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        If you need to reschedule please contact us as soon as possible. Reply to this email or call us directly.
-      </p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
-    </div>
-  </div>
-</body>
-</html>`
+function phoneLink() {
+  return `<a href="tel:${BUSINESS.phoneHref}" style="color:${C.ink};">${BUSINESS.phone}</a>`
 }
+
+/*
+ * To the customer, once a delivery partner has accepted one of their
+ * preferred dates. `confirmedDate` is the display string built in the
+ * handler ("Saturday 26 September 2026 · Morning (9am–12pm)").
+ * `settings` is still accepted; the footer now comes from the brand kit.
+ */
+function customerDeliveryConfirmedEmail({ customer, piano, confirmedDate, settings }) {
+  const pianoLabel = pianoName(piano)
+  return layout({
+    preview: `Delivery confirmed for your ${pianoLabel}: ${confirmedDate}.`,
+    label: 'Your delivery',
+    title: 'Your delivery is confirmed',
+    body: [
+      hello(customer?.first_name),
+      p(`We have confirmed one of the delivery times you chose. Here are the details to keep handy.`),
+      details([
+        ['Delivery', esc(confirmedDate), true],
+        ['Piano', esc(pianoLabel)],
+      ]),
+      h2('What to expect'),
+      steps([
+        'On the morning of delivery we will send you a photo of your piano before it leaves.',
+        'When it is on its way you will get another email, with a link to follow the delivery in your customer portal.',
+      ]),
+      button(`${BUSINESS.siteUrl}/portal`, 'View your delivery'),
+      note(`Need to reschedule? Please let us know as soon as possible. Reply to this email or call us on ${phoneLink()}.`),
+    ].join(''),
+  })
+}
+
+/* To Signature Pianos, when a driver accepts a delivery. */
+function internalDriverAcceptedEmail({ partner, customer, piano, confirmedDate, notes }) {
+  const customerName = `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim()
+  return layout({
+    internal: true,
+    preview: `${partner?.name || 'A driver'} accepted the delivery for ${customerName || 'a customer'}: ${confirmedDate}.`,
+    label: 'For Signature Pianos',
+    title: 'Driver accepted a delivery',
+    body: [
+      details([
+        ['Confirmed date', esc(confirmedDate), true],
+        ['Driver', `${esc(partner?.name || '—')}<br>${esc(partner?.email || '—')}`],
+        ['Customer', esc(customerName)],
+        ['Piano', esc(pianoName(piano))],
+        notes ? ['Driver notes', esc(notes).replace(/\n/g, '<br>')] : null,
+      ]),
+      p('The customer has been notified.'),
+      note('The driver will receive their pickup photo link automatically 3 days before the confirmed date (sent by the daily cron).', 'mist'),
+      buttonOutline(`${BUSINESS.adminUrl}deliveries.html`, 'Open deliveries'),
+    ].join(''),
+  })
+}
+
+module.exports.templates = { customerDeliveryConfirmedEmail, internalDriverAcceptedEmail }

@@ -273,7 +273,7 @@ function renderMyPianos(orders) {
             </div>
             <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
               <button class="btn-outline" onclick="alert('Invoice viewing from the portal is on the roadmap — for now please use the PDF in your purchase confirmation email or contact us.')">View invoice</button>
-              ${o.warranties?.length ? `<button class="btn-outline" onclick="alert('Warranty PDF download is on the roadmap — your certificate is in your inbox.')">Download warranty</button>` : ''}
+              ${o.warranties?.length ? `<button class="btn-outline" onclick="downloadWarranty('${esc(o.warranties[0].id)}', this)">Download warranty</button>` : ''}
             </div>
           </div>
         `
@@ -354,10 +354,41 @@ function renderWarrantySection(orders) {
         Expires: <strong style="color:#16222E;">${fmtDateAU(warranty.expiry_date)}</strong>
       </div>
       <p style="font-size:12px;color:#3A4855;margin-top:12px;line-height:1.6;">
-        Your 10-year warranty certificate is in the email we sent on delivery day. Reply to that email if you need a fresh copy.
+        We also emailed your certificate on delivery day. You can download a fresh copy here at any time.
       </p>
+      <div style="margin-top:12px;">
+        <button class="btn-outline" onclick="downloadWarranty('${esc(warranty.id)}', this)">Download certificate (PDF)</button>
+      </div>
     </div>
   `
+}
+
+/* The certificate PDF, drawn by /api/warranty-certificate for the signed-in customer. */
+async function downloadWarranty(id, btn) {
+  const label = btn ? btn.textContent : ''
+  if (btn) { btn.disabled = true; btn.textContent = 'Preparing…' }
+  try {
+    const { data: { session } } = await _supabase.auth.getSession()
+    if (!session) { window.location.replace('/portal/index.html'); return }
+    const res = await fetch('/api/warranty-certificate?id=' + encodeURIComponent(id), {
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    })
+    if (!res.ok) throw new Error('HTTP ' + res.status)
+    const name = (/filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') || '') || [])[1] || 'Signature-Pianos-Warranty.pdf'
+    const url = URL.createObjectURL(await res.blob())
+    const a = document.createElement('a')
+    a.href = url
+    a.download = name
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
+  } catch (err) {
+    console.error('[portal] warranty download failed', err)
+    alert('Sorry, we couldn’t prepare your certificate just now. Please try again, or call us on 0479 128 955.')
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = label }
+  }
 }
 
 function showNoAccountFound(email) {

@@ -13,13 +13,22 @@
  *   4. Creates an auto-booked tuner_bookings row 25 days out, with
  *      confirmation + completion tokens minted client-side so the
  *      existing tuner flow keeps working when Eric assigns one.
- *   5. Sends customer arrival email + warranty certificate + Eric note.
+ *   5. Sends the customer arrival email (with a placement photo) and the
+ *      warranty email with the certificate PDF (lib/warranty-pdf.js)
+ *      attached, then Eric's note with the same PDF.
  *   6. Flips warranty.certificate_sent + certificate_sent_at after the
- *      certificate email fires successfully.
+ *      certificate email is accepted by Resend.
+ *
+ * Every email is built with the brand kit in lib/email-brand.js.
  */
 
 const { createClient } = require('@supabase/supabase-js')
 const { Resend } = require('resend')
+const { internalRecipients } = require('../lib/notify')
+const { buildWarrantyPdf, loadSignature, warrantyFilename } = require('../lib/warranty-pdf')
+const {
+  BUSINESS, C, TEXT, esc, p, hello, details, note, button, buttonOutline, steps, signOff, layout, longDate
+} = require('../lib/email-brand')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -96,16 +105,9 @@ module.exports = async (req, res) => {
       try {
         await resend.emails.send({
           from: FROM,
-          to: BUSINESS_EMAIL,
-          subject: `⚠ URGENT — Delivery damage reported · ${pianoLabel}`,
-          html: `
-            <h2 style="color:#c0392b;">⚠ Damage reported during delivery</h2>
-            <p><strong>Customer:</strong> ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))} (${esc(customer.email || '—')} · ${esc(customer.phone || '—')})</p>
-            <p><strong>Piano:</strong> ${esc(pianoLabel)} · Serial ${esc(piano.serial_number || '—')}</p>
-            <p><strong>Driver notes:</strong> ${esc(issue_description)}</p>
-            <p><strong>Photos uploaded:</strong> ${esc(photo_count)}</p>
-            <p style="color:#c0392b;font-weight:bold;">Action required immediately — contact customer and driver.</p>
-          `,
+          to: internalRecipients(),
+          subject: `Urgent: delivery damage reported · ${pianoLabel}`,
+          html: damageReportedEmail({ customer, piano, pianoLabel, issue_description, photo_count }),
         })
       } catch (mailErr) {
         console.error('[driver-delivery-confirm] damage email failed', mailErr)
@@ -132,15 +134,9 @@ module.exports = async (req, res) => {
       try {
         await resend.emails.send({
           from: FROM,
-          to: BUSINESS_EMAIL,
-          subject: `✗ Delivery failed · ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
-          html: `
-            <h2 style="color:#c0392b;">✗ Delivery failed</h2>
-            <p><strong>Customer:</strong> ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))} (${esc(customer.email || '—')} · ${esc(customer.phone || '—')})</p>
-            <p><strong>Piano:</strong> ${esc(pianoLabel)}</p>
-            <p><strong>Reason:</strong> ${esc(issue_description)}</p>
-            <p style="color:#c0392b;font-weight:bold;">Action required — contact customer to reschedule.</p>
-          `,
+          to: internalRecipients(),
+          subject: `Delivery failed · ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
+          html: deliveryFailedEmail({ customer, pianoLabel, issue_description }),
         })
       } catch (mailErr) {
         console.error('[driver-delivery-confirm] failed email failed', mailErr)
@@ -258,27 +254,50 @@ module.exports = async (req, res) => {
       console.warn('[driver-delivery-confirm] settings load fell back', sErr)
     }
 
+    // 5b. The warranty certificate PDF, attached to the customer's and Eric's emails.
+    let certificate = null
+    if (warranty) {
+      try {
+        const signature = await loadSignature(supabase)
+        const pdf = await buildWarrantyPdf({ customer, piano, order, warranty, signature })
+        // base64: the Resend API's documented form for attachment content
+        certificate = { filename: warrantyFilename(warranty), content: Buffer.from(pdf).toString('base64') }
+      } catch (pdfErr) {
+        console.error('[driver-delivery-confirm] certificate PDF failed', pdfErr)
+      }
+    }
+
     // 6. Customer arrival email + warranty certificate
+    let arrivalSent = false
+    let certificateSent = false
     if (customer.email) {
       try {
-        await resend.emails.send({
+        const photoUrl = await placementPhotoUrl(photo_urls)
+        const { error: arrivalErr } = await resend.emails.send({
           from: FROM,
           to: customer.email,
+          reply_to: BUSINESS_EMAIL,
           subject: 'Your piano has arrived — Signature Pianos',
-          html: deliveryCompleteEmail({ customer, piano, tunerDateIso, settings }),
+          html: deliveryCompleteEmail({ customer, piano, tunerDateIso, settings, photoUrl }),
         })
+        if (arrivalErr) throw arrivalErr
+        arrivalSent = true
       } catch (mailErr) {
         console.error('[driver-delivery-confirm] arrival email failed', mailErr)
       }
 
       if (warranty) {
         try {
-          await resend.emails.send({
+          const { error: certErr } = await resend.emails.send({
             from: FROM,
             to: customer.email,
+            reply_to: BUSINESS_EMAIL,
             subject: `Your 10-year warranty certificate — ${warrantyNumber}`,
-            html: warrantyCertificateEmail({ customer, piano, warranty, settings }),
+            html: warrantyCertificateEmail({ customer, piano, warranty, settings, attached: !!certificate }),
+            attachments: certificate ? [certificate] : undefined,
           })
+          if (certErr) throw certErr
+          certificateSent = true
           await supabase
             .from('warranties')
             .update({ certificate_sent: true, certificate_sent_at: new Date().toISOString() })
@@ -293,21 +312,13 @@ module.exports = async (req, res) => {
     try {
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `Delivery confirmed — ${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''} · ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
-        html: `
-          <h2>Piano delivered ✓</h2>
-          <p>Customer: ${esc(customer.first_name || '')} ${esc(customer.last_name || '')} (${esc(customer.email || '—')})</p>
-          <p>Piano: ${esc((piano.brand || 'Yamaha') + ' ' + (piano.model || '') + ' ' + (piano.year || ''))}</p>
-          <p>Photos uploaded: ${esc(photo_count)}</p>
-          ${notes ? `<p>Driver notes: ${esc(notes)}</p>` : ''}
-          ${warrantyNumber ? `<p>Warranty created: ${esc(warrantyNumber)}</p><p>Warranty expires: ${esc(fmtDateAU(expiryIso))}</p>` : '<p style="color:#c0392b;">Warranty was not created — check logs.</p>'}
-          <p>Tuner auto-booked for: ${esc(fmtDateAU(tunerDateIso))}</p>
-          <p>Both customer emails sent.</p>
-          <p style="color:#b8935a;font-weight:bold;">
-            Action: open deliveries in admin and assign a real tuner to the auto-created booking.
-          </p>
-        `,
+        html: deliveryConfirmedInternalEmail({
+          customer, pianoLabel, photo_count, notes, warrantyNumber, expiryIso, tunerDateIso,
+          arrivalSent, certificateSent, certificateAttached: !!certificate, hasEmail: !!customer.email
+        }),
+        attachments: certificate ? [certificate] : undefined,
       })
     } catch (mailErr) {
       console.error('[driver-delivery-confirm] internal email failed', mailErr)
@@ -330,139 +341,166 @@ function randToken() {
   return (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).slice(0, 32)
 }
 
-function esc(s) {
-  if (s == null) return ''
-  return String(s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+/*
+ * The driver's first photo, as a link that works for a year whether or not the
+ * delivery-photos bucket is public. Returns null if it can't be signed.
+ */
+async function placementPhotoUrl(urls) {
+  const first = Array.isArray(urls) ? urls.find(Boolean) : null
+  const match = first && String(first).match(/\/delivery-photos\/([^?]+)/)
+  if (!match) return null
+  try {
+    const { data, error } = await supabase.storage
+      .from('delivery-photos')
+      .createSignedUrl(decodeURIComponent(match[1]), 60 * 60 * 24 * 365)
+    if (error) throw error
+    return data?.signedUrl || null
+  } catch (err) {
+    console.warn('[driver-delivery-confirm] placement photo link failed', err?.message || err)
+    return null
+  }
 }
 
-function fmtDateAU(d) {
-  if (!d) return '—'
-  const [y, m, day] = String(d).split('T')[0].split('-')
-  if (!y || !m || !day) return d
-  return `${day}/${m}/${y}`
-}
+const fullName = c => `${c.first_name || ''} ${c.last_name || ''}`.trim()
+const telLink = phone => phone
+  ? `<a href="tel:${esc(String(phone).replace(/[^\d+]/g, ''))}" style="color:${C.ink};text-decoration:none;">${esc(phone)}</a>`
+  : '—'
+const mailLink = email => email
+  ? `<a href="mailto:${esc(email)}" style="color:${C.ink};">${esc(email)}</a>`
+  : '—'
+const pianoName = piano => [piano.brand || 'Yamaha', piano.model].filter(Boolean).join(' ')
 
 /* ---------- email templates ---------- */
 
-function deliveryCompleteEmail({ customer, piano, tunerDateIso, settings }) {
-  const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#1a1917;margin:0 0 16px;">Your piano has arrived, ${esc(customer.first_name || 'friend')}.</h2>
-      <p style="color:#6b6760;font-size:14px;line-height:1.7;">
-        Your ${esc(pianoLabel)} has been successfully delivered. We hope you love it.
-      </p>
-
-      <div style="background:#f8f7f5;border-radius:4px;padding:20px;margin:20px 0;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:12px;">What happens next</div>
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr>
-            <td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:50%;">Warranty certificate</td>
-            <td style="padding:8px 0;font-weight:500;border-bottom:1px solid #e8e4dd;color:#1D9E75;">Sent in a separate email ✓</td>
-          </tr>
-          <tr>
-            <td style="padding:8px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">First tuning</td>
-            <td style="padding:8px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">Auto-booked for ~${esc(fmtDateAU(tunerDateIso))}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px 0;color:#9a9590;">Warranty period</td>
-            <td style="padding:8px 0;font-weight:500;">10 years</td>
-          </tr>
-        </table>
-      </div>
-
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        Your piano needs a few weeks to settle into its new environment before tuning. A certified tuner will contact you to confirm the appointment.
-      </p>
-      <p style="color:#6b6760;font-size:13px;line-height:1.7;">
-        If you have any questions please reply to this email or call us directly. Thank you for choosing Signature Pianos.
-      </p>
-    </div>
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-      ${settings?.phone ? ' · ' + esc(settings.phone) : ''}
-    </div>
-  </div>
-</body>
-</html>`
+/* Customer: the piano is in. Sent the moment the driver confirms delivery. */
+function deliveryCompleteEmail({ customer, piano, tunerDateIso, settings, photoUrl }) {
+  const name = esc(pianoName(piano))
+  const photo = photoUrl ? `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;"><tr><td>
+      <img src="${esc(photoUrl)}" width="504" alt="Your ${name} in place" style="display:block;width:100%;max-width:504px;height:auto;border:0;background:${C.ivory};">
+    </td></tr></table>
+    <p style="margin:8px 0 0;font-family:${TEXT};font-size:12px;line-height:18px;color:${C.inkSoft};">Your ${name} in place, photographed by our delivery team.</p>` : ''
+  return layout({
+    preview: `Your ${pianoName(piano)} has been delivered. Your warranty certificate is in a separate email.`,
+    label: 'Your delivery',
+    title: 'Your piano is home',
+    body: `
+      ${hello(customer.first_name)}
+      ${p(`Your <strong>${name}${piano.year ? ` (${esc(piano.year)})` : ''}</strong> has been delivered and placed. We hope it brings you years of music.`)}
+      ${photo}
+      ${steps([
+        `<strong>Your 10-year warranty.</strong> The certificate is in a separate email, as a PDF to keep.`,
+        `<strong>Your first tuning is included.</strong> A piano needs a few weeks to settle into a new room, so around ${esc(longDate(tunerDateIso))} a tuner will contact you to arrange a time.`,
+        `<strong>Your customer portal.</strong> Your delivery, warranty and tuning are all in one place.`
+      ])}
+      ${button(`${BUSINESS.siteUrl}/portal`, 'Open your portal')}
+      ${p(`If anything about the piano isn’t right, reply to this email or call us on ${telLink(BUSINESS.phone)}.`, { muted: true, small: true, first: true })}
+      ${signOff()}
+    `
+  })
 }
 
-function warrantyCertificateEmail({ customer, piano, warranty, settings }) {
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f8f7f5;margin:0;padding:40px 20px;">
-  <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e8e4dd;">
+/* Customer: the warranty, with the certificate PDF attached. */
+function warrantyCertificateEmail({ customer, piano, warranty, settings, attached = true }) {
+  const years = Number(warranty.years) || 10
+  return layout({
+    preview: `Your ${years}-year warranty for your ${pianoName(piano)}, certificate ${warranty.warranty_number}.`,
+    label: 'Warranty certificate',
+    title: `Your ${years}-year warranty`,
+    body: `
+      ${hello(customer.first_name)}
+      ${p(attached
+        ? `Your warranty certificate for your ${esc(pianoName(piano))} is attached as a PDF. Please keep it with your records.`
+        : `Your ${esc(pianoName(piano))} is covered by our ${years}-year warranty. The details are below. Reply to this email and we’ll send the certificate as a PDF.`)}
+      ${details([
+        ['Certificate', esc(warranty.warranty_number), true],
+        ['Issued to', esc(fullName(customer))],
+        ['Piano', `${esc(pianoName(piano))}${piano.year ? `, ${esc(piano.year)}` : ''}`],
+        piano.serial_number ? ['Serial number', esc(piano.serial_number)] : null,
+        ['Covered from', esc(longDate(warranty.start_date))],
+        ['Covered until', esc(longDate(warranty.expiry_date)), true]
+      ])}
+      ${note(`<strong>What it covers.</strong> Faults in the materials and workmanship of every structural and mechanical part: soundboard, frame, pin block, action, hammers, dampers, keys, pedals and case. The full terms are on the second page of the certificate.`)}
+      ${p(`<strong>If something goes wrong,</strong> call ${telLink(BUSINESS.phone)} or email ${mailLink(BUSINESS.email)} with your certificate number. A photo helps.`, { first: true })}
+      ${buttonOutline(`${BUSINESS.siteUrl}/portal`, 'View it in your portal')}
+      ${signOff()}
+    `,
+    footnote: 'This warranty is in addition to your rights under the Australian Consumer Law.'
+  })
+}
 
-    <div style="background:#1a1917;padding:32px;text-align:center;">
-      <div style="font-size:20px;color:#b8935a;font-style:italic;margin-bottom:4px;">${esc(settings?.business_name || 'Signature Pianos')}</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.12em;">Certificate of Warranty</div>
-    </div>
+/* Eric: delivery confirmed, with the certificate attached for the records. */
+function deliveryConfirmedInternalEmail({ customer, pianoLabel, photo_count, notes, warrantyNumber, expiryIso, tunerDateIso, arrivalSent, certificateSent, certificateAttached, hasEmail }) {
+  const emails = !hasEmail
+    ? 'None: the customer has no email address on file.'
+    : [arrivalSent ? 'Arrival email sent' : 'Arrival email FAILED', certificateSent ? 'warranty email sent' : 'warranty email FAILED'].join(', ') + '.'
+  return layout({
+    internal: true,
+    preview: `${pianoLabel} delivered to ${fullName(customer)}.`,
+    label: 'Delivery',
+    title: 'Piano delivered',
+    body: `
+      ${details([
+        ['Customer', `${esc(fullName(customer))}<br>${mailLink(customer.email)}`, true],
+        ['Piano', esc(pianoLabel)],
+        ['Photos uploaded', esc(photo_count)],
+        notes ? ['Driver notes', esc(notes)] : null,
+        ['Warranty', warrantyNumber
+          ? `${esc(warrantyNumber)}<br>Expires ${esc(longDate(expiryIso))}${certificateAttached ? '<br>Certificate attached' : ''}`
+          : `<span style="color:${C.felt};font-weight:500;">Not created. Check the logs.</span>`],
+        ['First tuning', `Auto-booked for ${esc(longDate(tunerDateIso))}`],
+        ['Customer emails', esc(emails)]
+      ])}
+      ${note('<strong>Action:</strong> open Deliveries in admin and assign a tuner to the auto-created booking.', 'alert')}
+      ${button(`${BUSINESS.siteUrl}/admin/deliveries.html`, 'Open deliveries')}
+    `
+  })
+}
 
-    <div style="padding:40px;border:8px solid transparent;background:linear-gradient(#fff,#fff) padding-box, linear-gradient(135deg,#b8935a,#d4b483,#b8935a) border-box;">
+/* Eric: the driver reported damage. The warranty and tuning are not created. */
+function damageReportedEmail({ customer, piano, pianoLabel, issue_description, photo_count }) {
+  return layout({
+    internal: true,
+    preview: `Damage reported delivering ${pianoLabel} to ${fullName(customer)}.`,
+    label: 'Urgent',
+    title: 'Damage reported during delivery',
+    body: `
+      ${note('<strong>Act now:</strong> contact the customer and the driver.', 'alert')}
+      ${details([
+        ['Customer', `${esc(fullName(customer))}<br>${mailLink(customer.email)}<br>${telLink(customer.phone)}`, true],
+        ['Piano', `${esc(pianoLabel)}<br>Serial ${esc(piano.serial_number || '—')}`],
+        ['Driver’s notes', esc(issue_description)],
+        ['Photos uploaded', esc(photo_count)]
+      ])}
+      ${p('The delivery is marked “damage reported”. No warranty or tuning has been created; resume the flow from admin once it’s resolved.', { muted: true, small: true, first: true })}
+      ${button(`${BUSINESS.siteUrl}/admin/deliveries.html`, 'Open deliveries')}
+    `
+  })
+}
 
-      <div style="text-align:center;margin-bottom:32px;">
-        <div style="font-size:28px;font-style:italic;color:#1a1917;font-family:Georgia,serif;margin-bottom:4px;">10-Year Warranty</div>
-        <div style="font-size:13px;color:#9a9590;letter-spacing:0.08em;">${esc(warranty.warranty_number)}</div>
-      </div>
+/* Eric: the delivery couldn't be completed. */
+function deliveryFailedEmail({ customer, pianoLabel, issue_description }) {
+  return layout({
+    internal: true,
+    preview: `Delivery of ${pianoLabel} to ${fullName(customer)} failed.`,
+    label: 'Action needed',
+    title: 'Delivery failed',
+    body: `
+      ${note('<strong>Action:</strong> contact the customer to reschedule.', 'alert')}
+      ${details([
+        ['Customer', `${esc(fullName(customer))}<br>${mailLink(customer.email)}<br>${telLink(customer.phone)}`, true],
+        ['Piano', esc(pianoLabel)],
+        ['Reason', esc(issue_description)]
+      ])}
+      ${button(`${BUSINESS.siteUrl}/admin/deliveries.html`, 'Open deliveries')}
+    `
+  })
+}
 
-      <p style="font-size:14px;color:#6b6760;line-height:1.7;text-align:center;margin:0 0 32px;">
-        This certifies that the following instrument is covered by the Signature Pianos warranty.
-      </p>
-
-      <div style="background:#f8f7f5;border-radius:4px;padding:24px;margin-bottom:32px;">
-        <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr>
-            <td style="padding:10px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;width:45%;">Certificate holder</td>
-            <td style="padding:10px 0;font-weight:500;border-bottom:1px solid #e8e4dd;color:#1a1917;">${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}</td>
-          </tr>
-          <tr>
-            <td style="padding:10px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Instrument</td>
-            <td style="padding:10px 0;font-weight:500;border-bottom:1px solid #e8e4dd;color:#1a1917;">${esc((piano.brand || 'Yamaha') + ' ' + (piano.model || '') + ' Upright Piano')}</td>
-          </tr>
-          <tr>
-            <td style="padding:10px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Year of manufacture</td>
-            <td style="padding:10px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc(piano.year || '—')}</td>
-          </tr>
-          <tr>
-            <td style="padding:10px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Serial number</td>
-            <td style="padding:10px 0;font-weight:500;border-bottom:1px solid #e8e4dd;font-family:monospace;">${esc(piano.serial_number || '—')}</td>
-          </tr>
-          <tr>
-            <td style="padding:10px 0;color:#9a9590;border-bottom:1px solid #e8e4dd;">Warranty start</td>
-            <td style="padding:10px 0;font-weight:500;border-bottom:1px solid #e8e4dd;">${esc(fmtDateAU(warranty.start_date))}</td>
-          </tr>
-          <tr>
-            <td style="padding:10px 0;color:#9a9590;">Warranty expires</td>
-            <td style="padding:10px 0;font-weight:500;color:#b8935a;font-size:15px;">${esc(fmtDateAU(warranty.expiry_date))}</td>
-          </tr>
-        </table>
-      </div>
-
-      <div style="font-size:12px;color:#9a9590;line-height:1.7;text-align:center;">
-        This warranty covers mechanical faults, action issues, and structural defects for a period of 10 years from the date of delivery. Please retain this certificate for your records.
-      </div>
-
-      <div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid #e8e4dd;">
-        <div style="font-size:18px;color:#b8935a;font-style:italic;font-family:Georgia,serif;">Signature Pianos</div>
-        <div style="font-size:11px;color:#9a9590;margin-top:4px;letter-spacing:0.08em;">Melbourne, Victoria, Australia</div>
-      </div>
-
-    </div>
-
-    <div style="background:#f8f7f5;padding:20px;text-align:center;font-size:12px;color:#9a9590;border-top:1px solid #e8e4dd;">
-      ${esc(settings?.business_name || 'Signature Pianos')} Melbourne · ${esc(settings?.website || 'signaturepianos.com.au')}
-      ${settings?.abn ? ' · ABN: ' + esc(settings.abn) : ''}
-    </div>
-
-  </div>
-</body>
-</html>`
+module.exports.templates = {
+  deliveryCompleteEmail,
+  warrantyCertificateEmail,
+  deliveryConfirmedInternalEmail,
+  damageReportedEmail,
+  deliveryFailedEmail
 }

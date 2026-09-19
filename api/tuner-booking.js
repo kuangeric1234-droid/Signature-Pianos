@@ -30,8 +30,11 @@
  */
 
 const { Resend } = require('resend')
+const { internalRecipients } = require('../lib/notify')
 const { createClient } = require('@supabase/supabase-js')
 const { generateCalendarLinks } = require('../lib/calendar')
+const { layout, hello, p, h2, details, button, buttonOutline, divider, signOff } = require('../lib/email-brand')
+const { parts } = require('../lib/tuner-emails')
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const BUSINESS_EMAIL = process.env.BUSINESS_EMAIL
@@ -117,7 +120,7 @@ module.exports = async (req, res) => {
       await resend.emails.send({
         from: FROM,
         to: tuner.email,
-        subject: `Piano tuning booking — ${customer.first_name} ${customer.last_name}`,
+        subject: `Piano tuning request — ${customer.first_name} ${customer.last_name}`,
         html: tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, completeUrl, acceptUrl, proposeUrl }),
       })
     } catch (mailErr) {
@@ -167,15 +170,9 @@ module.exports = async (req, res) => {
     try {
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `Tuner booking sent — ${tuner.name} for ${customer.first_name} ${customer.last_name}`,
-        html:
-          `<p>Tuner booking notification sent to ${escapeHtml(tuner.name)} ` +
-          `(${escapeHtml(tuner.email)} / ${escapeHtml(tuner.phone)})</p>` +
-          `<p>Customer: ${escapeHtml(customer.first_name)} ${escapeHtml(customer.last_name)}</p>` +
-          `<p>Piano: Yamaha ${escapeHtml(piano.model || '')} ${escapeHtml(piano.year || '')} — ` +
-          `Serial ${escapeHtml(piano.serial_number || '')}</p>` +
-          `<p>Proposed date: ${formatDate(booking.proposed_date)}</p>`,
+        html: internalBookingSentEmail({ tuner, customer, piano, booking }),
       })
     } catch (mailErr) {
       // Internal email failure shouldn't abort — the tuner has been notified.
@@ -217,10 +214,10 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
 
-/* ---------- email template (dark / gold brand) ----------
- * Now includes the customer's email, phone and full address so the
- * tuner can reach them directly without bouncing off Eric, plus a
- * Call button that taps straight into the phone dialer on mobile. */
+/* ---------- email templates (brand kit: lib/email-brand.js) ----------
+ * The tuner email carries the customer's email, phone and full address
+ * so the tuner can reach them directly without bouncing off Eric; the
+ * phone number taps straight into the dialer on mobile. */
 
 function tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, completeUrl, acceptUrl, proposeUrl }) {
   const fullAddress = [
@@ -229,7 +226,10 @@ function tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, comple
     customer.suburb,
     customer.state,
     customer.postcode,
-  ].filter(Boolean).map(escapeHtml).join(', ') || '—'
+  ].filter(Boolean).join(', ')
+  const customerName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim()
+  const pianoText = `Yamaha ${piano.model || ''} ${piano.year || ''}`.trim()
+  const when = formatDate(booking.proposed_date)
 
   // Calendar links for the proposed date. The booking row's
   // proposed_time is a readable window like "Morning (9am–12pm)" — the
@@ -250,117 +250,64 @@ function tunerBookingEmail({ tuner, customer, piano, booking, confirmUrl, comple
     durationHours: 2,
   })
 
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: Arial, Helvetica, sans-serif; background: #f8f7f5; margin: 0; padding: 40px 20px; }
-        .card { background: #fff; max-width: 560px; margin: 0 auto; border-radius: 8px; overflow: hidden; border: 1px solid #e8e4dd; }
-        .header { background: #1a1917; padding: 32px; text-align: center; }
-        .logo { font-size: 20px; color: #b8935a; font-style: italic; }
-        .body { padding: 32px; }
-        h2 { font-size: 20px; color: #1a1917; margin: 0 0 8px; }
-        p { color: #6b6760; font-size: 14px; line-height: 1.7; margin: 0 0 16px; }
-        .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #9a9590; margin-bottom: 10px; margin-top: 20px; display: block; }
-        .detail-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 4px; }
-        .detail-table td { padding: 8px 0; border-bottom: 1px solid #e8e4dd; }
-        .detail-table td:first-child { color: #9a9590; width: 40%; }
-        .detail-table td:last-child { font-weight: 500; color: #1a1917; }
-        .detail-table tr:last-child td { border-bottom: none; }
-        .btn { display: inline-block; padding: 12px 24px; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: 500; margin: 6px 6px 6px 0; }
-        .btn-gold { background: #b8935a; color: #000; }
-        .btn-outline { border: 1px solid #b8935a; color: #b8935a; }
-        .highlight { background: #f0f9f4; border-left: 3px solid #1a7f4b; padding: 12px 16px; border-radius: 0 4px 4px 0; margin: 16px 0; }
-        .footer { background: #f8f7f5; padding: 20px; text-align: center; font-size: 12px; color: #9a9590; border-top: 1px solid #e8e4dd; }
-      </style>
-    </head>
-    <body>
-      <div class="card">
-        <div class="header">
-          <div class="logo">Signature Pianos</div>
-        </div>
-        <div class="body">
-          <h2>Hi ${escapeHtml(tuner.name)},</h2>
-          <p>You have a new piano tuning booking request from Signature Pianos. Please review the details below and confirm your availability.</p>
+  return layout({
+    preview: `${customerName}, ${pianoText}. Proposed for ${when}${booking.proposed_time ? ', ' + booking.proposed_time : ''}. Please accept or propose another date.`,
+    label: 'Tuning request',
+    title: 'Can you take this tuning?',
+    body:
+      hello(tuner.name) +
+      p('You have a new piano tuning booking request from Signature Pianos. Please look over the details below and let us know if the proposed date works for you.') +
+      parts.appointment('Proposed date', escapeHtml(when), escapeHtml(booking.proposed_time || 'Flexible — please suggest')) +
+      h2('Customer') +
+      details([
+        ['Name', escapeHtml(customerName) || '—', true],
+        ['Phone', parts.phoneLink(customer.phone)],
+        ['Email', parts.emailLink(customer.email)],
+        ['Address', parts.addressBlock(fullAddress)],
+      ]) +
+      h2('Piano') +
+      details([
+        ['Piano', escapeHtml(pianoText), true],
+        ['Serial number', escapeHtml(piano.serial_number || '—')],
+        ['Condition', escapeHtml(piano.condition || '—')],
+      ]) +
+      h2('Your response') +
+      button(acceptUrl, 'Accept this date') +
+      buttonOutline(proposeUrl, 'Propose a different date') +
+      p(`Alternatively, contact the customer directly on ${parts.phoneLink(customer.phone)} to arrange a suitable time, then reply to this email with the agreed date.`, { small: true, muted: true }) +
+      h2('Add to your calendar') +
+      p('For the proposed date. If you propose a different date, the calendar links will be re-issued with the confirmed time.', { small: true, muted: true }) +
+      parts.calendarLinks(cal, 'signature-pianos-tuning.ics') +
+      divider() +
+      p(`Once the tuning is done, use this link to mark it complete and notify the customer:<br>${parts.textLink(completeUrl, 'Mark tuning complete')}`, { small: true, muted: true }) +
+      p(`Questions? Reply to this email or call ${parts.officePhone()}.`, { small: true, muted: true }) +
+      signOff(),
+  })
+}
 
-          <span class="section-label">Customer details</span>
-          <table class="detail-table">
-            <tr><td>Name</td><td>${escapeHtml(customer.first_name || '')} ${escapeHtml(customer.last_name || '')}</td></tr>
-            <tr><td>Email</td><td><a href="mailto:${escapeHtml(customer.email || '')}" style="color:#b8935a;">${escapeHtml(customer.email || '—')}</a></td></tr>
-            <tr><td>Phone</td><td><a href="tel:${escapeHtml(customer.phone || '')}" style="color:#b8935a;">${escapeHtml(customer.phone || '—')}</a></td></tr>
-            <tr><td>Address</td><td>${fullAddress}</td></tr>
-          </table>
-
-          <span class="section-label">Piano details</span>
-          <table class="detail-table">
-            <tr><td>Piano</td><td>Yamaha ${escapeHtml(piano.model || '')} ${escapeHtml(piano.year || '')}</td></tr>
-            <tr><td>Serial number</td><td style="font-family:monospace;">${escapeHtml(piano.serial_number || '—')}</td></tr>
-            <tr><td>Condition</td><td>${escapeHtml(piano.condition || '—')}</td></tr>
-          </table>
-
-          <span class="section-label">Booking details</span>
-          <table class="detail-table">
-            <tr><td>Proposed date</td><td style="color:#b8935a;font-weight:500;">${formatDate(booking.proposed_date)}</td></tr>
-            <tr><td>Time window</td><td>${escapeHtml(booking.proposed_time || 'Flexible — please suggest')}</td></tr>
-          </table>
-
-          <div style="margin:24px 0;">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:12px;">Your response</div>
-
-            <a href="${acceptUrl}"
-               style="display:block;background:#b8935a;color:#000;padding:14px 24px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:500;text-align:center;margin-bottom:10px;">
-              ✓ Accept — ${formatDate(booking.proposed_date)}${booking.proposed_time ? ' · ' + escapeHtml(booking.proposed_time) : ''}
-            </a>
-
-            <a href="${proposeUrl}"
-               style="display:block;background:#fff;border:1px solid #b8935a;color:#b8935a;padding:14px 24px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:500;text-align:center;">
-              ↩ Propose a different date
-            </a>
-          </div>
-
-          <p style="font-size:12px;color:#9a9590;line-height:1.6;margin-top:16px;">
-            Alternatively you can contact the customer directly on
-            <a href="tel:${escapeHtml(customer.phone || '')}" style="color:#b8935a;">${escapeHtml(customer.phone || '—')}</a>
-            to arrange a suitable time, then reply to this email with the agreed date.
-          </p>
-
-          <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e8e4dd;">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9a9590;margin-bottom:10px;">Add to calendar (proposed date)</div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <a href="${cal.googleUrl}" target="_blank" rel="noopener"
-                 style="font-size:12px;color:#b8935a;text-decoration:none;border:1px solid #b8935a;padding:8px 14px;border-radius:4px;">
-                Google Calendar
-              </a>
-              <a href="${cal.outlookUrl}" target="_blank" rel="noopener"
-                 style="font-size:12px;color:#b8935a;text-decoration:none;border:1px solid #b8935a;padding:8px 14px;border-radius:4px;">
-                Outlook
-              </a>
-              <a href="${cal.icsDataUrl}" download="signature-pianos-tuning.ics"
-                 style="font-size:12px;color:#b8935a;text-decoration:none;border:1px solid #b8935a;padding:8px 14px;border-radius:4px;">
-                Apple / .ics
-              </a>
-            </div>
-            <p style="font-size:11px;color:#9a9590;margin:10px 0 0;line-height:1.5;">
-              If you propose a different date the calendar links will be re-issued with the confirmed time.
-            </p>
-          </div>
-
-          <p style="margin-top:20px;font-size:12px;color:#9a9590;">
-            Once the tuning is complete use this link to mark it as done and notify the customer:<br>
-            <a href="${completeUrl}" style="color:#b8935a;word-break:break-all;">${completeUrl}</a>
-          </p>
-        </div>
-        <div class="footer">
-          Signature Pianos Melbourne · signaturepianos.com.au
-        </div>
-      </div>
-    </body>
-    </html>
-  `
+/* Internal note to Eric once the request has gone to the tuner. */
+function internalBookingSentEmail({ tuner, customer, piano, booking }) {
+  return layout({
+    internal: true,
+    preview: `The tuning request for ${customer.first_name || ''} ${customer.last_name || ''} has gone to ${tuner.name || 'the tuner'}.`,
+    label: 'For Signature Pianos',
+    title: 'Tuning request sent',
+    body:
+      p(`The tuner booking notification has been sent to ${escapeHtml(tuner.name)}.`, { first: true }) +
+      details([
+        ['Tuner', escapeHtml(tuner.name), true],
+        ['Tuner email', parts.emailLink(tuner.email)],
+        ['Tuner phone', parts.phoneLink(tuner.phone)],
+        ['Customer', `${escapeHtml(customer.first_name)} ${escapeHtml(customer.last_name)}`],
+        ['Piano', `Yamaha ${escapeHtml(piano.model || '')} ${escapeHtml(piano.year || '')}`],
+        ['Serial', escapeHtml(piano.serial_number || '')],
+        ['Proposed date', escapeHtml(formatDate(booking.proposed_date)), true],
+      ]),
+  })
 }
 
 /* generateCalendarLinks now lives in lib/calendar.js — required at the
  * top of this file. Shared with api/tuner-log-date.js (the new
  * agreed-date-confirmation flow). */
+
+module.exports.templates = { tunerBookingEmail, internalBookingSentEmail }

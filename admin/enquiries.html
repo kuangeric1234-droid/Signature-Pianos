@@ -57,6 +57,7 @@
         <button class="tab is-active" data-tab="viewing" type="button">Viewing requests</button>
         <button class="tab" data-tab="service" type="button">Service requests</button>
         <button class="tab" data-tab="calendar" type="button">Viewings calendar</button>
+        <button class="tab" data-tab="guide" type="button">Buyer's guide</button>
       </div>
 
       <!-- Filter bar (shared across tabs) -->
@@ -107,6 +108,27 @@
           </thead>
           <tbody id="serviceTableBody">
             <tr><td colspan="9"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Buyer's guide requests (leads table, written by /api/buyer-guide) -->
+      <div id="guideTableWrap" class="admin-table-wrap" style="display:none;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Requests</th>
+              <th>Guide email</th>
+              <th>Last request</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="guideTableBody">
+            <tr><td colspan="8"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -250,11 +272,47 @@
 <script src="js/admin-auth.js"></script>
 <script src="js/admin-nav.js"></script>
 <script>
-let currentTab = 'viewing'      // viewing | service | calendar
-let currentFilter = 'all'       // all | pending | confirmed | completed | cancelled
+let currentTab = 'viewing'      // viewing | service | calendar | guide
+let currentFilter = 'all'       // all | pending | confirmed | completed | cancelled (guide: all | new | contacted | visited | purchased | closed)
 let viewingRows = []
 let serviceRows = []
 let calendarRows = []           // viewing_appointments rows
+let guideRows = []              // leads rows with source = buyer_guide
+
+// Leads follow a sales path rather than a booking one, so the guide tab has its own filters.
+const ENQUIRY_STATUSES = ['pending', 'confirmed', 'completed', 'cancelled']
+const LEAD_STATUSES = ['new', 'contacted', 'visited', 'purchased', 'closed']
+
+function renderFilterPills() {
+  const statuses = currentTab === 'guide' ? LEAD_STATUSES : ENQUIRY_STATUSES
+  const bar = document.getElementById('filterBar')
+  bar.innerHTML = ['all', ...statuses].map(s =>
+    `<button class="filter-pill${s === currentFilter ? ' is-active' : ''}" data-filter="${s}" type="button">${s[0].toUpperCase() + s.slice(1)}</button>`
+  ).join('')
+  bar.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentFilter = btn.dataset.filter
+      renderFilterPills()
+      renderCurrent()
+    })
+  })
+}
+
+function showTab(tab) {
+  const wasGuide = currentTab === 'guide'
+  currentTab = tab
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('is-active', b.dataset.tab === tab))
+  document.getElementById('viewingTableWrap').style.display = tab === 'viewing' ? '' : 'none'
+  document.getElementById('serviceTableWrap').style.display = tab === 'service' ? '' : 'none'
+  document.getElementById('calendarWrap').style.display      = tab === 'calendar' ? '' : 'none'
+  document.getElementById('guideTableWrap').style.display    = tab === 'guide' ? '' : 'none'
+  // Filter pills only apply to the form-submission tabs; hide them on calendar.
+  document.getElementById('filterBar').style.display = tab === 'calendar' ? 'none' : ''
+  // The guide tab uses different statuses, so start its filter (and the others') from "All".
+  if (wasGuide !== (tab === 'guide')) currentFilter = 'all'
+  renderFilterPills()
+  renderCurrent()
+}
 
 ;(async function init() {
   const admin = await checkAdminAuth()
@@ -263,33 +321,82 @@ let calendarRows = []           // viewing_appointments rows
   // Tab clicks
   document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(b => b.classList.remove('is-active'))
-      btn.classList.add('is-active')
-      currentTab = btn.dataset.tab
-      document.getElementById('viewingTableWrap').style.display = currentTab === 'viewing' ? '' : 'none'
-      document.getElementById('serviceTableWrap').style.display = currentTab === 'service' ? '' : 'none'
-      document.getElementById('calendarWrap').style.display      = currentTab === 'calendar' ? '' : 'none'
-      // Filter pills only apply to the form-submission tabs; hide them on calendar.
-      document.getElementById('filterBar').style.display = currentTab === 'calendar' ? 'none' : ''
-      renderCurrent()
+      showTab(btn.dataset.tab)
+      history.replaceState(null, '', btn.dataset.tab === 'guide' ? '#guide' : location.pathname)
     })
   })
 
-  // Filter pill clicks
-  document.querySelectorAll('#filterBar .filter-pill').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#filterBar .filter-pill').forEach(b => b.classList.remove('is-active'))
-      btn.classList.add('is-active')
-      currentFilter = btn.dataset.filter
-      renderCurrent()
-    })
-  })
+  renderFilterPills()
 
   document.getElementById('newViewingBtn').addEventListener('click', openNewViewingPanel)
   document.getElementById('createViewingBtn').addEventListener('click', createViewingAppointment)
 
-  await Promise.all([loadViewings(), loadServices(), loadCalendar()])
+  // The guide-request email links straight to this tab.
+  if (location.hash === '#guide') showTab('guide')
+
+  await Promise.all([loadViewings(), loadServices(), loadCalendar(), loadGuideLeads()])
 })()
+
+async function loadGuideLeads() {
+  try {
+    const { data, error } = await adminSupabase
+      .from('leads')
+      .select('*')
+      .eq('source', 'buyer_guide')
+      .order('last_requested_at', { ascending: false })
+    if (error) throw error
+    guideRows = data || []
+  } catch (err) {
+    console.error('[enquiries] load guide leads failed (has supabase/leads.sql been run?)', err)
+    guideRows = []
+  }
+  if (currentTab === 'guide') renderGuideLeads()
+}
+
+function renderGuideLeads() {
+  const body = document.getElementById('guideTableBody')
+  const rows = applyFilter(guideRows)
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-book-off"></i><p>No buyer's guide requests match this filter.</p></div></td></tr>`
+    return
+  }
+  body.innerHTML = rows.map(r => {
+    const fullName = `${esc(r.first_name || '')} ${esc(r.last_name || '')}`.trim() || '—'
+    const mail = r.email_status === 'sent'
+      ? `<span class="pill pill--green">Sent</span>`
+      : r.email_status === 'failed'
+        ? `<span class="pill pill--red" title="${esc(r.email_error || '')}">Failed</span>`
+        : `<span class="pill pill--grey">Pending</span>`
+    return `
+      <tr class="clickable" data-id="${esc(r.id)}" data-table="leads">
+        <td class="name-cell">${fullName}</td>
+        <td>${esc(r.email || '—')}</td>
+        <td>${esc(r.phone || '—')}</td>
+        <td style="text-align:center;">${r.request_count || 1}</td>
+        <td>${mail}</td>
+        <td>${timeAgo(r.last_requested_at || r.created_at)}</td>
+        <td><span class="${statusPillClass(r.status)}">${esc(r.status || '')}</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="icon-btn is-green" data-action="contacted" title="Mark contacted"><i class="ti ti-phone-check"></i></button>
+            <button class="icon-btn is-red"   data-action="closed"    title="Mark closed"><i class="ti ti-x"></i></button>
+          </div>
+        </td>
+      </tr>
+    `
+  }).join('')
+  body.querySelectorAll('tr.clickable').forEach(tr => {
+    tr.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]')
+      if (btn) {
+        e.stopPropagation()
+        updateEnquiryStatus(tr.dataset.id, btn.dataset.action, 'leads')
+        return
+      }
+      openDetail(tr.dataset.id, 'leads')
+    })
+  })
+}
 
 async function loadViewings() {
   try {
@@ -330,6 +437,7 @@ function renderCurrent() {
   if (currentTab === 'viewing')       renderViewings()
   else if (currentTab === 'service')  renderServices()
   else if (currentTab === 'calendar') renderCalendar()
+  else if (currentTab === 'guide')    renderGuideLeads()
 }
 
 /* ============================================================================
@@ -619,6 +727,8 @@ async function updateEnquiryStatus(id, status, table) {
     if (error) throw error
     if (table === 'viewing_bookings') {
       await loadViewings()
+    } else if (table === 'leads') {
+      await loadGuideLeads()
     } else {
       await loadServices()
     }
@@ -632,7 +742,9 @@ async function updateEnquiryStatus(id, status, table) {
 function openDetail(id, table) {
   const row = table === 'viewing_bookings'
     ? viewingRows.find(r => r.id === id)
-    : serviceRows.find(r => r.id === id)
+    : table === 'leads'
+      ? guideRows.find(r => r.id === id)
+      : serviceRows.find(r => r.id === id)
   if (!row) return
 
   const fullName = `${row.first_name || ''} ${row.last_name || ''}`.trim() || 'Enquiry'
@@ -641,7 +753,9 @@ function openDetail(id, table) {
   // Reply button = mailto with a pre-filled subject.
   const subj = table === 'viewing_bookings'
     ? `Your viewing at Signature Pianos`
-    : `Your service request at Signature Pianos`
+    : table === 'leads'
+      ? `Your Yamaha buyer's guide`
+      : `Your service request at Signature Pianos`
   const replyBtn = document.getElementById('detailReplyBtn')
   replyBtn.onclick = () => {
     window.location.href = `mailto:${encodeURIComponent(row.email || '')}?subject=${encodeURIComponent(subj)}`
@@ -683,6 +797,39 @@ function openDetail(id, table) {
         <div>${esc(readableHowHeard(row.how_heard))}</div>
       </div>
     `
+  } else if (table === 'leads') {
+    const utm = Object.entries(row.utm || {}).map(([k, v]) => `<span class="tag">${esc(k)}: ${esc(v)}</span>`).join('')
+    const mail = row.email_status === 'sent'
+      ? `Sent ${row.email_sent_at ? timeAgo(row.email_sent_at) : ''}`
+      : row.email_status === 'failed'
+        ? `Failed: ${esc(row.email_error || 'unknown error')}. Send them the guide link: <a href="/media/guides/signature-pianos-yamaha-buyers-guide.pdf" target="_blank">PDF</a>`
+        : 'Pending'
+    typed = `
+      <div class="admin-form-row--split">
+        <div>
+          <div class="admin-label">Requests</div>
+          <div>${row.request_count || 1} · last ${timeAgo(row.last_requested_at || row.created_at)}</div>
+        </div>
+        <div>
+          <div class="admin-label">Guide email</div>
+          <div>${mail}</div>
+        </div>
+      </div>
+      <div class="admin-form-row--split">
+        <div>
+          <div class="admin-label">Consent</div>
+          <div>${row.consent ? `Yes, ${fmtDate(row.consent_at)}` : 'No'}</div>
+        </div>
+        <div>
+          <div class="admin-label">Page</div>
+          <div>${esc(row.source_page || '—')}</div>
+        </div>
+      </div>
+      <div class="admin-form-row">
+        <div class="admin-label">Campaign</div>
+        <div class="tags">${utm || '—'}</div>
+      </div>
+    `
   } else {
     typed = `
       <div class="admin-form-row--split">
@@ -722,17 +869,19 @@ function openDetail(id, table) {
     `
   }
 
+  const statuses = table === 'leads' ? LEAD_STATUSES : ENQUIRY_STATUSES
   body.innerHTML = `
     ${sharedFields}
     ${typed}
+    ${table === 'leads' ? '' : `
     <div class="admin-form-row">
       <div class="admin-label">Customer message</div>
       <div style="background:var(--admin-bg);padding:12px;border-radius:4px;font-size:13px;white-space:pre-wrap;">${esc(row.message || '(no message)')}</div>
-    </div>
+    </div>`}
     <div class="admin-form-row">
       <label class="admin-label" for="detailStatus">Status</label>
       <select id="detailStatus" class="admin-select">
-        ${['pending','confirmed','completed','cancelled'].map(s =>
+        ${statuses.map(s =>
           `<option value="${s}"${row.status === s ? ' selected' : ''}>${s}</option>`).join('')}
       </select>
     </div>
@@ -751,19 +900,20 @@ function openDetail(id, table) {
     await updateEnquiryStatus(id, e.target.value, table)
   })
 
-  // Notes textarea saves on blur. Note: only viewing_bookings has a `notes`
-  // column in the schema today — service_requests doesn't, so we no-op
-  // there to avoid Supabase errors.
+  // Notes textarea saves on blur. Note: viewing_bookings and leads have a
+  // `notes` column — service_requests doesn't, so we no-op there to avoid
+  // Supabase errors.
   const notesEl = document.getElementById('detailNotes')
   const savedEl = document.getElementById('detailNotesSaved')
   notesEl.addEventListener('blur', async () => {
-    if (table !== 'viewing_bookings') return
+    if (table !== 'viewing_bookings' && table !== 'leads') return
     try {
       const { error } = await adminSupabase
         .from(table)
         .update({ notes: notesEl.value, updated_at: new Date().toISOString() })
         .eq('id', id)
       if (error) throw error
+      row.notes = notesEl.value
       savedEl.style.display = 'block'
       setTimeout(() => savedEl.style.display = 'none', 1800)
     } catch (err) {

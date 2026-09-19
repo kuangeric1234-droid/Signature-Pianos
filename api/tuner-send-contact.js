@@ -14,7 +14,9 @@
 
 const { createClient } = require('@supabase/supabase-js')
 const { Resend } = require('resend')
-const { customerTuningReadyEmail, tunerContactEmail } = require('../lib/tuner-emails')
+const { internalRecipients } = require('../lib/notify')
+const { customerTuningReadyEmail, tunerContactEmail, parts } = require('../lib/tuner-emails')
+const { esc, layout, p, details } = require('../lib/email-brand')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -107,14 +109,9 @@ module.exports = async (req, res) => {
     try {
       await resend.emails.send({
         from: FROM,
-        to: BUSINESS_EMAIL,
+        to: internalRecipients(),
         subject: `Tuner contact email sent — ${tuner.name || ''} · ${pianoLabel}`.trim(),
-        html: `
-          <p>Tuner contact email sent manually from admin.</p>
-          <p>Tuner: ${tuner.name || '—'} (${tuner.email || '—'})</p>
-          <p>Customer: ${(customer.first_name || '') + ' ' + (customer.last_name || '')} (${customer.email || '—'} · ${customer.phone || '—'})</p>
-          <p>Piano: ${pianoLabel}</p>
-        `,
+        html: internalContactSentEmail({ tuner, customer, pianoLabel }),
       })
     } catch (mailErr) {
       console.error('[tuner-send-contact] eric email failed', mailErr)
@@ -126,3 +123,26 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: err.message || 'Send failed' })
   }
 }
+
+/* ---------- templates (brand kit: lib/email-brand.js) ---------- */
+
+/* To Eric, after the contact emails are sent manually from admin. */
+function internalContactSentEmail({ tuner, customer, pianoLabel }) {
+  return layout({
+    internal: true,
+    preview: `The tuner contact email for ${pianoLabel} has gone to ${tuner.name || 'the tuner'}.`,
+    label: 'For Signature Pianos',
+    title: 'Tuner contact email sent',
+    body:
+      p('Tuner contact email sent manually from admin.', { first: true }) +
+      details([
+        ['Tuner', `${esc(tuner.name || '—')} (${esc(tuner.email || '—')})`],
+        ['Customer', esc((customer.first_name || '') + ' ' + (customer.last_name || '')), true],
+        ['Customer email', parts.emailLink(customer.email)],
+        ['Customer phone', parts.phoneLink(customer.phone)],
+        ['Piano', esc(pianoLabel)],
+      ]),
+  })
+}
+
+module.exports.templates = { internalContactSentEmail }

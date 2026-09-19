@@ -51,11 +51,13 @@ async function loadEnquiriesBadge() {
   const badge = document.getElementById('enquiriesBadge')
   if (!badge) return
   try {
-    const [{ count: vCount }, { count: sCount }] = await Promise.all([
+    const [{ count: vCount }, { count: sCount }, { count: lCount }] = await Promise.all([
       adminSupabase.from('viewing_bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      adminSupabase.from('service_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+      adminSupabase.from('service_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      // buyer's guide leads nobody has followed up yet (0 if supabase/leads.sql hasn't been run)
+      adminSupabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'new')
     ])
-    const total = (vCount || 0) + (sCount || 0)
+    const total = (vCount || 0) + (sCount || 0) + (lCount || 0)
     if (total > 0) {
       badge.textContent = total
       badge.style.display = 'inline-block'
@@ -114,6 +116,8 @@ function statusPillClass(status) {
     in_transit: 'gold', failed: 'red',
     active: 'green', paused: 'grey', hidden: 'grey',
     listing_only: 'grey', full_saas: 'gold',
+    // leads (buyer's guide)
+    new: 'amber', contacted: 'blue', visited: 'gold', purchased: 'green', closed: 'grey',
   }
   return `pill pill--${map[status] || 'grey'}`
 }

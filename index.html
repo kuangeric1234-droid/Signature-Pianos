@@ -432,6 +432,10 @@
   }
   .playable-guide-form button[type="submit"]:hover { background: transparent; color: var(--gold); }
   .playable-guide-form button[type="submit"]:disabled { opacity: 0.6; cursor: default; }
+  .pg-hp { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; }
+  .pg-status { margin: 4px 0 0; font-size: 14px; line-height: 1.55; color: var(--text-1); }
+  .pg-status.is-error { color: #4A1520; }
+  .pg-status a { color: inherit; text-decoration: underline; }
   @media (max-width: 960px) {
     .guide { padding: 72px 24px; }
     .guide-inner { grid-template-columns: 1fr; }
@@ -1719,16 +1723,19 @@
     <div class="h-concept-form">
       <form class="playable-guide-form" id="playableGuideForm" novalidate>
         <div class="pg-row">
-          <input type="text" name="firstName" placeholder="First name *" required>
-          <input type="text" name="lastName"  placeholder="Last name *"  required>
+          <input type="text" name="firstName" placeholder="First name *" aria-label="First name" autocomplete="given-name" maxlength="80" required>
+          <input type="text" name="lastName"  placeholder="Last name *"  aria-label="Last name" autocomplete="family-name" maxlength="80" required>
         </div>
-        <input type="email" name="email" placeholder="Email address *" required>
-        <input type="tel"   name="phone" placeholder="Phone (optional)">
+        <input type="email" name="email" placeholder="Email address *" aria-label="Email address" autocomplete="email" maxlength="254" required>
+        <input type="tel"   name="phone" placeholder="Phone (optional)" aria-label="Phone (optional)" autocomplete="tel" maxlength="30">
+        <!-- honeypot: hidden from people, filled in by bots; /api/buyer-guide ignores any submission that fills it -->
+        <input type="text" name="company" class="pg-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
         <label class="pg-consent">
           <input type="checkbox" name="consent" required>
           <span>I agree to the <a href="#" target="_blank">privacy policy</a> and consent to receiving the guide by email.</span>
         </label>
         <button type="submit" id="playableGuideSubmit">Download the guide <i class="ti ti-arrow-right"></i></button>
+        <p class="pg-status" id="playableGuideStatus" role="status" aria-live="polite" hidden></p>
       </form>
     </div>
   </div>
@@ -2464,17 +2471,60 @@
      fetch() to your email/CRM endpoint when ready. */
   const playableGuideForm = document.getElementById('playableGuideForm');
   const playableGuideSubmit = document.getElementById('playableGuideSubmit');
+  // Buyer's guide: /api/buyer-guide saves the lead to the CRM and emails the guide.
+  const playableGuideStatus = document.getElementById('playableGuideStatus');
   if (playableGuideForm) {
-    playableGuideForm.addEventListener('submit', e => {
+    const showGuideStatus = (html, isError) => {
+      playableGuideStatus.innerHTML = html;
+      playableGuideStatus.classList.toggle('is-error', !!isError);
+      playableGuideStatus.hidden = false;
+    };
+    const escGuide = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    playableGuideForm.addEventListener('submit', async e => {
       e.preventDefault();
+      const f = playableGuideForm.elements;
+      const email = f.email.value.trim();
+      if (!f.firstName.value.trim() || !f.lastName.value.trim() || !email) {
+        return showGuideStatus('Please enter your first name, last name and email.', true);
+      }
+      if (!f.email.checkValidity()) return showGuideStatus('Please check your email address.', true);
+      if (!f.consent.checked) return showGuideStatus('Please tick the box so we can email you the guide.', true);
+
       const originalLabel = playableGuideSubmit.innerHTML;
-      playableGuideSubmit.innerHTML = 'Sent. Check your inbox';
       playableGuideSubmit.disabled = true;
-      setTimeout(() => {
+      playableGuideSubmit.innerHTML = 'Sending…';
+      playableGuideStatus.hidden = true;
+
+      const params = new URLSearchParams(location.search);
+      const utm = {};
+      ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid'].forEach(k => {
+        if (params.get(k)) utm[k] = params.get(k);
+      });
+
+      try {
+        const res = await fetch('/api/buyer-guide', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: f.firstName.value, lastName: f.lastName.value, email,
+            phone: f.phone.value, consent: f.consent.checked, company: f.company.value,
+            page: location.pathname, utm
+          })
+        });
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok) throw Object.assign(new Error(out.error || 'Request failed'), { guideUrl: out.guideUrl });
         playableGuideForm.reset();
-        playableGuideSubmit.innerHTML = originalLabel;
+        playableGuideSubmit.innerHTML = 'Sent. Check your inbox';
+        showGuideStatus(out.emailed
+          ? `We've emailed the guide to ${escGuide(email)}. You can also <a href="${out.guideUrl}" target="_blank" rel="noopener">download it now</a>.`
+          : `Thank you. Our email is running late, so here is <a href="${out.guideUrl}" target="_blank" rel="noopener">the guide to download now</a>.`);
+      } catch (err) {
         playableGuideSubmit.disabled = false;
-      }, 2800);
+        playableGuideSubmit.innerHTML = originalLabel;
+        showGuideStatus(escGuide(err.message && err.message !== 'Failed to fetch' && err.message !== 'Request failed'
+          ? err.message
+          : 'Sorry, that didn\'t go through. Please try again, or call us on 0479 128 955.'), true);
+      }
     });
   }
 
