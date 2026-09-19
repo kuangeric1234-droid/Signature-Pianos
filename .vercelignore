@@ -1,2 +1,4 @@
 # Brand kit: source files, fonts and print masters. The site copy of the email logo lives in images/brand/.
-brand/
+# Anchored with a leading slash: a bare "brand/" also matches media/brand/ and images/brand/,
+# which the live site needs (logos, monogram, favicons, email-signature logo).
+/brand/
