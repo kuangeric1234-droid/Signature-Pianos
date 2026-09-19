@@ -53,6 +53,10 @@ There are four main buyer types. Design and copy decisions should always serve t
 
 ## 3. BRAND & AESTHETIC
 
+> **Superseded 19 September 2026.** The brand is now light (Key Ivory, Ink, Mist, one Hammer Felt accent, no gold)
+> and is defined in `brand/BRAND-GUIDELINES.md`, with logo files, fonts, letterhead and tokens in `brand/`.
+> Where this section disagrees with that file, the brand kit wins. The text below is kept for history.
+
 ### The feel
 Dark, warm, premium. Like walking into a beautifully designed Melbourne showroom — hushed, considered, impressive without being intimidating. Luxury but human. Informative but never boring.
 

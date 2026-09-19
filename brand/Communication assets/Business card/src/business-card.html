@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>Signature Pianos Business Card</title>
+<style>
+/* 90 x 55 mm, the Australian standard. Artwork includes 3 mm bleed on every side (96 x 61 mm);
+   keep type 4 mm inside the trim. Page 1 is the front, page 2 the back. */
+@font-face{font-family:"Jost";src:url("../../../Fonts/Jost/Static/Jost-Regular.ttf");font-weight:400}
+@font-face{font-family:"Jost";src:url("../../../Fonts/Jost/Static/Jost-Medium.ttf");font-weight:500}
+@page{size:96mm 61mm;margin:0}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:"Jost","Helvetica Neue",Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.card{position:relative;width:96mm;height:61mm;overflow:hidden;page-break-after:always}
+.card:last-child{page-break-after:auto}
+.front{background:#F3F0E9}
+.front img{position:absolute;left:50%;top:50%;width:46mm;transform:translate(-50%,-50%)}
+.back{background:#4A1520;color:#F3F0E9}
+.back .mono{position:absolute;left:10mm;top:10mm;width:7.5mm}
+.back .who{position:absolute;left:10mm;bottom:21mm;font-size:9.5pt;font-weight:500;letter-spacing:.02em}
+.back .how{position:absolute;left:10mm;bottom:10mm;font-size:6.6pt;line-height:1.65;letter-spacing:.02em;color:#F3F0E9}
+.back .line{position:absolute;right:10mm;top:10.6mm;font-size:5.2pt;letter-spacing:.3em;text-transform:uppercase;text-align:right;line-height:1.9;color:#F3F0E9;opacity:.82}
+</style>
+</head>
+<body>
+<section class="card front">
+  <img src="../../../Brand Assets/01. Logo/01. Ink/SignaturePianos_Logo_Ink.svg" alt="Signature Pianos">
+</section>
+<section class="card back">
+  <img class="mono" src="../../../Brand Assets/03. Monogram/02. Ivory/SignaturePianos_Monogram_Ivory.svg" alt="">
+  <div class="line">Hand-picked in Japan<br>Checked in Melbourne</div>
+  <div class="who">Eric</div>
+  <div class="how">0479 128 955 &nbsp;·&nbsp; eric@signaturepianos.com.au<br>63 Blackburn Road, Mount Waverley VIC 3149<br>signaturepianos.com.au</div>
+</section>
+</body>
+</html>

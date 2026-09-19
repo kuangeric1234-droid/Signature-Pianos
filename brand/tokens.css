@@ -1,0 +1,108 @@
+/* ==========================================================================
+   Signature Pianos · brand tokens
+   The single source for colour, type and motion. Values match the homepage
+   (index.html, body.home) as of 19 September 2026 and brand/BRAND-GUIDELINES.md.
+
+   Load the fonts from Google Fonts on the website:
+   <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Jost:wght@300..500&family=Noto+Serif+Display:wdth,wght@62.5,400..500&display=swap" rel="stylesheet">
+   Offline and in print, use the files in brand/Fonts/.
+   ========================================================================== */
+
+:root {
+  /* Colour: taken from the piano */
+  --sp-ink: #16222E;          /* the lacquer: logo, headlines, buttons */
+  --sp-ink-soft: #3A4855;     /* body text, labels, captions */
+  --sp-ivory: #F3F0E9;        /* Key Ivory: the page ground */
+  --sp-ivory-deep: #E9E5DB;   /* panels, image frames while loading */
+  --sp-mist: #BCCEDA;         /* one large shape per page: the arch, a band */
+  --sp-mist-light: #DCE6ED;   /* alternate section ground */
+  --sp-felt: #4A1520;         /* Hammer Felt: the one accent, used small */
+  --sp-white: #FFFFFF;        /* type over photographs, button labels */
+  --sp-rule: rgba(22, 34, 46, 0.12);  /* hairlines on ivory */
+  --sp-scrim: rgba(22, 34, 46, 0.42); /* behind white type on photographs (35% minimum) */
+
+  /* Type: three faces, three jobs */
+  --sp-font-script: 'Italianno', 'Snell Roundhand', 'Apple Chancery', cursive;
+  --sp-font-display: 'Noto Serif Display', 'Bodoni Moda', Didot, Georgia, serif; /* always at wdth 62.5, weight 500, capitals */
+  --sp-font-text: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+
+  --sp-size-hero: clamp(56px, 8.4vw, 152px);
+  --sp-size-section: clamp(56px, 8.4vw, 150px);
+  --sp-size-script: clamp(64px, 8vw, 138px);
+  --sp-size-card-title: 30px;
+  --sp-size-body: 17px;
+  --sp-size-lead: clamp(17px, 1.35vw, 21px);
+  --sp-size-label: 12px;
+  --sp-size-button: 12.5px;
+
+  --sp-leading-display: 0.86;
+  --sp-leading-body: 1.7;
+  --sp-tracking-display: -0.005em;
+  --sp-tracking-label: 0.3em;
+  --sp-tracking-button: 0.2em;
+  --sp-tracking-link: 0.18em;
+  --sp-script-pull: -0.32em;   /* margin-top on the crossing script word */
+
+  /* Shape: square corners; only arches and circles are round */
+  --sp-radius: 0;
+  --sp-arch: 100vw 100vw 0 0;
+
+  /* Motion */
+  --sp-ease: cubic-bezier(.4, 0, .1, 1);  /* movement */
+  --sp-fade: 0.4s linear;                 /* colour and opacity */
+  --sp-move: 0.6s;                        /* hairlines, arrows, panels */
+}
+
+/* The crossing heading: condensed capitals, a script word pulled up across them */
+.sp-display {
+  display: block;
+  font-family: var(--sp-font-display);
+  font-weight: 500;
+  font-stretch: 62.5%;
+  font-variation-settings: 'wdth' 62.5;
+  text-transform: uppercase;
+  line-height: var(--sp-leading-display);
+  letter-spacing: var(--sp-tracking-display);
+  color: var(--sp-ink);
+}
+.sp-script {
+  display: block;
+  font-family: var(--sp-font-script);
+  font-weight: 400;
+  text-transform: none;
+  line-height: 1;
+  letter-spacing: 0;
+  margin-top: var(--sp-script-pull);
+  color: var(--sp-ink);
+}
+.sp-label {
+  font-family: var(--sp-font-text);
+  font-size: var(--sp-size-label);
+  letter-spacing: var(--sp-tracking-label);
+  text-transform: uppercase;
+  color: var(--sp-ink-soft);
+}
+
+/* The one filled button: Ink, square, turns to an outline on hover */
+.sp-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px 32px 16px;
+  font-family: var(--sp-font-text);
+  font-size: var(--sp-size-button);
+  font-weight: 500;
+  letter-spacing: var(--sp-tracking-button);
+  text-transform: uppercase;
+  background: var(--sp-ink);
+  color: var(--sp-white);
+  border: 1px solid var(--sp-ink);
+  border-radius: var(--sp-radius);
+  transition: background var(--sp-fade), color var(--sp-fade), border-color var(--sp-fade);
+}
+.sp-button:hover { background: transparent; color: var(--sp-ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-button { transition: none; }
+}
