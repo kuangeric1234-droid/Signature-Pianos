@@ -15,12 +15,45 @@
 // second auth state.
 const adminSupabase = _supabase
 
+// Always send people to the login page by absolute path. On
+// admin.signaturepianos.com.au a relative 'index.html' resolves to the
+// public homepage (Vercel serves real root files before rewrites).
+const ADMIN_LOGIN = '/admin/index.html'
+function goToAdminLogin(keepPlace) {
+  const here = window.location.pathname + window.location.search
+  const url = keepPlace && here.startsWith('/admin/') && !here.startsWith(ADMIN_LOGIN)
+    ? `${ADMIN_LOGIN}?redirect=${encodeURIComponent(here)}`
+    : ADMIN_LOGIN
+  window.location.replace(url)
+}
+
+// Every same-origin /api/ call from an admin page carries the admin's
+// Supabase access token, so the API routes can check who is calling.
+;(function attachAdminTokenToApiCalls() {
+  const nativeFetch = window.fetch.bind(window)
+  window.fetch = async function (input, init) {
+    try {
+      const raw = typeof input === 'string' ? input : (input && input.url) || ''
+      const url = new URL(raw, window.location.href)
+      if (url.origin === window.location.origin && url.pathname.startsWith('/api/')) {
+        const headers = new Headers((init && init.headers) || (typeof input !== 'string' && input && input.headers) || undefined)
+        if (!headers.has('Authorization')) {
+          const { data: { session } } = await adminSupabase.auth.getSession()
+          if (session) headers.set('Authorization', `Bearer ${session.access_token}`)
+        }
+        init = { ...(init || {}), headers }
+      }
+    } catch (_) { /* fall through to a plain fetch */ }
+    return nativeFetch(input, init)
+  }
+})()
+
 async function checkAdminAuth() {
   try {
     const { data: { session } } = await adminSupabase.auth.getSession()
 
     if (!session) {
-      window.location.replace('index.html')
+      goToAdminLogin(true)
       return null
     }
 
@@ -35,7 +68,7 @@ async function checkAdminAuth() {
     if (error || !adminUser) {
       console.error('[admin] auth check failed', error)
       await adminSupabase.auth.signOut()
-      window.location.replace('index.html')
+      goToAdminLogin(false)
       return null
     }
 
@@ -47,14 +80,14 @@ async function checkAdminAuth() {
     return adminUser
   } catch (err) {
     console.error('[admin] auth gate threw', err)
-    window.location.replace('index.html')
+    goToAdminLogin(true)
     return null
   }
 }
 
 async function adminSignOut() {
   await adminSupabase.auth.signOut()
-  window.location.replace('index.html')
+  goToAdminLogin(false)
 }
 
 // Auto-run the gate on every page that loads this script EXCEPT the

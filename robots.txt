@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+Disallow: /portal
+Disallow: /delivery/
+Disallow: /tuner/
+Disallow: /payment-plan-sign.html
+Disallow: /delivery-preferences.html
+Disallow: /checkout-success.html
+
+Sitemap: https://signaturepianos.com.au/sitemap.xml

@@ -2,6 +2,11 @@
   "crons": [
     { "path": "/api/cron-delivery-reminders", "schedule": "0 22 * * *" }
   ],
+  "redirects": [
+    { "source": "/",              "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }], "destination": "/admin/index.html",    "permanent": false },
+    { "source": "/index.html",    "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }], "destination": "/admin/index.html",    "permanent": false },
+    { "source": "/teachers.html", "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }], "destination": "/admin/teachers.html", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
 
@@ -9,6 +14,7 @@
     { "source": "/blog/:slug",  "destination": "/api/blog-post?slug=:slug" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap"              },
     { "source": "/llms.txt",    "destination": "/api/llms"                 },
+    { "source": "/guide",       "destination": "/guide.html"               },
 
     { "source": "/delivery/accept/:token", "destination": "/delivery/accept.html?token=:token"  },
     { "source": "/delivery/drop/:token",   "destination": "/delivery/dropoff.html?token=:token" },
@@ -16,7 +22,6 @@
 
     { "source": "/tuner/respond/:token",   "destination": "/tuner/respond.html?token=:token"   },
     { "source": "/tuner/log-date/:token",  "destination": "/tuner/log-date.html?token=:token"  },
-    { "source": "/tuner/complete/:token",  "destination": "/tuner/complete.html?token=:token"  },
 
     { "source": "/portal",                 "destination": "/portal/index.html"     },
     { "source": "/portal/dashboard",       "destination": "/portal/dashboard.html" },

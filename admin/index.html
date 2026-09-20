@@ -23,7 +23,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="/admin/admin.css">
 <style>
   body {
     min-height: 100vh;
@@ -105,9 +105,16 @@
 <!-- Supabase + shared config -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/config.js"></script>
-<script src="js/admin-auth.js"></script>
+<script src="/admin/js/admin-auth.js"></script>
 
 <script>
+  // Where to go after sign-in: the page that sent us here (e.g. a
+  // countersign link), but only if it's another admin page.
+  function afterLoginUrl() {
+    const r = new URLSearchParams(window.location.search).get('redirect') || ''
+    return (r.startsWith('/admin/') && !r.startsWith('//')) ? r : '/admin/dashboard.html'
+  }
+
   // If we're already signed in AND a row exists in admin_users, jump
   // straight to the dashboard.
   (async function autoForward() {
@@ -120,7 +127,7 @@
         .eq('user_id', session.user.id)
         .eq('active', true)
         .single()
-      if (row) window.location.replace('dashboard.html')
+      if (row) window.location.replace(afterLoginUrl())
     } catch (err) {
       // Stay on login if anything's off — checkAdminAuth handles signed-out state.
     }
@@ -167,7 +174,7 @@
         return
       }
 
-      window.location.replace('dashboard.html')
+      window.location.replace(afterLoginUrl())
     } catch (err) {
       console.error('[admin] signin threw', err)
       errorEl.textContent = 'Something went wrong — please try again.'
