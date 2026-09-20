@@ -40,9 +40,14 @@
    Signature Pianos — tuner booking response (public, token based)
    ----------------------------------------------------------------------------
    Tuner opens /tuner/respond/{acceptance_token}. Default view is Accept;
-   ?action=propose flips to the propose-new-date form. The row update +
-   downstream emails happen server-side in api/tuner-respond.js under
-   the service role.
+   ?action=propose flips to the propose-new-date form (also shown when no
+   date has been proposed yet). The row update + downstream emails happen
+   server-side in api/tuner-respond.js under the service role.
+
+   The booking is read through the get_tuner_booking_by_token RPC
+   (supabase/rpc_tuner_links.sql): one booking, exact token match, only the
+   fields shown here — booking.customer / booking.piano / booking.tuner.
+   The page never reads tables with the anon key.
    ============================================================================ */
 
 const params = new URLSearchParams(window.location.search)
@@ -56,28 +61,24 @@ if (!token || token === 'respond') { window.location.replace('/index.html') }
 ;(async function loadRespondPage() {
   try {
     const { data: booking, error } = await _supabase
-      .from('tuner_bookings')
-      .select(`
-        *,
-        tuner:tuner_id ( * ),
-        order:order_id (
-          *,
-          customer:customer_id ( * ),
-          piano:piano_id ( * )
-        )
-      `)
-      .eq('acceptance_token', token)
-      .maybeSingle()
+      .rpc('get_tuner_booking_by_token', { p_token: token })
 
     if (error) throw error
-    if (!booking) return showError('This link is invalid or has expired.')
+    // A log-date link opened here (or any unknown token) is not valid.
+    if (!booking || booking.kind !== 'respond') return showError('This link is invalid or has been replaced by a newer request.')
 
-    if (booking.tuner_accepted || booking.tuner_response === 'proposed_new') {
+    if (booking.completed || booking.status === 'completed') {
+      return showStatus('Already complete', 'This tuning has already been marked complete. No further action needed.')
+    }
+    if (booking.status === 'cancelled') {
+      return showStatus('Booking cancelled', 'This tuning booking has been cancelled. No action needed.')
+    }
+    if (booking.tuner_accepted || booking.tuner_response || booking.status === 'confirmed') {
       return showAlreadyResponded(booking)
     }
 
-    if (action === 'propose') renderProposePage(booking)
-    else                       renderAcceptPage(booking)
+    if (action === 'propose' || !bookingDate(booking)) renderProposePage(booking)
+    else                                               renderAcceptPage(booking)
   } catch (err) {
     console.error('[tuner-respond] load failed', err)
     showError('We could not load this booking. Please try again or contact Signature Pianos.')
@@ -107,18 +108,34 @@ function fmtDateAU(d) {
   return `${day}/${m}/${y}`
 }
 
+/* The date the tuner is asked to accept: proposed, else the legacy scheduled one. */
+function bookingDate(booking) {
+  return booking.proposed_date || booking.scheduled_date || null
+}
+function bookingTime(booking) {
+  return booking.proposed_date ? booking.proposed_time : booking.scheduled_time
+}
+
+/* Tomorrow as YYYY-MM-DD in the tuner's own time zone (toISOString is UTC,
+   which in Melbourne mornings is still yesterday). */
+function localDatePlus(days) {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 /* ---------- Accept view ---------- */
 function renderAcceptPage(booking) {
-  const piano    = booking.order?.piano    || {}
-  const customer = booking.order?.customer || {}
+  const piano    = booking.piano    || {}
+  const customer = booking.customer || {}
   const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
-  const deliverTo = [customer.address_line1, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(', ')
+  const deliverTo = [customer.address_line1, customer.address_line2, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(', ')
 
   document.getElementById('pageContent').innerHTML = `
 
-    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(22, 34, 46, 0.2);">
+    <div style="background:#FFFFFF;padding:20px 24px;border-bottom:1px solid rgba(22, 34, 46, 0.12);">
       <div style="font-size:16px;color:#16222E;font-style:italic;">Signature Pianos</div>
-      <div style="font-size:12px;color:rgba(22, 34, 46, 0.5);margin-top:2px;">Tuning booking response</div>
+      <div style="font-size:12px;color:#3A4855;margin-top:2px;">Tuning booking response</div>
     </div>
 
     <div style="padding:24px;max-width:480px;margin:0 auto;">
@@ -131,8 +148,8 @@ function renderAcceptPage(booking) {
       <div style="background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:16px;margin-bottom:20px;">
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-bottom:10px;">Booking details</div>
         <table style="width:100%;font-size:13px;border-collapse:collapse;">
-          <tr><td style="padding:7px 0;color:#3A4855;border-bottom:1px solid rgba(22, 34, 46, 0.06);width:40%;">Date</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid rgba(22, 34, 46, 0.06);color:#16222E;font-size:15px;">${esc(fmtDateLong(booking.proposed_date))}</td></tr>
-          <tr><td style="padding:7px 0;color:#3A4855;border-bottom:1px solid rgba(22, 34, 46, 0.06);">Time</td><td style="padding:7px 0;border-bottom:1px solid rgba(22, 34, 46, 0.06);">${esc(booking.proposed_time || 'Flexible')}</td></tr>
+          <tr><td style="padding:7px 0;color:#3A4855;border-bottom:1px solid rgba(22, 34, 46, 0.06);width:40%;">Date</td><td style="padding:7px 0;font-weight:500;border-bottom:1px solid rgba(22, 34, 46, 0.06);color:#16222E;font-size:15px;">${esc(fmtDateLong(bookingDate(booking)))}</td></tr>
+          <tr><td style="padding:7px 0;color:#3A4855;border-bottom:1px solid rgba(22, 34, 46, 0.06);">Time</td><td style="padding:7px 0;border-bottom:1px solid rgba(22, 34, 46, 0.06);">${esc(bookingTime(booking) || 'Flexible')}</td></tr>
           <tr><td style="padding:7px 0;color:#3A4855;border-bottom:1px solid rgba(22, 34, 46, 0.06);">Piano</td><td style="padding:7px 0;border-bottom:1px solid rgba(22, 34, 46, 0.06);">${esc(pianoLabel)}</td></tr>
           <tr><td style="padding:7px 0;color:#3A4855;border-bottom:1px solid rgba(22, 34, 46, 0.06);">Customer</td><td style="padding:7px 0;border-bottom:1px solid rgba(22, 34, 46, 0.06);">${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}</td></tr>
           <tr><td style="padding:7px 0;color:#3A4855;">Address</td><td style="padding:7px 0;font-size:12px;">${esc(deliverTo || '—')}</td></tr>
@@ -169,33 +186,37 @@ function goPropose() {
 
 /* ---------- Propose view ---------- */
 function renderProposePage(booking) {
-  const piano    = booking.order?.piano    || {}
-  const customer = booking.order?.customer || {}
+  const piano    = booking.piano    || {}
+  const customer = booking.customer || {}
   const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
+  const hasDate = !!bookingDate(booking)
 
-  // Minimum date = tomorrow
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  const minDate = tomorrow.toISOString().slice(0, 10)
+  // Minimum date = tomorrow (local)
+  const minDate = localDatePlus(1)
 
   document.getElementById('pageContent').innerHTML = `
 
-    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(22, 34, 46, 0.2);">
+    <div style="background:#FFFFFF;padding:20px 24px;border-bottom:1px solid rgba(22, 34, 46, 0.12);">
       <div style="font-size:16px;color:#16222E;font-style:italic;">Signature Pianos</div>
-      <div style="font-size:12px;color:rgba(22, 34, 46, 0.5);margin-top:2px;">Propose alternative date</div>
+      <div style="font-size:12px;color:#3A4855;margin-top:2px;">${hasDate ? 'Propose alternative date' : 'Propose a date'}</div>
     </div>
 
     <div style="padding:24px;max-width:480px;margin:0 auto;">
 
-      <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 8px;">Propose a new date</h2>
+      <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 8px;">${hasDate ? 'Propose a new date' : 'Propose a date'}</h2>
       <p style="font-size:14px;color:#3A4855;margin:0 0 24px;line-height:1.6;">
-        The proposed date doesn't work for you. Suggest an alternative and we'll confirm it with the customer.
+        ${hasDate
+          ? "The proposed date doesn't work for you. Suggest an alternative and we'll confirm it with the customer."
+          : "No date has been set for this tuning yet. Suggest one and we'll confirm it with the customer."}
       </p>
 
       <div style="background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.06);border-radius:4px;padding:12px 16px;margin-bottom:24px;">
+        ${hasDate ? `
         <div style="font-size:11px;color:#3A4855;margin-bottom:4px;">Original proposed date</div>
-        <div style="font-size:14px;color:#3A4855;text-decoration:line-through;">${esc(fmtDateAU(booking.proposed_date))} · ${esc(booking.proposed_time || 'Flexible')}</div>
+        <div style="font-size:14px;color:#3A4855;text-decoration:line-through;">${esc(fmtDateAU(bookingDate(booking)))} · ${esc(bookingTime(booking) || 'Flexible')}</div>
+        ` : ''}
         <div style="font-size:12px;color:#3A4855;margin-top:6px;">For ${esc(pianoLabel)} · ${esc((customer.first_name || '') + ' ' + (customer.last_name || ''))}</div>
+        ${customer.phone ? `<div style="font-size:12px;color:#3A4855;margin-top:4px;">Customer phone: <a href="tel:${esc(customer.phone)}" style="color:#16222E;">${esc(customer.phone)}</a></div>` : ''}
       </div>
 
       <div style="margin-bottom:20px;">
@@ -235,6 +256,18 @@ function renderProposePage(booking) {
 }
 
 /* ---------- Submit handlers ---------- */
+
+/* A 4xx from the API carries a message meant for the tuner ("Already
+   responded", "Please choose a date from today onwards"); anything else
+   gets the generic line. */
+function requestError(res, result) {
+  const e = new Error(result.error || 'Request failed')
+  if (res.status >= 400 && res.status < 500 && result.error) e.userMessage = result.error
+  return e
+}
+function errorText(e) {
+  return (e && e.userMessage) || 'Something went wrong — please try again.'
+}
 async function submitAccept(bookingId) {
   const btn = document.getElementById('acceptBtn')
   const err = document.getElementById('acceptError')
@@ -252,14 +285,14 @@ async function submitAccept(bookingId) {
     if (res.ok && result.success) {
       showAcceptSuccess()
     } else {
-      throw new Error(result.error || 'Unknown error')
+      throw requestError(res, result)
     }
   } catch (e) {
     console.error('[tuner-respond] accept failed', e)
     btn.disabled = false
     btn.textContent = '✓ CONFIRM THIS DATE'
     err.style.display = 'block'
-    err.textContent = 'Something went wrong — please try again.'
+    err.textContent = errorText(e)
   }
 }
 
@@ -290,14 +323,14 @@ async function submitProposal(bookingId) {
     if (res.ok && result.success) {
       showProposalSuccess(newDate, newTime)
     } else {
-      throw new Error(result.error || 'Unknown error')
+      throw requestError(res, result)
     }
   } catch (e) {
     console.error('[tuner-respond] propose failed', e)
     btn.disabled = false
     btn.textContent = 'SUBMIT NEW DATE'
     err.style.display = 'block'
-    err.textContent = 'Something went wrong — please try again.'
+    err.textContent = errorText(e)
   }
 }
 
@@ -333,15 +366,29 @@ function showProposalSuccess(date, time) {
 }
 
 function showAlreadyResponded(booking) {
-  const msg = booking.tuner_response === 'accepted'
-    ? 'You have already confirmed this booking.'
-    : 'You have already proposed a new date. We will be in touch shortly.'
+  const confirmedFor = booking.confirmed_date ? ` for ${fmtDateLong(booking.confirmed_date)}` : ''
+  const msg = booking.tuner_response === 'proposed_new'
+    ? 'You have already proposed a new date. We will be in touch shortly.'
+    : (booking.tuner_accepted || booking.tuner_response === 'accepted')
+      ? `You have already confirmed this booking${confirmedFor}.`
+      : `This booking is already confirmed${confirmedFor}. Contact Signature Pianos if you need to make changes.`
   document.getElementById('pageContent').innerHTML = `
     <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
       <div style="text-align:center;max-width:360px;">
         <div style="font-size:48px;margin-bottom:16px;color:#1D9E75;">✓</div>
         <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">Already responded</h2>
         <p style="font-size:13px;color:#3A4855;line-height:1.7;">${esc(msg)}</p>
+      </div>
+    </div>
+  `
+}
+
+function showStatus(title, message) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">${esc(title)}</h2>
+        <p style="font-size:13px;color:#3A4855;line-height:1.7;">${esc(message)}</p>
       </div>
     </div>
   `

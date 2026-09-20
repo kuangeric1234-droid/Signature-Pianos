@@ -1,18 +1,29 @@
 /*
- * Signature Pianos — Tuner confirmation handler
- * ---------------------------------------------
- * The "Confirm this booking" link the tuner receives hits this endpoint
- * with ?token=... in the URL. We flip the booking to 'confirmed', send
- * the customer their happy confirmation email, ping Eric, and redirect
- * the tuner to a friendly landing page.
+ * Signature Pianos — legacy tuner confirmation link
+ * -------------------------------------------------
+ * GET /api/tuner-confirm?token={confirmation_token}
  *
- * Env required: RESEND_API_KEY, BUSINESS_EMAIL,
- *               SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+ * Old tuner SMS messages linked here ("Confirm here: …"). This used to
+ * confirm the booking and email the customer on every GET — so a link
+ * preview (iMessage, Outlook safe-links) confirmed it, and every re-open
+ * re-sent the customer email, without ever recording tuner_accepted or
+ * the confirmed date.
+ *
+ * Now it changes nothing. It finds the booking and:
+ *   - already confirmed / completed / cancelled → a short status page;
+ *   - otherwise → forwards to the tuner's Accept / Propose page
+ *     (/tuner/respond/{acceptance_token}), where the Confirm button POSTs
+ *     to api/tuner-respond.js (which records the acceptance, the
+ *     confirmed date, and sends the emails once).
+ * New SMS messages link straight to the respond page.
+ *
+ * The email templates below are kept for the email previews; they are no
+ * longer sent from here (api/tuner-respond.js sends the confirmation).
+ *
+ * Env required: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  */
 
 const { createClient } = require('@supabase/supabase-js')
-const { Resend } = require('resend')
-const { internalRecipients } = require('../lib/notify')
 const { layout, hello, p, details, signOff } = require('../lib/email-brand')
 const { parts } = require('../lib/tuner-emails')
 
@@ -20,79 +31,55 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
-const resend = new Resend(process.env.RESEND_API_KEY)
-const BUSINESS_EMAIL = process.env.BUSINESS_EMAIL
-const FROM = 'Signature Pianos <info@signaturepianos.com.au>'
 
 module.exports = async (req, res) => {
-  const token = (req.query && req.query.token) || ''
-  if (!token) return res.status(400).send('<h2>Missing token.</h2>')
+  const token = req.query && typeof req.query.token === 'string' ? req.query.token : ''
+  res.setHeader('content-type', 'text/html; charset=utf-8')
+  if (token.length < 16) {
+    return res.status(400).send(htmlMessage(
+      'Link not valid',
+      'This confirmation link is incomplete. Please use the link from your latest tuning request email.'
+    ))
+  }
 
   try {
     const { data: booking, error } = await supabase
       .from('tuner_bookings')
-      .select(`
-        *,
-        tuner:tuner_id(*),
-        order:order_id(*, customer:customer_id(*), piano:piano_id(*))
-      `)
+      .select('id, status, completed, tuner_accepted, tuner_response, acceptance_token, confirmed_date, proposed_date')
       .eq('confirmation_token', token)
-      .single()
+      .maybeSingle()
+    if (error) throw error
 
-    if (error || !booking) {
+    if (!booking) {
       return res.status(404).send(htmlMessage(
-        'Booking not found',
-        'This confirmation link may have already been used or is no longer valid. If you think this is a mistake, please email info@signaturepianos.com.au.'
+        'Link no longer valid',
+        'This confirmation link has been replaced by a newer request, or is no longer valid. Please use the link in your latest email from us, or email info@signaturepianos.com.au.'
       ))
     }
 
-    if (!booking.tuner || !booking.order || !booking.order.customer || !booking.order.piano) {
-      return res.status(400).send(htmlMessage(
-        'Booking incomplete',
-        'This booking is missing customer or piano details. Please contact us.'
+    if (booking.completed === true || booking.status === 'completed') {
+      return res.send(htmlMessage('Already complete', 'This tuning has already been marked complete. No further action needed.'))
+    }
+    if (booking.status === 'cancelled') {
+      return res.send(htmlMessage('Booking cancelled', 'This tuning booking has been cancelled. No action needed. Questions? Email info@signaturepianos.com.au.'))
+    }
+    if (booking.tuner_accepted || booking.status === 'confirmed') {
+      const date = booking.confirmed_date || booking.proposed_date
+      return res.send(htmlMessage(
+        'Already confirmed',
+        `This booking is already confirmed${date ? ' for ' + formatDate(date) : ''}. No further action needed.`
+      ))
+    }
+    if (!booking.acceptance_token) {
+      return res.status(404).send(htmlMessage(
+        'Link no longer valid',
+        'Please use the link in your latest email from us, or email info@signaturepianos.com.au.'
       ))
     }
 
-    // Mark confirmed
-    const { error: updErr } = await supabase
-      .from('tuner_bookings')
-      .update({
-        status: 'confirmed',
-        confirmation_sent: true,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', booking.id)
-    if (updErr) throw updErr
-
-    // Notify the customer (their happy day)
-    try {
-      await resend.emails.send({
-        from: FROM,
-        to: booking.order.customer.email,
-        subject: 'Your piano tuning is confirmed — Signature Pianos',
-        html: customerTunerConfirmEmail(booking),
-      })
-    } catch (mailErr) {
-      console.error('[tuner-confirm] customer email failed', mailErr)
-    }
-
-    // Notify Eric
-    try {
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `Tuner confirmed — ${booking.tuner.name} for ${booking.order.customer.first_name} ${booking.order.customer.last_name}`,
-        html: internalTunerConfirmedEmail(booking),
-      })
-    } catch (mailErr) {
-      console.error('[tuner-confirm] internal email failed', mailErr)
-    }
-
-    // Friendly landing page for the tuner
-    return res.redirect(
-      303,
-      `/tuner/confirmed.html?name=${encodeURIComponent(booking.tuner.name || '')}`
-    )
+    // Not answered yet: send the tuner to the page where they confirm
+    // (or propose another date) with a button, not on page load.
+    return res.redirect(303, `/tuner/respond/${encodeURIComponent(booking.acceptance_token)}`)
   } catch (err) {
     console.error('[tuner-confirm] error', err)
     return res.status(500).send(htmlMessage(
@@ -148,7 +135,7 @@ function customerTunerConfirmEmail(booking) {
       parts.appointment('Your appointment', escapeHtml(formatDate(booking.proposed_date)), escapeHtml(booking.proposed_time || 'To be confirmed by tuner')) +
       details([
         ['Tuner', escapeHtml(tuner.name), true],
-        ['Piano', `Yamaha ${escapeHtml(piano.model || '')} ${escapeHtml(piano.year || '')}`],
+        ['Piano', `${escapeHtml(piano.brand || 'Yamaha')} ${escapeHtml(piano.model || '')} ${escapeHtml(piano.year || '')}`],
       ]) +
       p(`Your tuner will arrive at your home at the agreed time. If you need to reschedule, please contact us at ${parts.officeEmail()} or call ${parts.officePhone()}.`) +
       signOff(),

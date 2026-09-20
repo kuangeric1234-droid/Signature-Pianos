@@ -4,21 +4,28 @@
  * POST /api/tuner-log-date
  *   body: { token, booking_id, agreed_date, agreed_time, notes? }
  *
- *   1. Verifies log_date_token + booking_id pair.
- *   2. Updates tuner_bookings — confirmed_date / _time, date_logged,
- *      status='confirmed', notes appended.
+ *   1. Verifies log_date_token (exact match) + booking_id pair, and that
+ *      the booking is open (not completed / cancelled).
+ *   2. Updates tuner_bookings — confirmed_date / _time, date_logged(_at),
+ *      status='confirmed', notes appended, day-before reminder re-armed.
  *   3. Fires three emails:
  *        - tuner   : confirmation with calendar links + complete CTA
  *        - customer: "your tuning is confirmed" with date/time
  *        - Eric    : internal note
+ *
+ * One use per link: once a date is logged the link answers "Already
+ * logged" (the page tells the tuner to contact us to change it; Eric
+ * changes dates in admin). The update is conditional on date_logged
+ * still being false, so a double-tap can't log (or email) twice.
  */
 
 const { createClient } = require('@supabase/supabase-js')
 const { Resend } = require('resend')
 const { internalRecipients } = require('../lib/notify')
+const { melbourneDate } = require('../lib/dates')
 const { generateCalendarLinks } = require('../lib/calendar')
 const { layout, hello, p, h2, details, button, signOff } = require('../lib/email-brand')
-const { parts } = require('../lib/tuner-emails')
+const { parts, sendEmail } = require('../lib/tuner-emails')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -36,9 +43,16 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { token, booking_id, agreed_date, agreed_time, notes } = req.body || {}
-  if (!token || !booking_id) return res.status(400).json({ error: 'Missing token or booking_id' })
+  const { token, booking_id, agreed_date, agreed_time } = req.body || {}
+  const notes = req.body && req.body.notes ? String(req.body.notes).slice(0, 2000) : null
+  if (typeof token !== 'string' || token.length < 16 || !booking_id) {
+    return res.status(400).json({ error: 'Missing token or booking_id' })
+  }
   if (!agreed_date || !agreed_time) return res.status(400).json({ error: 'agreed_date and agreed_time are required' })
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(agreed_date)) || String(agreed_date) < melbourneDate()) {
+    return res.status(400).json({ error: 'Please choose a date from today onwards' })
+  }
+  if (String(agreed_time).length > 100) return res.status(400).json({ error: 'Invalid time' })
 
   try {
     const { data: booking, error } = await supabase
@@ -56,8 +70,11 @@ module.exports = async (req, res) => {
       .eq('log_date_token', token)
       .maybeSingle()
     if (error) throw error
-    if (!booking) return res.status(404).json({ error: 'Booking not found' })
-    if (booking.date_logged) return res.status(400).json({ error: 'Already logged' })
+    if (!booking || booking.log_date_token !== token) return res.status(404).json({ error: 'Booking not found' })
+    if (booking.completed === true || booking.status === 'completed' || booking.status === 'cancelled') {
+      return res.status(409).json({ error: `This booking is ${booking.status === 'cancelled' ? 'cancelled' : 'already complete'}` })
+    }
+    if (booking.date_logged) return res.status(409).json({ error: 'Already logged' })
 
     const tuner    = booking.tuner            || {}
     const customer = booking.order?.customer  || {}
@@ -67,7 +84,7 @@ module.exports = async (req, res) => {
       ? (booking.completion_notes ? booking.completion_notes + '\n\nTuner notes: ' + notes : 'Tuner notes: ' + notes)
       : booking.completion_notes
 
-    const { error: updErr } = await supabase
+    const { data: updated, error: updErr } = await supabase
       .from('tuner_bookings')
       .update({
         confirmed_date:   agreed_date,
@@ -76,9 +93,17 @@ module.exports = async (req, res) => {
         date_logged_at:   new Date().toISOString(),
         status:           'confirmed',
         completion_notes: mergedNotes,
+        day_before_reminder_sent:    false,
+        day_before_reminder_sent_at: null,
       })
       .eq('id', booking_id)
+      .eq('log_date_token', token)
+      .not('date_logged', 'is', true)
+      .not('completed', 'is', true)
+      .not('status', 'in', '(completed,cancelled)')
+      .select('id')
     if (updErr) throw updErr
+    if (!updated || !updated.length) return res.status(409).json({ error: 'Already logged' })
 
     // Settings for the customer email footer (non-fatal)
     let settings = {}
@@ -107,64 +132,60 @@ module.exports = async (req, res) => {
       startDate:     agreed_date,
       startTime:     agreed_time,
       durationHours: 2,
+      uid:           `tuning-${booking.id}`,
     })
+
+    // The date is saved either way; failed emails are logged and named in
+    // the response (the tuner's page still shows success).
+    const failed = []
 
     // Tuner confirmation
     if (tuner.email) {
-      try {
-        await resend.emails.send({
-          from: FROM,
-          to:   tuner.email,
-          subject: `Tuning confirmed — ${fmtDateLong(agreed_date)} · ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
-          html: tunerDateConfirmedEmail({
-            tuner, customer, piano, pianoLabel,
-            agreedDate: agreed_date,
-            agreedTime: agreed_time,
-            completeUrl, cal,
-          }),
-        })
-      } catch (mailErr) {
-        console.error('[tuner-log-date] tuner email failed', mailErr)
-      }
+      const mailErr = await sendEmail(resend, {
+        from: FROM,
+        to:   tuner.email,
+        subject: `Tuning confirmed — ${fmtDateLong(agreed_date)} · ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
+        html: tunerDateConfirmedEmail({
+          tuner, customer, piano, pianoLabel,
+          agreedDate: agreed_date,
+          agreedTime: agreed_time,
+          completeUrl, cal,
+        }),
+      })
+      if (mailErr) { console.error('[tuner-log-date] tuner email failed', booking_id, mailErr); failed.push('tuner') }
     }
 
     // Customer confirmation
     if (customer.email) {
-      try {
-        await resend.emails.send({
-          from: FROM,
-          to:   customer.email,
-          subject: 'Your piano tuning is confirmed — Signature Pianos',
-          html: customerTuningConfirmedEmail({
-            customer, piano, pianoLabel,
-            agreedDate: agreed_date,
-            agreedTime: agreed_time,
-            settings,
-          }),
-        })
-      } catch (mailErr) {
-        console.error('[tuner-log-date] customer email failed', mailErr)
-      }
+      const mailErr = await sendEmail(resend, {
+        from: FROM,
+        to:   customer.email,
+        subject: 'Your piano tuning is confirmed — Signature Pianos',
+        html: customerTuningConfirmedEmail({
+          customer, piano, pianoLabel,
+          agreedDate: agreed_date,
+          agreedTime: agreed_time,
+          settings,
+        }),
+      })
+      if (mailErr) { console.error('[tuner-log-date] customer email failed', booking_id, mailErr); failed.push('customer') }
     }
 
     // Eric notification
-    try {
-      await resend.emails.send({
-        from: FROM,
-        to:   internalRecipients(),
-        subject: `Tuning date logged — ${tuner.name || ''} · ${fmtDateLong(agreed_date)}`.trim(),
-        html: internalDateLoggedEmail({
-          tuner, customer, pianoLabel,
-          agreedDate: agreed_date,
-          agreedTime: agreed_time,
-          notes,
-        }),
-      })
-    } catch (mailErr) {
-      console.error('[tuner-log-date] eric email failed', mailErr)
-    }
+    const ericErr = await sendEmail(resend, {
+      from: FROM,
+      to:   internalRecipients(),
+      subject: `Tuning date logged — ${tuner.name || ''} · ${fmtDateLong(agreed_date)}`.trim(),
+      html: internalDateLoggedEmail({
+        tuner, customer, pianoLabel,
+        agreedDate: agreed_date,
+        agreedTime: agreed_time,
+        notes,
+      }),
+    })
+    if (ericErr) { console.error('[tuner-log-date] eric email failed', booking_id, ericErr); failed.push('internal') }
 
-    return res.status(200).json({ success: true })
+    return res.status(200).json({ success: true, warning: failed.length ? `Email failed: ${failed.join(', ')}` : null })
   } catch (err) {
     console.error('[tuner-log-date] handler failed', err)
     return res.status(500).json({ error: err.message || 'Log date failed' })

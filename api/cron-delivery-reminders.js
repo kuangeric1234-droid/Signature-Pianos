@@ -7,22 +7,33 @@
  *
  * Vercel auto-attaches `Authorization: Bearer ${CRON_SECRET}` when the
  * env var is set, so we reject anything else with 401 to keep this
- * endpoint unhittable from the public internet.
+ * endpoint unhittable from the public internet. CRON_SECRET must be set
+ * in Vercel: without it every run (Vercel's included) is refused.
+ *
+ * "Today" is the Melbourne calendar day (lib/dates.js). The cron fires at
+ * 22:00 UTC, which is already the next morning in Melbourne, so UTC dates
+ * put every reminder a day off.
  *
  * Per accepted delivery (driver_accepted=true, scheduled_date set, not
- * yet picked up) it sends:
- *   - reminder_3day  exactly when scheduled_date = today + 3 days
+ * yet picked up, order not voided) it sends:
+ *   - reminder_3day  (carries the pickup-photo link) once scheduled_date
+ *     is within the next 3 days — not only exactly 3 days out, so a
+ *     driver who accepts late still gets the link. api/driver-accept.js
+ *     may already have sent it and set the flag.
  *   - reminder_day_of when scheduled_date = today, while status is
  *     still 'scheduled' (i.e. the pickup hasn't happened yet today)
  *
- * Both flags are idempotent — they flip true on the row + a *_at
- * timestamp lands, so a retried cron run won't double-send.
+ * Every flag flips only after its email was accepted by Resend, so a
+ * failed send is retried by the next run instead of being counted as
+ * sent. The response lists sent / failed counts per kind.
  */
 
+const crypto = require('crypto')
 const { createClient } = require('@supabase/supabase-js')
 const { Resend } = require('resend')
 const { internalRecipients } = require('../lib/notify')
-const { customerTuningReadyEmail, tunerContactEmail } = require('../lib/tuner-emails')
+const { melbourneDate, addDays } = require('../lib/dates')
+const { customerTuningReadyEmail, tunerContactEmail, sendEmail, errText } = require('../lib/tuner-emails')
 const {
   BUSINESS, C, layout, hello, p, h2, details, note, button, signOff, visitBlock, money,
 } = require('../lib/email-brand')
@@ -37,80 +48,120 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM     = 'Signature Pianos <info@signaturepianos.com.au>'
 const SITE_URL = process.env.SITE_URL || 'https://signaturepianos.com.au'
 
+/* Vercel Cron sends `Authorization: Bearer ${CRON_SECRET}`. Constant-time
+ * compare; no secret configured means nobody gets in. */
+function cronAuthorized(req) {
+  const secret = process.env.CRON_SECRET || ''
+  if (!secret) {
+    console.error('[cron-delivery-reminders] CRON_SECRET is not set; refusing the run. Set it in Vercel.')
+    return false
+  }
+  const got = Buffer.from(String(req.headers.authorization || ''))
+  const want = Buffer.from(`Bearer ${secret}`)
+  return got.length === want.length && crypto.timingSafeEqual(got, want)
+}
+
+/* Whole days from one 'YYYY-MM-DD' to another (b - a). */
+function daysBetween(a, b) {
+  const [ay, am, ad] = String(a).slice(0, 10).split('-').map(Number)
+  const [by, bm, bd] = String(b).slice(0, 10).split('-').map(Number)
+  return Math.round((Date.UTC(by, bm - 1, bd) - Date.UTC(ay, am - 1, ad)) / 86400000)
+}
+
 module.exports = async (req, res) => {
-  // Cron auth — Vercel sends `Bearer ${CRON_SECRET}` automatically.
-  const expected = process.env.CRON_SECRET
-  const got = req.headers.authorization || ''
-  if (!expected || got !== `Bearer ${expected}`) {
+  if (!cronAuthorized(req)) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const threeDaysFromNow = new Date(today)
-  threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3)
+  // Melbourne calendar days, as 'YYYY-MM-DD'.
+  const todayStr     = melbourneDate()
+  const tomorrowStr  = addDays(todayStr, 1)
+  const threeDaysStr = addDays(todayStr, 3)
 
-  const todayStr = today.toISOString().slice(0, 10)
-  const threeDaysStr = threeDaysFromNow.toISOString().slice(0, 10)
-
-  let sent3Day = 0
-  let sentDayOf = 0
+  // Per-kind tallies for the response and the log line.
+  const sent = {}
+  const failed = {}
   const errors = []
+  const bump = (tally, kind) => { tally[kind] = (tally[kind] || 0) + 1 }
+  const fail = (kind, id, err) => {
+    bump(failed, kind)
+    errors.push({ id, kind, err: errText(err) })
+    console.error(`[cron] ${kind} failed`, id, err)
+  }
+  // Send one email; tally it. Returns true when Resend accepted it.
+  const send = async (kind, id, message) => {
+    const err = await sendEmail(resend, { from: FROM, ...message })
+    if (err) { fail(kind, id, err); return false }
+    bump(sent, kind)
+    return true
+  }
+  // Record a sent-flag. The email already went: a failed update is logged
+  // (the next run may repeat that email) rather than hidden.
+  const setFlag = async (table, id, fields, kind) => {
+    const { error } = await supabase.from(table).update(fields).eq('id', id)
+    if (error) fail(`${kind}_flag`, id, error)
+    return !error
+  }
 
   try {
-    const { data: deliveries, error } = await supabase
-      .from('deliveries')
-      .select(`
-        *,
-        order:order_id (
+    // ─────────────────────────────────────────────────────────────────
+    // DELIVERY PICKUP REMINDERS (each section has its own try/catch, so
+    // one failing query doesn't stop the rest of the run)
+    // ─────────────────────────────────────────────────────────────────
+    try {
+      const { data: deliveries, error } = await supabase
+        .from('deliveries')
+        .select(`
           *,
-          customer:customer_id ( * ),
-          piano:piano_id ( * )
-        ),
-        partner:delivery_partner_id ( * )
-      `)
-      .eq('driver_accepted', true)
-      .in('status', ['scheduled', 'pickup_pending'])
-      .not('scheduled_date', 'is', null)
-    if (error) throw error
+          order:order_id (
+            *,
+            customer:customer_id ( * ),
+            piano:piano_id ( * )
+          ),
+          partner:delivery_partner_id ( * )
+        `)
+        .eq('driver_accepted', true)
+        .in('status', ['scheduled', 'pickup_pending'])
+        .not('scheduled_date', 'is', null)
+        .lte('scheduled_date', threeDaysStr)
+        .gte('scheduled_date', todayStr)
+      if (error) throw error
 
-    for (const delivery of (deliveries || [])) {
-      if (!delivery.partner?.email) continue
-      const piano    = delivery.order?.piano    || {}
-      const customer = delivery.order?.customer || {}
-      const partner  = delivery.partner
-      const schedDate = delivery.scheduled_date
+      for (const delivery of (deliveries || [])) {
+        if (!delivery.partner?.email) continue
+        if (delivery.order?.voided) continue   // voided sale: no pickup
+        const piano    = delivery.order?.piano    || {}
+        const customer = delivery.order?.customer || {}
+        const partner  = delivery.partner
+        const schedDate = String(delivery.scheduled_date).slice(0, 10)
 
-      const pickupUrl = `${SITE_URL}/delivery/${delivery.pickup_link_token}`
+        const pickupUrl = `${SITE_URL}/delivery/${delivery.pickup_link_token}`
 
-      // 3-day reminder
-      if (schedDate === threeDaysStr && !delivery.reminder_3day_sent) {
-        try {
-          await resend.emails.send({
-            from: FROM,
+        const dayOfDue = schedDate === todayStr && !delivery.reminder_day_of_sent && delivery.status === 'scheduled'
+        // On the day itself the day-of reminder carries the same link.
+        const dayOfCovers = schedDate === todayStr && (dayOfDue || delivery.reminder_day_of_sent)
+
+        // Pickup-link reminder: any day from 3 days out to the day itself,
+        // until it has gone once (not only exactly 3 days out).
+        if (schedDate >= todayStr && schedDate <= threeDaysStr && !delivery.reminder_3day_sent && !dayOfCovers) {
+          const daysOut = daysBetween(todayStr, schedDate)
+          const ok = await send('pickup3Day', delivery.id, {
             to: partner.email,
-            subject: `Reminder: piano pickup in 3 days — ${fmtDateLong(schedDate)}`,
+            subject: `Reminder: piano pickup ${whenPhrase(daysOut)} — ${fmtDateLong(schedDate)}`,
             html: buildReminderEmail({
-              driver_name: partner.name, type: '3day',
+              driver_name: partner.name, type: '3day', days_until: daysOut,
               scheduled_date: schedDate, piano, customer, pickupUrl,
             }),
           })
-          await supabase
-            .from('deliveries')
-            .update({ reminder_3day_sent: true, reminder_3day_sent_at: new Date().toISOString() })
-            .eq('id', delivery.id)
-          sent3Day++
-        } catch (mailErr) {
-          console.error('[cron] 3day reminder failed', delivery.id, mailErr)
-          errors.push({ id: delivery.id, kind: '3day', err: String(mailErr) })
+          if (ok) {
+            await setFlag('deliveries', delivery.id,
+              { reminder_3day_sent: true, reminder_3day_sent_at: new Date().toISOString() }, 'pickup3Day')
+          }
         }
-      }
 
-      // Day-of reminder — only if status is still 'scheduled'
-      if (schedDate === todayStr && !delivery.reminder_day_of_sent && delivery.status === 'scheduled') {
-        try {
-          await resend.emails.send({
-            from: FROM,
+        // Day-of reminder — only if status is still 'scheduled'
+        if (dayOfDue) {
+          const ok = await send('pickupDayOf', delivery.id, {
             to: partner.email,
             subject: `Reminder: piano pickup today — ${fmtDateLong(schedDate)}`,
             html: buildReminderEmail({
@@ -118,27 +169,22 @@ module.exports = async (req, res) => {
               scheduled_date: schedDate, piano, customer, pickupUrl,
             }),
           })
-          await supabase
-            .from('deliveries')
-            .update({ reminder_day_of_sent: true, reminder_day_of_sent_at: new Date().toISOString() })
-            .eq('id', delivery.id)
-          sentDayOf++
-        } catch (mailErr) {
-          console.error('[cron] day-of reminder failed', delivery.id, mailErr)
-          errors.push({ id: delivery.id, kind: 'day_of', err: String(mailErr) })
+          if (ok) {
+            await setFlag('deliveries', delivery.id,
+              { reminder_day_of_sent: true, reminder_day_of_sent_at: new Date().toISOString() }, 'pickupDayOf')
+          }
         }
       }
+    } catch (delOuterErr) {
+      fail('delivery_section', null, delOuterErr)
     }
 
     // ─────────────────────────────────────────────────────────────────
     // TUNER BOOKINGS — day-25 contact send
     // (Session 12 rebuild: cron pushes customer heads-up + tuner action
-    // email when trigger_date hits today, replacing the old
+    // email once trigger_date is reached, replacing the old
     // accept/propose flow.)
     // ─────────────────────────────────────────────────────────────────
-    let sentTunerContact = 0
-    let sentTunerReminder = 0
-
     let settings = {}
     try {
       const { data: s } = await supabase.from('company_settings').select('*').limit(1).maybeSingle()
@@ -147,6 +193,12 @@ module.exports = async (req, res) => {
       console.warn('[cron-delivery-reminders] settings load fell back', sErr)
     }
 
+    // Every booking whose trigger_date has been reached and whose contact
+    // emails haven't gone — not only trigger_date = today, so a booking
+    // skipped on its day (no tuner assigned yet, a failed send) goes on a
+    // later run. Bookings whose date is already agreed (confirmed via the
+    // tuner's Accept link or the log-date page), finished or cancelled are
+    // left alone.
     try {
       const { data: tunerBookingsToSend, error: tbErr } = await supabase
         .from('tuner_bookings')
@@ -159,80 +211,65 @@ module.exports = async (req, res) => {
           ),
           tuner:tuner_id ( * )
         `)
-        .eq('trigger_date', todayStr)
-        .eq('contact_sent', false)
-        .eq('completed', false)
+        .lte('trigger_date', todayStr)
+        .not('contact_sent', 'is', true)
+        .not('completed', 'is', true)
+        .not('status', 'in', '(confirmed,completed,cancelled)')
       if (tbErr) throw tbErr
 
       for (const booking of (tunerBookingsToSend || [])) {
+        if (booking.order?.voided) continue
         const customer = booking.order?.customer || {}
         const piano    = booking.order?.piano    || {}
         const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
 
         // No tuner assigned yet → ping Eric to assign one. Don't flip
-        // contact_sent so tomorrow's cron picks it up again once a tuner
-        // is in place.
+        // contact_sent so the next run picks it up again once a tuner
+        // is in place (Eric is reminded each day until then).
         if (!booking.tuner) {
-          try {
-            await resend.emails.send({
-              from: FROM,
-              to: internalRecipients(),
-              subject: `Action required: assign a tuner — ${customer.first_name || ''} ${customer.last_name || ''} · ${pianoLabel}`.trim(),
-              html: noTunerAssignedEmail({ customer, piano, pianoLabel }),
-            })
-          } catch (mailErr) {
-            console.error('[cron] no-tuner alert failed', booking.id, mailErr)
-            errors.push({ id: booking.id, kind: 'no_tuner', err: String(mailErr) })
-          }
+          await send('noTunerAlert', booking.id, {
+            to: internalRecipients(),
+            subject: `Action required: assign a tuner — ${customer.first_name || ''} ${customer.last_name || ''} · ${pianoLabel}`.trim(),
+            html: noTunerAssignedEmail({ customer, piano, pianoLabel }),
+          })
+          continue
+        }
+        if (!booking.tuner.email || !booking.log_date_token) {
+          fail('tunerContact', booking.id, { message: !booking.tuner.email ? 'Tuner has no email address' : 'No log_date_token' })
           continue
         }
 
         const logDateUrl = `${SITE_URL}/tuner/log-date/${booking.log_date_token}`
 
-        try {
-          // Customer heads-up
-          if (customer.email) {
-            await resend.emails.send({
-              from: FROM,
-              to: customer.email,
-              subject: 'Your piano is ready for its first tuning — Signature Pianos',
-              html: customerTuningReadyEmail({ customer, piano, settings }),
-            })
-          }
-          // Tuner action email
-          await resend.emails.send({
-            from: FROM,
-            to: booking.tuner.email,
-            subject: `New tuning job — ${customer.first_name || ''} ${customer.last_name || ''} · ${pianoLabel}`.trim(),
-            html: tunerContactEmail({ tuner: booking.tuner, customer, piano, logDateUrl }),
+        // Tuner action email first: if it fails, nothing is flagged and
+        // the customer isn't told a tuner will call; the next run retries.
+        const tunerOk = await send('tunerContact', booking.id, {
+          to: booking.tuner.email,
+          subject: `New tuning job — ${customer.first_name || ''} ${customer.last_name || ''} · ${pianoLabel}`.trim(),
+          html: tunerContactEmail({ tuner: booking.tuner, customer, piano, logDateUrl }),
+        })
+        if (!tunerOk) continue
+
+        // Customer heads-up (a failure is logged; the tuner has the job).
+        if (customer.email) {
+          await send('tunerContactCustomer', booking.id, {
+            to: customer.email,
+            subject: 'Your piano is ready for its first tuning — Signature Pianos',
+            html: customerTuningReadyEmail({ customer, piano, settings }),
           })
-
-          await supabase
-            .from('tuner_bookings')
-            .update({
-              contact_sent:    true,
-              contact_sent_at: new Date().toISOString(),
-              status:          'contact_sent',
-            })
-            .eq('id', booking.id)
-
-          sentTunerContact++
-        } catch (mailErr) {
-          console.error('[cron] tuner contact failed', booking.id, mailErr)
-          errors.push({ id: booking.id, kind: 'tuner_contact', err: String(mailErr) })
         }
+
+        const flagErr = await markContactSent(booking.id, booking.status === 'pending')
+        if (flagErr) fail('tunerContact_flag', booking.id, flagErr)
       }
     } catch (tunerOuterErr) {
-      console.error('[cron] tuner-contact section failed', tunerOuterErr)
+      fail('tunerContact_section', null, tunerOuterErr)
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // TUNER BOOKINGS — day-before reminders
+    // TUNER BOOKINGS — day-before reminders (confirmed_date = tomorrow,
+    // Melbourne)
     // ─────────────────────────────────────────────────────────────────
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    const tomorrowStr = tomorrow.toISOString().slice(0, 10)
-
     try {
       const { data: tunerReminders, error: trErr } = await supabase
         .from('tuner_bookings')
@@ -246,105 +283,94 @@ module.exports = async (req, res) => {
           tuner:tuner_id ( * )
         `)
         .eq('confirmed_date', tomorrowStr)
-        .eq('day_before_reminder_sent', false)
-        .eq('completed', false)
+        .not('day_before_reminder_sent', 'is', true)
+        .not('completed', 'is', true)
+        .not('status', 'in', '(completed,cancelled)')
       if (trErr) throw trErr
 
       for (const booking of (tunerReminders || [])) {
+        if (booking.order?.voided) continue
         const customer = booking.order?.customer || {}
         const piano    = booking.order?.piano    || {}
         const completeUrl = `${SITE_URL}/api/tuner-complete?token=${booking.completion_token}`
 
-        try {
-          if (booking.tuner?.email) {
-            await resend.emails.send({
-              from: FROM,
-              to: booking.tuner.email,
-              subject: `Reminder: piano tuning tomorrow — ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
-              html: tunerDayBeforeEmail({
-                tuner: booking.tuner, customer, piano,
-                confirmedDate: booking.confirmed_date,
-                confirmedTime: booking.confirmed_time,
-                completeUrl,
-              }),
-            })
-          }
-          if (customer.email) {
-            await resend.emails.send({
-              from: FROM,
-              to: customer.email,
-              subject: 'Reminder: your piano tuning is tomorrow — Signature Pianos',
-              html: customerDayBeforeEmail({
-                customer, piano,
-                confirmedDate: booking.confirmed_date,
-                confirmedTime: booking.confirmed_time,
-                settings,
-              }),
-            })
-          }
+        // The flag covers both emails: it flips only when every email
+        // attempted here went out.
+        let attempted = 0
+        let delivered = 0
+        if (booking.tuner?.email) {
+          attempted++
+          if (await send('tunerReminder', booking.id, {
+            to: booking.tuner.email,
+            subject: `Reminder: piano tuning tomorrow — ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
+            html: tunerDayBeforeEmail({
+              tuner: booking.tuner, customer, piano,
+              confirmedDate: booking.confirmed_date,
+              confirmedTime: booking.confirmed_time,
+              completeUrl,
+            }),
+          })) delivered++
+        }
+        if (customer.email) {
+          attempted++
+          if (await send('tunerReminderCustomer', booking.id, {
+            to: customer.email,
+            subject: 'Reminder: your piano tuning is tomorrow — Signature Pianos',
+            html: customerDayBeforeEmail({
+              customer, piano,
+              confirmedDate: booking.confirmed_date,
+              confirmedTime: booking.confirmed_time,
+              settings,
+            }),
+          })) delivered++
+        }
 
-          await supabase
-            .from('tuner_bookings')
-            .update({
-              day_before_reminder_sent:    true,
-              day_before_reminder_sent_at: new Date().toISOString(),
-            })
-            .eq('id', booking.id)
-
-          sentTunerReminder++
-        } catch (mailErr) {
-          console.error('[cron] tuner reminder failed', booking.id, mailErr)
-          errors.push({ id: booking.id, kind: 'tuner_reminder', err: String(mailErr) })
+        if (attempted && delivered === attempted) {
+          await setFlag('tuner_bookings', booking.id, {
+            day_before_reminder_sent:    true,
+            day_before_reminder_sent_at: new Date().toISOString(),
+          }, 'tunerReminder')
         }
       }
     } catch (remOuterErr) {
-      console.error('[cron] tuner-reminder section failed', remOuterErr)
+      fail('tunerReminder_section', null, remOuterErr)
     }
 
     // ─────────────────────────────────────────────────────────────────
     // VIEWING APPOINTMENT REMINDERS — day-before (Session 13)
     // ─────────────────────────────────────────────────────────────────
-    let sentViewingReminders = 0
     try {
       const { data: upcomingViewings, error: vwErr } = await supabase
         .from('viewing_appointments')
         .select('*')
         .eq('appointment_date', tomorrowStr)
-        .eq('reminder_sent', false)
+        .not('reminder_sent', 'is', true)
         .eq('status', 'confirmed')
       if (vwErr) throw vwErr
 
       for (const appt of (upcomingViewings || [])) {
-        try {
-          await resend.emails.send({
-            from: FROM,
-            to: appt.email,
-            subject: 'Reminder: your viewing is tomorrow — Signature Pianos',
-            html: viewingReminderCronEmail({ appt, settings }),
-          })
-          await supabase
-            .from('viewing_appointments')
-            .update({ reminder_sent: true, reminder_sent_at: new Date().toISOString(), status: 'reminder_sent' })
-            .eq('id', appt.id)
-          sentViewingReminders++
-        } catch (mailErr) {
-          console.error('[cron] viewing reminder failed', appt.id, mailErr)
-          errors.push({ id: appt.id, kind: 'viewing_reminder', err: String(mailErr) })
+        if (!appt.email) continue
+        const ok = await send('viewingReminder', appt.id, {
+          to: appt.email,
+          subject: 'Reminder: your viewing is tomorrow — Signature Pianos',
+          html: viewingReminderCronEmail({ appt, settings }),
+        })
+        if (ok) {
+          await setFlag('viewing_appointments', appt.id,
+            { reminder_sent: true, reminder_sent_at: new Date().toISOString(), status: 'reminder_sent' }, 'viewingReminder')
         }
       }
     } catch (outerErr) {
-      console.error('[cron] viewing-reminder section failed', outerErr)
+      fail('viewingReminder_section', null, outerErr)
     }
 
     // ─────────────────────────────────────────────────────────────────
     // POST-TUNING FOLLOW-UP + GOOGLE REVIEW REQUEST (Session 13)
-    // Fires 14 days after the first tuning is marked completed. Review
+    // Fires 14 days after the first tuning is marked completed
+    // (tuner_bookings.completed, set by api/tuner-complete.js). Review
     // request only fires when google_review_url is set in settings.
     // ─────────────────────────────────────────────────────────────────
-    let sentFollowups = 0
-    let sentReviewRequests = 0
-    const fourteenDaysAgo = new Date(today)
-    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
+    const fourteenDaysAgoIso = new Date(Date.now() - 14 * 86400000).toISOString()
 
     try {
       const { data: completedTunings, error: ctErr } = await supabase
@@ -358,70 +384,56 @@ module.exports = async (req, res) => {
           )
         `)
         .eq('completed', true)
-        .lte('completed_at', fourteenDaysAgo.toISOString())
+        .lte('completed_at', fourteenDaysAgoIso)
         .not('order_id', 'is', null)
       if (ctErr) throw ctErr
 
+      // One email per order per run, even if the order has two completed
+      // tunings. The flags are the order's own columns (embedded above).
+      const seenOrders = new Set()
       for (const booking of (completedTunings || [])) {
         const order    = booking.order
         const customer = order?.customer
         const piano    = order?.piano
-        if (!order?.id || !customer?.email) continue
+        if (!order?.id || !customer?.email || order.voided) continue
+        if (seenOrders.has(order.id)) continue
+        seenOrders.add(order.id)
 
-        // Read order's followup_sent + review_request_sent flags
-        const { data: flags } = await supabase
-          .from('orders')
-          .select('followup_sent, review_request_sent')
-          .eq('id', order.id)
-          .maybeSingle()
-
-        if (flags && !flags.followup_sent) {
-          try {
-            await resend.emails.send({
-              from: FROM,
-              to: customer.email,
-              subject: `How is your ${piano?.brand || 'Yamaha'} ${piano?.model || ''} going? — Signature Pianos`.trim(),
-              html: postTuningFollowupEmail({ customer, piano, settings }),
-            })
-            await supabase.from('orders')
-              .update({ followup_sent: true, followup_sent_at: new Date().toISOString() })
-              .eq('id', order.id)
-            sentFollowups++
-          } catch (mailErr) {
-            console.error('[cron] followup failed', order.id, mailErr)
-            errors.push({ id: order.id, kind: 'followup', err: String(mailErr) })
+        if (!order.followup_sent) {
+          const ok = await send('followup', order.id, {
+            to: customer.email,
+            subject: `How is your ${piano?.brand || 'Yamaha'} ${piano?.model || ''} going? — Signature Pianos`.trim(),
+            html: postTuningFollowupEmail({ customer, piano, settings }),
+          })
+          if (ok) {
+            await setFlag('orders', order.id,
+              { followup_sent: true, followup_sent_at: new Date().toISOString() }, 'followup')
           }
-        } else if (flags?.followup_sent && !flags.review_request_sent && settings?.google_review_url) {
+        } else if (!order.review_request_sent && settings?.google_review_url) {
           // Review request — fires on the next cron pass after the followup,
           // so customer doesn't get both in the same inbox at the same time.
-          try {
-            await resend.emails.send({
-              from: FROM,
-              to: customer.email,
-              subject: 'Would you mind leaving us a review? — Signature Pianos',
-              html: googleReviewRequestEmail({ customer, piano, settings }),
-            })
-            await supabase.from('orders')
-              .update({ review_request_sent: true, review_request_sent_at: new Date().toISOString() })
-              .eq('id', order.id)
-            sentReviewRequests++
-          } catch (mailErr) {
-            console.error('[cron] review request failed', order.id, mailErr)
-            errors.push({ id: order.id, kind: 'review_request', err: String(mailErr) })
+          const ok = await send('reviewRequest', order.id, {
+            to: customer.email,
+            subject: 'Would you mind leaving us a review? — Signature Pianos',
+            html: googleReviewRequestEmail({ customer, piano, settings }),
+          })
+          if (ok) {
+            await setFlag('orders', order.id,
+              { review_request_sent: true, review_request_sent_at: new Date().toISOString() }, 'reviewRequest')
           }
         }
       }
     } catch (outerErr) {
-      console.error('[cron] followup/review section failed', outerErr)
+      fail('followup_section', null, outerErr)
     }
 
     // ─────────────────────────────────────────────────────────────────
     // PAYMENT INSTALMENT OVERDUE REMINDERS — 3 / 7 / 14 day (Session 13)
+    // Only for plans that are in force: status 'active' (set on
+    // countersign) with the contract signed, on an order that isn't
+    // voided. Pending / unsigned / cancelled / completed / defaulted plans
+    // get no overdue notices.
     // ─────────────────────────────────────────────────────────────────
-    let sent3DayInst = 0
-    let sent7DayInst = 0
-    let sent14DayAlerts = 0
-
     try {
       const { data: overdueInstalments, error: oiErr } = await supabase
         .from('payment_instalments')
@@ -430,78 +442,96 @@ module.exports = async (req, res) => {
           plan:payment_plan_id (
             *,
             customer:customer_id ( * ),
-            piano:piano_id ( * )
+            piano:piano_id ( * ),
+            order:order_id ( id, voided )
           )
         `)
-        .eq('paid', false)
+        .not('paid', 'is', true)
         .lt('due_date', todayStr)
       if (oiErr) throw oiErr
 
       for (const ins of (overdueInstalments || [])) {
         const plan = ins.plan
         if (!plan?.customer?.email) continue
+        if (plan.status !== 'active' || plan.contract_signed !== true) continue
+        if (plan.order?.voided) continue
         const customer = plan.customer
         const piano    = plan.piano
-        const dueDate = new Date(ins.due_date + 'T00:00:00')
-        const daysOverdue = Math.floor((today - dueDate) / 86400000)
+        const daysOverdue = daysBetween(ins.due_date, todayStr)
+        const stamp = new Date().toISOString()
 
-        try {
-          if (daysOverdue >= 3 && daysOverdue < 7 && !ins.reminder_3day_sent) {
-            await resend.emails.send({
-              from: FROM,
-              to: customer.email,
-              subject: `Payment overdue — Plan ${plan.plan_number || ''} · Signature Pianos`,
-              html: instalmentOverdueEmail({ customer, piano, plan, instalment: ins, daysOverdue, settings, urgency: 'gentle' }),
-            })
-            await supabase.from('payment_instalments').update({ reminder_3day_sent: true, reminder_3day_sent_at: new Date().toISOString() }).eq('id', ins.id)
-            sent3DayInst++
-          } else if (daysOverdue >= 7 && daysOverdue < 14 && !ins.reminder_7day_sent) {
-            await resend.emails.send({
-              from: FROM,
-              to: customer.email,
-              subject: `Second reminder — payment overdue ${daysOverdue} days · Plan ${plan.plan_number || ''}`,
-              html: instalmentOverdueEmail({ customer, piano, plan, instalment: ins, daysOverdue, settings, urgency: 'firm' }),
-            })
-            await supabase.from('payment_instalments').update({ reminder_7day_sent: true, reminder_7day_sent_at: new Date().toISOString() }).eq('id', ins.id)
-            sent7DayInst++
-          } else if (daysOverdue >= 14 && !ins.reminder_14day_sent) {
-            // Final customer notice
-            await resend.emails.send({
-              from: FROM,
-              to: customer.email,
-              subject: `Urgent — payment overdue ${daysOverdue} days · Plan ${plan.plan_number || ''}`,
-              html: instalmentOverdueEmail({ customer, piano, plan, instalment: ins, daysOverdue, settings, urgency: 'urgent' }),
-            })
-            // + alert Eric
-            await resend.emails.send({
-              from: FROM,
-              to: internalRecipients(),
-              subject: `Payment plan default risk — ${customer.first_name || ''} ${customer.last_name || ''} · ${daysOverdue} days overdue`,
-              html: paymentDefaultRiskEmail({ customer, piano, plan, instalment: ins, daysOverdue }),
-            })
-            await supabase.from('payment_instalments').update({ reminder_14day_sent: true, reminder_14day_sent_at: new Date().toISOString() }).eq('id', ins.id)
-            sent14DayAlerts++
-          }
-        } catch (mailErr) {
-          console.error('[cron] instalment reminder failed', ins.id, mailErr)
-          errors.push({ id: ins.id, kind: 'instalment_reminder', err: String(mailErr) })
+        if (daysOverdue >= 3 && daysOverdue < 7 && !ins.reminder_3day_sent) {
+          const ok = await send('instalment3Day', ins.id, {
+            to: customer.email,
+            subject: `Payment overdue — Plan ${plan.plan_number || ''} · Signature Pianos`,
+            html: instalmentOverdueEmail({ customer, piano, plan, instalment: ins, daysOverdue, settings, urgency: 'gentle' }),
+          })
+          if (ok) await setFlag('payment_instalments', ins.id, { reminder_3day_sent: true, reminder_3day_sent_at: stamp }, 'instalment3Day')
+        } else if (daysOverdue >= 7 && daysOverdue < 14 && !ins.reminder_7day_sent) {
+          const ok = await send('instalment7Day', ins.id, {
+            to: customer.email,
+            subject: `Second reminder — payment overdue ${daysOverdue} days · Plan ${plan.plan_number || ''}`,
+            html: instalmentOverdueEmail({ customer, piano, plan, instalment: ins, daysOverdue, settings, urgency: 'firm' }),
+          })
+          if (ok) await setFlag('payment_instalments', ins.id, { reminder_7day_sent: true, reminder_7day_sent_at: stamp }, 'instalment7Day')
+        } else if (daysOverdue >= 14 && !ins.reminder_14day_sent) {
+          // Final customer notice. The flag follows this email: if only
+          // Eric's alert fails, the customer isn't sent a second notice.
+          const ok = await send('instalment14Day', ins.id, {
+            to: customer.email,
+            subject: `Urgent — payment overdue ${daysOverdue} days · Plan ${plan.plan_number || ''}`,
+            html: instalmentOverdueEmail({ customer, piano, plan, instalment: ins, daysOverdue, settings, urgency: 'urgent' }),
+          })
+          if (!ok) continue
+          // + alert Eric
+          await send('instalment14DayAlert', ins.id, {
+            to: internalRecipients(),
+            subject: `Payment plan default risk — ${customer.first_name || ''} ${customer.last_name || ''} · ${daysOverdue} days overdue`,
+            html: paymentDefaultRiskEmail({ customer, piano, plan, instalment: ins, daysOverdue }),
+          })
+          await setFlag('payment_instalments', ins.id, { reminder_14day_sent: true, reminder_14day_sent_at: stamp }, 'instalment14Day')
         }
       }
     } catch (outerErr) {
-      console.error('[cron] instalment-overdue section failed', outerErr)
+      fail('instalment_section', null, outerErr)
     }
 
-    console.log(`[cron-delivery-reminders] sent3Day=${sent3Day} sentDayOf=${sentDayOf} tunerContact=${sentTunerContact} tunerReminder=${sentTunerReminder} viewingReminders=${sentViewingReminders} followups=${sentFollowups} reviewRequests=${sentReviewRequests} inst3=${sent3DayInst} inst7=${sent7DayInst} inst14=${sent14DayAlerts} errors=${errors.length}`)
+    const fmt = (t) => Object.entries(t).map(([k, v]) => `${k}=${v}`).join(' ') || 'none'
+    console.log(`[cron-delivery-reminders] today=${todayStr} sent: ${fmt(sent)} | failed: ${fmt(failed)}`)
     return res.status(200).json({
-      success: true, sent3Day, sentDayOf, sentTunerContact, sentTunerReminder,
-      sentViewingReminders, sentFollowups, sentReviewRequests,
-      sent3DayInst, sent7DayInst, sent14DayAlerts,
+      success: true,
+      today: todayStr,
+      sent,
+      failed,
       errors,
     })
   } catch (err) {
     console.error('[cron-delivery-reminders] handler failed', err)
-    return res.status(500).json({ error: err.message || 'Cron failed' })
+    return res.status(500).json({ error: err.message || 'Cron failed', sent, failed, errors })
   }
+}
+
+/* Save contact_sent on a tuner booking (+ status 'contact_sent' when
+ * withStatus). The 'contact_sent' enum value comes from
+ * tuner_flow_rebuild.sql; if the live enum doesn't have it (22P02 invalid
+ * enum input) the flag is still saved without the status, so the booking
+ * isn't contacted again tomorrow. Returns the error, or null. */
+async function markContactSent(id, withStatus) {
+  const stamp = { contact_sent: true, contact_sent_at: new Date().toISOString() }
+  let { error } = await supabase.from('tuner_bookings')
+    .update(withStatus ? { ...stamp, status: 'contact_sent' } : stamp).eq('id', id)
+  if (error && withStatus && error.code === '22P02') {
+    console.warn('[cron] status contact_sent not in enum; saving the flag only')
+    ;({ error } = await supabase.from('tuner_bookings').update(stamp).eq('id', id))
+  }
+  return error || null
+}
+
+/* "in 3 days" / "in 2 days" / "tomorrow" / "today" for the pickup reminder. */
+function whenPhrase(days) {
+  if (days <= 0) return 'today'
+  if (days === 1) return 'tomorrow'
+  return `in ${days} days`
 }
 
 /* ============================================================================
@@ -544,9 +574,14 @@ function mailLink(email) {
 
 const OUR_PHONE = `<a href="tel:${BUSINESS.phoneHref}" style="color:${C.ink};">${BUSINESS.phone}</a>`
 
-/* ---------- Delivery driver: pickup reminder (3 days out / on the day) ---------- */
-function buildReminderEmail({ driver_name, type, scheduled_date, piano, customer, pickupUrl }) {
+/* ---------- Delivery driver: pickup reminder (up to 3 days out / on the day) ----------
+ * type '3day' is the reminder that carries the pickup link ahead of the
+ * day; days_until (default 3) says how far ahead it actually is, since it
+ * also goes to drivers who accept inside the 3-day window. */
+function buildReminderEmail({ driver_name, type, days_until = 3, scheduled_date, piano, customer, pickupUrl }) {
   const is3Day = type === '3day'
+  const when = whenPhrase(days_until)
+  const whenTitle = { 0: 'Pickup today', 1: 'Pickup tomorrow', 2: 'Pickup in two days', 3: 'Pickup in three days' }[days_until] || `Pickup ${when}`
   const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
   const deliverTo = [
     customer?.address_line1, customer?.suburb, customer?.state, customer?.postcode,
@@ -555,7 +590,7 @@ function buildReminderEmail({ driver_name, type, scheduled_date, piano, customer
   const body = `
     ${hello(driver_name)}
     ${p(is3Day
-      ? 'This is a reminder that you have a piano pickup in 3 days.'
+      ? `This is a reminder that you have a piano pickup ${when}.`
       : 'This is your day-of reminder. Your piano pickup is scheduled for today.')}
     ${details([
       [is3Day ? 'Pickup date' : 'Today', esc(fmtDateLong(scheduled_date)), true],
@@ -577,10 +612,10 @@ function buildReminderEmail({ driver_name, type, scheduled_date, piano, customer
   `
   return layout({
     preview: is3Day
-      ? `Piano pickup in 3 days: ${fmtDateLong(scheduled_date)}. ${pianoLabel}.`
+      ? `Piano pickup ${when}: ${fmtDateLong(scheduled_date)}. ${pianoLabel}.`
       : `Piano pickup today: ${pianoLabel}. Upload your pickup photos with the link inside.`,
     label: is3Day ? 'Pickup reminder' : 'Pickup today',
-    title: is3Day ? 'Pickup in three days' : 'Your pickup is today',
+    title: is3Day ? whenTitle : 'Your pickup is today',
     body,
   })
 }
@@ -588,7 +623,7 @@ function buildReminderEmail({ driver_name, type, scheduled_date, piano, customer
 /* ---------- Eric: tuning job due but no tuner assigned ---------- */
 function noTunerAssignedEmail({ customer, piano, pianoLabel }) {
   const body = `
-    ${p('A tuning job is due today but no tuner has been assigned in the admin portal.', { first: true })}
+    ${p('A tuning job is now due but no tuner has been assigned in the admin portal.', { first: true })}
     ${details([
       ['Customer', `${esc(fullName(customer)) || '—'}<br>${mailLink(customer?.email)}<br>${telLink(customer?.phone)}`, true],
       ['Piano', esc(pianoLabel)],

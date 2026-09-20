@@ -5,21 +5,30 @@
  *   body: { token, booking_id, response, proposed_date?, proposed_time?, notes? }
  *   response: 'accepted' | 'proposed_new'
  *
- *   1. Verifies acceptance_token + booking_id pair.
- *   2. On 'accepted'  — flips tuner_accepted + status='confirmed',
- *                       sends customer confirmation + Eric note.
+ *   1. Verifies acceptance_token (exact match) + booking_id pair, and that
+ *      the booking is still waiting for an answer: not completed /
+ *      cancelled / already confirmed, and no earlier response. The row
+ *      update is conditional on that same state, so a double-tap can't
+ *      answer (or email) twice.
+ *   2. On 'accepted'  — flips tuner_accepted + status='confirmed', and
+ *                       records confirmed_date / confirmed_time (the
+ *                       proposed date, or the scheduled one) so the
+ *                       day-before reminder and the customer portal
+ *                       pick it up. Sends customer confirmation + Eric note.
  *   3. On 'proposed_new' — records the tuner's proposed date/time +
  *                       a tuner_response='proposed_new' marker, leaves
  *                       status='pending'. Eric gets an action-required
  *                       email so he can ring the customer + update
- *                       the booking in admin.
+ *                       the booking in admin (re-sending from admin
+ *                       mints a new link and clears the answer).
  */
 
 const { createClient } = require('@supabase/supabase-js')
 const { Resend } = require('resend')
 const { internalRecipients } = require('../lib/notify')
+const { melbourneDate } = require('../lib/dates')
 const { C, layout, hello, p, h2, details, note, button, steps, signOff } = require('../lib/email-brand')
-const { parts } = require('../lib/tuner-emails')
+const { parts, sendEmail } = require('../lib/tuner-emails')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -36,13 +45,24 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { token, booking_id, response, proposed_date, proposed_time, notes } = req.body || {}
-  if (!token || !booking_id) return res.status(400).json({ error: 'Missing token or booking_id' })
+  const { token, booking_id, response, proposed_date, proposed_time } = req.body || {}
+  const notes = req.body && req.body.notes ? String(req.body.notes).slice(0, 2000) : null
+  if (typeof token !== 'string' || token.length < 16 || !booking_id) {
+    return res.status(400).json({ error: 'Missing token or booking_id' })
+  }
   if (!['accepted', 'proposed_new'].includes(response)) {
     return res.status(400).json({ error: 'Invalid response' })
   }
-  if (response === 'proposed_new' && (!proposed_date || !proposed_time)) {
-    return res.status(400).json({ error: 'Proposed date and time are required' })
+  if (response === 'proposed_new') {
+    if (!proposed_date || !proposed_time) {
+      return res.status(400).json({ error: 'Proposed date and time are required' })
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(proposed_date)) || String(proposed_date) < melbourneDate()) {
+      return res.status(400).json({ error: 'Please choose a date from today onwards' })
+    }
+    if (String(proposed_time).length > 100) {
+      return res.status(400).json({ error: 'Invalid time' })
+    }
   }
 
   try {
@@ -61,11 +81,38 @@ module.exports = async (req, res) => {
       .eq('acceptance_token', token)
       .maybeSingle()
     if (error) throw error
-    if (!booking) return res.status(404).json({ error: 'Booking not found' })
+    if (!booking || booking.acceptance_token !== token) return res.status(404).json({ error: 'Booking not found' })
 
-    if (booking.tuner_accepted || booking.tuner_response === 'proposed_new') {
-      return res.status(400).json({ error: 'Already responded' })
+    if (booking.completed === true || booking.status === 'completed' || booking.status === 'cancelled') {
+      return res.status(409).json({ error: `This booking is ${booking.status === 'cancelled' ? 'cancelled' : 'already complete'}` })
     }
+    if (booking.tuner_accepted || booking.tuner_response || booking.status === 'confirmed') {
+      return res.status(409).json({ error: 'Already responded' })
+    }
+
+    // The date being accepted: the proposed one, else the legacy
+    // scheduled_date / scheduled_time (a `time`, e.g. "09:00:00").
+    const acceptDate = booking.proposed_date || booking.scheduled_date || null
+    const acceptTime = booking.proposed_date
+      ? (booking.proposed_time || null)
+      : (booking.scheduled_time ? String(booking.scheduled_time).slice(0, 5) : null)
+    if (response === 'accepted' && !acceptDate) {
+      return res.status(400).json({ error: 'No date has been proposed yet. Please propose a date instead.' })
+    }
+    if (response === 'accepted' && String(acceptDate) < melbourneDate()) {
+      return res.status(400).json({ error: 'The proposed date has passed. Please propose a new date instead.' })
+    }
+
+    // Update only while the booking is still unanswered (same checks as
+    // above, applied in the database): a second tap finds no row.
+    const answerOnce = (q) => q
+      .eq('id', booking_id)
+      .eq('acceptance_token', token)
+      .is('tuner_response', null)
+      .not('tuner_accepted', 'is', true)
+      .not('completed', 'is', true)
+      .not('status', 'in', '(confirmed,completed,cancelled)')
+      .select('id')
 
     const tuner    = booking.tuner            || {}
     const customer = booking.order?.customer  || {}
@@ -81,47 +128,48 @@ module.exports = async (req, res) => {
     }
 
     if (response === 'accepted') {
-      const { error: updErr } = await supabase
+      const { data: updated, error: updErr } = await answerOnce(supabase
         .from('tuner_bookings')
         .update({
           tuner_accepted:    true,
           tuner_accepted_at: new Date().toISOString(),
           tuner_response:    'accepted',
           status:            'confirmed',
-        })
-        .eq('id', booking_id)
+          confirmed_date:    acceptDate,
+          confirmed_time:    acceptTime,
+          day_before_reminder_sent:    false,
+          day_before_reminder_sent_at: null,
+        }))
       if (updErr) throw updErr
+      if (!updated || !updated.length) return res.status(409).json({ error: 'Already responded' })
+
+      // The emails describe the accepted date, whichever column it came from.
+      const accepted = { ...booking, proposed_date: acceptDate, proposed_time: acceptTime }
 
       // Customer confirmation
       if (customer.email) {
-        try {
-          await resend.emails.send({
-            from: FROM,
-            to: customer.email,
-            subject: 'Your piano tuning is confirmed — Signature Pianos',
-            html: customerTuningConfirmedEmail({
-              customer, piano,
-              confirmedDate: fmtDateLong(booking.proposed_date),
-              confirmedTime: booking.proposed_time,
-              settings,
-            }),
-          })
-        } catch (mailErr) {
-          console.error('[tuner-respond] customer email failed', mailErr)
-        }
+        const mailErr = await sendEmail(resend, {
+          from: FROM,
+          to: customer.email,
+          subject: 'Your piano tuning is confirmed — Signature Pianos',
+          html: customerTuningConfirmedEmail({
+            customer, piano,
+            confirmedDate: fmtDateLong(acceptDate),
+            confirmedTime: acceptTime,
+            settings,
+          }),
+        })
+        if (mailErr) console.error('[tuner-respond] customer email failed', booking_id, mailErr)
       }
 
       // Eric notification
-      try {
-        await resend.emails.send({
-          from: FROM,
-          to: internalRecipients(),
-          subject: `Tuner confirmed — ${tuner.name || ''} · ${fmtDateLong(booking.proposed_date)}`.trim(),
-          html: internalTunerAcceptedEmail({ tuner, customer, piano, booking }),
-        })
-      } catch (mailErr) {
-        console.error('[tuner-respond] eric email failed', mailErr)
-      }
+      const ericErr = await sendEmail(resend, {
+        from: FROM,
+        to: internalRecipients(),
+        subject: `Tuner confirmed — ${tuner.name || ''} · ${fmtDateLong(acceptDate)}`.trim(),
+        html: internalTunerAcceptedEmail({ tuner, customer, piano, booking: accepted }),
+      })
+      if (ericErr) console.error('[tuner-respond] eric email failed', booking_id, ericErr)
 
       return res.status(200).json({ success: true })
     }
@@ -131,7 +179,7 @@ module.exports = async (req, res) => {
       ? (booking.completion_notes ? booking.completion_notes + '\n\nTuner notes: ' + notes : 'Tuner notes: ' + notes)
       : booking.completion_notes
 
-    const { error: updErr } = await supabase
+    const { data: updated, error: updErr } = await answerOnce(supabase
       .from('tuner_bookings')
       .update({
         tuner_response:      'proposed_new',
@@ -139,20 +187,21 @@ module.exports = async (req, res) => {
         tuner_proposed_time: proposed_time,
         status:              'pending',
         completion_notes:    mergedNotes,
-      })
-      .eq('id', booking_id)
+      }))
     if (updErr) throw updErr
+    if (!updated || !updated.length) return res.status(409).json({ error: 'Already responded' })
 
-    // Eric action-required notification
-    try {
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `Action needed: tuner proposed a new date — ${tuner.name || ''} · ${fmtDateLong(proposed_date)}`.trim(),
-        html: tunerProposedNewEmail({ tuner, customer, piano, booking, proposed_date, proposed_time, notes, settings }),
-      })
-    } catch (mailErr) {
-      console.error('[tuner-respond] eric proposed-new email failed', mailErr)
+    // Eric action-required notification — the only record of the new
+    // date outside admin, so a failure is reported to the tuner's page.
+    const ericErr = await sendEmail(resend, {
+      from: FROM,
+      to: internalRecipients(),
+      subject: `Action needed: tuner proposed a new date — ${tuner.name || ''} · ${fmtDateLong(proposed_date)}`.trim(),
+      html: tunerProposedNewEmail({ tuner, customer, piano, booking, proposed_date, proposed_time, notes, settings }),
+    })
+    if (ericErr) {
+      console.error('[tuner-respond] eric proposed-new email failed', booking_id, ericErr)
+      return res.status(200).json({ success: true, warning: 'Saved, but the notification email to Signature Pianos failed' })
     }
 
     return res.status(200).json({ success: true })

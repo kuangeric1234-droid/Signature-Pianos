@@ -43,6 +43,12 @@
    and agreed a date + time. They open this page on their phone, enter
    the agreed values, submit. The API writes confirmed_date / _time and
    fires the confirmation emails to customer + tuner + Eric.
+
+   The booking is read through the get_tuner_booking_by_token RPC
+   (supabase/rpc_tuner_links.sql): one booking, exact token match, only the
+   fields shown here — booking.customer / booking.piano. The page never
+   reads tables with the anon key. One use per link: once logged, changes
+   go through Signature Pianos.
    ============================================================================ */
 
 const params = new URLSearchParams(window.location.search)
@@ -57,22 +63,18 @@ let currentBooking = null
 ;(async function loadLogDatePage() {
   try {
     const { data: booking, error } = await _supabase
-      .from('tuner_bookings')
-      .select(`
-        *,
-        tuner:tuner_id ( * ),
-        order:order_id (
-          *,
-          customer:customer_id ( * ),
-          piano:piano_id ( * )
-        )
-      `)
-      .eq('log_date_token', token)
-      .maybeSingle()
+      .rpc('get_tuner_booking_by_token', { p_token: token })
 
     if (error) throw error
-    if (!booking) return showError('This link is invalid or has expired.')
+    // An accept/propose link opened here (or any unknown token) is not valid.
+    if (!booking || booking.kind !== 'log_date') return showError('This link is invalid or has expired.')
 
+    if (booking.completed || booking.status === 'completed') {
+      return showStatus('Already complete', 'This tuning has already been marked complete. No further action needed.')
+    }
+    if (booking.status === 'cancelled') {
+      return showStatus('Booking cancelled', 'This tuning booking has been cancelled. No action needed.')
+    }
     if (booking.date_logged) return showAlreadyLogged(booking)
     currentBooking = booking
     renderLogDatePage(booking)
@@ -98,20 +100,21 @@ function fmtDateLong(d) {
 }
 
 function renderLogDatePage(booking) {
-  const customer = booking.order?.customer || {}
-  const piano    = booking.order?.piano    || {}
+  const customer = booking.customer || {}
+  const piano    = booking.piano    || {}
   const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
-  const fullAddress = [customer.address_line1, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(', ')
+  const fullAddress = [customer.address_line1, customer.address_line2, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(', ')
 
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  const minDate = tomorrow.toISOString().slice(0, 10)
+  // Earliest date = today, in the tuner's own time zone (toISOString is UTC,
+  // which in Melbourne mornings is still yesterday). The API accepts today.
+  const now = new Date()
+  const minDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
   document.getElementById('pageContent').innerHTML = `
 
-    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(22, 34, 46, 0.2);">
+    <div style="background:#FFFFFF;padding:20px 24px;border-bottom:1px solid rgba(22, 34, 46, 0.12);">
       <div style="font-size:16px;color:#16222E;font-style:italic;">Signature Pianos</div>
-      <div style="font-size:12px;color:rgba(22, 34, 46, 0.5);margin-top:2px;">Log agreed tuning date</div>
+      <div style="font-size:12px;color:#3A4855;margin-top:2px;">Log agreed tuning date</div>
     </div>
 
     <div style="padding:24px;max-width:480px;margin:0 auto;">
@@ -197,14 +200,18 @@ async function submitLogDate() {
     if (res.ok && result.success) {
       showSuccess(agreedDate, agreedTime)
     } else {
-      throw new Error(result.error || 'Unknown error')
+      // A 4xx carries a message meant for the tuner ("Already logged",
+      // "Please choose a date from today onwards").
+      const e = new Error(result.error || 'Request failed')
+      if (res.status >= 400 && res.status < 500 && result.error) e.userMessage = result.error
+      throw e
     }
   } catch (e) {
     console.error('[log-date] submit failed', e)
     btn.disabled = false
     btn.textContent = 'CONFIRM DATE & NOTIFY CUSTOMER'
     err.style.display = 'block'
-    err.textContent = 'Something went wrong — please try again.'
+    err.textContent = (e && e.userMessage) || 'Something went wrong — please try again.'
   }
 }
 
@@ -235,6 +242,17 @@ function showAlreadyLogged(booking) {
           ${booking.confirmed_date ? `Confirmed for ${esc(fmtDateLong(booking.confirmed_date))}.` : 'This booking already has a confirmed date.'}
           Contact Signature Pianos if you need to make changes.
         </p>
+      </div>
+    </div>
+  `
+}
+
+function showStatus(title, message) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="text-align:center;max-width:360px;">
+        <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">${esc(title)}</h2>
+        <p style="font-size:13px;color:#3A4855;line-height:1.7;">${esc(message)}</p>
       </div>
     </div>
   `

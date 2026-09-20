@@ -8,11 +8,15 @@
  * "TEST EMAIL" banner across the top so it can't be mistaken for a
  * live booking. Triggered by the "Send test emails" button in
  * admin/deliveries.html.
+ *
+ * Admin only: without the check this sent info@ mail to any address
+ * anyone posted.
  */
 
 const { Resend } = require('resend')
+const { requireAdmin, sendAuthError } = require('../lib/auth')
 const { layout, hello, p, h2, details, note, button, divider, signOff } = require('../lib/email-brand')
-const { parts } = require('../lib/tuner-emails')
+const { parts, sendEmail, errText } = require('../lib/tuner-emails')
 
 const resend   = new Resend(process.env.RESEND_API_KEY)
 const SITE_URL = process.env.SITE_URL || 'https://signaturepianos.com.au'
@@ -23,9 +27,14 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  try { await requireAdmin(req) } catch (e) { return sendAuthError(res, e) }
+
   const { test_email } = req.body || {}
   if (!test_email) {
     return res.status(400).json({ error: 'Missing test_email' })
+  }
+  if (typeof test_email !== 'string' || !/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(test_email.trim())) {
+    return res.status(400).json({ error: 'test_email must be one email address' })
   }
 
   const tuner = {
@@ -57,18 +66,17 @@ module.exports = async (req, res) => {
   const confirmUrl  = `${SITE_URL}/api/tuner-confirm?token=TEST_TOKEN_EXAMPLE`
   const completeUrl = `${SITE_URL}/api/tuner-complete?token=TEST_TOKEN_EXAMPLE`
 
-  try {
-    await resend.emails.send({
-      from: FROM,
-      to: test_email,
-      subject: `[TEST] Piano tuning request — Jane Smith · Yamaha U3A 1983`,
-      html: buildTunerTestEmail({ tuner, customer, piano, booking, confirmUrl, completeUrl }),
-    })
-    return res.status(200).json({ success: true })
-  } catch (err) {
+  const err = await sendEmail(resend, {
+    from: FROM,
+    to: test_email.trim(),
+    subject: `[TEST] Piano tuning request — Jane Smith · Yamaha U3A 1983`,
+    html: buildTunerTestEmail({ tuner, customer, piano, booking, confirmUrl, completeUrl }),
+  })
+  if (err) {
     console.error('[send-tuner-test] failed', err)
-    return res.status(500).json({ error: err.message || 'Test email failed' })
+    return res.status(502).json({ error: errText(err) || 'Test email failed' })
   }
+  return res.status(200).json({ success: true })
 }
 
 function escapeHtml(s) {

@@ -6,35 +6,43 @@
  *                                       optional notes before marking
  *                                       the booking complete.
  * POST /api/tuner-complete            → consumes the form submission,
- *                                       sets the booking to 'completed',
+ *                                       sets the booking to 'completed'
+ *                                       (status + completed=true +
+ *                                       completed_at, which the cron's
+ *                                       follow-up / review emails and the
+ *                                       day-before reminder filter on),
  *                                       emails the customer + Eric, and
  *                                       returns a thank-you page.
  *
- * Env required: RESEND_API_KEY, BUSINESS_EMAIL,
- *               SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+ * Both answer "Already marked complete" once the job is done; the POST's
+ * update is conditional on completed still being false, so a double-tap
+ * can't send the emails twice. A cancelled booking can't be completed.
+ *
+ * Env required: RESEND_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+ * (Eric's copy goes to lib/notify.js internalRecipients()).
  */
 
 const { createClient } = require('@supabase/supabase-js')
 const { Resend } = require('resend')
 const { internalRecipients } = require('../lib/notify')
 const { C, layout, hello, p, details, note, label, button, signOff } = require('../lib/email-brand')
-const { parts } = require('../lib/tuner-emails')
+const { parts, sendEmail } = require('../lib/tuner-emails')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 const resend = new Resend(process.env.RESEND_API_KEY)
-const BUSINESS_EMAIL = process.env.BUSINESS_EMAIL
 const FROM = 'Signature Pianos <info@signaturepianos.com.au>'
 
 module.exports = async (req, res) => {
   try {
+    // await, so a failure inside lands in the catch below.
     if (req.method === 'GET') {
-      return handleGet(req, res)
+      return await handleGet(req, res)
     }
     if (req.method === 'POST') {
-      return handlePost(req, res)
+      return await handlePost(req, res)
     }
     return res.status(405).send('<h2>Method not allowed.</h2>')
   } catch (err) {
@@ -46,13 +54,9 @@ module.exports = async (req, res) => {
   }
 }
 
-/* ---------- GET: render the completion form ---------- */
-async function handleGet(req, res) {
-  const token = (req.query && req.query.token) || ''
-  if (!token) {
-    return res.status(400).send(htmlMessage('Missing token', 'This link is missing its token. Please use the link from your tuning booking email.'))
-  }
-
+/* The booking for a completion token (exact match), or null. */
+async function findByToken(token) {
+  if (typeof token !== 'string' || token.length < 16) return null
   const { data: booking, error } = await supabase
     .from('tuner_bookings')
     .select(`
@@ -61,30 +65,59 @@ async function handleGet(req, res) {
       order:order_id(*, customer:customer_id(*), piano:piano_id(*))
     `)
     .eq('completion_token', token)
-    .single()
+    .maybeSingle()
+  if (error) throw error
+  return booking && booking.completion_token === token ? booking : null
+}
 
-  if (error || !booking) {
+function isComplete(booking) {
+  return booking.completed === true || booking.status === 'completed'
+}
+
+/* Page for a booking that is already done (or cancelled), or null. */
+function closedPage(booking) {
+  if (isComplete(booking)) {
+    return htmlMessage(
+      'Already marked complete',
+      `This tuning was already marked complete${booking.completed_at ? ' on ' + formatDate(booking.completed_at) : ''}. No further action needed.`
+    )
+  }
+  if (booking.status === 'cancelled') {
+    return htmlMessage(
+      'Booking cancelled',
+      'This tuning booking was cancelled. If you did complete a tuning, please email info@signaturepianos.com.au.'
+    )
+  }
+  return null
+}
+
+/* ---------- GET: render the completion form ---------- */
+async function handleGet(req, res) {
+  res.setHeader('content-type', 'text/html; charset=utf-8')
+  const token = (req.query && req.query.token) || ''
+  if (!token) {
+    return res.status(400).send(htmlMessage('Missing token', 'This link is missing its token. Please use the link from your tuning booking email.'))
+  }
+
+  const booking = await findByToken(token)
+  if (!booking) {
     return res.status(404).send(htmlMessage(
       'Booking not found',
       'This completion link may have already been used. If you think this is a mistake, please email info@signaturepianos.com.au.'
     ))
   }
 
-  if (booking.status === 'completed') {
-    return res.send(htmlMessage(
-      'Already marked complete',
-      `This tuning was already marked complete${booking.completed_at ? ' on ' + formatDate(booking.completed_at) : ''}. No further action needed.`
-    ))
-  }
+  const closed = closedPage(booking)
+  if (closed) return res.send(closed)
 
   const customer = booking.order && booking.order.customer
   const piano = booking.order && booking.order.piano
-  res.setHeader('content-type', 'text/html; charset=utf-8')
   return res.send(completionFormPage({ customer, piano, token }))
 }
 
 /* ---------- POST: persist completion + send emails ---------- */
 async function handlePost(req, res) {
+  res.setHeader('content-type', 'text/html; charset=utf-8')
   // Vercel auto-parses application/x-www-form-urlencoded into req.body.
   const body = req.body || {}
   const token = body.token
@@ -94,38 +127,48 @@ async function handlePost(req, res) {
     return res.status(400).send(htmlMessage('Missing token', 'This form submission was missing its token.'))
   }
 
-  const { data: booking, error } = await supabase
-    .from('tuner_bookings')
-    .select(`
-      *,
-      tuner:tuner_id(*),
-      order:order_id(*, customer:customer_id(*), piano:piano_id(*))
-    `)
-    .eq('completion_token', token)
-    .single()
-
-  if (error || !booking) {
+  const booking = await findByToken(token)
+  if (!booking) {
     return res.status(404).send(htmlMessage(
       'Booking not found',
       'This completion link is no longer valid.'
     ))
   }
 
-  const { error: updErr } = await supabase
+  // Done already (e.g. a double-tap): same page as the GET, no emails.
+  const closed = closedPage(booking)
+  if (closed) return res.send(closed)
+
+  // Keep earlier notes (tuner's scheduling notes etc.) and add these.
+  const mergedNotes = notes
+    ? (booking.completion_notes ? booking.completion_notes + '\n\nCompletion notes: ' + notes : notes)
+    : (booking.completion_notes || null)
+
+  const now = new Date().toISOString()
+  const { data: updated, error: updErr } = await supabase
     .from('tuner_bookings')
     .update({
       status: 'completed',
-      completed_at: new Date().toISOString(),
-      completion_notes: notes || booking.completion_notes || null,
-      updated_at: new Date().toISOString(),
+      completed: true,
+      completed_at: now,
+      completion_notes: mergedNotes,
+      updated_at: now,
     })
     .eq('id', booking.id)
+    .eq('completion_token', token)
+    .not('completed', 'is', true)
+    .not('status', 'in', '(completed,cancelled)')
+    .select('id')
   if (updErr) {
     console.error('[tuner-complete] update failed', updErr)
     return res.status(500).send(htmlMessage(
       'Something went wrong',
       'We could not save this update. Please try again.'
     ))
+  }
+  if (!updated || !updated.length) {
+    // Another request completed it between our read and this update.
+    return res.send(htmlMessage('Already marked complete', 'This tuning was already marked complete. No further action needed.'))
   }
 
   const tuner = booking.tuner || {}
@@ -134,33 +177,24 @@ async function handlePost(req, res) {
 
   // Customer notification
   if (customer && customer.email) {
-    try {
-      await resend.emails.send({
-        from: FROM,
-        to: customer.email,
-        subject: 'Your piano has been tuned — Signature Pianos',
-        html: customerCompletionEmail({ customer, piano, tuner, notes }),
-      })
-    } catch (mailErr) {
-      console.error('[tuner-complete] customer email failed', mailErr)
-    }
+    const mailErr = await sendEmail(resend, {
+      from: FROM,
+      to: customer.email,
+      subject: 'Your piano has been tuned — Signature Pianos',
+      html: customerCompletionEmail({ customer, piano, tuner, notes }),
+    })
+    if (mailErr) console.error('[tuner-complete] customer email failed', booking.id, mailErr)
   }
 
-  // Internal notification
-  if (BUSINESS_EMAIL) {
-    try {
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `Tuning complete — ${customer ? customer.first_name + ' ' + customer.last_name : '—'}`,
-        html: internalTuningCompleteEmail({ tuner, customer, piano, notes }),
-      })
-    } catch (mailErr) {
-      console.error('[tuner-complete] internal email failed', mailErr)
-    }
-  }
+  // Internal notification — always (internalRecipients() has defaults).
+  const internalErr = await sendEmail(resend, {
+    from: FROM,
+    to: internalRecipients(),
+    subject: `Tuning complete — ${customer ? customer.first_name + ' ' + customer.last_name : '—'}`,
+    html: internalTuningCompleteEmail({ tuner, customer, piano, notes }),
+  })
+  if (internalErr) console.error('[tuner-complete] internal email failed', booking.id, internalErr)
 
-  res.setHeader('content-type', 'text/html; charset=utf-8')
   return res.send(completionDonePage({ tuner }))
 }
 
@@ -175,6 +209,11 @@ function formatDate(dateStr) {
   } catch {
     return dateStr
   }
+}
+
+/* "Kawai K-300 2011" — brand from the piano row, not assumed Yamaha. */
+function pianoText(piano, withYear) {
+  return `${piano.brand || 'Yamaha'} ${piano.model || ''} ${withYear ? (piano.year || '') : ''}`.replace(/\s+/g, ' ').trim()
 }
 
 function escapeHtml(s) {
@@ -202,7 +241,7 @@ function completionFormPage({ customer, piano, token }) {
     label: 'Tuning',
     body: `
     <p>Customer: <strong>${escapeHtml(customer ? customer.first_name + ' ' + customer.last_name : '—')}</strong><br>
-    Piano: <strong>Yamaha ${escapeHtml(piano ? (piano.model || '') + ' ' + (piano.year || '') : '—')}</strong></p>
+    Piano: <strong>${escapeHtml(piano ? pianoText(piano, true) : '—')}</strong></p>
     <form method="POST">
       <input type="hidden" name="token" value="${escapeHtml(token)}">
       <label for="notes">Notes (optional)</label>
@@ -225,14 +264,14 @@ function completionDonePage({ tuner }) {
 
 /* To the customer, once the tuner marks the job complete. */
 function customerCompletionEmail({ customer, piano, tuner, notes }) {
-  const pianoText = `Yamaha ${piano ? (piano.model || '') : ''}`.trim()
+  const pianoLabel = piano ? pianoText(piano, false) : 'piano'
   return layout({
-    preview: `Your ${pianoText} has been tuned by ${tuner.name || 'one of our certified tuners'}.`,
+    preview: `Your ${pianoLabel} has been tuned by ${tuner.name || 'one of our certified tuners'}.`,
     label: 'Your tuning',
     title: 'Your piano has been tuned',
     body:
       hello(customer.first_name) +
-      p(`Your ${escapeHtml(pianoText)} has been professionally tuned by ${escapeHtml(tuner.name || 'one of our certified tuners')}. Enjoy playing it.`) +
+      p(`Your ${escapeHtml(pianoLabel)} has been professionally tuned by ${escapeHtml(tuner.name || 'one of our certified tuners')}. Enjoy playing it.`) +
       (notes
         ? note(label('Notes from your tuner') + `<div style="margin-top:8px;color:${C.ink};">${escapeHtml(notes).replace(/\r?\n/g, '<br>')}</div>`)
         : '') +
@@ -254,7 +293,7 @@ function internalTuningCompleteEmail({ tuner, customer, piano, notes }) {
       details([
         ['Tuner', escapeHtml(tuner.name || '—')],
         ['Customer', escapeHtml(customer ? customer.first_name + ' ' + customer.last_name : '—'), true],
-        ['Piano', `Yamaha ${escapeHtml(piano ? (piano.model || '') + ' ' + (piano.year || '') : '—')}`],
+        ['Piano', escapeHtml(piano ? pianoText(piano, true) : '—')],
         notes ? ['Notes', escapeHtml(notes).replace(/\r?\n/g, '<br>')] : null,
       ]),
   })
