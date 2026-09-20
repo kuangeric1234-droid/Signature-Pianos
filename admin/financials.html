@@ -113,11 +113,11 @@
   /* ---------- Secondary metrics row ---------- */
   .secondary-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px;
     margin-bottom: 24px;
   }
-  @media (max-width: 600px) { .secondary-row { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .secondary-row { grid-template-columns: 1fr; } }
   .secondary-stat {
     background: var(--admin-surface);
     border: 1px solid var(--admin-border);
@@ -316,7 +316,7 @@
         <div class="metric-card is-gold">
           <div class="icon-row"><i class="ti ti-cash"></i> Total revenue</div>
           <div class="number" id="mRevenue">—</div>
-          <div class="sub">Inc GST · all non-voided sales</div>
+          <div class="sub">Inc GST · non-voided sales (reserved-piano deposits excluded)</div>
         </div>
         <div class="metric-card is-green" id="mGrossProfitCard">
           <div class="icon-row is-green" id="mGrossProfitIcon"><i class="ti ti-trending-up"></i> Gross profit</div>
@@ -344,6 +344,10 @@
         <div class="secondary-stat">
           <span class="label">Cost of goods sold</span>
           <span class="value" id="mCogs">—</span>
+        </div>
+        <div class="secondary-stat" title="Website deposits on reserved pianos whose balance isn't paid yet. Not counted as revenue (or cost of goods) until the balance is paid.">
+          <span class="label">Deposits held</span>
+          <span class="value" id="mDeposits">—</span>
         </div>
       </div>
 
@@ -415,8 +419,26 @@
 
 let revenueChart = null
 let exportOrders = []
+let exportDepositsHeld = 0
 let exportFromDate = ''
 let exportToDate = ''
+
+/* A website deposit order is stored at the piano's full price (status
+   'pending') until the balance is paid, when the webhook marks it 'paid'.
+   Until then only the deposit has been received, so it isn't a sale yet:
+   kept out of revenue and cost of goods, shown as "Deposits held" instead.
+   Same rule as the Reserved pianos tab: awaiting balance until paid,
+   complete or cancelled. */
+function isDepositHeld(o) {
+  return o.payment_method === 'deposit_paid_online' && !['paid', 'complete', 'cancelled'].includes(o.status)
+}
+/* Deposit received: recorded on the first line item by the webhook, else $500. */
+function depositAmount(o) {
+  const recorded = Number(Array.isArray(o.line_items) ? o.line_items[0]?.deposit_paid_inc_gst : NaN)
+  const dep = Number.isFinite(recorded) && recorded > 0 ? recorded : 500
+  return Math.min(dep, Number(o.total || 0))
+}
+const round2 = (n) => Math.round(Number(n || 0) * 100) / 100
 
 ;(async function init() {
   const admin = await checkAdminAuth()
@@ -448,7 +470,7 @@ function setQuickRange(range, evt) {
     from = new Date(fyStart, 6, 1)
     to   = new Date(fyStart + 1, 5, 30)
   } else if (range === 'all_time') {
-    from = new Date('2020-01-01')
+    from = new Date(2020, 0, 1)
     to   = now
   } else {
     return
@@ -479,6 +501,19 @@ function toISODate(d) {
   return `${y}-${m}-${day}`
 }
 
+/* created_at (a UTC timestamp) → the local (Melbourne) calendar date. An
+   order at 8am on 1 Oct is 21:00 on 30 Sep in UTC; slicing the ISO string
+   would file it in September and the wrong BAS quarter. */
+function localDateOf(ts) {
+  return toISODate(new Date(ts))
+}
+
+/* 'YYYY-MM-DD' → local midnight at the start of that day (+ addDays). */
+function localDayStart(ymd, addDays = 0) {
+  const [y, m, d] = String(ymd).split('-').map(Number)
+  return new Date(y, m - 1, d + addDays)
+}
+
 /* ---------- Load + render ---------- */
 async function loadFinancials() {
   const from = document.getElementById('dateFrom').value
@@ -494,28 +529,41 @@ async function loadFinancials() {
   document.getElementById('txTableBody').innerHTML =
     `<tr><td colspan="9"><div class="empty-state"><i class="ti ti-loader"></i><p>Loading…</p></div></td></tr>`
 
-  let orders = []
+  let allRows = []
   try {
+    // Range bounds are local (Melbourne) midnights converted to UTC instants.
+    // The old bare 'YYYY-MM-DDT00:00:00' strings were read as UTC, which
+    // dropped the first 10–11 hours of the range and pulled in the next
+    // morning's orders.
     const { data, error } = await adminSupabase
       .from('orders')
       .select(`
         id, order_number, invoice_number, total, status, voided,
-        payment_method, created_at,
+        payment_method, created_at, line_items,
         customer:customer_id(first_name, last_name, email),
         piano:piano_id(cost_price, model, year, serial_number, brand, condition)
       `)
-      .eq('voided', false)
-      .gte('created_at', from + 'T00:00:00')
-      .lte('created_at', to + 'T23:59:59')
+      .not('voided', 'is', true)
+      .gte('created_at', localDayStart(from).toISOString())
+      .lt('created_at', localDayStart(to, 1).toISOString())
       .order('created_at', { ascending: false })
     if (error) throw error
-    orders = data || []
+    allRows = data || []
   } catch (err) {
     console.error('[financials] load failed', err)
     document.getElementById('txTableBody').innerHTML =
       `<tr><td colspan="9"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load orders.</p></div></td></tr>`
     return
   }
+
+  // Sales = non-voided, not cancelled, and not a deposit still waiting on
+  // its balance (see isDepositHeld).
+  const orders = allRows.filter(o => o.status !== 'cancelled' && !isDepositHeld(o))
+  const deposits = allRows.filter(isDepositHeld)
+  const depositsHeld = deposits.reduce((s, o) => s + depositAmount(o), 0)
+  document.getElementById('mDeposits').textContent = deposits.length
+    ? `${formatCurrency(depositsHeld)} · ${deposits.length} ${deposits.length === 1 ? 'piano' : 'pianos'}`
+    : formatCurrency(0)
 
   // Calculate metrics
   const revenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0)
@@ -529,7 +577,7 @@ async function loadFinancials() {
   renderPLTable({ revenue, cogs, grossProfit, grossMargin, gstCollected, revenueExGST, orders })
   renderChart(orders, from, to)
   renderTransactions(orders)
-  updateExportData(orders, from, to)
+  updateExportData(orders, from, to, depositsHeld)
 }
 
 /* ---------- Section B — metric cards ---------- */
@@ -566,7 +614,7 @@ function renderMetrics({ revenue, cogs, grossProfit, grossMargin, gstCollected, 
 function renderChart(orders, from, to) {
   const monthlyData = {}
   orders.forEach(order => {
-    const month = order.created_at.substring(0, 7) // YYYY-MM
+    const month = localDateOf(order.created_at).substring(0, 7) // local YYYY-MM
     if (!monthlyData[month]) {
       monthlyData[month] = { revenue: 0, profit: 0, count: 0 }
     }
@@ -720,7 +768,7 @@ function renderTransactions(orders) {
 
     return `
       <tr>
-        <td>${formatDateAU(o.created_at)}</td>
+        <td>${formatDateAU(localDateOf(o.created_at))}</td>
         <td class="mono">${esc(o.invoice_number || o.order_number || '—')}</td>
         <td class="name-cell">${esc(customerName)}</td>
         <td>${esc(pianoLabel)}</td>
@@ -735,11 +783,27 @@ function renderTransactions(orders) {
 }
 
 /* ---------- Section F — XLSX export ---------- */
-function updateExportData(orders, from, to) {
+function updateExportData(orders, from, to, depositsHeld = 0) {
   exportOrders = orders
+  exportDepositsHeld = depositsHeld
   exportFromDate = from
   exportToDate = to
   document.getElementById('exportBtn').disabled = orders.length === 0
+}
+
+/* Excel number formats (SheetJS cell.z). Money is written as real numbers,
+   signs kept, so a loss exports as -$1,234.00 and the columns can be summed. */
+const XLSX_MONEY = '$#,##0.00;-$#,##0.00'
+const XLSX_PCT   = '0.0%'
+function setColumnFormat(ws, cols, fmt, firstRow = 1) {
+  if (!ws['!ref']) return
+  const range = XLSX.utils.decode_range(ws['!ref'])
+  for (let r = firstRow; r <= range.e.r; r++) {
+    cols.forEach(c => {
+      const cell = ws[XLSX.utils.encode_cell({ r, c })]
+      if (cell && cell.t === 'n') cell.z = fmt
+    })
+  }
 }
 
 function exportFinancials() {
@@ -766,23 +830,31 @@ function exportFinancials() {
     const summaryData = [
       ['Signature Pianos — Financial Summary'],
       [`Period: ${formatDateAU(exportFromDate)} to ${formatDateAU(exportToDate)}`],
-      [`Generated: ${formatDateAU(new Date().toISOString().split('T')[0])}`],
+      [`Generated: ${formatDateAU(toISODate(new Date()))}`],
       [],
       ['Metric', 'Amount (AUD)'],
-      ['Sales revenue (inc GST)', formatCurrency(revenue)],
-      ['Less: GST collected',     formatCurrency(-gst)],
-      ['Sales revenue (ex GST)',  formatCurrency(exGST)],
+      ['Sales revenue (inc GST)', round2(revenue)],
+      ['Less: GST collected',     -round2(gst)],
+      ['Sales revenue (ex GST)',  round2(exGST)],
       [],
-      ['Cost of goods sold',      formatCurrency(-cogs)],
+      ['Cost of goods sold',      -round2(cogs)],
       [],
-      ['Gross profit',            formatCurrency(grossProfit)],
-      ['Gross margin %',          revenue > 0 ? ((grossProfit / revenue) * 100).toFixed(1) + '%' : '0%'],
+      ['Gross profit',            round2(grossProfit)],
+      ['Gross margin %',          revenue > 0 ? grossProfit / revenue : 0],
       [],
       ['Number of sales',         exportOrders.length],
-      ['Average sale price',      exportOrders.length > 0 ? formatCurrency(revenue / exportOrders.length) : '$0.00'],
+      ['Average sale price',      exportOrders.length > 0 ? round2(revenue / exportOrders.length) : 0],
+      [],
+      ['Deposits held (reserved pianos, not in revenue)', round2(exportDepositsHeld)],
     ]
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData)
-    wsSummary['!cols'] = [{ wch: 30 }, { wch: 20 }]
+    summaryData.forEach((row, r) => {
+      const cell = wsSummary[XLSX.utils.encode_cell({ r, c: 1 })]
+      if (!cell || cell.t !== 'n') return
+      if (row[0] === 'Gross margin %') cell.z = XLSX_PCT
+      else if (row[0] !== 'Number of sales') cell.z = XLSX_MONEY
+    })
+    wsSummary['!cols'] = [{ wch: 44 }, { wch: 20 }]
     XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary')
 
     // ----- Sheet 2: Transactions -----
@@ -797,11 +869,11 @@ function exportFinancials() {
       const total = Number(o.total || 0)
       const cost  = Number(o.piano?.cost_price || 0)
       const profit = total - cost
-      const margin = total > 0 ? ((profit / total) * 100).toFixed(1) : '0'
+      const margin = total > 0 ? profit / total : 0
       const gstAmt = total / 11
       const exGstAmt = total - gstAmt
       return [
-        formatDateAU(o.created_at.split('T')[0]),
+        formatDateAU(localDateOf(o.created_at)),
         o.invoice_number || '',
         o.order_number || '',
         `${o.customer?.first_name || ''} ${o.customer?.last_name || ''}`.trim(),
@@ -809,18 +881,20 @@ function exportFinancials() {
         `${o.piano?.brand || ''} ${o.piano?.model || ''} ${o.piano?.year || ''}`.trim(),
         o.piano?.serial_number || '',
         o.piano?.year || '',
-        formatCurrency(total),
-        formatCurrency(exGstAmt),
-        formatCurrency(gstAmt),
-        formatCurrency(cost),
-        formatCurrency(profit),
-        margin + '%',
+        round2(total),
+        round2(exGstAmt),
+        round2(gstAmt),
+        round2(cost),
+        round2(profit),
+        margin,
         o.payment_method || '',
         o.status || ''
       ]
     })
     const txWidths = [12, 14, 12, 22, 28, 24, 12, 6, 14, 14, 12, 14, 14, 12, 16, 12]
     const wsTransactions = XLSX.utils.aoa_to_sheet([txHeaders, ...txRows])
+    setColumnFormat(wsTransactions, [8, 9, 10, 11, 12], XLSX_MONEY)
+    setColumnFormat(wsTransactions, [13], XLSX_PCT)
     wsTransactions['!cols'] = txHeaders.map((h, i) => ({ wch: txWidths[i] || 14 }))
     XLSX.utils.book_append_sheet(wb, wsTransactions, 'Transactions')
 
@@ -830,19 +904,20 @@ function exportFinancials() {
       const total = Number(o.total || 0)
       const gstAmt = total / 11
       return [
-        formatDateAU(o.created_at.split('T')[0]),
+        formatDateAU(localDateOf(o.created_at)),
         o.invoice_number || '',
         `${o.customer?.first_name || ''} ${o.customer?.last_name || ''}`.trim(),
-        formatCurrency(total),
-        formatCurrency(gstAmt),
-        formatCurrency(total - gstAmt)
+        round2(total),
+        round2(gstAmt),
+        round2(total - gstAmt)
       ]
     })
     const totalGST = exportOrders.reduce((s, o) => s + Number(o.total || 0) / 11, 0)
     const totalRev = exportOrders.reduce((s, o) => s + Number(o.total || 0), 0)
     gstRows.push([])
-    gstRows.push(['TOTAL', '', '', formatCurrency(totalRev), formatCurrency(totalGST), formatCurrency(totalRev - totalGST)])
+    gstRows.push(['TOTAL', '', '', round2(totalRev), round2(totalGST), round2(totalRev - totalGST)])
     const wsGST = XLSX.utils.aoa_to_sheet([gstHeaders, ...gstRows])
+    setColumnFormat(wsGST, [3, 4, 5], XLSX_MONEY)
     wsGST['!cols'] = [{ wch: 12 }, { wch: 14 }, { wch: 24 }, { wch: 16 }, { wch: 16 }, { wch: 16 }]
     XLSX.utils.book_append_sheet(wb, wsGST, 'GST Report')
 
@@ -856,21 +931,23 @@ function exportFinancials() {
       const total = Number(o.total || 0)
       const cost  = Number(o.piano?.cost_price || 0)
       const profit = total - cost
-      const margin = total > 0 ? ((profit / total) * 100).toFixed(1) : '0'
+      const margin = total > 0 ? profit / total : 0
       return [
         `${o.piano?.brand || ''} ${o.piano?.model || ''}`.trim(),
         o.piano?.serial_number || '',
         o.piano?.year || '',
         o.piano?.condition || '',
-        formatCurrency(cost),
-        formatCurrency(total),
-        formatCurrency(profit),
-        margin + '%',
-        formatDateAU(o.created_at.split('T')[0]),
+        round2(cost),
+        round2(total),
+        round2(profit),
+        margin,
+        formatDateAU(localDateOf(o.created_at)),
         `${o.customer?.first_name || ''} ${o.customer?.last_name || ''}`.trim()
       ]
     })
     const wsPerf = XLSX.utils.aoa_to_sheet([perfHeaders, ...perfRows])
+    setColumnFormat(wsPerf, [4, 5, 6], XLSX_MONEY)
+    setColumnFormat(wsPerf, [7], XLSX_PCT)
     wsPerf['!cols'] = perfHeaders.map(() => ({ wch: 16 }))
     XLSX.utils.book_append_sheet(wb, wsPerf, 'Piano Performance')
 
@@ -892,11 +969,13 @@ function exportFinancials() {
 
 /* ---------- Format helpers ---------- */
 function formatCurrency(val) {
-  // Always 2 dp, en-AU. Negative numbers are rendered without the sign here;
-  // the P&L table prepends '−' from the row's value.
-  return '$' + Math.abs(Number(val || 0)).toLocaleString('en-AU', {
+  // Always 2 dp, en-AU, sign kept ("−$1,234.00") so a loss never reads as a
+  // profit. (The P&L table formats its own rows.)
+  const n = round2(val)
+  const s = '$' + Math.abs(n).toLocaleString('en-AU', {
     minimumFractionDigits: 2, maximumFractionDigits: 2
   })
+  return n < 0 ? '−' + s : s
 }
 
 function formatDateAU(dateStr) {

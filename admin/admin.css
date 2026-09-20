@@ -262,10 +262,6 @@ button { font-family: inherit; }
 .pill--gold  { background: var(--admin-gold-light);  color: var(--admin-gold); }
 .pill--grey  { background: #f0ede8;                  color: var(--admin-text-muted); }
 
-/* Condition pills (A+ brighter than B+) */
-.pill--cond-aplus { background: rgba(184, 147, 90, 0.22); color: #8b6a3c; border: 1px solid rgba(184, 147, 90, 0.5); }
-.pill--cond-bplus { background: rgba(184, 147, 90, 0.08); color: var(--admin-gold); border: 1px solid rgba(184, 147, 90, 0.25); }
-
 /* ============ FILTER PILLS ============ */
 .filter-bar {
   display: flex;

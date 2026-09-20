@@ -109,6 +109,11 @@
         </table>
       </div>
 
+      <div id="customersPager" style="display:none;align-items:center;gap:12px;margin-top:14px;font-size:12px;color:var(--admin-text-muted);">
+        <span id="customersCount"></span>
+        <button class="btn-ghost" id="loadMoreBtn" type="button" style="font-size:12px;padding:6px 12px;">Load more</button>
+      </div>
+
     </div>
   </main>
 </div>
@@ -133,8 +138,11 @@
 <script src="js/admin-auth.js"></script>
 <script src="js/admin-nav.js"></script>
 <script>
-let allCustomers = []   // most recent fetch; "source" attached
+const PAGE_SIZE = 200
+let allCustomers = []   // rows loaded so far (paged); "source" attached
+let totalMatching = 0   // server-side count for the current search
 let currentSearch = ''
+let loadSeq = 0         // drops stale responses when typing fast
 
 ;(async function init() {
   const admin = await checkAdminAuth()
@@ -146,6 +154,7 @@ let currentSearch = ''
   }, 220))
 
   document.getElementById('exportCsvBtn').addEventListener('click', exportCsv)
+  document.getElementById('loadMoreBtn').addEventListener('click', () => loadCustomers({ append: true }))
 
   await loadCustomers()
 })()
@@ -155,42 +164,96 @@ function debounce(fn, ms) {
   return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms) }
 }
 
-async function loadCustomers() {
-  try {
-    let query = adminSupabase
-      .from('customers')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200)
-    if (currentSearch && currentSearch.length >= 1) {
-      query = query.or(
-        `first_name.ilike.%${currentSearch}%,last_name.ilike.%${currentSearch}%,email.ilike.%${currentSearch}%`
-      )
-    }
-    const { data, error } = await query
-    if (error) throw error
+/* Search → PostgREST filters. Every word has to match the first name, last
+   name or email, so "Smith, John" finds John Smith. Characters PostgREST
+   treats as syntax are dropped and each value is double-quoted, so commas,
+   brackets and dots can't break the query. */
+function searchTokens(q) {
+  return String(q || '')
+    .split(/[\s,]+/)
+    .map(t => t.replace(/[(),"\\]/g, '').trim())
+    .filter(Boolean)
+    .slice(0, 6)
+}
+function customersQuery(q, { count = false } = {}) {
+  let query = adminSupabase
+    .from('customers')
+    .select('*', count ? { count: 'exact' } : undefined)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: true })   // stable order so pages don't overlap
+  searchTokens(q).forEach(tok => {
+    const v = `"%${tok}%"`
+    query = query.or(`first_name.ilike.${v},last_name.ilike.${v},email.ilike.${v}`)
+  })
+  return query
+}
 
-    // Stamp a best-guess `source` per customer by checking each set of tables
-    // for a matching email. Cheap because we already paginate to 200.
-    const emails = (data || []).map(c => c.email).filter(Boolean)
-    const sourceByEmail = {}
-    if (emails.length) {
-      const [{ data: orders }, { data: viewings }, { data: services }] = await Promise.all([
-        adminSupabase.from('orders').select('customer_id, customers(email)').in('customer_id', (data || []).map(c => c.id)),
-        adminSupabase.from('viewing_bookings').select('email').in('email', emails),
-        adminSupabase.from('service_requests').select('email').in('email', emails),
-      ])
-      ;(orders || []).forEach(o => { const c = (data || []).find(x => x.id === o.customer_id); if (c) sourceByEmail[c.email] = 'order' })
-      ;(viewings || []).forEach(v => { if (v.email && !sourceByEmail[v.email]) sourceByEmail[v.email] = 'viewing_booking' })
-      ;(services || []).forEach(s => { if (s.email && !sourceByEmail[s.email]) sourceByEmail[s.email] = 'service_request' })
-    }
-    allCustomers = (data || []).map(c => ({ ...c, _source: sourceByEmail[c.email] || 'manual' }))
-    renderTable()
-  } catch (err) {
-    console.error('[customers] load failed', err)
-    document.getElementById('customersTableBody').innerHTML =
-      `<tr><td colspan="7"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load customers.</p></div></td></tr>`
+/* Stamp a best-guess `source` on each customer: an order beats a viewing
+   booking beats a service request. Looked up in chunks so a big export
+   doesn't build a URL too long for the API. */
+async function attachSources(rows) {
+  const sourceById = {}
+  for (let i = 0; i < rows.length; i += 100) {
+    const chunk = rows.slice(i, i + 100)
+    const ids = chunk.map(c => c.id)
+    const emails = chunk.map(c => c.email).filter(Boolean)
+    const [orders, viewings, services] = await Promise.all([
+      adminSupabase.from('orders').select('customer_id').in('customer_id', ids),
+      emails.length ? adminSupabase.from('viewing_bookings').select('email').in('email', emails) : { data: [] },
+      emails.length ? adminSupabase.from('service_requests').select('email').in('email', emails) : { data: [] },
+    ])
+    ;[orders, viewings, services].forEach(r => { if (r.error) console.error('[customers] source lookup failed', r.error) })
+    const viewingEmails = new Set((viewings.data || []).map(v => v.email))
+    const serviceEmails = new Set((services.data || []).map(s => s.email))
+    const orderIds = new Set((orders.data || []).map(o => o.customer_id))
+    chunk.forEach(c => {
+      sourceById[c.id] = orderIds.has(c.id) ? 'order'
+        : viewingEmails.has(c.email) ? 'viewing_booking'
+        : serviceEmails.has(c.email) ? 'service_request'
+        : 'manual'
+    })
   }
+  return rows.map(c => ({ ...c, _source: sourceById[c.id] || 'manual' }))
+}
+
+async function loadCustomers({ append = false } = {}) {
+  const seq = ++loadSeq
+  const from = append ? allCustomers.length : 0
+  const moreBtn = document.getElementById('loadMoreBtn')
+  moreBtn.disabled = true
+  try {
+    const { data, error, count } = await customersQuery(currentSearch, { count: true })
+      .range(from, from + PAGE_SIZE - 1)
+    if (error) throw error
+    const page = await attachSources(data || [])
+    if (seq !== loadSeq) return   // a newer search has started
+
+    allCustomers = append ? allCustomers.concat(page) : page
+    totalMatching = count ?? allCustomers.length
+    renderTable()
+    renderPager()
+  } catch (err) {
+    if (seq !== loadSeq) return
+    console.error('[customers] load failed', err)
+    if (append) {
+      showToast("Couldn't load more customers.", 'error')
+    } else {
+      document.getElementById('customersTableBody').innerHTML =
+        `<tr><td colspan="7"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load customers.</p></div></td></tr>`
+      document.getElementById('customersPager').style.display = 'none'
+    }
+  } finally {
+    moreBtn.disabled = false
+  }
+}
+
+function renderPager() {
+  const pager = document.getElementById('customersPager')
+  if (!allCustomers.length) { pager.style.display = 'none'; return }
+  pager.style.display = 'flex'
+  document.getElementById('customersCount').textContent =
+    `Showing ${allCustomers.length.toLocaleString('en-AU')} of ${totalMatching.toLocaleString('en-AU')} customers`
+  document.getElementById('loadMoreBtn').style.display = allCustomers.length < totalMatching ? '' : 'none'
 }
 
 function renderTable() {
@@ -266,6 +329,7 @@ async function openCustomer(id) {
       c.notes = e.target.value
     } catch (err) {
       console.error('[customers] notes save failed', err)
+      showToast("Couldn't save the notes — copy them and try again.", 'error')
     }
   })
 
@@ -274,17 +338,22 @@ async function openCustomer(id) {
   // Build timeline from orders + viewing_bookings + service_requests
   try {
     const [orders, viewings, services] = await Promise.all([
-      adminSupabase.from('orders').select('id, order_number, total, created_at, status, pianos(brand, model, year)').eq('customer_id', id).order('created_at', { ascending: false }),
+      adminSupabase.from('orders').select('id, order_number, total, created_at, status, voided, payment_method, line_items, pianos(brand, model, year)').eq('customer_id', id).order('created_at', { ascending: false }),
       c.email ? adminSupabase.from('viewing_bookings').select('id, preferred_date, status, created_at').eq('email', c.email).order('created_at', { ascending: false }) : { data: [] },
       c.email ? adminSupabase.from('service_requests').select('id, piano_brand, service_required, status, created_at').eq('email', c.email).order('created_at', { ascending: false }) : { data: [] },
     ])
+    // Total spent comes from the orders read, so that one has to succeed.
+    if (orders.error) throw orders.error
+    if (viewings.error) console.error('[customers] viewings load failed', viewings.error)
+    if (services.error) console.error('[customers] services load failed', services.error)
 
     const items = []
     ;(orders.data || []).forEach(o => items.push({
       ts: o.created_at,
-      label: 'Order', icon: 'ti-receipt',
+      label: o.voided ? 'Order (voided)' : 'Order', icon: 'ti-receipt',
       title: `${o.order_number || 'Order'} · ${o.pianos ? `${o.pianos.brand || ''} ${o.pianos.model || ''}`.trim() : 'Piano'}`,
-      meta: `${fmtMoney(o.total)} · ${o.status}`,
+      meta: `${o.voided ? 'VOID · ' : ''}${fmtMoney(o.total)} · ${o.status}`,
+      voided: !!o.voided,
     }))
     ;(viewings.data || []).forEach(v => items.push({
       ts: v.created_at,
@@ -300,7 +369,18 @@ async function openCustomer(id) {
     }))
     items.sort((a, b) => new Date(b.ts) - new Date(a.ts))
 
-    const totalSpent = (orders.data || []).reduce((s, o) => s + Number(o.total || 0), 0)
+    // Voided and cancelled orders aren't money spent. A website deposit that
+    // is still waiting on its balance (not yet paid / complete) counts only
+    // the deposit actually paid, not the full piano price stored as its total.
+    const totalSpent = (orders.data || []).reduce((s, o) => {
+      if (o.voided || o.status === 'cancelled') return s
+      const total = Number(o.total || 0)
+      if (o.payment_method === 'deposit_paid_online' && !['paid', 'complete'].includes(o.status)) {
+        const recorded = Number(Array.isArray(o.line_items) ? o.line_items[0]?.deposit_paid_inc_gst : NaN)
+        return s + Math.min(Number.isFinite(recorded) && recorded > 0 ? recorded : 500, total)
+      }
+      return s + total
+    }, 0)
     document.getElementById('custSpent').textContent = fmtMoney(totalSpent)
 
     const tl = document.getElementById('custTimeline')
@@ -309,9 +389,9 @@ async function openCustomer(id) {
       return
     }
     tl.innerHTML = items.map(it => `
-      <div class="timeline-item">
+      <div class="timeline-item"${it.voided ? ' style="opacity:0.65;"' : ''}>
         <div class="label"><i class="ti ${it.icon}" style="margin-right:4px;"></i>${esc(it.label)} · ${timeAgo(it.ts)}</div>
-        <div class="title">${esc(it.title)}</div>
+        <div class="title">${esc(it.title)}${it.voided ? ' <span class="pill pill--red" style="margin-left:6px;">VOID</span>' : ''}</div>
         <div class="meta">${esc(it.meta || '')}</div>
       </div>
     `).join('')
@@ -322,29 +402,65 @@ async function openCustomer(id) {
   }
 }
 
-function exportCsv() {
-  if (!allCustomers.length) return
-  const headers = ['First name', 'Last name', 'Email', 'Phone', 'Suburb', 'Source', 'Joined']
-  const rows = allCustomers.map(c => [
-    c.first_name || '', c.last_name || '', c.email || '', c.phone || '',
-    c.suburb || '', c._source || 'manual', new Date(c.created_at).toISOString()
-  ])
-  const csv = [headers, ...rows]
-    .map(row => row.map(cell => {
-      const s = String(cell ?? '')
-      return /[,"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
-    }).join(','))
-    .join('\n')
+/* One CSV cell. Values starting with = + - @ (or a tab / carriage return)
+   are prefixed with an apostrophe so Excel/Sheets treat them as text, not
+   formulas (a customer could type "=HYPERLINK(...)" into a website form). */
+function csvCell(v) {
+  let s = String(v ?? '')
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s
+  return /[,"\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+}
 
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `signature-pianos-customers-${new Date().toISOString().slice(0, 10)}.csv`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+/* Exports EVERY customer matching the current search, not just the pages
+   loaded on screen. */
+async function exportCsv() {
+  const btn = document.getElementById('exportCsvBtn')
+  const orig = btn.innerHTML
+  btn.disabled = true
+  btn.innerHTML = '<i class="ti ti-loader"></i> Exporting…'
+  try {
+    const rows = []
+    // Page until an empty page comes back (the API may cap a page below
+    // BATCH, so a short page doesn't prove we're at the end).
+    const BATCH = 1000
+    for (let from = 0; from < 100000; ) {
+      const { data, error } = await customersQuery(currentSearch).range(from, from + BATCH - 1)
+      if (error) throw error
+      if (!data || !data.length) break
+      rows.push(...data)
+      from += data.length
+    }
+    if (!rows.length) { showToast('No customers to export.', 'warning'); return }
+    const withSource = await attachSources(rows)
+
+    const headers = ['First name', 'Last name', 'Email', 'Phone', 'Suburb', 'Source', 'Joined']
+    const lines = withSource.map(c => [
+      c.first_name || '', c.last_name || '', c.email || '', c.phone || '',
+      c.suburb || '', c._source || 'manual', c.created_at ? new Date(c.created_at).toISOString() : ''
+    ])
+    const csv = [headers, ...lines]
+      .map(row => row.map(csvCell).join(','))
+      .join('\n')
+
+    const d = new Date()
+    const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `signature-pianos-customers-${stamp}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    showToast(`Exported ${withSource.length.toLocaleString('en-AU')} customers.`, 'success')
+  } catch (err) {
+    console.error('[customers] export failed', err)
+    showToast("Couldn't export customers — please try again.", 'error')
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = orig
+  }
 }
 </script>
 

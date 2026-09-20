@@ -108,7 +108,7 @@
         <div class="metric-card">
           <div class="icon-row"><i class="ti ti-receipt"></i> Total orders</div>
           <div class="number" id="metricOrders">—</div>
-          <div class="sub">All-time</div>
+          <div class="sub">All-time, excluding voided</div>
         </div>
       </div>
 
@@ -148,12 +148,19 @@ async function loadMetrics() {
       adminSupabase.from('viewing_bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       adminSupabase.from('service_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       adminSupabase.from('pianos').select('*', { count: 'exact', head: true }).eq('stock_status', 'available'),
-      adminSupabase.from('orders').select('*', { count: 'exact', head: true }),
+      // Voided invoices aren't sales. `not is true` also keeps legacy rows
+      // where voided is null.
+      adminSupabase.from('orders').select('*', { count: 'exact', head: true }).not('voided', 'is', true),
     ])
-    document.getElementById('metricViewings').textContent = v.count ?? 0
-    document.getElementById('metricServices').textContent = s.count ?? 0
-    document.getElementById('metricPianos').textContent   = p.count ?? 0
-    document.getElementById('metricOrders').textContent   = o.count ?? 0
+    // A failed count shows "—" rather than a misleading 0.
+    const show = (id, res, label) => {
+      if (res.error) console.error(`[dashboard] ${label} count failed`, res.error)
+      document.getElementById(id).textContent = res.error ? '—' : (res.count ?? 0)
+    }
+    show('metricViewings', v, 'viewings')
+    show('metricServices', s, 'services')
+    show('metricPianos',   p, 'pianos')
+    show('metricOrders',   o, 'orders')
   } catch (err) {
     console.error('[dashboard] metrics failed', err)
   }
@@ -162,7 +169,7 @@ async function loadMetrics() {
 async function loadActivity() {
   const feed = document.getElementById('activityFeed')
   try {
-    const [{ data: viewings }, { data: services }] = await Promise.all([
+    const [{ data: viewings, error: vErr }, { data: services, error: sErr }] = await Promise.all([
       adminSupabase.from('viewing_bookings')
         .select('id, first_name, last_name, status, created_at')
         .order('created_at', { ascending: false }).limit(10),
@@ -170,6 +177,10 @@ async function loadActivity() {
         .select('id, first_name, last_name, status, created_at')
         .order('created_at', { ascending: false }).limit(10),
     ])
+    // Both failing means we know nothing — say so instead of "No recent activity".
+    if (vErr && sErr) throw vErr
+    if (vErr) console.error('[dashboard] viewings activity failed', vErr)
+    if (sErr) console.error('[dashboard] services activity failed', sErr)
     const all = []
     ;(viewings || []).forEach(r => all.push({ ...r, _type: 'viewing' }))
     ;(services || []).forEach(r => all.push({ ...r, _type: 'service' }))

@@ -257,6 +257,10 @@ async function loadPiano(id) {
       adminSupabase.from('orders').select('id, order_number, invoice_number, total, status, voided, created_at, customers(first_name, last_name, email)').eq('piano_id', id).order('created_at', { ascending: false }),
     ])
     if (pianoRes.error) throw pianoRes.error
+    // The cost breakdown is built from the log, so a failed log read must not
+    // quietly render as "no entries, $0".
+    if (logRes.error) throw logRes.error
+    if (orderRes.error) console.error('[piano-detail] sales history load failed', orderRes.error)
     piano = pianoRes.data
     serviceLog = logRes.data || []
     salesHistory = orderRes.data || []
@@ -270,6 +274,21 @@ async function loadPiano(id) {
 
 function fmtAUD(n) {
   return '$' + Number(n || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+/* Today as YYYY-MM-DD in the browser's (Melbourne) time zone. toISOString()
+   is UTC, which is still "yesterday" before 10–11am here. */
+function todayLocalISO() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/* Format a date-only column (YYYY-MM-DD) without a UTC round-trip. */
+function fmtDay(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ''))
+  if (!m) return fmtDate(s)
+  return new Date(+m[1], +m[2] - 1, +m[3])
+    .toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 function render() {
@@ -322,12 +341,11 @@ function render() {
         <tr><td class="label">Model</td><td>${esc(piano.model || '—')}</td></tr>
         <tr><td class="label">Year</td><td>${esc(piano.year ?? '—')}</td></tr>
         <tr><td class="label">Serial</td><td class="mono">${esc(piano.serial_number || '—')}</td></tr>
-        <tr><td class="label">Condition</td><td>${esc(piano.condition || '—')}</td></tr>
         <tr><td class="label">Type</td><td>${esc((piano.type || 'acoustic_upright').replace(/_/g, ' '))}</td></tr>
         <tr><td class="label">Weight</td><td>${piano.weight_kg ? esc(piano.weight_kg) + ' kg' : '—'}</td></tr>
         <tr><td class="label">Stock status</td><td><span class="${statusPillClass(piano.stock_status)}">${esc(piano.stock_status || '—')}</span></td></tr>
         <tr><td class="label">Featured</td><td>${piano.featured ? 'Yes' : 'No'}</td></tr>
-        <tr><td class="label">Purchase date</td><td>${piano.purchase_date ? fmtDate(piano.purchase_date) : '—'}</td></tr>
+        <tr><td class="label">Purchase date</td><td>${piano.purchase_date ? fmtDay(piano.purchase_date) : '—'}</td></tr>
         <tr><td class="label">Purchase notes</td><td>${esc(piano.purchase_notes || '—')}</td></tr>
       </table>
     </div>
@@ -363,7 +381,7 @@ function render() {
             <tbody>
               ${serviceLog.map(r => `
                 <tr data-log-id="${esc(r.id)}">
-                  <td>${fmtDate(r.service_date)}</td>
+                  <td>${fmtDay(r.service_date)}</td>
                   <td><span class="pill pill--grey">${esc((r.service_type || '').replace(/_/g, ' '))}</span></td>
                   <td>${esc(r.description || '—')}</td>
                   <td>${esc(r.performed_by || '—')}</td>
@@ -428,7 +446,7 @@ function openLogPanel(logId) {
   if (!logId) {
     document.getElementById('logPanelTitle').textContent = 'Add service entry'
     document.getElementById('log-id').value = ''
-    document.getElementById('log-date').value = new Date().toISOString().slice(0, 10)
+    document.getElementById('log-date').value = todayLocalISO()
     document.getElementById('log-type').value = 'tuning'
     document.getElementById('log-desc').value = ''
     document.getElementById('log-cost').value = ''
@@ -461,7 +479,7 @@ async function saveServiceEntry(pianoId) {
   }
   const payload = {
     piano_id:     pianoId,
-    service_date: document.getElementById('log-date').value || new Date().toISOString().slice(0, 10),
+    service_date: document.getElementById('log-date').value || todayLocalISO(),
     service_type: document.getElementById('log-type').value,
     description:  document.getElementById('log-desc').value.trim() || null,
     cost,
