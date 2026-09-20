@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Free Yamaha Buyer's Guide | Signature Pianos</title>
+<meta name="description" content="Every Yamaha upright and grand from 1970 to today, in one free guide: which model is which, how to date a piano, and what to check before you buy. From Signature Pianos, Mount Waverley." />
+<link rel="canonical" href="https://signaturepianos.com.au/guide" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Signature Pianos" />
+<meta property="og:locale" content="en_AU" />
+<meta property="og:url" content="https://signaturepianos.com.au/guide" />
+<meta property="og:title" content="The Yamaha buyer's guide, free from Signature Pianos" />
+<meta property="og:description" content="Every Yamaha upright and grand from 1970 to today, in one guide." />
+<meta property="og:image" content="https://signaturepianos.com.au/media/guides/buyers-guide-cover.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<link rel="stylesheet" href="/css/signature-theme.css" />
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/media/brand/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
+
+<style>
+  /* The QR landing page: no site menu, one job. Brand: brand/BRAND-GUIDELINES.md */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--sp-ivory); color: var(--sp-ink); }
+  body {
+    font-family: var(--sp-font-text);
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  a { color: inherit; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+
+  .gd-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) clamp(20px, 5vw, 56px) 14px;
+    border-bottom: 1px solid var(--sp-rule);
+  }
+  .gd-logo img { display: block; width: 150px; height: auto; }
+  .gd-call {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .gd-call i { font-size: 20px; }
+
+  .gd {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(28px, 5vw, 72px) clamp(20px, 5vw, 56px) clamp(56px, 7vw, 96px);
+  }
+  .gd-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: clamp(40px, 6vw, 96px);
+    align-items: start;
+  }
+
+  /* The one big shape: the guide sits in the arch */
+  .gd-arch {
+    position: sticky;
+    top: 32px;
+    padding: clamp(80px, 11vw, 150px) clamp(28px, 5vw, 64px) clamp(32px, 4vw, 56px);
+    background: var(--sp-mist);
+    border-radius: 100vw 100vw 0 0;
+    display: flex;
+    justify-content: center;
+  }
+  .gd-cover {
+    display: block;
+    width: min(100%, 340px);
+    height: auto;
+    box-shadow: 0 28px 50px -22px rgba(0, 0, 0, 0.55);
+  }
+
+  .gd-heading { margin: 14px 0 0; }
+  .gd-heading .sp-display { font-size: clamp(54px, 6.4vw, 100px); }
+  .gd-heading .sp-script { font-size: clamp(60px, 6.8vw, 108px); margin-left: 0.5em; }
+  .gd-lead { margin: 22px 0 0; max-width: 46ch; color: var(--sp-ink-soft); font-size: clamp(17px, 1.3vw, 19px); }
+
+  /* The form */
+  .gd-card { margin-top: 34px; max-width: 520px; }
+  .gd-field { display: flex; flex-direction: column; margin-bottom: 20px; }
+  .gd-field label {
+    font-size: 12px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--sp-ink-soft);
+  }
+  .gd-field label small { letter-spacing: 0.08em; text-transform: none; font-size: 12.5px; }
+  .gd-field input {
+    width: 100%;
+    padding: 10px 0 9px;
+    font: inherit;
+    font-size: 19px;
+    color: var(--sp-ink);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid rgba(22, 34, 46, 0.4);
+    border-radius: 0;
+    outline: none;
+    transition: border-color 0.4s linear, box-shadow 0.4s linear;
+  }
+  .gd-field input:focus { border-bottom-color: var(--sp-ink); box-shadow: 0 1px 0 var(--sp-ink); }
+  .gd-field.is-invalid input { border-bottom-color: var(--sp-felt); box-shadow: 0 1px 0 var(--sp-felt); }
+  .gd-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  .gd-consent {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin: 6px 0 22px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--sp-ink-soft);
+    cursor: pointer;
+  }
+  .gd-consent input { width: 20px; height: 20px; margin: 1px 0 0; flex-shrink: 0; accent-color: var(--sp-ink); }
+  .gd-consent.is-invalid { color: var(--sp-felt); }
+
+  .gd-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 56px;
+    padding: 18px 28px 16px;
+    font-family: var(--sp-font-text);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #FFFFFF;
+    background: var(--sp-ink);
+    border: 1px solid var(--sp-ink);
+    border-radius: 0;
+    cursor: pointer;
+    transition: background 0.4s linear, color 0.4s linear;
+  }
+  .gd-button:hover { background: transparent; color: var(--sp-ink); }
+  .gd-button:disabled { opacity: 0.6; cursor: progress; }
+  .gd-button--quiet { background: transparent; color: var(--sp-ink); }
+  .gd-button--quiet:hover { background: var(--sp-ink); color: #FFFFFF; }
+  .gd-small { margin: 12px 0 0; font-size: 14px; color: var(--sp-ink-soft); }
+  .gd-error {
+    margin: 0 0 16px;
+    padding: 10px 14px;
+    border-left: 2px solid var(--sp-felt);
+    background: var(--sp-ivory-deep);
+    font-size: 15px;
+    color: var(--sp-ink);
+  }
+
+  /* After: the guide, then four optional taps */
+  .gd-done-title { margin: 0; font-family: var(--sp-font-script); font-size: clamp(56px, 6vw, 76px); line-height: 1; }
+  .gd-done p { margin: 10px 0 0; color: var(--sp-ink-soft); }
+  .gd-done .gd-button { margin-top: 22px; }
+  .gd-more { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--sp-rule); }
+  .gd-more h2 {
+    margin: 0;
+    font-size: clamp(30px, 3vw, 40px);
+    line-height: 0.95;
+    color: var(--sp-ink);
+  }
+  .gd-more > p { margin: 10px 0 0; font-size: 15.5px; }
+  .gd-q { margin: 24px 0 0; padding: 0; border: 0; }
+  .gd-q legend { padding: 0; margin-bottom: 10px; font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--sp-ink-soft); }
+  .gd-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .gd-chip { position: relative; cursor: pointer; }
+  .gd-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+  .gd-chip span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 15px;
+    line-height: 1.2;
+    color: var(--sp-ink);
+    border: 1px solid rgba(22, 34, 46, 0.3);
+    transition: background 0.4s linear, color 0.4s linear, border-color 0.4s linear;
+  }
+  .gd-chip:hover span { border-color: var(--sp-ink); }
+  .gd-chip input:checked + span { background: var(--sp-ink); border-color: var(--sp-ink); color: #FFFFFF; }
+  .gd-chip input:focus-visible + span { outline: 2px solid var(--sp-ink); outline-offset: 3px; }
+  .gd-more .gd-button { margin-top: 28px; }
+  .gd-thanks { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--sp-rule); }
+  .gd-thanks h2 { margin: 0; font-size: clamp(30px, 3vw, 40px); line-height: 0.95; }
+  .gd-thanks p { margin: 10px 0 0; color: var(--sp-ink-soft); }
+  .gd-thanks .gd-button { margin-top: 22px; }
+  .gd-thanks .gd-small a { color: var(--sp-ink); font-weight: 500; }
+
+  /* What's inside */
+  .gd-inside { margin-top: clamp(56px, 7vw, 96px); padding-top: clamp(40px, 5vw, 64px); border-top: 1px solid var(--sp-rule); }
+  .gd-inside-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+  .gd-inside-head h2 { margin: 0; font-size: clamp(40px, 4.6vw, 64px); line-height: 0.9; }
+  .gd-inside-head p { margin: 0; font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--sp-ink-soft); }
+  .gd-inside ul { list-style: none; margin: 32px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+  .gd-inside li { border-top: 1px solid var(--sp-ink); padding-top: 18px; }
+  .gd-inside h3 { margin: 0 0 8px; font-size: 28px; line-height: 0.95; }
+  .gd-inside li p { margin: 0; font-size: 16px; color: var(--sp-ink-soft); }
+  .gd-promise { margin: 40px 0 0; max-width: 62ch; color: var(--sp-ink-soft); }
+
+  .gd-foot {
+    padding: 28px clamp(20px, 5vw, 56px) calc(28px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--sp-rule);
+    font-size: 14px;
+    color: var(--sp-ink-soft);
+    text-align: center;
+  }
+  .gd-foot a { color: var(--sp-ink); }
+
+  @media (max-width: 860px) {
+    .gd { padding-top: 20px; }
+    .gd-hero { grid-template-columns: 1fr; gap: 18px; }
+    /* Smaller on a phone, so the form starts on the first screen after a scan */
+    .gd-arch { position: static; width: min(56%, 220px); margin: 0 auto; padding: 40px 24px 18px; }
+    .gd-cover { width: 100%; box-shadow: 0 18px 30px -16px rgba(0, 0, 0, 0.55); }
+    .gd-heading { text-align: center; margin-top: 8px; }
+    .gd-heading .sp-display { font-size: 13vw; }
+    .gd-heading .sp-script { font-size: 14vw; margin-left: 0; }
+    .gd-lead { margin-top: 14px; font-size: 16px; line-height: 1.6; }
+    .gd-card { margin-top: 24px; }
+    .gd-main > .sp-label, .gd-lead { text-align: center; margin-left: auto; margin-right: auto; }
+    .gd-card { margin-left: auto; margin-right: auto; }
+    .gd-inside ul { grid-template-columns: 1fr; gap: 24px; }
+    .gd-logo img { width: 128px; }
+    .gd-call span { display: none; }
+    .gd-call { width: 44px; height: 44px; justify-content: center; border: 1px solid var(--sp-rule); border-radius: 50%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gd-button, .gd-chip span, .gd-field input { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="gd-head">
+  <a class="gd-logo" href="/" aria-label="Signature Pianos home"><img src="/media/brand/logo-ink.svg" width="1542" height="592" alt="Signature Pianos"></a>
+  <a class="gd-call" href="tel:+61479128955" aria-label="Call Signature Pianos on 0479 128 955"><i class="ti ti-phone" aria-hidden="true"></i><span>0479 128 955</span></a>
+</header>
+
+<main class="gd">
+  <section class="gd-hero" aria-labelledby="gdTitle">
+    <div class="gd-arch">
+      <img class="gd-cover" src="/media/guides/buyers-guide-cover.jpg" width="560" height="792" alt="The cover of the Signature Pianos Yamaha buyer's guide">
+    </div>
+
+    <div class="gd-main">
+      <p class="sp-label">Free from Signature Pianos</p>
+      <h1 class="gd-heading" id="gdTitle">
+        <span class="sp-display">The Yamaha</span>
+        <span class="sp-script">buyer's guide</span>
+      </h1>
+      <p class="gd-lead">Every Yamaha upright and grand from 1970 to today, in one guide: which model is which, how to date a piano from its serial number, and what to check before you buy.</p>
+
+      <div class="gd-card">
+        <form id="gdForm" novalidate>
+          <p class="gd-error" id="gdError" role="alert" hidden></p>
+          <div class="gd-field">
+            <label for="gdFirst">First name</label>
+            <input id="gdFirst" name="firstName" type="text" autocomplete="given-name" maxlength="80" required>
+          </div>
+          <div class="gd-field">
+            <label for="gdEmail">Email</label>
+            <input id="gdEmail" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" required>
+          </div>
+          <div class="gd-field">
+            <label for="gdPhone">Mobile <small>(optional)</small></label>
+            <input id="gdPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30">
+          </div>
+          <!-- honeypot: hidden from people, filled in by bots; /api/buyer-guide ignores any submission that fills it -->
+          <input class="gd-hp" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <label class="gd-consent" id="gdConsentRow">
+            <input type="checkbox" name="consent" id="gdConsent" required>
+            <span>Email me the guide. Signature Pianos may follow up about pianos, and I can ask them to stop at any time.</span>
+          </label>
+          <button class="gd-button" type="submit" id="gdSubmit">Get the guide <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+          <p class="gd-small">Free, 33 pages. It opens straight away and we&rsquo;ll email you a copy.</p>
+        </form>
+
+        <div class="gd-done" id="gdDone" hidden>
+          <p class="gd-done-title" id="gdDoneTitle" tabindex="-1">Enjoy the guide</p>
+          <p id="gdDoneNote"></p>
+          <a class="gd-button" id="gdOpen" href="/media/guides/signature-pianos-yamaha-buyers-guide.pdf" target="_blank" rel="noopener">Open the guide <i class="ti ti-file-type-pdf" aria-hidden="true"></i></a>
+
+          <form class="gd-more" id="gdMore" novalidate hidden>
+            <h2>Four quick taps</h2>
+            <p>Optional. It helps us point you to the right pianos when you visit.</p>
+            <fieldset class="gd-q">
+              <legend>What are you after?</legend>
+              <div class="gd-chips">
+                <label class="gd-chip"><input type="radio" name="interestType" value="upright"><span>An upright</span></label>
+                <label class="gd-chip"><input type="radio" name="interestType" value="grand"><span>A grand</span></label>
+                <label class="gd-chip"><input type="radio" name="interestType" value="digital"><span>A digital</span></label>
+                <label class="gd-chip"><input type="radio" name="interestType" value="not_sure"><span>Not sure yet</span></label>
+              </div>
+            </fieldset>
+            <fieldset class="gd-q">
+              <legend>When are you hoping to buy?</legend>
+              <div class="gd-chips">
+                <label class="gd-chip"><input type="radio" name="timeframe" value="asap"><span>In the next few weeks</span></label>
+                <label class="gd-chip"><input type="radio" name="timeframe" value="1_3_months"><span>1 to 3 months</span></label>
+                <label class="gd-chip"><input type="radio" name="timeframe" value="3_6_months"><span>3 to 6 months</span></label>
+                <label class="gd-chip"><input type="radio" name="timeframe" value="researching"><span>Just researching</span></label>
+              </div>
+            </fieldset>
+            <fieldset class="gd-q">
+              <legend>Budget</legend>
+              <div class="gd-chips">
+                <label class="gd-chip"><input type="radio" name="budget" value="under_5k"><span>Under $5,000</span></label>
+                <label class="gd-chip"><input type="radio" name="budget" value="5_10k"><span>$5,000 to $10,000</span></label>
+                <label class="gd-chip"><input type="radio" name="budget" value="10_20k"><span>$10,000 to $20,000</span></label>
+                <label class="gd-chip"><input type="radio" name="budget" value="20k_plus"><span>$20,000 or more</span></label>
+                <label class="gd-chip"><input type="radio" name="budget" value="not_sure"><span>Not sure</span></label>
+              </div>
+            </fieldset>
+            <fieldset class="gd-q">
+              <legend>Who&rsquo;s playing?</legend>
+              <div class="gd-chips">
+                <label class="gd-chip"><input type="radio" name="player" value="child"><span>A child starting out</span></label>
+                <label class="gd-chip"><input type="radio" name="player" value="adult_beginner"><span>An adult beginner</span></label>
+                <label class="gd-chip"><input type="radio" name="player" value="returning"><span>Coming back to it</span></label>
+                <label class="gd-chip"><input type="radio" name="player" value="advanced"><span>An experienced player</span></label>
+                <label class="gd-chip"><input type="radio" name="player" value="teacher"><span>A teacher or studio</span></label>
+              </div>
+            </fieldset>
+            <p class="gd-error" id="gdMoreError" role="alert" hidden></p>
+            <button class="gd-button gd-button--quiet" type="submit" id="gdMoreSubmit">Send my answers</button>
+          </form>
+
+          <div class="gd-thanks" id="gdThanks" hidden>
+            <h2 id="gdThanksTitle" tabindex="-1">Come and play them</h2>
+            <p>Every piano in our Mount Waverley showroom was hand-picked in Japan and checked in our Melbourne workshop. Try as many as you like.</p>
+            <a class="gd-button" href="/services/book-a-viewing.html">Book a visit</a>
+            <p class="gd-small">Or call <a href="tel:+61479128955">0479 128 955</a>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="gd-inside" aria-labelledby="gdInsideTitle">
+    <div class="gd-inside-head">
+      <h2 id="gdInsideTitle">What&rsquo;s inside</h2>
+      <p>33 pages &middot; PDF</p>
+    </div>
+    <ul>
+      <li><h3>Which Yamaha is which</h3><p>The U1 and U3, the X series, YU10 to YU33, YUS1 to YUS5, and the G, C and CX grands, generation by generation.</p></li>
+      <li><h3>How to date a piano</h3><p>Reading the model name and the serial number, with Yamaha&rsquo;s own year-by-year chart.</p></li>
+      <li><h3>Choosing well</h3><p>Room sizes, a ten-point viewing checklist, and what to budget for each era.</p></li>
+    </ul>
+    <p class="gd-promise">From Signature Pianos in Mount Waverley. Every pre-loved Yamaha and Kawai we sell is hand-picked in Japan, checked in our Melbourne workshop, and comes with white-glove delivery and a 10-year warranty.</p>
+  </section>
+</main>
+
+<footer class="gd-foot">
+  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a>
+  &middot; <a href="tel:+61479128955">0479 128 955</a> &middot; <a href="/">signaturepianos.com.au</a>
+</footer>
+
+<script>
+/* The guide page: /api/buyer-guide saves the lead to the pipeline, emails the
+   guide and returns a one-time token for the optional follow-up answers.
+   QR codes point here with ?src=<placement> (showroom, flyer, market...), which
+   is recorded as utm_source=qr, utm_medium=print, utm_campaign=<placement>. */
+(function () {
+  'use strict';
+  var API = '/api/buyer-guide';
+  var form = document.getElementById('gdForm');
+  var errorEl = document.getElementById('gdError');
+  var submit = document.getElementById('gdSubmit');
+  var done = document.getElementById('gdDone');
+  var more = document.getElementById('gdMore');
+  var thanks = document.getElementById('gdThanks');
+  var lead = null;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function showError(el, msg) { el.textContent = msg; el.hidden = !msg; }
+
+  function tracking() {
+    var p = new URLSearchParams(location.search);
+    var utm = {};
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid'].forEach(function (k) {
+      if (p.get(k)) utm[k] = p.get(k).slice(0, 120);
+    });
+    var src = (p.get('src') || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40);
+    if (src && !utm.utm_source) {
+      utm.utm_source = 'qr';
+      utm.utm_medium = 'print';
+      utm.utm_campaign = src;
+    }
+    return utm;
+  }
+
+  function mark(name, bad) {
+    var input = form.elements[name];
+    var row = name === 'consent' ? document.getElementById('gdConsentRow') : input.closest('.gd-field');
+    row.classList.toggle('is-invalid', bad);
+    return bad;
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = form.elements;
+    var bad = false;
+    bad = mark('firstName', !f.firstName.value.trim()) || bad;
+    bad = mark('email', !f.email.value.trim() || !f.email.checkValidity()) || bad;
+    bad = mark('consent', !f.consent.checked) || bad;
+    if (bad) {
+      showError(errorEl, !f.consent.checked && f.firstName.value.trim() && f.email.checkValidity()
+        ? 'Please tick the box so we can email you the guide.'
+        : 'Please add your first name and email.');
+      return;
+    }
+    showError(errorEl, '');
+    submit.disabled = true;
+    submit.textContent = 'One moment…';
+
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: f.firstName.value,
+        email: f.email.value.trim(),
+        phone: f.phone.value,
+        consent: true,
+        consentVersion: 'guide_followup',
+        company: f.company.value,
+        page: '/guide',
+        utm: tracking()
+      })
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (out) {
+        if (!res.ok) throw Object.assign(new Error(out.error || 'failed'), { guideUrl: out.guideUrl });
+        return out;
+      });
+    }).then(function (out) {
+      lead = out.leadId && out.token ? { id: out.leadId, token: out.token } : null;
+      if (out.guideUrl) document.getElementById('gdOpen').href = out.guideUrl;
+      document.getElementById('gdDoneTitle').textContent = 'Enjoy it, ' + f.firstName.value.trim().split(' ')[0];
+      document.getElementById('gdDoneNote').innerHTML = out.emailed
+        ? 'We&rsquo;ve also emailed a copy to ' + esc(f.email.value.trim()) + '.'
+        : 'Our email is running late, so open it here and keep a copy.';
+      form.hidden = true;
+      done.hidden = false;
+      more.hidden = !lead;
+      thanks.hidden = !!lead;
+      document.getElementById('gdDoneTitle').focus({ preventScroll: true });
+      done.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    }).catch(function (err) {
+      submit.disabled = false;
+      submit.innerHTML = 'Get the guide <i class="ti ti-arrow-right" aria-hidden="true"></i>';
+      var msg = err.message && err.message !== 'failed' && err.message !== 'Failed to fetch'
+        ? err.message
+        : 'Sorry, that didn’t go through. Please try again, or call us on 0479 128 955.';
+      showError(errorEl, msg);
+    });
+  });
+
+  more.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = more.elements;
+    var answers = {
+      interestType: f.interestType.value, timeframe: f.timeframe.value,
+      budget: f.budget.value, player: f.player.value
+    };
+    var any = Object.keys(answers).some(function (k) { return answers[k]; });
+    var btn = document.getElementById('gdMoreSubmit');
+    var finish = function () {
+      more.hidden = true;
+      thanks.hidden = false;
+      document.getElementById('gdThanksTitle').focus();
+    };
+    if (!any || !lead) return finish();
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ step: 'details', leadId: lead.id, token: lead.token }, answers))
+    }).then(finish, finish);
+  });
+})();
+</script>
+</body>
+</html>

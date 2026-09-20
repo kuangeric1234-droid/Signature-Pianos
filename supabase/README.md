@@ -57,6 +57,8 @@ The seed is **not** idempotent — re-running will fail on unique constraints (e
 | `teacher_bookings` | Student lesson requests made through the marketplace. | Belongs to `teachers` (CASCADE) + `teacher_listings` (CASCADE). |
 | `teacher_students` | Full-SaaS-tier feature: a teacher's complete roster. | Belongs to `teachers` (CASCADE). |
 | `teacher_invoices` | Full-SaaS-tier feature: invoices teachers send their students. Shares the `INV-YYYY-XXXXX` namespace with order invoices. | Belongs to `teachers` (CASCADE) + `teacher_students` (CASCADE). |
+| `leads` | The sales pipeline (`admin/pipeline.html`): one row per person, from first enquiry to won or lost, with what they're after and a next step. Created by `leads.sql`, turned into the pipeline by `crm_pipeline.sql`, whose triggers move people along when viewings, orders and payment plans happen. | Optionally belongs to `customers` and `orders` (SET NULL). |
+| `lead_events` | Each lead's timeline: guide downloads, visits, sales, stage moves, and the calls, texts and notes logged in the admin. | Belongs to `leads` (CASCADE). |
 | `admin_users` | Your internal team. Separate from customer and teacher auth. Role drives admin-panel permissions. | Belongs to `auth.users` (nullable for seed; required in production). |
 
 ### Schema deviations from the spec

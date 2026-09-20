@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipeline — Signature Pianos Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="admin.css">
+<style>
+  /* ============ PIPELINE BOARD ============ */
+  .admin-main { min-width: 0; }
+  .admin-content { padding: 24px 32px 32px; min-width: 0; }
+  .pl-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+  .pl-search { position: relative; flex: 1 1 220px; max-width: 320px; }
+  .pl-search i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--admin-text-faint); }
+  .pl-search input { padding-left: 34px; }
+  .pl-toolbar .admin-select { width: auto; min-width: 170px; }
+  .pl-toolbar .filter-bar { margin: 0; }
+  .pl-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--admin-text-muted); cursor: pointer; }
+  .pl-toggle input { accent-color: var(--admin-gold); }
+
+  .stats-strip { flex-wrap: wrap; }
+  .stat-value small { font-size: 12px; font-weight: 400; color: var(--admin-text-faint); margin-left: 4px; }
+
+  .pl-board {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(250px, 1fr);
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 12px;
+    align-items: start;
+  }
+  .pl-col {
+    background: #f1eee9;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 250px);
+    min-height: 240px;
+    border-top: 3px solid var(--stage, var(--admin-border-dark));
+  }
+  .pl-col[data-stage="new"]          { --stage: var(--admin-blue); }
+  .pl-col[data-stage="contacted"]    { --stage: #7d8ea3; }
+  .pl-col[data-stage="visit_booked"] { --stage: var(--admin-gold); }
+  .pl-col[data-stage="visited"]      { --stage: #8a6d9e; }
+  .pl-col[data-stage="deciding"]     { --stage: var(--admin-amber); }
+  .pl-col[data-stage="won"]          { --stage: var(--admin-green); }
+  .pl-col[data-stage="lost"]         { --stage: #b5b0a8; }
+  .pl-col-head { padding: 11px 14px 9px; }
+  .pl-col-title { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .pl-col-name { font-weight: 500; font-size: 13px; }
+  .pl-col-count { font-size: 12px; color: var(--admin-text-muted); background: #fff; border-radius: 10px; padding: 0 8px; }
+  .pl-col-sub { font-size: 11.5px; color: var(--admin-text-faint); margin-top: 2px; min-height: 17px; }
+  .pl-col-body { padding: 2px 8px 10px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; min-height: 90px; }
+  .pl-empty { font-size: 12px; color: var(--admin-text-faint); text-align: center; padding: 18px 8px; border: 1px dashed var(--admin-border-dark); border-radius: 6px; }
+
+  .pl-card {
+    background: #fff;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    padding: 11px 12px 10px;
+    cursor: grab;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    touch-action: manipulation;
+  }
+  .pl-card:hover { border-color: var(--admin-border-dark); }
+  .pl-card:focus-visible { outline: 2px solid var(--admin-gold); outline-offset: 2px; }
+  .pl-card.sortable-ghost { opacity: 0.35; }
+  .pl-card.sortable-chosen { box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14); }
+  .pl-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .pl-name { font-weight: 500; line-height: 1.3; }
+  .pl-temp { flex-shrink: 0; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 7px; border-radius: 10px; }
+  .pl-temp--hot  { background: var(--admin-red-light); color: var(--admin-red); }
+  .pl-temp--warm { background: var(--admin-amber-light); color: var(--admin-amber); }
+  .pl-temp--cold { background: var(--admin-blue-light); color: var(--admin-blue); }
+  .pl-meta { font-size: 12px; color: var(--admin-text-muted); margin-top: 3px; line-height: 1.45; }
+  .pl-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .pl-tag { font-size: 10.5px; padding: 1px 7px; border-radius: 4px; background: var(--admin-gold-light); color: #8b6a3c; }
+  .pl-tag--grey { background: #f0ede8; color: var(--admin-text-muted); }
+  .pl-next { margin-top: 8px; padding-top: 7px; border-top: 1px dashed var(--admin-border); font-size: 12px; display: flex; gap: 6px; align-items: flex-start; color: var(--admin-text-muted); line-height: 1.4; }
+  .pl-next i { font-size: 14px; margin-top: 1px; }
+  .pl-next b { font-weight: 500; }
+  .pl-next.is-overdue { color: var(--admin-red); }
+  .pl-next.is-today, .pl-next.is-missing { color: var(--admin-amber); }
+  .pl-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 7px; font-size: 11px; color: var(--admin-text-faint); }
+  .pl-foot strong { color: var(--admin-text); font-weight: 500; font-size: 12px; }
+  .pl-quick { display: flex; gap: 2px; }
+  .pl-quick a { display: inline-flex; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 4px; color: var(--admin-text-muted); font-size: 15px; }
+  .pl-quick a:hover { background: var(--admin-bg); color: var(--admin-text); }
+
+  /* Won and Lost drop zones: they rise from the bottom while a card is dragged,
+     so a sale can be closed without scrolling the board to the last columns */
+  .pl-dropbar {
+    position: fixed;
+    left: 220px; right: 0; bottom: 0;
+    z-index: 150;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 12px 32px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: rgba(248, 247, 245, 0.96);
+    border-top: 1px solid var(--admin-border);
+    transform: translateY(110%);
+    transition: transform 0.2s ease;
+  }
+  .pl-dropbar.is-on { transform: none; }
+  .pl-drop {
+    position: relative;
+    min-height: 64px;
+    border: 2px dashed var(--admin-border-dark);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .pl-drop-label { pointer-events: none; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; color: var(--admin-text-muted); }
+  .pl-drop--won .pl-drop-label { color: var(--admin-green); }
+  .pl-drop--lost .pl-drop-label { color: var(--admin-text-muted); }
+  .pl-drop .pl-card { position: absolute; opacity: 0; pointer-events: none; height: 0; overflow: hidden; padding: 0; border: 0; }
+  .pl-drop--won:has(.pl-card) { background: var(--admin-green-light); border-color: var(--admin-green); }
+  .pl-drop--lost:has(.pl-card) { background: #f0ede8; border-color: var(--admin-text-muted); }
+
+  /* ============ DETAIL PANEL ============ */
+  #leadPanel { width: 580px; }
+  .pl-sec { padding: 18px 0; border-bottom: 1px solid var(--admin-border); }
+  .pl-sec:first-child { padding-top: 0; }
+  .pl-sec:last-child { border-bottom: 0; }
+  .pl-sec-title { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--admin-text-faint); margin: 0 0 10px; display: flex; justify-content: space-between; align-items: center; }
+  .pl-head-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--admin-text-muted); }
+  .pl-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pl-actions a, .pl-actions button { text-decoration: none; }
+  .pl-btn-sm { padding: 6px 11px; font-size: 12.5px; display: inline-flex; align-items: center; gap: 5px; }
+  .pl-log { margin-top: 10px; display: none; }
+  .pl-log.is-open { display: block; }
+  .pl-log-row { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
+  .pl-due-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .pl-due-chips button { font-size: 12px; padding: 4px 10px; border-radius: 14px; border: 1px solid var(--admin-border-dark); background: #fff; cursor: pointer; font-family: inherit; }
+  .pl-due-chips button:hover { border-color: var(--admin-gold); color: var(--admin-gold); }
+  .pl-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .pl-grid2 .admin-form-row { margin-bottom: 0; }
+  .pl-saved { font-size: 11px; color: var(--admin-green); margin-left: 8px; opacity: 0; transition: opacity 0.2s ease; }
+  .pl-saved.is-shown { opacity: 1; }
+  .pl-facts { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; font-size: 13px; }
+  .pl-facts dt { color: var(--admin-text-faint); font-size: 12px; }
+  .pl-facts dd { margin: 0; word-break: break-word; }
+  .pl-hint { font-size: 12px; color: var(--admin-text-faint); margin: 6px 0 0; }
+
+  .pl-timeline { list-style: none; margin: 0; padding: 0; }
+  .pl-timeline li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; padding: 8px 0; }
+  .pl-tl-icon { width: 28px; height: 28px; border-radius: 50%; background: var(--admin-bg); border: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: center; color: var(--admin-text-muted); font-size: 14px; }
+  .pl-tl-icon.is-person { background: var(--admin-gold-light); color: var(--admin-gold); border-color: transparent; }
+  .pl-tl-title { font-size: 13px; font-weight: 500; }
+  .pl-tl-detail { font-size: 12.5px; color: var(--admin-text-muted); white-space: pre-wrap; margin-top: 1px; }
+  .pl-tl-meta { font-size: 11px; color: var(--admin-text-faint); margin-top: 2px; }
+
+  /* ============ DIALOGS ============ */
+  .pl-dialog { border: 1px solid var(--admin-border); border-radius: 8px; padding: 0; width: min(440px, calc(100vw - 32px)); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.18); }
+  .pl-dialog::backdrop { background: rgba(0, 0, 0, 0.3); }
+  .pl-dialog form { padding: 22px 24px; }
+  .pl-dialog h2 { font-size: 16px; font-weight: 500; margin: 0 0 6px; }
+  .pl-dialog p { margin: 0 0 16px; color: var(--admin-text-muted); font-size: 13px; }
+  .pl-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+  #qrDialog { width: min(560px, calc(100vw - 32px)); }
+  .pl-qr-wrap { display: grid; grid-template-columns: 180px 1fr; gap: 20px; align-items: start; }
+  .pl-qr { width: 180px; height: 180px; background: #fff; border: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: center; }
+  .pl-qr svg { width: 164px; height: 164px; display: block; }
+  .pl-qr-url { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--admin-bg); padding: 8px 10px; border-radius: 4px; word-break: break-all; margin: 8px 0 12px; }
+  .pl-qr-stats { margin-top: 16px; font-size: 12.5px; color: var(--admin-text-muted); }
+  .pl-qr-stats table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  .pl-qr-stats td { padding: 4px 0; border-bottom: 1px solid var(--admin-border); }
+  .pl-qr-stats td:last-child { text-align: right; }
+
+  @media (max-width: 768px) {
+    .admin-content { padding: 16px; }
+    .pl-board { grid-auto-columns: 84vw; scroll-snap-type: x mandatory; }
+    .pl-col { scroll-snap-align: start; max-height: none; }
+    #leadPanel { width: 100%; }
+    .pl-grid2, .pl-qr-wrap { grid-template-columns: 1fr; }
+    .pl-facts { grid-template-columns: 110px 1fr; }
+    .pl-search { max-width: none; }
+    .pl-dropbar { left: 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); }
+  }
+</style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <span style="font-family:'DM Sans';font-size:13px;font-weight:500;color:#b8935a;letter-spacing:0.1em;">SIGNATURE</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.15em;display:block;margin-top:2px;">ADMIN</span>
+    </div>
+    <nav class="admin-nav">
+      <a href="dashboard.html"  class="admin-nav-item" data-page="dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="pipeline.html"   class="admin-nav-item" data-page="pipeline"><i class="ti ti-layout-kanban"></i> Pipeline <span class="nav-badge" id="pipelineBadge"></span></a>
+      <a href="enquiries.html"  class="admin-nav-item" data-page="enquiries"><i class="ti ti-mail"></i> Enquiries <span class="nav-badge" id="enquiriesBadge"></span></a>
+      <a href="inventory.html"  class="admin-nav-item" data-page="inventory"><i class="ti ti-piano"></i> Inventory</a>
+      <a href="orders.html"     class="admin-nav-item" data-page="orders"><i class="ti ti-receipt"></i> Orders &amp; POS</a>
+      <a href="payment-plans.html" class="admin-nav-item" data-page="payment-plans"><i class="ti ti-credit-card"></i> Payment plans</a>
+      <a href="customers.html"  class="admin-nav-item" data-page="customers"><i class="ti ti-users"></i> Customers</a>
+      <a href="deliveries.html" class="admin-nav-item" data-page="deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</a>
+      <a href="teachers.html"   class="admin-nav-item" data-page="teachers"><i class="ti ti-music"></i> Teachers</a>
+      <a href="financials.html" class="admin-nav-item" data-page="financials"><i class="ti ti-chart-bar"></i> Financials</a>
+      <a href="settings.html"   class="admin-nav-item" data-page="settings"><i class="ti ti-settings"></i> Settings</a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="https://signaturepianos.com.au/" target="_blank" style="font-size:12px;color:rgba(255,255,255,0.4);text-decoration:none;display:flex;align-items:center;gap:6px;">
+        <i class="ti ti-external-link" style="font-size:13px;"></i> View live site
+      </a>
+      <button onclick="adminSignOut()" style="font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;margin-top:8px;">
+        <i class="ti ti-logout" style="font-size:13px;"></i> Sign out
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;">
+        <button class="admin-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+        <h1 class="admin-page-title">Pipeline</h1>
+      </div>
+      <div class="admin-topbar-right">
+        <button class="btn-ghost pl-btn-sm" id="qrBtn" type="button"><i class="ti ti-qrcode"></i> QR codes</button>
+        <button class="btn-gold" id="newLeadBtn" type="button"><i class="ti ti-plus"></i> New lead</button>
+      </div>
+    </div>
+
+    <div class="admin-content">
+      <div class="stats-strip">
+        <div class="stat"><span class="stat-label">Open leads</span><span class="stat-value" id="stOpen">—</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-label">Follow-ups due</span><span class="stat-value" id="stDue">—</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-label">New this week</span><span class="stat-value" id="stWeek">—</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-label">Won this month</span><span class="stat-value" id="stWon">—</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-label">Win rate · 90 days</span><span class="stat-value" id="stRate">—</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-label" title="Median time from a lead arriving to the first call, text or email you log (last 30 days)">First reply · median</span><span class="stat-value" id="stReply">—</span></div>
+      </div>
+
+      <div class="pl-toolbar">
+        <div class="pl-search">
+          <i class="ti ti-search"></i>
+          <input type="search" class="admin-input" id="plSearch" placeholder="Search name, email, phone, piano" autocomplete="off">
+        </div>
+        <div class="filter-bar" id="plFilters">
+          <button class="filter-pill is-active" data-filter="all" type="button">All</button>
+          <button class="filter-pill" data-filter="due" type="button">Needs follow-up</button>
+          <button class="filter-pill" data-filter="hot" type="button">Hot</button>
+        </div>
+        <select class="admin-select" id="plSource" aria-label="Source"><option value="">All sources</option></select>
+        <label class="pl-toggle"><input type="checkbox" id="plOld"> Show won and lost older than 30 days</label>
+      </div>
+
+      <div class="pl-board" id="plBoard">
+        <div class="empty-state" style="grid-column:1/-1;"><i class="ti ti-loader"></i><p>Loading the pipeline…</p></div>
+      </div>
+      <div class="pl-dropbar" id="plDropbar" aria-hidden="true">
+        <div class="pl-drop pl-drop--lost" data-stage="lost"><span class="pl-drop-label"><i class="ti ti-x"></i> Drop here: lost</span></div>
+        <div class="pl-drop pl-drop--won" data-stage="won"><span class="pl-drop-label"><i class="ti ti-trophy"></i> Drop here: won</span></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ LEAD DETAIL ============ -->
+<div class="slide-panel-overlay" id="leadPanelOverlay" onclick="closeLead()"></div>
+<aside class="slide-panel" id="leadPanel" aria-hidden="true">
+  <div class="slide-panel-header">
+    <div>
+      <h2 class="slide-panel-title" id="ldTitle">Lead</h2>
+      <div class="pl-head-meta" id="ldHeadMeta"></div>
+    </div>
+    <button class="slide-panel-close" onclick="closeLead()" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body" id="ldBody"></div>
+  <div class="slide-panel-footer" style="justify-content:space-between;">
+    <button class="btn-ghost pl-btn-sm" id="ldDelete" type="button" style="color:var(--admin-red);"><i class="ti ti-trash"></i> Delete</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-ghost pl-btn-sm" id="ldLost" type="button"><i class="ti ti-x"></i> Mark lost</button>
+      <button class="btn-gold pl-btn-sm" id="ldWon" type="button"><i class="ti ti-trophy"></i> Mark won</button>
+    </div>
+  </div>
+</aside>
+
+<!-- ============ NEW LEAD ============ -->
+<div class="slide-panel-overlay" id="newLeadPanelOverlay" onclick="closeSlidePanel('newLeadPanel')"></div>
+<aside class="slide-panel" id="newLeadPanel" aria-hidden="true">
+  <div class="slide-panel-header">
+    <h2 class="slide-panel-title">New lead</h2>
+    <button class="slide-panel-close" onclick="closeSlidePanel('newLeadPanel')" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body">
+    <p class="pl-hint" style="margin:0 0 16px;">For walk-ins, calls and messages. Website forms, viewings and sales arrive here on their own.</p>
+    <div class="admin-form-row--split">
+      <div><label class="admin-label" for="nl_first">First name *</label><input id="nl_first" class="admin-input" autocomplete="off"></div>
+      <div><label class="admin-label" for="nl_last">Last name</label><input id="nl_last" class="admin-input" autocomplete="off"></div>
+    </div>
+    <div class="admin-form-row--split">
+      <div><label class="admin-label" for="nl_phone">Phone</label><input id="nl_phone" type="tel" class="admin-input" autocomplete="off"></div>
+      <div><label class="admin-label" for="nl_email">Email</label><input id="nl_email" type="email" class="admin-input" autocomplete="off"></div>
+    </div>
+    <p class="pl-hint" style="margin:-8px 0 16px;">A phone number or an email, at least one.</p>
+    <div class="admin-form-row--split">
+      <div><label class="admin-label" for="nl_source">How they found us *</label><select id="nl_source" class="admin-select"></select></div>
+      <div><label class="admin-label" for="nl_stage">Stage</label><select id="nl_stage" class="admin-select"></select></div>
+    </div>
+    <div class="admin-form-row--split">
+      <div><label class="admin-label" for="nl_interest">Looking for</label><select id="nl_interest" class="admin-select" data-opts="interest_type"></select></div>
+      <div><label class="admin-label" for="nl_budget">Budget</label><select id="nl_budget" class="admin-select" data-opts="budget"></select></div>
+    </div>
+    <div class="admin-form-row--split">
+      <div><label class="admin-label" for="nl_timeframe">Buying when</label><select id="nl_timeframe" class="admin-select" data-opts="timeframe"></select></div>
+      <div><label class="admin-label" for="nl_player">Who&rsquo;s playing</label><select id="nl_player" class="admin-select" data-opts="player"></select></div>
+    </div>
+    <div class="admin-form-row"><label class="admin-label" for="nl_pianos">Pianos they asked about</label><input id="nl_pianos" class="admin-input" placeholder="e.g. Yamaha U3H, the walnut Kawai"></div>
+    <div class="admin-form-row"><label class="admin-label" for="nl_notes">Notes</label><textarea id="nl_notes" class="admin-textarea" rows="3"></textarea></div>
+    <div class="banner banner--error" id="nlError"></div>
+  </div>
+  <div class="slide-panel-footer">
+    <button class="btn-ghost" onclick="closeSlidePanel('newLeadPanel')" type="button">Cancel</button>
+    <button class="btn-gold" id="nlSave" type="button"><i class="ti ti-check"></i> Add to pipeline</button>
+  </div>
+</aside>
+
+<!-- ============ WON / LOST ============ -->
+<dialog class="pl-dialog" id="wonDialog">
+  <form method="dialog" id="wonForm">
+    <h2>Mark as won</h2>
+    <p>Sales made in Orders &amp; POS or on a payment plan move here on their own, with the amount. Use this for anything else.</p>
+    <div class="admin-form-row"><label class="admin-label" for="wonValue">Sale value ($)</label><input id="wonValue" class="admin-input" type="number" min="0" step="1" inputmode="numeric"></div>
+    <div class="admin-form-row"><label class="admin-label" for="wonNote">Note (optional)</label><input id="wonNote" class="admin-input" placeholder="e.g. Yamaha U1, delivery next week"></div>
+    <div class="pl-dialog-actions">
+      <button class="btn-ghost" value="cancel" type="submit" formnovalidate>Cancel</button>
+      <button class="btn-gold" value="ok" type="submit"><i class="ti ti-trophy"></i> Mark won</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="pl-dialog" id="lostDialog">
+  <form method="dialog" id="lostForm">
+    <h2>Mark as lost</h2>
+    <p>The reason helps you see where sales slip away. If they come back later (book a visit, ask for the guide) they reopen on their own.</p>
+    <div class="admin-form-row"><label class="admin-label" for="lostReason">Reason</label>
+      <select id="lostReason" class="admin-select">
+        <option>Bought elsewhere</option>
+        <option>Price</option>
+        <option>Not ready yet</option>
+        <option>Chose a digital piano</option>
+        <option>Went quiet</option>
+        <option>Wanted something we didn&rsquo;t have</option>
+        <option>Not a real enquiry</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="admin-form-row"><label class="admin-label" for="lostNote">Detail (optional)</label><input id="lostNote" class="admin-input" placeholder="e.g. Bought a new Yamaha from a dealer"></div>
+    <div class="pl-dialog-actions">
+      <button class="btn-ghost" value="cancel" type="submit" formnovalidate>Cancel</button>
+      <button class="btn-gold" value="ok" type="submit">Mark lost</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ============ QR CODES ============ -->
+<dialog class="pl-dialog" id="qrDialog">
+  <form method="dialog">
+    <h2>QR codes for the buyer&rsquo;s guide</h2>
+    <p>Each code opens the guide page on a phone. Give every place its own code and the pipeline shows which one brings people in.</p>
+    <div class="admin-form-row">
+      <label class="admin-label" for="qrPlace">Where it will go</label>
+      <input id="qrPlace" class="admin-input" list="qrPlaces" value="showroom" autocomplete="off">
+      <datalist id="qrPlaces">
+        <option value="showroom"></option><option value="window"></option><option value="flyer"></option>
+        <option value="business-card"></option><option value="piano-tag"></option><option value="market"></option>
+        <option value="teacher-studio"></option><option value="delivery"></option>
+      </datalist>
+    </div>
+    <div class="pl-qr-wrap">
+      <div class="pl-qr" id="qrBox"></div>
+      <div>
+        <div class="admin-label">Opens</div>
+        <div class="pl-qr-url" id="qrUrl"></div>
+        <div class="pl-actions">
+          <button class="btn-gold pl-btn-sm" type="button" id="qrSvg"><i class="ti ti-download"></i> SVG for print</button>
+          <button class="btn-ghost pl-btn-sm" type="button" id="qrPng"><i class="ti ti-photo"></i> PNG</button>
+          <button class="btn-ghost pl-btn-sm" type="button" id="qrCopy"><i class="ti ti-copy"></i> Copy link</button>
+        </div>
+        <p class="pl-hint">Print it at least 2.5 cm wide, dark on a light background, with some clear space around it.</p>
+      </div>
+    </div>
+    <div class="pl-qr-stats" id="qrStats"></div>
+    <div class="pl-dialog-actions"><button class="btn-ghost" value="close" type="submit">Done</button></div>
+  </form>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script>
+/* ============================================================================
+   Pipeline: one card per person, from first enquiry to sale.
+   Data: `leads` + `lead_events` (supabase/crm_pipeline.sql). The database moves
+   cards on its own when viewings, orders and payment plans happen; this page
+   shows the board, lets you drag cards, log calls, set next steps and book
+   visits.
+   ============================================================================ */
+const SITE = 'https://signaturepianos.com.au'
+const STAGES = [
+  { key: 'new',          label: 'New',          hint: 'Call or text within the hour' },
+  { key: 'contacted',    label: 'Contacted',    hint: 'Get them in to play' },
+  { key: 'visit_booked', label: 'Visit booked', hint: 'Confirm the day before' },
+  { key: 'visited',      label: 'Visited',      hint: 'Follow up within a day' },
+  { key: 'deciding',     label: 'Deciding',     hint: 'Holds, finance, second visits' },
+  { key: 'won',          label: 'Won',          hint: '' },
+  { key: 'lost',         label: 'Lost',         hint: '' },
+]
+const STAGE_LABEL = Object.fromEntries(STAGES.map(s => [s.key, s.label]))
+const OPEN = ['new', 'contacted', 'visit_booked', 'visited', 'deciding']
+
+const SOURCES = {
+  buyer_guide: "Buyer's guide", viewing_request: 'Viewing request', admin: 'Booked by us', order: 'Direct sale',
+  payment_plan: 'Payment plan', walk_in: 'Walk-in', phone: 'Phone call', facebook_marketplace: 'Facebook Marketplace',
+  facebook_groups: 'Facebook groups', meta_ads: 'Meta ads', facebook: 'Facebook', instagram: 'Instagram',
+  google: 'Google', web_enquiry: 'Web enquiry', referral: 'Referral', teacher_referral: 'Teacher referral',
+  existing_customer: 'Existing customer', other: 'Other'
+}
+const MANUAL_SOURCES = ['walk_in', 'phone', 'facebook_marketplace', 'facebook_groups', 'meta_ads', 'instagram', 'google', 'referral', 'teacher_referral', 'existing_customer', 'other']
+
+const OPTIONS = {
+  interest_type: { upright: 'Upright', grand: 'Grand', digital: 'Digital', not_sure: 'Not sure yet' },
+  budget: { under_5k: 'Under $5k', '5_10k': '$5k–10k', '10_20k': '$10k–20k', '20k_plus': '$20k+', not_sure: 'Budget not set' },
+  timeframe: { asap: 'Next few weeks', '1_3_months': '1–3 months', '3_6_months': '3–6 months', researching: 'Just researching' },
+  player: { child: 'Child starting out', adult_beginner: 'Adult beginner', returning: 'Coming back to it', advanced: 'Experienced player', teacher: 'Teacher or studio' },
+}
+const BUDGET_GUESS = { under_5k: 4500, '5_10k': 7500, '10_20k': 14000, '20k_plus': 25000 }
+
+const EVENT_ICON = {
+  guide: 'ti-book-download', details: 'ti-list-check', viewing: 'ti-calendar-plus', visit_confirmed: 'ti-calendar-check',
+  visit: 'ti-door-enter', visit_cancelled: 'ti-calendar-x', no_show: 'ti-user-x', plan: 'ti-credit-card',
+  plan_won: 'ti-writing-sign', order: 'ti-receipt', order_cancelled: 'ti-receipt-off', stage: 'ti-arrow-right',
+  call: 'ti-phone', sms: 'ti-message', email: 'ti-mail', voicemail: 'ti-phone-pause', meeting: 'ti-users',
+  note: 'ti-note', added: 'ti-user-plus', task: 'ti-circle-check'
+}
+const LOG_TYPES = {
+  call: { title: 'Called', icon: 'ti-phone' }, sms: { title: 'Texted', icon: 'ti-message' },
+  email: { title: 'Emailed', icon: 'ti-mail' }, voicemail: { title: 'Left a voicemail', icon: 'ti-phone-pause' },
+  note: { title: 'Note', icon: 'ti-note' }
+}
+
+let leads = []
+let filter = 'all'
+let adminName = ''
+let openId = null
+let sortables = []
+
+/* ---------------------------------------------------------------- helpers */
+const $ = (id) => document.getElementById(id)
+const fullName = (l) => [l.first_name, l.last_name].filter(Boolean).join(' ') || l.email || l.phone || 'Unnamed'
+const money = (n) => n == null || n === '' ? '' : '$' + Math.round(Number(n)).toLocaleString('en-AU')
+const daysSince = (iso) => iso ? Math.floor((Date.now() - new Date(iso)) / 86400000) : 0
+const telHref = (p) => 'tel:' + String(p || '').replace(/[^\d+]/g, '')
+const smsHref = (p) => 'sms:' + String(p || '').replace(/[^\d+]/g, '')
+
+function sourceLabel(l) {
+  const u = l.utm || {}
+  if (u.utm_source === 'qr') return 'QR · ' + (u.utm_campaign || 'code')
+  return SOURCES[l.source] || readableEnum(l.source)
+}
+
+function interestLine(l) {
+  const bits = []
+  if (l.interest_type) bits.push(OPTIONS.interest_type[l.interest_type])
+  if (l.budget && l.budget !== 'not_sure') bits.push(OPTIONS.budget[l.budget])
+  if (l.timeframe) bits.push(OPTIONS.timeframe[l.timeframe])
+  return bits.filter(Boolean).join(' · ')
+}
+
+// Hot, warm or cold: how far along they are, how soon they want to buy, how engaged
+function temperature(l) {
+  if (!OPEN.includes(l.stage)) return null
+  let s = { new: 0, contacted: 5, visit_booked: 25, visited: 30, deciding: 40 }[l.stage] || 0
+  s += { asap: 30, '1_3_months': 20, '3_6_months': 8, researching: 0 }[l.timeframe] || 0
+  if (l.budget && l.budget !== 'not_sure') s += 5
+  if (l.phone) s += 5
+  if ((l.request_count || 1) > 1) s += 5
+  if ((l.sources || []).length > 1) s += 10
+  const idle = daysSince(l.last_activity_at)
+  if (idle > 30) s -= 20
+  else if (idle > 14) s -= 10
+  return s >= 45 ? 'hot' : s >= 20 ? 'warm' : 'cold'
+}
+
+function dueInfo(l) {
+  if (!OPEN.includes(l.stage)) return null
+  if (!l.next_action) return { cls: 'is-missing', html: 'No next step set', icon: 'ti-alert-circle' }
+  if (!l.next_action_at) return { cls: '', html: esc(l.next_action), icon: 'ti-point' }
+  const d = new Date(l.next_action_at)
+  const now = new Date()
+  const day = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate())
+  const diff = Math.round((day(d) - day(now)) / 86400000)
+  const time = d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' })
+  let when, cls = ''
+  if (d <= now) {
+    cls = 'is-overdue'
+    when = diff === 0 ? 'due now' : diff === -1 ? 'overdue since yesterday' : `overdue ${-diff} days`
+  } else if (diff === 0) { cls = 'is-today'; when = 'today ' + time }
+  else if (diff === 1) when = 'tomorrow'
+  else if (diff < 7) when = d.toLocaleDateString('en-AU', { weekday: 'long' })
+  else when = d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
+  return { cls, html: `${esc(l.next_action)}, <b>${when}</b>`, icon: cls === 'is-overdue' ? 'ti-alarm' : 'ti-clock' }
+}
+
+function needsFollowUp(l) {
+  if (!OPEN.includes(l.stage)) return false
+  if (!l.next_action) return true
+  if (!l.next_action_at) return false
+  const end = new Date(); end.setHours(23, 59, 59, 999)
+  return new Date(l.next_action_at) <= end
+}
+
+function visitLine(l) {
+  if (!l.visit_date || !['visit_booked', 'visited'].includes(l.stage)) return ''
+  const d = new Date(l.visit_date + 'T00:00:00')
+  return (l.stage === 'visit_booked' ? 'Visit ' : 'Visited ') +
+    d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }) +
+    (l.visit_time ? ', ' + readablePreferredTime(l.visit_time) : '')
+}
+
+function toLocalInput(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const p = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
+function optionTags(key, value, blank) {
+  return `<option value="">${blank}</option>` + Object.entries(OPTIONS[key])
+    .map(([k, v]) => `<option value="${k}"${k === value ? ' selected' : ''}>${esc(v)}</option>`).join('')
+}
+
+/* ---------------------------------------------------------------- data */
+async function loadLeads() {
+  const { data, error } = await adminSupabase
+    .from('leads')
+    .select('*')
+    .order('last_activity_at', { ascending: false })
+    .limit(2000)
+  if (error) {
+    console.error('[pipeline] load failed', error)
+    $('plBoard').innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><i class="ti ti-alert-triangle"></i><p>Couldn't load the pipeline. Has supabase/crm_pipeline.sql been run?</p></div>`
+    return
+  }
+  leads = data || []
+  fillSourceFilter()
+  render()
+  if (openId) {
+    const l = leads.find(x => x.id === openId)
+    if (l) renderPanelHead(l)
+  }
+}
+
+async function refreshLead(id) {
+  const { data, error } = await adminSupabase.from('leads').select('*').eq('id', id).maybeSingle()
+  if (error) { console.error('[pipeline] refresh failed', error); return null }
+  const i = leads.findIndex(x => x.id === id)
+  if (!data) { if (i >= 0) leads.splice(i, 1) }
+  else if (i >= 0) leads[i] = data
+  else leads.unshift(data)
+  render()
+  return data
+}
+
+async function saveLead(id, fields, okMessage) {
+  const { data, error } = await adminSupabase.from('leads').update(fields).eq('id', id).select('*').single()
+  if (error) {
+    console.error('[pipeline] save failed', error)
+    showToast(error.code === '23505' ? 'Another lead already has that email' : "Couldn't save. Please try again", 'error')
+    return null
+  }
+  const i = leads.findIndex(x => x.id === id)
+  if (i >= 0) leads[i] = data
+  render()
+  if (okMessage) showToast(okMessage, 'success')
+  return data
+}
+
+async function addEvent(leadId, type, title, detail) {
+  const { error } = await adminSupabase.from('lead_events')
+    .insert({ lead_id: leadId, type, title, detail: detail || null, created_by: adminName || null })
+  if (error) { console.error('[pipeline] event failed', error); showToast("Couldn't log that", 'error'); return false }
+  return true
+}
+
+/* ---------------------------------------------------------------- board */
+function visibleLeads() {
+  const q = $('plSearch').value.trim().toLowerCase()
+  const src = $('plSource').value
+  const showOld = $('plOld').checked
+  const cutoff = Date.now() - 30 * 86400000
+  return leads.filter(l => {
+    if (!showOld && l.stage === 'won' && l.won_at && new Date(l.won_at) < cutoff) return false
+    if (!showOld && l.stage === 'lost' && l.lost_at && new Date(l.lost_at) < cutoff) return false
+    if (src === 'qr' && (l.utm || {}).utm_source !== 'qr') return false
+    if (src && src !== 'qr' && !(l.sources || [l.source]).includes(src)) return false
+    if (filter === 'due' && !needsFollowUp(l)) return false
+    if (filter === 'hot' && temperature(l) !== 'hot') return false
+    if (q) {
+      const hay = [fullName(l), l.email, l.phone, l.piano_interest, l.notes].filter(Boolean).join(' ').toLowerCase()
+      if (!hay.includes(q)) return false
+    }
+    return true
+  })
+}
+
+function sortForColumn(stage, list) {
+  if (stage === 'won') return list.sort((a, b) => new Date(b.won_at || 0) - new Date(a.won_at || 0))
+  if (stage === 'lost') return list.sort((a, b) => new Date(b.lost_at || 0) - new Date(a.lost_at || 0))
+  return list.sort((a, b) => {
+    const ad = a.next_action ? (a.next_action_at ? new Date(a.next_action_at).getTime() : Infinity) : -Infinity
+    const bd = b.next_action ? (b.next_action_at ? new Date(b.next_action_at).getTime() : Infinity) : -Infinity
+    if (ad !== bd) return ad - bd
+    return new Date(b.last_activity_at) - new Date(a.last_activity_at)
+  })
+}
+
+function cardHtml(l) {
+  const temp = temperature(l)
+  const due = dueInfo(l)
+  const interest = interestLine(l)
+  const visit = visitLine(l)
+  const tags = [`<span class="pl-tag">${esc(sourceLabel(l))}</span>`]
+  if ((l.sources || []).length > 1) tags.push(`<span class="pl-tag pl-tag--grey" title="${esc((l.sources || []).map(s => SOURCES[s] || s).join(', '))}">+${l.sources.length - 1} more</span>`)
+  const inStage = daysSince(l.stage_changed_at)
+  const footLeft = l.stage === 'won' ? `Won ${fmtDate(l.won_at)}`
+    : l.stage === 'lost' ? esc(l.lost_reason || 'Lost')
+    : inStage === 0 ? 'In stage today' : `${inStage}d in stage`
+  const quick = [
+    l.phone ? `<a href="${telHref(l.phone)}" title="Call ${esc(l.phone)}" data-quick><i class="ti ti-phone"></i></a>` : '',
+    l.phone ? `<a href="${smsHref(l.phone)}" title="Text" data-quick><i class="ti ti-message"></i></a>` : '',
+    l.email ? `<a href="mailto:${esc(l.email)}" title="Email ${esc(l.email)}" data-quick><i class="ti ti-mail"></i></a>` : '',
+  ].join('')
+  return `
+    <article class="pl-card" data-id="${esc(l.id)}" tabindex="0" aria-label="${esc(fullName(l))}">
+      <div class="pl-card-top">
+        <span class="pl-name">${esc(fullName(l))}</span>
+        ${temp ? `<span class="pl-temp pl-temp--${temp}">${temp}</span>` : ''}
+      </div>
+      ${interest ? `<div class="pl-meta">${esc(interest)}</div>` : ''}
+      ${l.piano_interest ? `<div class="pl-meta"><i class="ti ti-piano" style="font-size:12px;"></i> ${esc(l.piano_interest)}</div>` : ''}
+      ${visit ? `<div class="pl-meta"><i class="ti ti-calendar" style="font-size:12px;"></i> ${esc(visit)}</div>` : ''}
+      <div class="pl-tags">${tags.join('')}</div>
+      ${due ? `<div class="pl-next ${due.cls}"><i class="ti ${due.icon}"></i><span>${due.html}</span></div>` : ''}
+      <div class="pl-foot">
+        <span>${footLeft}${l.value && l.stage !== 'lost' ? ` · <strong>${money(l.value)}</strong>` : ''}</span>
+        <span class="pl-quick">${quick}</span>
+      </div>
+    </article>`
+}
+
+function render() {
+  const board = $('plBoard')
+  const list = visibleLeads()
+  sortables.forEach(s => s.destroy())
+  sortables = []
+  document.querySelectorAll('.pl-drop .pl-card').forEach(c => c.remove())
+  board.innerHTML = STAGES.map(st => {
+    const items = sortForColumn(st.key, list.filter(l => l.stage === st.key))
+    const total = items.reduce((sum, l) => sum + (Number(l.value) || 0), 0)
+    const sub = total ? money(total) + (OPEN.includes(st.key) ? ' in play' : '') : st.hint
+    return `
+      <section class="pl-col" data-stage="${st.key}" aria-label="${st.label}">
+        <header class="pl-col-head">
+          <div class="pl-col-title"><span class="pl-col-name">${st.label}</span><span class="pl-col-count">${items.length}</span></div>
+          <div class="pl-col-sub">${esc(sub)}</div>
+        </header>
+        <div class="pl-col-body" data-stage="${st.key}">
+          ${items.length ? items.map(cardHtml).join('') : `<div class="pl-empty">Nobody here</div>`}
+        </div>
+      </section>`
+  }).join('')
+
+  board.querySelectorAll('.pl-col-body').forEach(body => {
+    sortables.push(new Sortable(body, {
+      group: 'pipeline',
+      animation: 160,
+      draggable: '.pl-card',
+      filter: '[data-quick]',
+      preventOnFilter: false,
+      delay: 180,
+      delayOnTouchOnly: true,
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      onStart: () => $('plDropbar').classList.add('is-on'),
+      onEnd: (evt) => {
+        $('plDropbar').classList.remove('is-on')
+        const to = evt.to.dataset.stage
+        const from = evt.from.dataset.stage
+        if (to === from) return
+        moveStage(evt.item.dataset.id, to)
+      }
+    }))
+  })
+
+  board.querySelectorAll('.pl-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('[data-quick]')) return
+      openLead(card.dataset.id)
+    })
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLead(card.dataset.id) }
+    })
+  })
+
+  renderStats()
+  updateBadge()
+}
+
+function renderStats() {
+  const now = Date.now()
+  const open = leads.filter(l => OPEN.includes(l.stage))
+  $('stOpen').textContent = open.length
+  $('stDue').textContent = leads.filter(needsFollowUp).length
+  $('stWeek').textContent = leads.filter(l => now - new Date(l.created_at) < 7 * 86400000).length
+
+  const month = new Date(); month.setDate(1); month.setHours(0, 0, 0, 0)
+  const won = leads.filter(l => l.stage === 'won' && l.won_at && new Date(l.won_at) >= month)
+  const wonValue = won.reduce((s, l) => s + (Number(l.value) || 0), 0)
+  $('stWon').innerHTML = `${won.length}${wonValue ? `<small>${money(wonValue)}</small>` : ''}`
+
+  const since = now - 90 * 86400000
+  const w = leads.filter(l => l.stage === 'won' && l.won_at && new Date(l.won_at) >= since).length
+  const lo = leads.filter(l => l.stage === 'lost' && l.lost_at && new Date(l.lost_at) >= since).length
+  $('stRate').textContent = w + lo ? Math.round((w / (w + lo)) * 100) + '%' : '—'
+
+  const replies = leads
+    .filter(l => l.first_contacted_at && now - new Date(l.created_at) < 30 * 86400000)
+    .map(l => (new Date(l.first_contacted_at) - new Date(l.created_at)) / 3600000)
+    .filter(h => h >= 0)
+    .sort((a, b) => a - b)
+  if (!replies.length) $('stReply').textContent = '—'
+  else {
+    const m = replies[Math.floor(replies.length / 2)]
+    $('stReply').textContent = m < 1 ? Math.max(1, Math.round(m * 60)) + ' min' : m < 48 ? Math.round(m) + ' h' : Math.round(m / 24) + ' days'
+  }
+}
+
+function updateBadge() {
+  const badge = $('pipelineBadge')
+  if (!badge) return
+  const n = leads.filter(l => l.stage === 'new').length
+  badge.textContent = n
+  badge.style.display = n ? 'inline-block' : 'none'
+}
+
+function fillSourceFilter() {
+  const sel = $('plSource')
+  const current = sel.value
+  const present = new Set()
+  leads.forEach(l => (l.sources && l.sources.length ? l.sources : [l.source]).forEach(s => present.add(s)))
+  const hasQr = leads.some(l => (l.utm || {}).utm_source === 'qr')
+  sel.innerHTML = '<option value="">All sources</option>' +
+    (hasQr ? '<option value="qr">QR codes</option>' : '') +
+    [...present].sort().map(s => `<option value="${esc(s)}">${esc(SOURCES[s] || readableEnum(s))}</option>`).join('')
+  sel.value = [...sel.options].some(o => o.value === current) ? current : ''
+}
+
+/* ---------------------------------------------------------------- stage moves */
+function askWon(l) {
+  return new Promise(resolve => {
+    const dlg = $('wonDialog')
+    $('wonValue').value = l.value ? Math.round(l.value) : (BUDGET_GUESS[l.budget] || '')
+    $('wonNote').value = ''
+    dlg.returnValue = ''
+    dlg.onclose = () => resolve(dlg.returnValue === 'ok'
+      ? { value: $('wonValue').value === '' ? null : Number($('wonValue').value), note: $('wonNote').value.trim() }
+      : null)
+    dlg.showModal()
+  })
+}
+
+function askLost() {
+  return new Promise(resolve => {
+    const dlg = $('lostDialog')
+    $('lostReason').value = 'Bought elsewhere'
+    $('lostNote').value = ''
+    dlg.returnValue = ''
+    dlg.onclose = () => {
+      if (dlg.returnValue !== 'ok') return resolve(null)
+      const note = $('lostNote').value.trim()
+      resolve($('lostReason').value + (note ? ': ' + note : ''))
+    }
+    dlg.showModal()
+  })
+}
+
+async function moveStage(id, stage) {
+  const l = leads.find(x => x.id === id)
+  if (!l || l.stage === stage) return render()
+  const fields = { stage }
+  let note = ''
+  if (stage === 'won') {
+    const ans = await askWon(l)
+    if (!ans) return render()
+    fields.value = ans.value
+    note = ans.note
+  } else if (stage === 'lost') {
+    const reason = await askLost()
+    if (!reason) return render()
+    fields.lost_reason = reason
+  }
+  const saved = await saveLead(id, fields, `${fullName(l)} moved to ${STAGE_LABEL[stage]}`)
+  if (!saved) return render()
+  if (note) await addEvent(id, 'note', 'Note', note)
+  if (openId === id) openLead(id)
+}
+
+/* ---------------------------------------------------------------- detail panel */
+function closeLead() {
+  closeSlidePanel('leadPanel')
+  openId = null
+  const url = new URL(location.href)
+  if (url.searchParams.has('lead')) { url.searchParams.delete('lead'); history.replaceState(null, '', url.pathname + url.search) }
+}
+
+function renderPanelHead(l) {
+  $('ldTitle').textContent = fullName(l)
+  const temp = temperature(l)
+  const inStage = daysSince(l.stage_changed_at)
+  $('ldHeadMeta').innerHTML = `
+    <span class="${statusPillClass({ new: 'new', contacted: 'contacted', visit_booked: 'scheduled', visited: 'visited', deciding: 'pending', won: 'purchased', lost: 'closed' }[l.stage])}">${STAGE_LABEL[l.stage]}</span>
+    ${temp ? `<span class="pl-temp pl-temp--${temp}">${temp}</span>` : ''}
+    <span>${inStage === 0 ? 'since today' : `for ${inStage} day${inStage === 1 ? '' : 's'}`}</span>`
+  $('ldWon').style.display = l.stage === 'won' ? 'none' : ''
+  $('ldLost').style.display = l.stage === 'lost' ? 'none' : ''
+}
+
+async function openLead(id) {
+  const l = leads.find(x => x.id === id) || await refreshLead(id)
+  if (!l) { showToast('That lead no longer exists', 'warning'); return }
+  openId = id
+  const url = new URL(location.href)
+  url.searchParams.set('lead', id)
+  history.replaceState(null, '', url.pathname + url.search)
+  renderPanelHead(l)
+
+  const due = dueInfo(l)
+  const guideAsked = (l.sources || []).includes('buyer_guide')
+  const u = l.utm || {}
+  const cameFrom = u.utm_source === 'qr' ? `QR code (${u.utm_campaign || 'no placement'})`
+    : u.utm_source ? [u.utm_source, u.utm_medium, u.utm_campaign].filter(Boolean).join(' / ')
+    : (l.source_page || '')
+  const TIMES = ['9:00am','9:30am','10:00am','10:30am','11:00am','11:30am','12:00pm','12:30pm','1:00pm','1:30pm','2:00pm','2:30pm','3:00pm','3:30pm','4:00pm','4:30pm','5:00pm']
+
+  $('ldBody').innerHTML = `
+    <section class="pl-sec">
+      <div class="pl-actions">
+        ${l.phone ? `<a class="btn-gold pl-btn-sm" href="${telHref(l.phone)}"><i class="ti ti-phone"></i> Call</a>
+                     <a class="btn-outline pl-btn-sm" href="${smsHref(l.phone)}"><i class="ti ti-message"></i> Text</a>` : ''}
+        ${l.email ? `<a class="btn-outline pl-btn-sm" href="mailto:${esc(l.email)}"><i class="ti ti-mail"></i> Email</a>` : ''}
+      </div>
+      <div class="pl-sec-title" style="margin:16px 0 8px;">Log what you did</div>
+      <div class="pl-actions" id="ldLogBtns">
+        ${Object.entries(LOG_TYPES).map(([k, v]) => `<button class="btn-ghost pl-btn-sm" type="button" data-log="${k}"><i class="ti ${v.icon}"></i> ${v.title === 'Note' ? 'Add note' : v.title}</button>`).join('')}
+      </div>
+      <div class="pl-log" id="ldLog">
+        <textarea class="admin-textarea" id="ldLogText" rows="2" placeholder="What happened? (optional)"></textarea>
+        <div class="pl-log-row">
+          <button class="btn-ghost pl-btn-sm" type="button" id="ldLogCancel">Cancel</button>
+          <button class="btn-gold pl-btn-sm" type="button" id="ldLogSave"><i class="ti ti-check"></i> Save</button>
+        </div>
+      </div>
+    </section>
+
+    ${OPEN.includes(l.stage) ? `
+    <section class="pl-sec">
+      <div class="pl-sec-title">Next step ${due && due.cls ? `<span class="pill ${due.cls === 'is-overdue' ? 'pill--red' : 'pill--amber'}">${due.cls === 'is-overdue' ? 'Overdue' : due.cls === 'is-today' ? 'Today' : 'Not set'}</span>` : ''}</div>
+      <input class="admin-input" id="ldNext" value="${esc(l.next_action || '')}" placeholder="e.g. Send photos of the U3H">
+      <div class="pl-due-chips">
+        <button type="button" data-due="0">Today</button><button type="button" data-due="1">Tomorrow</button>
+        <button type="button" data-due="3">In 3 days</button><button type="button" data-due="7">Next week</button><button type="button" data-due="30">In a month</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input class="admin-input" type="datetime-local" id="ldNextAt" value="${toLocalInput(l.next_action_at)}" style="flex:1 1 200px;">
+        <button class="btn-gold pl-btn-sm" type="button" id="ldNextSave"><i class="ti ti-device-floppy"></i> Save</button>
+        ${l.next_action ? `<button class="btn-ghost pl-btn-sm" type="button" id="ldNextDone"><i class="ti ti-check"></i> Done</button>` : ''}
+      </div>
+      ${l.next_action_auto && l.next_action ? `<p class="pl-hint">Suggested for this stage. Change it to anything you like.</p>` : ''}
+    </section>` : ''}
+
+    <section class="pl-sec">
+      <div class="pl-sec-title">Stage</div>
+      <select class="admin-select" id="ldStage">${STAGES.map(s => `<option value="${s.key}"${s.key === l.stage ? ' selected' : ''}>${s.label}</option>`).join('')}</select>
+      ${l.stage === 'lost' && l.lost_reason ? `<p class="pl-hint">Lost: ${esc(l.lost_reason)}</p>` : ''}
+      ${l.stage === 'won' && l.order_id ? `<p class="pl-hint">Won from an order. <a href="orders.html" style="color:var(--admin-gold);">Open Orders &amp; POS</a></p>` : ''}
+    </section>
+
+    ${OPEN.includes(l.stage) ? `
+    <section class="pl-sec">
+      <div class="pl-sec-title">Book a visit</div>
+      ${l.email ? `
+      <div class="pl-grid2">
+        <div class="admin-form-row"><label class="admin-label" for="ldVisitDate">Date</label><input type="date" class="admin-input" id="ldVisitDate"></div>
+        <div class="admin-form-row"><label class="admin-label" for="ldVisitTime">Time</label><select class="admin-select" id="ldVisitTime"><option value="">Choose</option>${TIMES.map(t => `<option>${t}</option>`).join('')}</select></div>
+      </div>
+      <input class="admin-input" id="ldVisitNote" placeholder="Message for their confirmation email (optional)" style="margin-top:10px;">
+      <div style="margin-top:10px;"><button class="btn-gold pl-btn-sm" type="button" id="ldVisitBook"><i class="ti ti-calendar-plus"></i> Book and email their confirmation</button></div>
+      <p class="pl-hint">It goes in the viewings calendar and this card moves to Visit booked.</p>` :
+      `<p class="pl-hint" style="margin:0;">Add their email below to book a visit here (the confirmation goes by email).</p>`}
+    </section>` : ''}
+
+    <section class="pl-sec">
+      <div class="pl-sec-title">About them <span class="pl-saved" id="ldSaved">Saved</span></div>
+      <div class="pl-grid2">
+        <div class="admin-form-row"><label class="admin-label" for="ld_first_name">First name</label><input class="admin-input" id="ld_first_name" data-field="first_name" value="${esc(l.first_name || '')}"></div>
+        <div class="admin-form-row"><label class="admin-label" for="ld_last_name">Last name</label><input class="admin-input" id="ld_last_name" data-field="last_name" value="${esc(l.last_name || '')}"></div>
+        <div class="admin-form-row"><label class="admin-label" for="ld_phone">Phone</label><input class="admin-input" type="tel" id="ld_phone" data-field="phone" value="${esc(l.phone || '')}"></div>
+        <div class="admin-form-row"><label class="admin-label" for="ld_email">Email</label><input class="admin-input" type="email" id="ld_email" data-field="email" value="${esc(l.email || '')}"></div>
+        <div class="admin-form-row"><label class="admin-label" for="ld_interest_type">Looking for</label><select class="admin-select" id="ld_interest_type" data-field="interest_type">${optionTags('interest_type', l.interest_type, '—')}</select></div>
+        <div class="admin-form-row"><label class="admin-label" for="ld_budget">Budget</label><select class="admin-select" id="ld_budget" data-field="budget">${optionTags('budget', l.budget, '—')}</select></div>
+        <div class="admin-form-row"><label class="admin-label" for="ld_timeframe">Buying when</label><select class="admin-select" id="ld_timeframe" data-field="timeframe">${optionTags('timeframe', l.timeframe, '—')}</select></div>
+        <div class="admin-form-row"><label class="admin-label" for="ld_player">Who&rsquo;s playing</label><select class="admin-select" id="ld_player" data-field="player">${optionTags('player', l.player, '—')}</select></div>
+        <div class="admin-form-row"><label class="admin-label" for="ld_piano_interest">Pianos they like</label><input class="admin-input" id="ld_piano_interest" data-field="piano_interest" value="${esc(l.piano_interest || '')}"></div>
+        <div class="admin-form-row"><label class="admin-label" for="ld_value">${l.stage === 'won' ? 'Sale value ($)' : 'Likely value ($)'}</label><input class="admin-input" type="number" min="0" step="1" id="ld_value" data-field="value" value="${l.value == null ? '' : Math.round(l.value)}"></div>
+      </div>
+      <div class="admin-form-row" style="margin-top:12px;"><label class="admin-label" for="ld_notes">Notes</label><textarea class="admin-textarea" id="ld_notes" data-field="notes" rows="3">${esc(l.notes || '')}</textarea></div>
+    </section>
+
+    <section class="pl-sec">
+      <div class="pl-sec-title">Where they came from</div>
+      <dl class="pl-facts">
+        <dt>First came in</dt><dd>${esc(sourceLabel(l))}, ${fmtDate(l.created_at)}</dd>
+        ${(l.sources || []).length > 1 ? `<dt>Since then</dt><dd>${esc(l.sources.slice(1).map(s => SOURCES[s] || readableEnum(s)).join(', '))}</dd>` : ''}
+        ${cameFrom ? `<dt>Came from</dt><dd>${esc(cameFrom)}</dd>` : ''}
+        ${guideAsked ? `<dt>Buyer&rsquo;s guide</dt><dd>${l.request_count > 1 ? `Asked ${l.request_count} times` : 'Asked once'} · email ${l.email_status === 'sent' ? 'sent' : l.email_status === 'failed' ? `<span style="color:var(--admin-red);">failed</span> (<a href="${SITE}/media/guides/signature-pianos-yamaha-buyers-guide.pdf" target="_blank" style="color:var(--admin-gold);">send them the PDF</a>)` : 'pending'}</dd>` : ''}
+        ${l.consent ? `<dt>Consent</dt><dd>${esc(l.consent_text || 'Yes')} <span style="color:var(--admin-text-faint);">(${fmtDate(l.consent_at)})</span></dd>` : ''}
+        ${l.first_contacted_at ? `<dt>First reply</dt><dd>${timeAgo(l.first_contacted_at)}</dd>` : ''}
+      </dl>
+    </section>
+
+    <section class="pl-sec">
+      <div class="pl-sec-title">Timeline</div>
+      <ul class="pl-timeline" id="ldTimeline"><li><span></span><span class="pl-tl-meta">Loading…</span></li></ul>
+    </section>`
+
+  wirePanel(l)
+  openSlidePanel('leadPanel')
+  loadTimeline(id)
+}
+
+function wirePanel(l) {
+  const id = l.id
+
+  // Log a call, text, email, voicemail or note
+  let logType = null
+  $('ldLogBtns').querySelectorAll('[data-log]').forEach(btn => btn.addEventListener('click', () => {
+    logType = btn.dataset.log
+    $('ldLog').classList.add('is-open')
+    $('ldLogText').placeholder = logType === 'note' ? 'Write a note' : 'What happened? (optional)'
+    $('ldLogText').focus()
+  }))
+  $('ldLogCancel').addEventListener('click', () => { $('ldLog').classList.remove('is-open'); $('ldLogText').value = '' })
+  $('ldLogSave').addEventListener('click', async () => {
+    const text = $('ldLogText').value.trim()
+    if (logType === 'note' && !text) return $('ldLogText').focus()
+    if (!(await addEvent(id, logType, LOG_TYPES[logType].title, text))) return
+    showToast(`${LOG_TYPES[logType].title} logged`, 'success')
+    await refreshLead(id)
+    openLead(id)
+  })
+
+  // Next step
+  if ($('ldNext')) {
+    document.querySelectorAll('[data-due]').forEach(b => b.addEventListener('click', () => {
+      const d = new Date()
+      const add = Number(b.dataset.due)
+      if (add === 0) d.setHours(Math.max(d.getHours() + 1, 9), 0, 0, 0)
+      else { d.setDate(d.getDate() + add); d.setHours(10, 0, 0, 0) }
+      $('ldNextAt').value = toLocalInput(d.toISOString())
+    }))
+    $('ldNextSave').addEventListener('click', async () => {
+      const text = $('ldNext').value.trim()
+      const at = $('ldNextAt').value
+      if (!text) return $('ldNext').focus()
+      await saveLead(id, { next_action: text, next_action_at: at ? new Date(at).toISOString() : null, next_action_auto: false }, 'Next step saved')
+      openLead(id)
+    })
+    const done = $('ldNextDone')
+    if (done) done.addEventListener('click', async () => {
+      await addEvent(id, 'task', 'Done: ' + l.next_action)
+      await saveLead(id, { next_action: null, next_action_at: null, next_action_auto: false }, 'Done. Set the next step when you know it')
+      openLead(id)
+      setTimeout(() => $('ldNext') && $('ldNext').focus(), 50)
+    })
+  }
+
+  // Stage
+  $('ldStage').addEventListener('change', (e) => moveStage(id, e.target.value))
+
+  // Book a visit (goes into viewing_appointments; the database moves the card)
+  const book = $('ldVisitBook')
+  if (book) {
+    const tomorrow = new Date(Date.now() + 86400000)
+    $('ldVisitDate').value = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`
+    book.addEventListener('click', async () => {
+      const date = $('ldVisitDate').value
+      const time = $('ldVisitTime').value
+      if (!date || !time) return showToast('Choose a date and a time', 'warning')
+      book.disabled = true
+      book.innerHTML = '<i class="ti ti-loader"></i> Booking…'
+      const row = {
+        first_name: l.first_name || 'Guest', last_name: l.last_name || '', email: l.email, phone: l.phone || null,
+        appointment_date: date, appointment_time: time, notes: $('ldVisitNote').value.trim() || null,
+        source: 'admin', status: 'confirmed', customer_id: l.customer_id || null
+      }
+      const { error } = await adminSupabase.from('viewing_appointments').insert(row)
+      if (error) {
+        console.error('[pipeline] booking failed', error)
+        book.disabled = false
+        book.innerHTML = '<i class="ti ti-calendar-plus"></i> Book and email their confirmation'
+        return showToast("Couldn't book. Please try again", 'error')
+      }
+      try {
+        const { data: settings } = await adminSupabase.from('company_settings').select('*').limit(1).maybeSingle()
+        const res = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'viewing_confirmed', first_name: row.first_name, last_name: row.last_name, email: row.email,
+            appointment_date: date, appointment_time: time, notes: row.notes, settings: settings || {} })
+        })
+        const out = await res.json().catch(() => ({}))
+        const mailed = res.ok && out.success !== false
+        showToast(mailed ? 'Visit booked and confirmation sent' : 'Visit booked, but the email didn’t send', mailed ? 'success' : 'warning')
+      } catch (err) {
+        console.error('[pipeline] confirmation email failed', err)
+        showToast('Visit booked, but the email didn’t send', 'warning')
+      }
+      await refreshLead(id)
+      openLead(id)
+    })
+  }
+
+  // About them: save each field as it changes
+  $('ldBody').querySelectorAll('[data-field]').forEach(el => {
+    const evt = el.tagName === 'SELECT' ? 'change' : 'blur'
+    el.addEventListener(evt, async () => {
+      const field = el.dataset.field
+      let v = el.value.trim()
+      if (field === 'email') v = v.toLowerCase()
+      const val = v === '' ? null : field === 'value' ? Number(v) : v
+      const current = leads.find(x => x.id === id)
+      if (!current || (current[field] ?? null) == val || (field === 'value' && Number(current.value) === val)) return
+      if (field === 'first_name' && !val) { el.value = current.first_name || ''; return }
+      if ((field === 'email' || field === 'phone') && !val && !(field === 'email' ? current.phone : current.email)) {
+        el.value = current[field] || ''
+        return showToast('Keep a phone number or an email', 'warning')
+      }
+      const saved = await saveLead(id, { [field]: val })
+      if (!saved) { el.value = current[field] ?? ''; return }
+      $('ldSaved').classList.add('is-shown')
+      setTimeout(() => $('ldSaved') && $('ldSaved').classList.remove('is-shown'), 1400)
+      if (['first_name', 'last_name'].includes(field)) renderPanelHead(saved)
+    })
+  })
+}
+
+async function loadTimeline(id) {
+  const { data, error } = await adminSupabase
+    .from('lead_events')
+    .select('*')
+    .eq('lead_id', id)
+    .order('created_at', { ascending: false })
+    .limit(200)
+  const ul = $('ldTimeline')
+  if (!ul || openId !== id) return
+  if (error) { ul.innerHTML = `<li><span></span><span class="pl-tl-meta">Couldn't load the timeline.</span></li>`; return }
+  const l = leads.find(x => x.id === id)
+  const items = (data || []).map(e => `
+    <li>
+      <span class="pl-tl-icon${e.auto ? '' : ' is-person'}"><i class="ti ${EVENT_ICON[e.type] || 'ti-point'}"></i></span>
+      <div>
+        <div class="pl-tl-title">${esc(e.title)}</div>
+        ${e.detail ? `<div class="pl-tl-detail">${esc(e.detail)}</div>` : ''}
+        <div class="pl-tl-meta" title="${esc(new Date(e.created_at).toLocaleString('en-AU'))}">${timeAgo(e.created_at)} · ${e.auto ? 'Automatic' : esc(e.created_by || 'You')}</div>
+      </div>
+    </li>`)
+  if (l) items.push(`
+    <li>
+      <span class="pl-tl-icon"><i class="ti ti-user-plus"></i></span>
+      <div><div class="pl-tl-title">Came in: ${esc(sourceLabel(l))}</div><div class="pl-tl-meta">${fmtDate(l.created_at)}</div></div>
+    </li>`)
+  ul.innerHTML = items.join('')
+}
+
+$('ldWon').addEventListener('click', () => openId && moveStage(openId, 'won'))
+$('ldLost').addEventListener('click', () => openId && moveStage(openId, 'lost'))
+$('ldDelete').addEventListener('click', async () => {
+  const l = leads.find(x => x.id === openId)
+  if (!l || !confirm(`Delete ${fullName(l)} and their timeline? This can't be undone. (To keep a record, mark them lost instead.)`)) return
+  const { error } = await adminSupabase.from('leads').delete().eq('id', l.id)
+  if (error) { console.error('[pipeline] delete failed', error); return showToast("Couldn't delete", 'error') }
+  leads = leads.filter(x => x.id !== l.id)
+  closeLead()
+  render()
+  showToast('Lead deleted', 'success')
+})
+
+/* ---------------------------------------------------------------- new lead */
+function openNewLead() {
+  $('nlError').classList.remove('is-shown')
+  ;['nl_first', 'nl_last', 'nl_phone', 'nl_email', 'nl_pianos', 'nl_notes'].forEach(i => { $(i).value = '' })
+  $('nl_source').innerHTML = MANUAL_SOURCES.map(s => `<option value="${s}">${esc(SOURCES[s])}</option>`).join('')
+  $('nl_stage').innerHTML = STAGES.filter(s => OPEN.includes(s.key)).map(s => `<option value="${s.key}">${s.label}</option>`).join('')
+  document.querySelectorAll('#newLeadPanel [data-opts]').forEach(sel => { sel.innerHTML = optionTags(sel.dataset.opts, '', '—') })
+  openSlidePanel('newLeadPanel')
+  setTimeout(() => $('nl_first').focus(), 250)
+}
+
+async function createLead() {
+  const err = $('nlError')
+  err.classList.remove('is-shown')
+  const first = $('nl_first').value.trim()
+  const email = $('nl_email').value.trim().toLowerCase() || null
+  const phone = $('nl_phone').value.trim() || null
+  if (!first || (!email && !phone)) {
+    err.textContent = 'Add a first name, and a phone number or an email.'
+    return err.classList.add('is-shown')
+  }
+  if (email) {
+    const dupe = leads.find(l => (l.email || '').toLowerCase() === email)
+    if (dupe) { closeSlidePanel('newLeadPanel'); showToast(`${fullName(dupe)} is already in the pipeline`, 'info'); return openLead(dupe.id) }
+  }
+  const source = $('nl_source').value
+  const row = {
+    source, sources: [source], first_name: first, last_name: $('nl_last').value.trim() || null, email, phone,
+    stage: $('nl_stage').value, interest_type: $('nl_interest').value || null, budget: $('nl_budget').value || null,
+    timeframe: $('nl_timeframe').value || null, player: $('nl_player').value || null,
+    piano_interest: $('nl_pianos').value.trim() || null, notes: $('nl_notes').value.trim() || null,
+    email_status: 'pending'
+  }
+  const btn = $('nlSave')
+  btn.disabled = true
+  const { data, error } = await adminSupabase.from('leads').insert(row).select('*').single()
+  btn.disabled = false
+  if (error) {
+    console.error('[pipeline] create failed', error)
+    err.textContent = error.code === '23505' ? 'Someone with that email is already in the pipeline.' : "Couldn't add them. Please try again."
+    return err.classList.add('is-shown')
+  }
+  await addEvent(data.id, 'added', 'Added by hand: ' + (SOURCES[source] || source), row.notes)
+  leads.unshift(data)
+  fillSourceFilter()
+  render()
+  closeSlidePanel('newLeadPanel')
+  showToast(`${first} added`, 'success')
+  openLead(data.id)
+}
+
+/* ---------------------------------------------------------------- QR codes */
+function qrPlacement() {
+  return ($('qrPlace').value || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9_-]/g, '').slice(0, 40) || 'showroom'
+}
+function qrUrl() { return `${SITE}/guide?src=${qrPlacement()}` }
+
+// Draws the code as crisp squares in brand ink, with the quiet zone scanners need
+function qrSvg(size) {
+  const qr = qrcode(0, 'M')
+  qr.addData(qrUrl())
+  qr.make()
+  const n = qr.getModuleCount()
+  const quiet = 4
+  const total = n + quiet * 2
+  let path = ''
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    if (qr.isDark(r, c)) path += `M${c + quiet} ${r + quiet}h1v1h-1z`
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" width="${size}" height="${size}" shape-rendering="crispEdges"><rect width="${total}" height="${total}" fill="#FFFFFF"/><path d="${path}" fill="#16222E"/></svg>`
+}
+
+function renderQr() {
+  $('qrBox').innerHTML = qrSvg(164)
+  $('qrUrl').textContent = qrUrl()
+  const counts = {}
+  leads.filter(l => (l.utm || {}).utm_source === 'qr').forEach(l => {
+    const k = l.utm.utm_campaign || 'no placement'
+    counts[k] = counts[k] || { n: 0, won: 0 }
+    counts[k].n++
+    if (l.stage === 'won') counts[k].won++
+  })
+  const rows = Object.entries(counts).sort((a, b) => b[1].n - a[1].n)
+  $('qrStats').innerHTML = rows.length
+    ? `<div class="admin-label">Leads from QR codes so far</div><table>${rows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v.n} lead${v.n === 1 ? '' : 's'}${v.won ? ` · ${v.won} won` : ''}</td></tr>`).join('')}</table>`
+    : `<div class="admin-label">No leads from QR codes yet</div>`
+}
+
+function download(name, blob) {
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = name
+  document.body.appendChild(a)
+  a.click()
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove() }, 500)
+}
+
+$('qrBtn').addEventListener('click', () => { renderQr(); $('qrDialog').showModal() })
+$('qrPlace').addEventListener('input', renderQr)
+$('qrSvg').addEventListener('click', () => download(`signature-pianos-guide-qr-${qrPlacement()}.svg`, new Blob([qrSvg(1024)], { type: 'image/svg+xml' })))
+$('qrPng').addEventListener('click', () => {
+  const img = new Image()
+  img.onload = () => {
+    const c = document.createElement('canvas')
+    c.width = c.height = 1200
+    const ctx = c.getContext('2d')
+    ctx.imageSmoothingEnabled = false
+    ctx.drawImage(img, 0, 0, 1200, 1200)
+    c.toBlob(b => download(`signature-pianos-guide-qr-${qrPlacement()}.png`, b), 'image/png')
+  }
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(qrSvg(1200))
+})
+$('qrCopy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(qrUrl()); showToast('Link copied', 'success') }
+  catch { showToast(qrUrl(), 'info') }
+})
+
+/* ---------------------------------------------------------------- start */
+;(async function init() {
+  const admin = await checkAdminAuth()
+  if (!admin) return
+  adminName = [admin.first_name, admin.last_name].filter(Boolean).join(' ') || admin.email || ''
+
+  $('newLeadBtn').addEventListener('click', openNewLead)
+  $('nlSave').addEventListener('click', createLead)
+  $('plSearch').addEventListener('input', render)
+  $('plSource').addEventListener('change', render)
+  $('plOld').addEventListener('change', render)
+  $('plFilters').querySelectorAll('.filter-pill').forEach(b => b.addEventListener('click', () => {
+    filter = b.dataset.filter
+    $('plFilters').querySelectorAll('.filter-pill').forEach(x => x.classList.toggle('is-active', x === b))
+    render()
+  }))
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && openId && !document.querySelector('dialog[open]')) closeLead() })
+
+  document.querySelectorAll('.pl-drop').forEach(zone => new Sortable(zone, {
+    group: { name: 'pipeline', pull: false, put: true },
+    sort: false,
+    draggable: '.pl-card',
+    filter: '.pl-drop-label'
+  }))
+
+  await loadLeads()
+  const deep = new URLSearchParams(location.search).get('lead')
+  if (deep) openLead(deep)
+
+  // Keep the board fresh: on return to the tab, and every two minutes
+  // (never mid-drag or while a dialog is open, which would drop the card)
+  const busy = () => document.hidden || document.querySelector('dialog[open]') || document.querySelector('.sortable-chosen')
+  document.addEventListener('visibilitychange', () => { if (!busy()) loadLeads() })
+  setInterval(() => { if (!busy()) loadLeads() }, 120000)
+})()
+</script>
+</body>
+</html>

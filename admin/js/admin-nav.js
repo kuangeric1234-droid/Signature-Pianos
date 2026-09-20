@@ -25,6 +25,18 @@
     else nav.appendChild(link)
   }
 
+  // The sales pipeline sits right under the dashboard on every page.
+  if (nav && !nav.querySelector('[data-page="pipeline"]')) {
+    const link = document.createElement('a')
+    link.href = 'pipeline.html'
+    link.className = 'admin-nav-item'
+    link.dataset.page = 'pipeline'
+    link.innerHTML = '<i class="ti ti-layout-kanban"></i> Pipeline <span class="nav-badge" id="pipelineBadge"></span>'
+    const dash = nav.querySelector('[data-page="dashboard"]')
+    if (dash) dash.after(link)
+    else nav.prepend(link)
+  }
+
   const file = window.location.pathname.split('/').pop().replace('.html', '')
   document.querySelectorAll('.admin-nav-item').forEach(item => {
     if (item.dataset.page === file) item.classList.add('active')
@@ -46,22 +58,24 @@
   }
 })()
 
-/* ---------- Pending-enquiries badge ---------- */
+/* ---------- Badges: pending enquiries, and new leads nobody has called yet ---------- */
 async function loadEnquiriesBadge() {
   const badge = document.getElementById('enquiriesBadge')
-  if (!badge) return
+  const leadBadge = document.getElementById('pipelineBadge')
+  const show = (el, n) => {
+    if (!el) return
+    el.textContent = n
+    el.style.display = n > 0 ? 'inline-block' : 'none'
+  }
   try {
     const [{ count: vCount }, { count: sCount }, { count: lCount }] = await Promise.all([
       adminSupabase.from('viewing_bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       adminSupabase.from('service_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      // buyer's guide leads nobody has followed up yet (0 if supabase/leads.sql hasn't been run)
-      adminSupabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'new')
+      // leads still in the New column of the pipeline (supabase/crm_pipeline.sql)
+      adminSupabase.from('leads').select('*', { count: 'exact', head: true }).eq('stage', 'new')
     ])
-    const total = (vCount || 0) + (sCount || 0) + (lCount || 0)
-    if (total > 0) {
-      badge.textContent = total
-      badge.style.display = 'inline-block'
-    }
+    show(badge, (vCount || 0) + (sCount || 0))
+    show(leadBadge, lCount || 0)
   } catch (err) {
     console.error('[admin] badge load failed', err)
   }

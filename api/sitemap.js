@@ -7,9 +7,11 @@
 
 const { supabaseAdmin, SITE_URL } = require('../lib/ai')
 
+const xml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
+
 const STATIC_PATHS = [
   '/', '/instruments/', '/services/book-a-viewing.html', '/services/delivery-warranty.html',
-  '/services/tuning-servicing.html', '/serial-number-lookup.html', '/teachers.html', '/about.html', '/blog',
+  '/services/tuning-servicing.html', '/serial-number-lookup.html', '/guide', '/teachers.html', '/about.html', '/blog',
 ]
 
 module.exports = async (req, res) => {
@@ -36,7 +38,7 @@ module.exports = async (req, res) => {
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map((u) => `  <url><loc>${u.loc}</loc>${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ''}</url>`).join('\n')}
+${urls.map((u) => `  <url><loc>${xml(u.loc)}</loc>${u.lastmod ? `<lastmod>${xml(u.lastmod)}</lastmod>` : ''}</url>`).join('\n')}
 </urlset>`
 
   res.setHeader('Content-Type', 'application/xml; charset=utf-8')

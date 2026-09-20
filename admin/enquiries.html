@@ -239,7 +239,7 @@
       </select>
     </div>
     <div class="admin-form-row">
-      <label class="admin-label" for="av_notes">Notes (optional)</label>
+      <label class="admin-label" for="av_notes">Note for their confirmation email (optional)</label>
       <textarea id="av_notes" class="admin-textarea" rows="3"></textarea>
     </div>
 
@@ -306,8 +306,8 @@ function showTab(tab) {
   document.getElementById('serviceTableWrap').style.display = tab === 'service' ? '' : 'none'
   document.getElementById('calendarWrap').style.display      = tab === 'calendar' ? '' : 'none'
   document.getElementById('guideTableWrap').style.display    = tab === 'guide' ? '' : 'none'
-  // Filter pills only apply to the form-submission tabs; hide them on calendar.
-  document.getElementById('filterBar').style.display = tab === 'calendar' ? 'none' : ''
+  // Filter pills only apply to the form-submission tabs; hide them on calendar and guide.
+  document.getElementById('filterBar').style.display = (tab === 'calendar' || tab === 'guide') ? 'none' : ''
   // The guide tab uses different statuses, so start its filter (and the others') from "All".
   if (wasGuide !== (tab === 'guide')) currentFilter = 'all'
   renderFilterPills()
@@ -355,47 +355,8 @@ async function loadGuideLeads() {
 
 function renderGuideLeads() {
   const body = document.getElementById('guideTableBody')
-  const rows = applyFilter(guideRows)
-  if (!rows.length) {
-    body.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-book-off"></i><p>No buyer's guide requests match this filter.</p></div></td></tr>`
-    return
-  }
-  body.innerHTML = rows.map(r => {
-    const fullName = `${esc(r.first_name || '')} ${esc(r.last_name || '')}`.trim() || '—'
-    const mail = r.email_status === 'sent'
-      ? `<span class="pill pill--green">Sent</span>`
-      : r.email_status === 'failed'
-        ? `<span class="pill pill--red" title="${esc(r.email_error || '')}">Failed</span>`
-        : `<span class="pill pill--grey">Pending</span>`
-    return `
-      <tr class="clickable" data-id="${esc(r.id)}" data-table="leads">
-        <td class="name-cell">${fullName}</td>
-        <td>${esc(r.email || '—')}</td>
-        <td>${esc(r.phone || '—')}</td>
-        <td style="text-align:center;">${r.request_count || 1}</td>
-        <td>${mail}</td>
-        <td>${timeAgo(r.last_requested_at || r.created_at)}</td>
-        <td><span class="${statusPillClass(r.status)}">${esc(r.status || '')}</span></td>
-        <td>
-          <div class="actions-cell">
-            <button class="icon-btn is-green" data-action="contacted" title="Mark contacted"><i class="ti ti-phone-check"></i></button>
-            <button class="icon-btn is-red"   data-action="closed"    title="Mark closed"><i class="ti ti-x"></i></button>
-          </div>
-        </td>
-      </tr>
-    `
-  }).join('')
-  body.querySelectorAll('tr.clickable').forEach(tr => {
-    tr.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-action]')
-      if (btn) {
-        e.stopPropagation()
-        updateEnquiryStatus(tr.dataset.id, btn.dataset.action, 'leads')
-        return
-      }
-      openDetail(tr.dataset.id, 'leads')
-    })
-  })
+  // Buyer's guide requests live in the pipeline now, with every other lead.
+  body.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-layout-kanban"></i><p>Buyer&rsquo;s guide requests now live in the <a href="pipeline.html" style="color:var(--admin-gold);font-weight:500;">Pipeline</a>, with every other lead, what they&rsquo;re looking for and their timeline.</p></div></td></tr>`
 }
 
 async function loadViewings() {
@@ -445,6 +406,21 @@ function renderCurrent() {
    (Session 13 — distinct from public viewing_bookings tab above)
    ============================================================================ */
 
+// YYYY-MM-DD in the browser's own time zone. toISOString() is UTC, which is
+// the previous day in Melbourne before 10am (11am in daylight saving).
+function localISODate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// "9:30am" -> 570, so viewings sort by time of day, not alphabetically
+function timeMinutes(t) {
+  const m = String(t || '').trim().toLowerCase().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/)
+  if (!m) return 24 * 60
+  let h = Number(m[1]) % 12
+  if (m[3] === 'pm') h += 12
+  return h * 60 + Number(m[2] || 0)
+}
+
 async function loadCalendar() {
   try {
     const { data, error } = await adminSupabase
@@ -453,7 +429,9 @@ async function loadCalendar() {
       .order('appointment_date', { ascending: true })
       .order('appointment_time', { ascending: true })
     if (error) throw error
-    calendarRows = data || []
+    calendarRows = (data || []).sort((a, b) =>
+      String(a.appointment_date || '').localeCompare(String(b.appointment_date || '')) ||
+      timeMinutes(a.appointment_time) - timeMinutes(b.appointment_time))
   } catch (err) {
     console.error('[enquiries] load calendar failed', err)
     calendarRows = []
@@ -464,11 +442,11 @@ async function loadCalendar() {
 function renderCalendar() {
   // Stats
   const today = new Date(); today.setHours(0, 0, 0, 0)
-  const todayStr = today.toISOString().slice(0, 10)
+  const todayStr = localISODate(today)
   const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate() + 7)
-  const weekEndStr = weekEnd.toISOString().slice(0, 10)
+  const weekEndStr = localISODate(weekEnd)
   const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-  const monthEndStr = monthEnd.toISOString().slice(0, 10)
+  const monthEndStr = localISODate(monthEnd)
 
   const upcomingActive = calendarRows.filter(r => ['confirmed', 'reminder_sent'].includes(r.status))
   document.getElementById('statViewingsToday').textContent =
@@ -526,7 +504,7 @@ function openNewViewingPanel() {
   ;['av_first', 'av_last', 'av_email', 'av_phone', 'av_notes'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = ''
   })
-  document.getElementById('av_date').value = new Date().toISOString().slice(0, 10)
+  document.getElementById('av_date').value = localISODate(new Date())
   document.getElementById('av_time').value = ''
   document.getElementById('av_source').value = 'admin'
   openSlidePanel('addViewingPanel')
@@ -559,10 +537,11 @@ async function createViewingAppointment() {
       .insert({ first_name, last_name, email, phone, appointment_date, appointment_time, notes, source, status: 'confirmed' })
     if (error) throw error
 
-    // Fire customer confirmation (non-blocking — toast on either branch)
+    // Customer confirmation: the booking stands either way; the toast says whether the email went
+    let mailed = false
     try {
       const { data: settings } = await adminSupabase.from('company_settings').select('*').limit(1).maybeSingle()
-      await fetch('/api/send-email', {
+      const res = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -572,12 +551,15 @@ async function createViewingAppointment() {
           settings: settings || {},
         }),
       })
+      const result = await res.json().catch(() => ({}))
+      mailed = res.ok && result.success !== false
+      if (!mailed) console.error('[enquiries] confirmation email failed', res.status, result)
     } catch (mailErr) {
       console.error('[enquiries] confirmation email fetch failed', mailErr)
     }
 
     closeSlidePanel('addViewingPanel')
-    showToast('Viewing booked — confirmation sent', 'success')
+    showToast(mailed ? 'Viewing booked — confirmation sent' : 'Viewing booked, but the confirmation email didn’t send', mailed ? 'success' : 'warning')
     await loadCalendar()
   } catch (err) {
     console.error('[enquiries] create viewing failed', err)
