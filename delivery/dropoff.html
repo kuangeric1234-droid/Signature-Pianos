@@ -40,8 +40,10 @@
    Signature Pianos — driver DROPOFF photo flow (public, token based)
    ----------------------------------------------------------------------------
    Sibling of pickup.html. Differences:
-     * Loads via delivery_link_token
-     * Already-confirmed check only short-circuits on 'delivered'
+     * Loads via the delivery token (get_delivery_for_driver RPC, kind 'drop';
+       see supabase/rpc_delivery_links.sql)
+     * Already-confirmed check short-circuits on 'delivered'; a reported
+       damage closes the link until admin reopens it
      * Photos uploaded under {deliveryId}/delivery/{ts}-{n}.jpg
      * POSTs to /api/driver-delivery-confirm (which generates warranty
        + auto-books tuner under service role)
@@ -59,7 +61,10 @@ if (!token || token === 'dropoff.html' || token === 'drop') {
 }
 
 let currentDelivery = null
+// { file, dataUrl, url } — url is set once the photo is uploaded, so a
+// retry after a failed confirm doesn't upload it again.
 let selectedPhotos = []
+const MAX_PHOTOS = 10
 let deliveryStatusType = 'no_issues'
 
 window.setDeliveryStatus = function (type) {
@@ -80,29 +85,23 @@ window.setDeliveryStatus = function (type) {
 ;(async function loadDeliveryPage() {
   try {
     const { data: delivery, error } = await _supabase
-      .from('deliveries')
-      .select(`
-        *,
-        order:order_id (
-          *,
-          customer:customer_id ( * ),
-          piano:piano_id ( * )
-        )
-      `)
-      .eq('delivery_link_token', token)
-      .maybeSingle()
+      .rpc('get_delivery_for_driver', { p_token: token })
 
     if (error) throw error
-    if (!delivery) return showError('This link is invalid or has expired.')
+    // Only a delivery (drop) token opens this page.
+    if (!delivery || delivery.kind !== 'drop') return showError('This link is invalid or has expired.')
 
     if (delivery.status === 'delivered') {
       return showAlreadyConfirmed()
+    }
+    if (delivery.status === 'damage_reported') {
+      return showError('Damage has already been reported for this delivery. Please call Signature Pianos.', 'Damage reported')
     }
     currentDelivery = delivery
     renderDeliveryPage(delivery)
   } catch (err) {
     console.error('[dropoff] load failed', err)
-    showError('We could not load this delivery. Please try again or contact Signature Pianos.')
+    showError('We could not load this delivery. Please try again or contact Signature Pianos.', 'Something went wrong')
   }
 })()
 
@@ -114,19 +113,18 @@ function esc(s) {
 }
 
 function renderDeliveryPage(delivery) {
-  const piano    = delivery.order?.piano    || {}
-  const customer = delivery.order?.customer || {}
-  const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
+  const piano    = delivery.piano    || {}
+  const customer = delivery.customer || {}
+  const pianoLabel = [piano.brand, piano.model, piano.year].filter(Boolean).join(' ') || 'Piano'
+  const customerName = [customer.first_name, customer.last_name].filter(Boolean).join(' ')
 
-  const deliverTo = [
-    customer.address_line1, customer.suburb, customer.state, customer.postcode,
-  ].filter(Boolean).join(', ')
+  const deliverTo = [customerName, delivery.delivery_address].filter(Boolean).join(', ')
 
   document.getElementById('pageContent').innerHTML = `
 
-    <div style="background:#1a1917;padding:20px 24px;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(22, 34, 46, 0.2);">
-      <div style="font-size:16px;color:#16222E;font-style:italic;">Signature Pianos</div>
-      <div style="font-size:12px;color:rgba(22, 34, 46, 0.5);margin-top:2px;">Piano delivery — photo confirmation</div>
+    <div style="background:#F3F0E9;padding:18px 24px;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(22, 34, 46, 0.12);">
+      <div style="font-family:var(--font-script);font-size:30px;line-height:1;color:#16222E;">Signature Pianos</div>
+      <div style="font-size:12px;color:#3A4855;margin-top:4px;letter-spacing:0.04em;">Piano delivery — photo confirmation</div>
     </div>
 
     <div style="padding:24px;max-width:480px;margin:0 auto;">
@@ -143,7 +141,11 @@ function renderDeliveryPage(delivery) {
         ` : ''}
         ${customer.phone ? `
           <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-top:10px;margin-bottom:4px;">Customer phone</div>
-          <a href="tel:${esc(customer.phone)}" style="font-size:13px;color:#16222E;text-decoration:none;">${esc(customer.phone)}</a>
+          <a href="tel:${esc(String(customer.phone).replace(/[^\d+]/g, ''))}" style="font-size:13px;color:#16222E;text-decoration:none;">${esc(customer.phone)}</a>
+        ` : ''}
+        ${delivery.special_instructions ? `
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-top:10px;margin-bottom:4px;">Access notes</div>
+          <div style="font-size:13px;color:#3A4855;line-height:1.6;white-space:pre-line;">${esc(delivery.special_instructions)}</div>
         ` : ''}
       </div>
 
@@ -246,18 +248,23 @@ function renderDeliveryPage(delivery) {
 
 function handlePhotoSelect(e) {
   const files = Array.from(e.target.files || [])
+  e.target.value = ''
   if (!files.length) return
+  // Each photo takes its slot straight away (the preview fills in when the
+  // file has been read), so the cap holds when many files are picked at once.
   files.forEach(file => {
     if (!file.type.startsWith('image/')) return
-    if (selectedPhotos.length >= 10) return
+    if (selectedPhotos.length >= MAX_PHOTOS) return
+    const photo = { file, dataUrl: null, url: null }
+    selectedPhotos.push(photo)
     const reader = new FileReader()
     reader.onload = (ev) => {
-      selectedPhotos.push({ file, dataUrl: ev.target.result, name: file.name })
+      photo.dataUrl = ev.target.result
       renderPhotoPreview()
     }
     reader.readAsDataURL(file)
   })
-  e.target.value = ''
+  renderPhotoPreview()
 }
 
 function renderPhotoPreview() {
@@ -266,15 +273,15 @@ function renderPhotoPreview() {
   const btn     = document.getElementById('submitBtn')
 
   preview.innerHTML = selectedPhotos.map((photo, i) => `
-    <div style="position:relative;aspect-ratio:1;border-radius:4px;overflow:hidden;">
-      <img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;">
+    <div style="position:relative;aspect-ratio:1;border-radius:4px;overflow:hidden;background:#E9E5DB;">
+      ${photo.dataUrl ? `<img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;">` : ''}
       <button onclick="removePhoto(${i})"
         style="position:absolute;top:4px;right:4px;background:rgba(22, 34, 46, 0.28);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
     </div>
   `).join('')
 
   const n = selectedPhotos.length
-  count.textContent = `${n} photo${n !== 1 ? 's' : ''} selected`
+  count.textContent = `${n} photo${n !== 1 ? 's' : ''} selected${n >= MAX_PHOTOS ? ' (maximum)' : ''}`
   count.style.color = n >= 3 ? '#1D9E75' : '#3A4855'
 
   if (n >= 3) {
@@ -301,88 +308,126 @@ async function submitDeliveryPhotos() {
   if (selectedPhotos.length < 3) return
   const btn     = document.getElementById('submitBtn')
   const errorEl = document.getElementById('submitError')
-  btn.disabled = true
   errorEl.style.display = 'none'
 
+  // Session 13 adds delivery_status + issue_description so the API can
+  // branch on damage / failed-delivery and skip the warranty + tuner
+  // booking chain when something went wrong. Checked before any upload.
+  const issueDescription = document.getElementById('issueDescription')?.value?.trim() || null
+  if (deliveryStatusType !== 'no_issues' && !issueDescription) {
+    errorEl.style.display = 'block'
+    errorEl.textContent = 'Please describe what happened before submitting.'
+    document.getElementById('issueDescription')?.focus()
+    return
+  }
+
+  btn.disabled = true
   try {
     const uploadedUrls = []
-    const deliveryId = currentDelivery.id
+    const deliveryId = currentDelivery.delivery_id
 
+    // Photos already uploaded on an earlier try keep their URL and are
+    // not uploaded again.
     for (let i = 0; i < selectedPhotos.length; i++) {
       btn.textContent = `UPLOADING ${i + 1} OF ${selectedPhotos.length}…`
-      const photo = selectedPhotos[i]
-      const blob = await (await fetch(photo.dataUrl)).blob()
-      const filename = `${deliveryId}/delivery/${Date.now()}-${i + 1}.jpg`
-      const { error: upErr } = await _supabase.storage
-        .from('delivery-photos')
-        .upload(filename, blob, { contentType: 'image/jpeg', upsert: false })
-      if (upErr) throw upErr
-      const { data: urlData } = _supabase.storage
-        .from('delivery-photos')
-        .getPublicUrl(filename)
-      uploadedUrls.push(urlData.publicUrl)
+      try {
+        uploadedUrls.push(await uploadPhoto(selectedPhotos[i], i, deliveryId, 'delivery'))
+      } catch (upErr) {
+        upErr.userMessage = `Photo ${i + 1} didn't upload (${upErr.message || 'network error'}). Check your connection and tap Try again; photos already uploaded won't be sent twice.`
+        throw upErr
+      }
     }
 
     btn.textContent = 'CONFIRMING DELIVERY…'
-    // Session 13 adds delivery_status + issue_description so the API can
-    // branch on damage / failed-delivery and skip the warranty + tuner
-    // booking chain when something went wrong.
-    const issueDescription = document.getElementById('issueDescription')?.value?.trim() || null
-    if (deliveryStatusType !== 'no_issues' && !issueDescription) {
-      throw new Error('Please describe what happened before submitting.')
+    let res
+    try {
+      res = await fetch('/api/driver-delivery-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          photo_urls:        uploadedUrls,
+          notes:             document.getElementById('deliveryNotes').value.trim() || null,
+          delivery_status:   deliveryStatusType,
+          issue_description: issueDescription,
+        }),
+      })
+    } catch (netErr) {
+      netErr.userMessage = 'Your photos are uploaded, but we couldn\'t reach Signature Pianos to confirm. Check your connection and tap Try again.'
+      throw netErr
     }
-    const res = await fetch('/api/driver-delivery-confirm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token,
-        photo_urls:        uploadedUrls,
-        photo_count:       uploadedUrls.length,
-        notes:             document.getElementById('deliveryNotes').value.trim() || null,
-        delivery_status:   deliveryStatusType,
-        issue_description: issueDescription,
-      }),
-    })
     const result = await res.json().catch(() => ({}))
     if (!res.ok || !result.success) {
       console.error('[dropoff] confirm API failed', result)
-      throw new Error(result.error || 'Confirm failed')
+      const apiErr = new Error(result.error || `Confirm failed (${res.status})`)
+      apiErr.userMessage = result.error || `Something went wrong confirming the delivery (error ${res.status}). Tap Try again, or call Signature Pianos.`
+      throw apiErr
     }
 
-    showDeliverySuccess(uploadedUrls.length, deliveryStatusType)
+    showDeliverySuccess(uploadedUrls.length, deliveryStatusType, result)
   } catch (err) {
-    console.error('[dropoff] upload failed', err)
+    console.error('[dropoff] submit failed', err)
     btn.disabled = false
     btn.textContent = 'TRY AGAIN'
     btn.style.background = '#c0392b'
     btn.style.color = '#fff'
     errorEl.style.display = 'block'
-    errorEl.textContent = 'Upload failed — please check your connection and try again.'
+    errorEl.textContent = err.userMessage || 'Upload failed — please check your connection and try again.'
   }
 }
 
-function showDeliverySuccess(count, status) {
+/* Upload one photo (once) to delivery-photos/{deliveryId}/{leg}/ and return its public URL. */
+async function uploadPhoto(photo, i, deliveryId, leg) {
+  if (photo.url) return photo.url
+  const types = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/heic': 'heic', 'image/heif': 'heif', 'image/gif': 'gif' }
+  const type = types[photo.file.type] ? photo.file.type : 'image/jpeg'
+  const filename = `${deliveryId}/${leg}/${Date.now()}-${i + 1}.${types[type]}`
+  const { error: upErr } = await _supabase.storage
+    .from('delivery-photos')
+    .upload(filename, photo.file, { contentType: type, upsert: false })
+  if (upErr) throw upErr
+  const { data: urlData } = _supabase.storage
+    .from('delivery-photos')
+    .getPublicUrl(filename)
+  photo.url = urlData.publicUrl
+  return photo.url
+}
+
+function showDeliverySuccess(count, status, result = {}) {
+  // Built from what the server actually did (warranty issued? tuning booked?
+  // Eric's email sent?), not from what was meant to happen.
+  const call = 'call Eric now on <a href="tel:+61479128955" style="color:inherit;">0479 128 955</a>'
+  const notified = result.notified !== false
+  const years = result.warranty_years
+  const tuning = {
+    booked:       'First tuning booked (~25 days)',
+    existing:     'First tuning already booked',
+    failed:       'First tuning: Signature Pianos will book it',
+    not_required: null,
+  }[result.tuner_booking]
   const messages = {
     no_issues: {
       icon: '✓', color: '#1D9E75',
       title: 'Delivery confirmed.',
-      body: `${count} photos uploaded successfully. The customer has been notified their piano has arrived. Their warranty has been issued automatically.`,
+      body: `${count} photos uploaded successfully.${result.customer_notified !== false ? ' The customer has been notified their piano has arrived.' : ''}${result.warranty_number ? ' Their warranty has been issued automatically.' : ''}`,
       checklist: [
         'Photos saved to Signature Pianos',
-        'Customer notified — piano has arrived',
-        '10-year warranty certificate emailed',
-        'First tuning auto-booked (~25 days)',
-      ],
+        result.customer_notified !== false ? 'Customer notified — piano has arrived' : 'Signature Pianos will contact the customer',
+        result.warranty_number ? `${years || 10}-year warranty issued` : null,
+        tuning,
+      ].filter(Boolean),
       checklistColor: '#1D9E75',
     },
     damage: {
       icon: '⚠', color: '#e74c3c',
       title: 'Damage report submitted.',
-      body: 'Eric has been notified immediately. Do not leave until you have spoken with Eric.',
+      body: notified
+        ? 'Eric has been notified immediately. Do not leave until you have spoken with Eric.'
+        : `The report is saved, but the alert email to Eric didn't send. Please ${call}, and do not leave until you have spoken with him.`,
       checklist: [
         `Photos saved (${count})`,
         'Damage notes logged',
-        'Eric notified urgently',
+        notified ? 'Eric notified urgently' : 'Eric NOT yet notified — call him',
         'Warranty + tuner booking paused until resolved',
       ],
       checklistColor: '#e74c3c',
@@ -390,11 +435,13 @@ function showDeliverySuccess(count, status) {
     failed: {
       icon: '✗', color: '#e74c3c',
       title: 'Failed delivery logged.',
-      body: 'Eric has been notified. Please contact Eric directly to arrange redelivery.',
+      body: notified
+        ? 'Eric has been notified. Please contact Eric directly to arrange redelivery.'
+        : `The reason is saved, but the email to Eric didn't send. Please ${call} to arrange redelivery.`,
       checklist: [
         `Photos saved (${count})`,
         'Reason logged',
-        'Eric notified — will contact customer',
+        notified ? 'Eric notified — will contact customer' : 'Eric NOT yet notified — call him',
         'Warranty + tuner booking paused until redelivery',
       ],
       checklistColor: '#e74c3c',
@@ -427,12 +474,12 @@ function showAlreadyConfirmed() {
   `
 }
 
-function showError(message) {
+function showError(message, title = 'Link not found') {
   document.getElementById('pageContent').innerHTML = `
     <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
       <div style="text-align:center;max-width:360px;">
         <div style="font-size:48px;margin-bottom:16px;color:#16222E;">✗</div>
-        <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">Link not found</h2>
+        <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">${esc(title)}</h2>
         <p style="font-size:13px;color:#3A4855;line-height:1.7;">${esc(message)}</p>
       </div>
     </div>

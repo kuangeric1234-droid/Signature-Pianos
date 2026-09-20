@@ -135,15 +135,16 @@
     display: none;
   }
   .banner.is-shown { display: block; }
+  /* Dark text on the light page (the old pale pink/green was unreadable on ivory). */
   .banner--error {
-    background: rgba(192, 57, 43, 0.12);
+    background: rgba(192, 57, 43, 0.08);
     border: 1px solid rgba(192, 57, 43, 0.4);
-    color: #e8a497;
+    color: #8E2A1F;
   }
   .banner--success {
-    background: rgba(26, 127, 75, 0.14);
+    background: rgba(26, 127, 75, 0.08);
     border: 1px solid rgba(26, 127, 75, 0.4);
-    color: #9bd6b3;
+    color: #1A5E3A;
   }
 
   .empty-state {
@@ -191,11 +192,16 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/config.js"></script>
 <script>
+/* The page reads and writes through two token-scoped RPCs
+   (supabase/rpc_delivery_links.sql): get_delivery_for_customer returns only
+   this booking's details, submit_delivery_preferences writes only the
+   preference columns, once. The deliveries table is never touched directly. */
 let delivery = null
 let orderSummary = null
+let token = null
 
 ;(async function init() {
-  const token = new URLSearchParams(window.location.search).get('token')
+  token = new URLSearchParams(window.location.search).get('token')
   if (!token) {
     showError("This link is missing its access token. Please use the link from your confirmation email.")
     return
@@ -205,28 +211,19 @@ let orderSummary = null
 
 async function loadDelivery(token) {
   try {
-    // anon SELECT policy allows reading by preference_token. We join order/customer/piano
-    // for the meta strip, but Supabase only joins one level here so we make two requests.
     const { data: dlv, error } = await _supabase
-      .from('deliveries')
-      .select('id, status, preference_token, customer_preferences_submitted, customer_preference_1, customer_preference_2, customer_preference_3, customer_special_instructions, customer_address_confirmed, order_id')
-      .eq('preference_token', token)
-      .maybeSingle()
+      .rpc('get_delivery_for_customer', { p_token: token })
     if (error) throw error
     if (!dlv) {
       showError("We couldn't find this delivery. The link may be expired or incorrect.")
       return
     }
     delivery = dlv
-
-    // Pull order + customer + piano in a second call.
-    if (dlv.order_id) {
-      const { data: ord } = await _supabase
-        .from('orders')
-        .select('order_number, invoice_number, total, customers(first_name, last_name, email, phone, address_line1, address_line2, suburb, state, postcode), pianos(brand, model, year, serial_number)')
-        .eq('id', dlv.order_id)
-        .maybeSingle()
-      orderSummary = ord || null
+    orderSummary = {
+      order_number: dlv.order_number,
+      total:        dlv.order_total,
+      piano:        dlv.piano || {},
+      address:      dlv.address || '',
     }
 
     if (delivery.customer_preferences_submitted) {
@@ -252,10 +249,9 @@ function esc(value) {
 
 function orderMetaHTML() {
   if (!orderSummary) return ''
-  const cust = orderSummary.customers || {}
-  const piano = orderSummary.pianos || {}
-  const addr = [cust.address_line1, cust.address_line2, [cust.suburb, cust.state, cust.postcode].filter(Boolean).join(' ')]
-    .filter(Boolean).join(', ')
+  const piano = orderSummary.piano || {}
+  // Once submitted, show the address the customer confirmed.
+  const addr = delivery?.customer_address_confirmed || orderSummary.address
   return `
     <div class="order-meta">
       <div><strong>${esc(piano.brand || 'Piano')} ${esc(piano.model || '')} ${esc(piano.year || '')}</strong></div>
@@ -270,7 +266,10 @@ function renderForm() {
   // Earliest delivery is 7 days out (lets the warehouse prep), latest 8 weeks.
   const minDate = new Date(today); minDate.setDate(today.getDate() + 7)
   const maxDate = new Date(today); maxDate.setDate(today.getDate() + 56)
-  const fmt = (d) => d.toISOString().slice(0, 10)
+  // Local calendar date (toISOString would give the UTC date: yesterday
+  // for a Melbourne morning).
+  const pad = (n) => String(n).padStart(2, '0')
+  const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
   const minStr = fmt(minDate), maxStr = fmt(maxDate)
 
   const windows = ['Morning (9am–12pm)', 'Afternoon (12pm–4pm)', 'Late afternoon (4pm–6pm)']
@@ -315,17 +314,11 @@ function renderForm() {
         <p class="pref-block-title">Delivery details</p>
         <label style="display:block;margin-bottom:14px;">
           <span class="lbl">Confirm delivery address</span>
-          <input type="text" id="pref-address" placeholder="Where should we deliver?" value="${esc(
-            orderSummary?.customers
-              ? [orderSummary.customers.address_line1, orderSummary.customers.address_line2,
-                 [orderSummary.customers.suburb, orderSummary.customers.state, orderSummary.customers.postcode].filter(Boolean).join(' ')]
-                .filter(Boolean).join(', ')
-              : ''
-          )}" required>
+          <input type="text" id="pref-address" placeholder="Where should we deliver?" maxlength="300" value="${esc(orderSummary?.address || '')}" required>
         </label>
         <label style="display:block;">
           <span class="lbl">Special instructions (stairs, parking, access)</span>
-          <textarea id="pref-instructions" placeholder="Anything our team should know before arriving"></textarea>
+          <textarea id="pref-instructions" maxlength="2000" placeholder="Anything our team should know before arriving"></textarea>
         </label>
       </div>
 
@@ -388,43 +381,57 @@ async function onSubmit(e) {
     return
   }
 
+  const instructions = document.getElementById('pref-instructions').value.trim()
+  if (address.length > 300 || instructions.length > 2000) {
+    errEl.textContent = 'Please shorten the address (300 characters) or instructions (2000 characters).'
+    errEl.classList.add('is-shown')
+    return
+  }
+
   const btn = document.getElementById('submitBtn')
   btn.disabled = true
   btn.textContent = 'Submitting…'
 
   try {
-    const { error } = await _supabase
-      .from('deliveries')
-      .update({
-        customer_preference_1: prefs[0],
-        customer_preference_2: prefs[1],
-        customer_preference_3: prefs[2],
-        customer_address_confirmed: address,
-        customer_special_instructions: document.getElementById('pref-instructions').value.trim() || null,
-        customer_preferences_submitted: new Date().toISOString(),
-      })
-      .eq('preference_token', delivery.preference_token)
+    // Writes only the preference columns, once (see submit_delivery_preferences).
+    const { data: result, error } = await _supabase.rpc('submit_delivery_preferences', {
+      p_token:        token,
+      p_pref1:        prefs[0],
+      p_pref2:        prefs[1],
+      p_pref3:        prefs[2],
+      p_address:      address,
+      p_instructions: instructions || null,
+    })
     if (error) throw error
+    if (!result || !result.ok) {
+      const code = result && result.error
+      if (code === 'already_submitted') {
+        // Submitted already (another tab, or a double tap): show what was saved.
+        await loadDelivery(token)
+        return
+      }
+      const messages = {
+        not_found:            "We couldn't find this delivery. The link may be expired or incorrect.",
+        invalid_date:         'One of your dates is in the past or too far ahead. Please choose dates in the next few weeks.',
+        invalid_preference:   'Please pick a date and a time window for each preference.',
+        invalid_address:      'Please confirm your delivery address.',
+        invalid_instructions: 'Please shorten your special instructions.',
+      }
+      const shown = new Error(messages[code] || "We couldn't save your preferences.")
+      shown.userMessage = shown.message
+      throw shown
+    }
 
-    // Fire-and-forget notification to the business inbox. We pass only
-    // the preference_token + form fields here; the API resolves the
-    // full delivery / order / customer / piano server-side under the
-    // service role. The anon client can't read orders/customers/pianos
-    // (no anon RLS policy on those tables), so client-side joins
-    // returned empty objects and the email rendered as dashes.
-    const _prefString = (p) => p ? `${p.date} ${p.time}` : '—'
-
+    // Fire-and-forget notification to the business inbox. Only the token
+    // is sent: /api/send-email looks the delivery, order, customer, piano
+    // and the saved preferences up server-side, so nothing in the email
+    // comes from the browser.
     fetch('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        type:             'delivery_preferences_submitted',
-        preference_token: delivery.preference_token,
-        pref1:            _prefString(prefs[0]),
-        pref2:            _prefString(prefs[1]),
-        pref3:            _prefString(prefs[2]),
-        address,
-        notes:            document.getElementById('pref-instructions').value.trim() || '',
+        type:  'delivery_preferences_submitted',
+        token,
       }),
     }).catch(() => { /* non-blocking */ })
 
@@ -432,12 +439,12 @@ async function onSubmit(e) {
     delivery.customer_preference_2 = prefs[1]
     delivery.customer_preference_3 = prefs[2]
     delivery.customer_address_confirmed = address
-    delivery.customer_special_instructions = document.getElementById('pref-instructions').value.trim() || ''
+    delivery.customer_special_instructions = instructions
     delivery.customer_preferences_submitted = new Date().toISOString()
     renderSubmitted()
   } catch (err) {
     console.error('[delivery-prefs] submit failed', err)
-    errEl.textContent = "We couldn't save your preferences. Please try again, or reply to your confirmation email."
+    errEl.textContent = err.userMessage || "We couldn't save your preferences. Please try again, or reply to your confirmation email."
     errEl.classList.add('is-shown')
     btn.disabled = false
     btn.textContent = 'Submit my preferences'

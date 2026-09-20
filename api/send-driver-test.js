@@ -5,12 +5,16 @@
  *   type = 'pickup' | 'delivery'
  *
  * Fires a realistic driver pickup-or-delivery photo-upload email to the
- * supplied address. The upload link inside the email points at the
- * /delivery/[token] page which is not yet built — the link will 404
- * for now; that page is a follow-up session.
+ * supplied address. The upload link inside the email uses a placeholder
+ * token, so it opens the "link not found" page.
+ *
+ * Admin only (Authorization: Bearer <admin access token>, attached by the
+ * admin pages): without it this would send branded mail from info@ to any
+ * address.
  */
 
 const { Resend } = require('resend')
+const { requireAdmin, sendAuthError } = require('../lib/auth')
 const {
   BUSINESS, C, TEXT, esc, layout, p, h2, note, button, steps,
 } = require('../lib/email-brand')
@@ -24,9 +28,11 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  try { await requireAdmin(req) } catch (e) { return sendAuthError(res, e) }
+
   const { test_email, type } = req.body || {}
-  if (!test_email) {
-    return res.status(400).json({ error: 'Missing test_email' })
+  if (typeof test_email !== 'string' || !/^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(test_email.trim())) {
+    return res.status(400).json({ error: 'Missing or invalid test_email' })
   }
 
   const isPickup = type === 'pickup'
@@ -53,14 +59,16 @@ module.exports = async (req, res) => {
   }
 
   try {
-    await resend.emails.send({
+    // Resend returns { error } rather than throwing.
+    const { error: mailErr } = await resend.emails.send({
       from: FROM,
-      to: test_email,
+      to: test_email.trim(),
       subject: isPickup
         ? `[TEST] Piano pickup — action required · Yamaha U3A 1983`
         : `[TEST] Piano delivery — action required · Yamaha U3A 1983`,
       html: buildDriverTestEmail({ isPickup, customer, piano, tokenUrl }),
     })
+    if (mailErr) throw mailErr
     return res.status(200).json({ success: true })
   } catch (err) {
     console.error('[send-driver-test] failed', err)

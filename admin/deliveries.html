@@ -298,6 +298,10 @@
 <script src="js/admin-auth.js"></script>
 <script src="js/admin-nav.js"></script>
 <script>
+// Every value of the delivery_status enum, so the status dropdown always has
+// the row's real status selected (a missing option made Save overwrite it).
+const DELIVERY_STATUSES = ['scheduled', 'pickup_pending', 'picked_up', 'in_transit', 'delivered', 'failed', 'damage_reported']
+
 let allDeliveries = []
 let allTuners = []
 let allPartners = []
@@ -363,15 +367,34 @@ async function loadDeliveries() {
   } catch (err) {
     console.error('[deliveries] load failed', err)
     document.getElementById('deliveriesTableBody').innerHTML =
-      `<tr><td colspan="7"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load deliveries.</p></div></td></tr>`
+      `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>Couldn't load deliveries.</p></div></td></tr>`
   }
+}
+
+/* 'YYYY-MM-DD' for the Melbourne calendar day containing `at` (default now).
+   delivered_at is a UTC timestamp, so slicing it gives the wrong day for
+   anything before 10–11am Melbourne time. */
+function melbourneDate(at = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Australia/Melbourne', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(at instanceof Date ? at : new Date(at))
+}
+/* 'YYYY-MM-DD' shifted by n calendar days (pure date arithmetic). */
+function addDays(ymd, n) {
+  const [y, m, d] = ymd.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10)
+}
+
+/* Error text for a failed /api/ call: the API's own message when it sent one. */
+function apiError(res, result) {
+  return (result && result.error) || `request failed (HTTP ${res.status})`
 }
 
 function renderStats() {
   const c = (s) => allDeliveries.filter(d => d.status === s).length
-  const todayStr = new Date().toISOString().slice(0, 10)
+  const todayStr = melbourneDate()
   const today = allDeliveries.filter(d =>
-    d.status === 'delivered' && d.delivered_at && d.delivered_at.slice(0, 10) === todayStr
+    d.status === 'delivered' && d.delivered_at && melbourneDate(d.delivered_at) === todayStr
   ).length
   document.getElementById('statScheduled').textContent = c('scheduled') + c('pickup_pending')
   document.getElementById('statInTransit').textContent = c('in_transit') + c('picked_up')
@@ -418,7 +441,7 @@ function renderDeliveries() {
         <td>${fmtDate(d.scheduled_date)}<br><span style="font-size:11px;color:var(--admin-text-faint);">${esc(d.scheduled_time_window || '')}</span></td>
         <td>${partner}</td>
         <td>${prefs}</td>
-        <td><span class="${statusPillClass(d.status)}">${esc((d.status || '').replace(/_/g,' '))}</span></td>
+        <td><span class="${d.status === 'damage_reported' ? 'pill pill--red' : statusPillClass(d.status)}">${esc((d.status || '').replace(/_/g,' '))}</span></td>
         <td>${tunerStatusCell(d.order_id)}</td>
         <td>
           <div class="actions-cell">
@@ -501,10 +524,14 @@ function openDelivery(id) {
     <div class="admin-form-row">
       <label class="admin-label" for="dlv-status">Status</label>
       <select id="dlv-status" class="admin-select">
-        ${['scheduled','pickup_pending','picked_up','in_transit','delivered','failed'].map(s =>
-          `<option value="${s}"${d.status === s ? ' selected' : ''}>${s.replace(/_/g,' ')}</option>`
+        ${DELIVERY_STATUSES.concat(d.status && !DELIVERY_STATUSES.includes(d.status) ? [d.status] : []).map(s =>
+          `<option value="${esc(s)}"${d.status === s ? ' selected' : ''}>${esc(s.replace(/_/g,' '))}</option>`
         ).join('')}
       </select>
+      ${d.status === 'damage_reported' ? `
+        <div style="font-size:11px;color:var(--admin-text-faint);margin-top:6px;line-height:1.5;">
+          The driver's delivery link is closed while damage is reported. To let the driver confirm delivery, set the status back to picked up or in transit and save.
+        </div>` : ''}
     </div>
     <div class="admin-form-row">
       <label class="admin-label" for="dlv-partner">Delivery partner</label>
@@ -549,6 +576,7 @@ function openDelivery(id) {
       </div>
       <div id="copyConfirm" style="font-size:11px;color:var(--admin-green);margin-top:6px;display:none;">Copied to clipboard.</div>
     </div>
+    ${renderDeliveryIssues(d)}
     ${renderDeliveryPhotos(d)}
 
     ${renderTunerSection(d, tunerBooking)}
@@ -638,12 +666,12 @@ async function sendTunerContactNow(bookingId, btn) {
       showToast('Contact email sent to tuner', 'success')
       await loadDeliveries()
     } else {
-      console.error('[deliveries] tuner-send-contact failed', result)
-      showToast('Failed to send — check console', 'error')
+      console.error('[deliveries] tuner-send-contact failed', res.status, result)
+      showToast(`Failed to send — ${apiError(res, result)}`, 'error')
     }
   } catch (err) {
     console.error('[deliveries] tuner-send-contact fetch failed', err)
-    showToast('Failed to send — check console', 'error')
+    showToast(`Failed to send — ${err.message || 'network error'}`, 'error')
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = originalHTML }
   }
@@ -680,7 +708,7 @@ async function saveDelivery() {
     await loadDeliveries()
   } catch (err) {
     console.error('[deliveries] save failed', err)
-    alert("Couldn't save delivery — please try again.")
+    alert("Couldn't save delivery — " + (err.message || 'please try again.'))
   } finally {
     btn.disabled = false
     btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save'
@@ -737,13 +765,15 @@ async function confirmDeliveryDate(deliveryId, btn) {
   if (btn) { btn.innerHTML = '<i class="ti ti-loader"></i> Sending…'; btn.disabled = true }
 
   try {
-    // Lock the row into scheduled status — covers cases where it had drifted
-    // back to pickup_pending after a partial edit.
-    const { error: updErr } = await adminSupabase
-      .from('deliveries')
-      .update({ status: 'scheduled' })
-      .eq('id', deliveryId)
-    if (updErr) console.error('[deliveries] status update failed', updErr)
+    // Move a not-yet-scheduled row (no status, or pickup_pending) to
+    // scheduled. A delivery that is already picked up, in transit, delivered
+    // etc. keeps its status: this button only re-sends the date.
+    if (!delivery.status || delivery.status === 'pickup_pending') {
+      let q = adminSupabase.from('deliveries').update({ status: 'scheduled' }).eq('id', deliveryId)
+      q = delivery.status ? q.eq('status', 'pickup_pending') : q.is('status', null)
+      const { error: updErr } = await q
+      if (updErr) throw new Error("couldn't set the status to scheduled: " + updErr.message)
+    }
 
     // Pull company settings for the email footer. Missing row is non-fatal.
     let settings = null
@@ -779,12 +809,12 @@ async function confirmDeliveryDate(deliveryId, btn) {
       closeSlidePanel('deliveryPanel')
       loadDeliveries()
     } else {
-      console.error('[deliveries] confirm email failed', result)
-      showToast('Email failed — check console', 'error')
+      console.error('[deliveries] confirm email failed', res.status, result)
+      showToast(`Email failed — ${apiError(res, result)}`, 'error')
     }
   } catch (err) {
     console.error('[deliveries] confirm fetch failed', err)
-    showToast('Email failed — check console', 'error')
+    showToast(`Couldn't confirm — ${err.message || 'network error'}`, 'error')
   } finally {
     if (btn) { btn.innerHTML = originalHTML; btn.disabled = false }
   }
@@ -882,9 +912,9 @@ function renderTunerSection(delivery, tunerBooking) {
 }
 
 function getDefaultTunerDate(deliveredAt) {
-  const base = deliveredAt ? new Date(deliveredAt) : new Date()
-  base.setDate(base.getDate() + 25)   // ~3.5 weeks after delivery
-  return base.toISOString().slice(0, 10)
+  // ~3.5 weeks after delivery, on the Melbourne calendar (matches the
+  // trigger_date api/driver-delivery-confirm.js sets).
+  return addDays(melbourneDate(deliveredAt ? new Date(deliveredAt) : new Date()), 25)
 }
 
 async function assignTuner(orderId, existingBookingId) {
@@ -932,7 +962,6 @@ async function assignTuner(orderId, existingBookingId) {
           tuner_id: tunerId,
           proposed_date: date,
           proposed_time: time,
-          status: 'pending',
           updated_at: new Date().toISOString(),
         })
         .eq('id', bookingId)
@@ -946,10 +975,11 @@ async function assignTuner(orderId, existingBookingId) {
       body: JSON.stringify({ tuner_booking_id: bookingId }),
     })
     const result = await res.json().catch(() => ({}))
-    if (!res.ok || !result.success) throw new Error(result.error || 'Notification failed')
+    if (!res.ok || !result.success) throw new Error(apiError(res, result))
 
     successEl.style.display = 'block'
     btn.innerHTML = '<i class="ti ti-check"></i> Notification sent'
+    if (result.warning) showToast(result.warning, 'error')
 
     setTimeout(() => {
       loadDeliveries()
@@ -1104,7 +1134,7 @@ async function updateTunerActive(id, active) {
    ========================================================================= */
 
 function renderCustomerPreferencesBlock(d) {
-  const prefUrl = `${window.location.origin}/delivery-preferences.html?token=${encodeURIComponent(d.preference_token || '')}`
+  const prefUrl = `https://signaturepianos.com.au/delivery-preferences.html?token=${encodeURIComponent(d.preference_token || '')}`
   const submitted = d.customer_preferences_submitted
   const fmtPref = (p) => {
     if (!p) return null
@@ -1153,7 +1183,7 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('#copyPrefLinkBtn')) {
     const d = allDeliveries.find(x => x.id === editingDeliveryId)
     if (!d) return
-    const url = `${window.location.origin}/delivery-preferences.html?token=${encodeURIComponent(d.preference_token || '')}`
+    const url = `https://signaturepianos.com.au/delivery-preferences.html?token=${encodeURIComponent(d.preference_token || '')}`
     navigator.clipboard.writeText(url).then(() => {
       const c = document.getElementById('copyPrefConfirm')
       if (c) { c.style.display = 'block'; setTimeout(() => c.style.display = 'none', 1500) }
@@ -1311,21 +1341,64 @@ async function updatePartnerActive(id, active) {
    size into a new tab. Pickup notes / delivery notes render below
    their photo grids when present.
    ========================================================================= */
+/* Only http(s) photo URLs are linked: esc() alone would still let a
+   javascript: URL through into an href. */
+function safePhotoUrls(urls) {
+  return (Array.isArray(urls) ? urls : []).filter(u => /^https?:\/\//i.test(String(u || '')))
+}
+
+function renderPhotoGrid(urls, alt) {
+  return `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+      ${safePhotoUrls(urls).map(url => `
+        <a href="${esc(url)}" target="_blank" rel="noopener"
+          style="display:block;aspect-ratio:1;border-radius:4px;overflow:hidden;border:1px solid var(--admin-border);">
+          <img src="${esc(url)}" style="width:100%;height:100%;object-fit:cover;" alt="${esc(alt)}">
+        </a>
+      `).join('')}
+    </div>
+  `
+}
+
+/* Damage report / failed delivery details from the driver's delivery page. */
+function renderDeliveryIssues(d) {
+  const damagePhotos = safePhotoUrls(d.damage_photos)
+  const hasDamage = d.damage_reported || d.damage_notes || damagePhotos.length
+  const hasFailed = d.failed_delivery || d.failed_delivery_reason || d.failed_delivery_at
+  if (!hasDamage && !hasFailed) return ''
+  const box = 'background:var(--admin-red-light);border-radius:4px;padding:12px 14px;margin-top:10px;font-size:12px;line-height:1.6;color:var(--admin-text);'
+  return `
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--admin-border);">
+      ${hasDamage ? `
+        <div style="${box}">
+          <div style="font-weight:500;color:var(--admin-red);margin-bottom:4px;">
+            <i class="ti ti-alert-triangle"></i> Damage reported${d.damage_reported_at ? ` · ${fmtDate(d.damage_reported_at)}` : ''}
+          </div>
+          ${d.damage_notes ? `<div style="white-space:pre-line;">${esc(d.damage_notes)}</div>` : ''}
+          ${damagePhotos.length ? `
+            <div style="font-size:11px;color:var(--admin-text-muted);margin:8px 0 6px;">Damage photos (${damagePhotos.length})</div>
+            ${renderPhotoGrid(damagePhotos, 'Damage photo')}
+          ` : ''}
+        </div>
+      ` : ''}
+      ${hasFailed ? `
+        <div style="${box}">
+          <div style="font-weight:500;color:var(--admin-red);margin-bottom:4px;">
+            <i class="ti ti-circle-x"></i> Delivery failed${d.failed_delivery_at ? ` · ${fmtDate(d.failed_delivery_at)}` : ''}
+          </div>
+          ${d.failed_delivery_reason ? `<div style="white-space:pre-line;">${esc(d.failed_delivery_reason)}</div>` : ''}
+        </div>
+      ` : ''}
+    </div>
+  `
+}
+
 function renderDeliveryPhotos(delivery) {
   const hasPickup   = (delivery.pickup_photos   || []).length > 0
   const hasDelivery = (delivery.delivery_photos || []).length > 0
   if (!hasPickup && !hasDelivery) return ''
 
-  const renderGrid = (urls) => `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
-      ${urls.map(url => `
-        <a href="${esc(url)}" target="_blank" rel="noopener"
-          style="display:block;aspect-ratio:1;border-radius:4px;overflow:hidden;border:1px solid var(--admin-border);">
-          <img src="${esc(url)}" style="width:100%;height:100%;object-fit:cover;" alt="Delivery photo">
-        </a>
-      `).join('')}
-    </div>
-  `
+  const renderGrid = (urls) => renderPhotoGrid(urls, 'Delivery photo')
 
   return `
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--admin-border);">
@@ -1386,13 +1459,29 @@ async function sendTestEmails() {
 
   let okCount = 0
   let failCount = 0
+  const failures = []
+
+  // POST one test; a non-2xx response counts as a failure, with the API's reason.
+  async function runTest(label, url, body) {
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const result = await res.json().catch(() => ({}))
+      if (res.ok) { okCount++; return }
+      console.error(`[test] ${label} failed`, res.status, result)
+      failures.push(`${label}: ${apiError(res, result)}`)
+    } catch (err) {
+      console.error(`[test] ${label} failed`, err)
+      failures.push(`${label}: ${err.message || 'network error'}`)
+    }
+    failCount++
+  }
 
   // 1. Delivery preferences notification (delivered by send-email dispatcher)
-  try {
-    const res = await fetch('/api/send-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+  await runTest('Preferences email', '/api/send-email', {
         type:           'delivery_preferences_submitted',
         customer_name:  'Eric Kuang',
         customer_email: 'kuangeric1234@gmail.com',
@@ -1405,45 +1494,21 @@ async function sendTestEmails() {
         pref3:          '2026-06-22 All day (flexible)',
         address:        '123 Test Street, Fitzroy VIC 3065',
         notes:          'Please use the side gate. Two steps at the entrance.',
-      }),
-    })
-    if (res.ok) okCount++; else failCount++
-  } catch (err) { console.error('[test] prefs email failed', err); failCount++ }
+  })
 
   // 2. Tuner booking notification
-  try {
-    const res = await fetch('/api/send-tuner-test', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ test_email: 'kuangeric1234@gmail.com' }),
-    })
-    if (res.ok) okCount++; else failCount++
-  } catch (err) { console.error('[test] tuner email failed', err); failCount++ }
+  await runTest('Tuner test', '/api/send-tuner-test', { test_email: 'kuangeric1234@gmail.com' })
 
   // 3. Driver pickup link
-  try {
-    const res = await fetch('/api/send-driver-test', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ test_email: 'kuangeric1234@gmail.com', type: 'pickup' }),
-    })
-    if (res.ok) okCount++; else failCount++
-  } catch (err) { console.error('[test] driver pickup failed', err); failCount++ }
+  await runTest('Driver pickup test', '/api/send-driver-test', { test_email: 'kuangeric1234@gmail.com', type: 'pickup' })
 
   // 4. Driver delivery link
-  try {
-    const res = await fetch('/api/send-driver-test', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ test_email: 'kuangeric1234@gmail.com', type: 'delivery' }),
-    })
-    if (res.ok) okCount++; else failCount++
-  } catch (err) { console.error('[test] driver delivery failed', err); failCount++ }
+  await runTest('Driver delivery test', '/api/send-driver-test', { test_email: 'kuangeric1234@gmail.com', type: 'delivery' })
 
   if (failCount === 0) {
     showToast(`${okCount} test emails sent to kuangeric1234@gmail.com`, 'success')
   } else {
-    showToast(`${okCount} sent · ${failCount} failed — check console`, failCount === 4 ? 'error' : 'warning')
+    showToast(`${okCount} sent · ${failCount} failed — ${failures.join('; ')}`, failCount === 4 ? 'error' : 'warning')
   }
 }
 
@@ -1522,16 +1587,31 @@ async function assignAndNotifyDriver(deliveryId, btn) {
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Sending…' }
 
   try {
-    // Ensure acceptance token exists. The DB backfill sets one for
-    // pre-existing rows but new ones may not have one until first assign.
+    // Ensure acceptance token exists. The column default (generate_token(),
+    // supabase/rpc_delivery_links.sql) gives every new row one; older rows
+    // without one get a random token here (crypto.getRandomValues, same
+    // 24-byte base64url shape as generate_token). The update only applies
+    // while the token is still empty, and the stored value is read back, so
+    // two admins assigning at once end up sending the same link.
     let acceptanceToken = delivery.acceptance_token
     if (!acceptanceToken) {
-      acceptanceToken = (Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2)).slice(0, 32)
-      const { error: tokErr } = await adminSupabase
+      const bytes = crypto.getRandomValues(new Uint8Array(24))
+      const minted = btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+      const { data: rows, error: tokErr } = await adminSupabase
         .from('deliveries')
-        .update({ acceptance_token: acceptanceToken })
+        .update({ acceptance_token: minted })
         .eq('id', deliveryId)
+        .is('acceptance_token', null)
+        .select('acceptance_token')
       if (tokErr) throw tokErr
+      acceptanceToken = rows && rows[0] && rows[0].acceptance_token
+      if (!acceptanceToken) {
+        const { data: row, error: readErr } = await adminSupabase
+          .from('deliveries').select('acceptance_token').eq('id', deliveryId).single()
+        if (readErr) throw readErr
+        acceptanceToken = row.acceptance_token
+      }
+      if (!acceptanceToken) throw new Error('could not create the acceptance link')
     }
 
     // Customer prefs are stored as jsonb { date, time }. Flatten to
@@ -1574,12 +1654,12 @@ async function assignAndNotifyDriver(deliveryId, btn) {
       showToast(`Assignment sent to ${delivery.partner.email}`, 'success')
       await loadDeliveries()
     } else {
-      console.error('[deliveries] assign email failed', result)
-      showToast('Failed to send — check console', 'error')
+      console.error('[deliveries] assign email failed', res.status, result)
+      showToast(`Failed to send — ${apiError(res, result)}`, 'error')
     }
   } catch (err) {
     console.error('[deliveries] assign-notify failed', err)
-    showToast('Failed to send — check console', 'error')
+    showToast(`Failed to send — ${err.message || 'network error'}`, 'error')
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = originalHTML }
   }
@@ -1677,12 +1757,12 @@ async function sendDriverLink(deliveryId, kind, btn) {
     if (res.ok && result.success) {
       showToast(`${isPickup ? 'Pickup' : 'Delivery'} link sent to ${delivery.partner.email}`, 'success')
     } else {
-      console.error(`[deliveries] ${kind} link email failed`, result)
-      showToast('Failed to send — check console', 'error')
+      console.error(`[deliveries] ${kind} link email failed`, res.status, result)
+      showToast(`Failed to send — ${apiError(res, result)}`, 'error')
     }
   } catch (err) {
     console.error(`[deliveries] ${kind} link fetch failed`, err)
-    showToast('Failed to send — check console', 'error')
+    showToast(`Failed to send — ${err.message || 'network error'}`, 'error')
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = originalHTML }
   }

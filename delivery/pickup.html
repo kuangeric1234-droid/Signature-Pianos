@@ -39,11 +39,12 @@
 /* ============================================================================
    Signature Pianos — driver pickup photo flow (public, token based)
    ----------------------------------------------------------------------------
-   Loads the delivery by pickup_link_token (anon SELECT permitted by RLS),
-   has the driver upload >=3 photos directly to the delivery-photos bucket,
-   then POSTs the photo URLs + notes to /api/driver-pickup-confirm which
-   does the row update + customer email + Eric notification under service
-   role. Token verification happens server-side inside the API.
+   Loads the job with the get_delivery_for_driver RPC (exact match on the
+   pickup token; see supabase/rpc_delivery_links.sql), has the driver
+   upload >=3 photos directly to the delivery-photos bucket, then POSTs
+   the photo URLs + notes to /api/driver-pickup-confirm which does the row
+   update + customer email + Eric notification under service role. Token
+   verification happens server-side inside the API.
    ============================================================================ */
 
 // Vercel server rewrites do not expose the destination's query params to
@@ -57,34 +58,31 @@ if (!token || token === 'pickup.html' || token === 'delivery') {
 }
 
 let currentDelivery = null
+// { file, dataUrl, url } — url is set once the photo is uploaded, so a
+// retry after a failed confirm doesn't upload it again.
 let selectedPhotos = []
+const MAX_PHOTOS = 10
 
 ;(async function loadPickupPage() {
   try {
     const { data: delivery, error } = await _supabase
-      .from('deliveries')
-      .select(`
-        *,
-        order:order_id (
-          *,
-          customer:customer_id ( * ),
-          piano:piano_id ( * )
-        )
-      `)
-      .eq('pickup_link_token', token)
-      .maybeSingle()
+      .rpc('get_delivery_for_driver', { p_token: token })
 
     if (error) throw error
-    if (!delivery) return showError('This link is invalid or has expired.')
+    // Only a pickup token opens this page (the RPC also knows accept/drop tokens).
+    if (!delivery || delivery.kind !== 'pickup') return showError('This link is invalid or has expired.')
 
     if (['picked_up', 'in_transit', 'delivered'].includes(delivery.status)) {
       return showAlreadyConfirmed('pickup')
+    }
+    if (delivery.status === 'damage_reported') {
+      return showError('This delivery is on hold. Please call Signature Pianos.', 'Link closed')
     }
     currentDelivery = delivery
     renderPickupPage(delivery)
   } catch (err) {
     console.error('[pickup] load failed', err)
-    showError('We could not load this pickup. Please try again or contact Signature Pianos.')
+    showError('We could not load this pickup. Please try again or contact Signature Pianos.', 'Something went wrong')
   }
 })()
 
@@ -96,19 +94,19 @@ function esc(s) {
 }
 
 function renderPickupPage(delivery) {
-  const piano    = delivery.order?.piano    || {}
-  const customer = delivery.order?.customer || {}
-  const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
+  const piano    = delivery.piano    || {}
+  const customer = delivery.customer || {}
+  const pianoLabel = [piano.brand, piano.model, piano.year].filter(Boolean).join(' ') || 'Piano'
+  const customerName = [customer.first_name, customer.last_name].filter(Boolean).join(' ')
 
-  const pickupAddress = [
-    customer.address_line1, customer.suburb, customer.state, customer.postcode,
-  ].filter(Boolean).join(', ')
+  // The piano is collected from the showroom and taken to the customer.
+  const deliverTo = delivery.delivery_address || ''
 
   document.getElementById('pageContent').innerHTML = `
 
-    <div style="background:#1a1917;padding:20px 24px;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(22, 34, 46, 0.2);">
-      <div style="font-size:16px;color:#16222E;font-style:italic;">Signature Pianos</div>
-      <div style="font-size:12px;color:rgba(22, 34, 46, 0.5);margin-top:2px;">Piano pickup — photo confirmation</div>
+    <div style="background:#F3F0E9;padding:18px 24px;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(22, 34, 46, 0.12);">
+      <div style="font-family:var(--font-script);font-size:30px;line-height:1;color:#16222E;">Signature Pianos</div>
+      <div style="font-size:12px;color:#3A4855;margin-top:4px;letter-spacing:0.04em;">Piano pickup — photo confirmation</div>
     </div>
 
     <div style="padding:24px;max-width:480px;margin:0 auto;">
@@ -118,11 +116,12 @@ function renderPickupPage(delivery) {
         <div style="font-size:20px;font-family:var(--font-display);color:#16222E;font-style:italic;margin-bottom:4px;">${esc(pianoLabel)}</div>
         <div style="font-size:12px;color:#3A4855;">
           ${piano.serial_number ? 'Serial: ' + esc(piano.serial_number) : ''}
-          ${piano.condition ? ' · Condition: ' + esc(piano.condition) : ''}
         </div>
-        ${pickupAddress ? `
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-top:14px;margin-bottom:4px;">Pickup from</div>
-          <div style="font-size:13px;color:#3A4855;line-height:1.6;">${esc(pickupAddress)}</div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-top:14px;margin-bottom:4px;">Collect from</div>
+        <div style="font-size:13px;color:#3A4855;line-height:1.6;">Signature Pianos Warehouse<br>63 Blackburn Road, Mount Waverley VIC 3149</div>
+        ${deliverTo || customerName ? `
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-top:14px;margin-bottom:4px;">Deliver to</div>
+          <div style="font-size:13px;color:#3A4855;line-height:1.6;">${esc([customerName, deliverTo].filter(Boolean).join(', '))}</div>
         ` : ''}
       </div>
 
@@ -189,19 +188,24 @@ function renderPickupPage(delivery) {
 /* ---------- Photo selection ---------- */
 function handlePhotoSelect(e) {
   const files = Array.from(e.target.files || [])
+  // Reset so picking the same image twice still fires onchange.
+  e.target.value = ''
   if (!files.length) return
+  // Each photo takes its slot straight away (the preview fills in when the
+  // file has been read), so the cap holds when many files are picked at once.
   files.forEach(file => {
     if (!file.type.startsWith('image/')) return
-    if (selectedPhotos.length >= 10) return // hard cap
+    if (selectedPhotos.length >= MAX_PHOTOS) return // hard cap
+    const photo = { file, dataUrl: null, url: null }
+    selectedPhotos.push(photo)
     const reader = new FileReader()
     reader.onload = (ev) => {
-      selectedPhotos.push({ file, dataUrl: ev.target.result, name: file.name })
+      photo.dataUrl = ev.target.result
       renderPhotoPreview()
     }
     reader.readAsDataURL(file)
   })
-  // Reset so picking the same image twice still fires onchange.
-  e.target.value = ''
+  renderPhotoPreview()
 }
 
 function renderPhotoPreview() {
@@ -210,15 +214,15 @@ function renderPhotoPreview() {
   const btn     = document.getElementById('submitBtn')
 
   preview.innerHTML = selectedPhotos.map((photo, i) => `
-    <div style="position:relative;aspect-ratio:1;border-radius:4px;overflow:hidden;">
-      <img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;">
+    <div style="position:relative;aspect-ratio:1;border-radius:4px;overflow:hidden;background:#E9E5DB;">
+      ${photo.dataUrl ? `<img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;">` : ''}
       <button onclick="removePhoto(${i})"
         style="position:absolute;top:4px;right:4px;background:rgba(22, 34, 46, 0.28);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
     </div>
   `).join('')
 
   const n = selectedPhotos.length
-  count.textContent = `${n} photo${n !== 1 ? 's' : ''} selected`
+  count.textContent = `${n} photo${n !== 1 ? 's' : ''} selected${n >= MAX_PHOTOS ? ' (maximum)' : ''}`
   count.style.color = n >= 3 ? '#1D9E75' : '#3A4855'
 
   if (n >= 3) {
@@ -251,65 +255,90 @@ async function submitPickupPhotos() {
 
   try {
     const uploadedUrls = []
-    const deliveryId = currentDelivery.id
+    const deliveryId = currentDelivery.delivery_id
 
+    // Photos already uploaded on an earlier try keep their URL and are
+    // not uploaded again.
     for (let i = 0; i < selectedPhotos.length; i++) {
       btn.textContent = `UPLOADING ${i + 1} OF ${selectedPhotos.length}…`
-      const photo = selectedPhotos[i]
-      const blob = await (await fetch(photo.dataUrl)).blob()
-      const filename = `${deliveryId}/pickup/${Date.now()}-${i + 1}.jpg`
-      const { error: upErr } = await _supabase.storage
-        .from('delivery-photos')
-        .upload(filename, blob, { contentType: 'image/jpeg', upsert: false })
-      if (upErr) throw upErr
-      const { data: urlData } = _supabase.storage
-        .from('delivery-photos')
-        .getPublicUrl(filename)
-      uploadedUrls.push(urlData.publicUrl)
+      try {
+        uploadedUrls.push(await uploadPhoto(selectedPhotos[i], i, deliveryId, 'pickup'))
+      } catch (upErr) {
+        upErr.userMessage = `Photo ${i + 1} didn't upload (${upErr.message || 'network error'}). Check your connection and tap Try again; photos already uploaded won't be sent twice.`
+        throw upErr
+      }
     }
 
     btn.textContent = 'CONFIRMING…'
-    const res = await fetch('/api/driver-pickup-confirm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token,
-        photo_urls:  uploadedUrls,
-        photo_count: uploadedUrls.length,
-        notes:       document.getElementById('pickupNotes').value.trim() || null,
-      }),
-    })
+    let res
+    try {
+      res = await fetch('/api/driver-pickup-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          photo_urls:  uploadedUrls,
+          notes:       document.getElementById('pickupNotes').value.trim() || null,
+        }),
+      })
+    } catch (netErr) {
+      netErr.userMessage = 'Your photos are uploaded, but we couldn\'t reach Signature Pianos to confirm. Check your connection and tap Try again.'
+      throw netErr
+    }
     const result = await res.json().catch(() => ({}))
     if (!res.ok || !result.success) {
       console.error('[pickup] confirm API failed', result)
-      throw new Error(result.error || 'Confirm failed')
+      const apiErr = new Error(result.error || `Confirm failed (${res.status})`)
+      apiErr.userMessage = result.error || `Something went wrong confirming the pickup (error ${res.status}). Tap Try again, or call Signature Pianos.`
+      throw apiErr
     }
 
-    showPickupSuccess(uploadedUrls.length)
+    showPickupSuccess(uploadedUrls.length, result)
   } catch (err) {
-    console.error('[pickup] upload failed', err)
+    console.error('[pickup] submit failed', err)
     btn.disabled = false
     btn.textContent = 'TRY AGAIN'
     btn.style.background = '#c0392b'
     btn.style.color = '#fff'
     errorEl.style.display = 'block'
-    errorEl.textContent = 'Upload failed — please check your connection and try again.'
+    errorEl.textContent = err.userMessage || 'Upload failed — please check your connection and try again.'
   }
 }
 
-function showPickupSuccess(count) {
+/* Upload one photo (once) to delivery-photos/{deliveryId}/{leg}/ and return its public URL. */
+async function uploadPhoto(photo, i, deliveryId, leg) {
+  if (photo.url) return photo.url
+  const types = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/heic': 'heic', 'image/heif': 'heif', 'image/gif': 'gif' }
+  const type = types[photo.file.type] ? photo.file.type : 'image/jpeg'
+  const filename = `${deliveryId}/${leg}/${Date.now()}-${i + 1}.${types[type]}`
+  const { error: upErr } = await _supabase.storage
+    .from('delivery-photos')
+    .upload(filename, photo.file, { contentType: type, upsert: false })
+  if (upErr) throw upErr
+  const { data: urlData } = _supabase.storage
+    .from('delivery-photos')
+    .getPublicUrl(filename)
+  photo.url = urlData.publicUrl
+  return photo.url
+}
+
+function showPickupSuccess(count, result = {}) {
+  const notified = result.customer_notified !== false
+  const linkSent = result.delivery_link_sent !== false
   document.getElementById('pageContent').innerHTML = `
     <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
       <div style="text-align:center;max-width:360px;">
         <div style="font-size:72px;margin-bottom:24px;color:#1D9E75;">✓</div>
         <h2 style="font-family:var(--font-display);font-size:32px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 16px;">Pickup confirmed.</h2>
         <p style="font-size:14px;color:#3A4855;line-height:1.7;margin:0 0 24px;">
-          ${count} photos uploaded successfully. The customer has been notified that their piano is on its way.
+          ${count} photos uploaded successfully.
+          ${notified ? 'The customer has been notified that their piano is on its way.' : 'Signature Pianos will let the customer know their piano is on its way.'}
         </p>
         <div style="background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:16px;font-size:13px;color:#3A4855;text-align:left;">
           <div style="margin-bottom:6px;">✓ Photos saved to Signature Pianos</div>
-          <div style="margin-bottom:6px;">✓ Customer notified</div>
-          <div>✓ Delivery status updated</div>
+          <div style="margin-bottom:6px;">${notified ? '✓ Customer notified' : '• Customer to be notified by Signature Pianos'}</div>
+          <div style="margin-bottom:6px;">✓ Delivery status updated</div>
+          <div>${linkSent ? '✓ Your delivery photo link has been emailed to you' : '• Signature Pianos will send your delivery photo link'}</div>
         </div>
       </div>
     </div>
@@ -328,12 +357,12 @@ function showAlreadyConfirmed() {
   `
 }
 
-function showError(message) {
+function showError(message, title = 'Link not found') {
   document.getElementById('pageContent').innerHTML = `
     <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
       <div style="text-align:center;max-width:360px;">
         <div style="font-size:48px;margin-bottom:16px;color:#16222E;">✗</div>
-        <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">Link not found</h2>
+        <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">${esc(title)}</h2>
         <p style="font-size:13px;color:#3A4855;line-height:1.7;">${esc(message)}</p>
       </div>
     </div>

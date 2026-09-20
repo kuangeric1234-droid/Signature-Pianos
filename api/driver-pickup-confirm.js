@@ -1,16 +1,19 @@
 /*
  * Signature Pianos — driver pickup confirmation
  * ---------------------------------------------
- * POST /api/driver-pickup-confirm  body: { token, photo_urls, photo_count, notes }
+ * POST /api/driver-pickup-confirm  body: { token, photo_urls, notes }
  *
- *   1. Verifies the pickup_link_token (anon SELECT permitted by RLS but
- *      we re-check with service role anyway).
+ *   1. Verifies the pickup_link_token (exact match, service role) and that
+ *      the piano hasn't already been collected (status scheduled,
+ *      pickup_pending, or failed for a redelivery). The photo URLs must
+ *      be this delivery's own pickup uploads in the delivery-photos bucket.
  *   2. Updates the deliveries row — pickup_photos, pickup_confirmed_at,
  *      pickup_notes, status='picked_up'. Routed through the service role
  *      to bypass the deliveries_anon_guard trigger that blocks anon
- *      status / token changes.
+ *      status / token changes. Conditional on the status, so a double
+ *      tap can't confirm twice.
  *   3. Sends the customer "your piano is on its way" email + Eric's
- *      internal notification.
+ *      internal notification, then the driver's delivery photo link.
  */
 
 const { createClient } = require('@supabase/supabase-js')
@@ -30,15 +33,24 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM           = 'Signature Pianos <info@signaturepianos.com.au>'
 const BUSINESS_EMAIL = process.env.BUSINESS_EMAIL || 'info@signaturepianos.com.au'
 
+const isToken = t => typeof t === 'string' && t.length >= 16 && t.length <= 200
+
+// Pickup can be confirmed while the piano is still at the showroom. 'failed'
+// is allowed so a failed delivery can be collected again for redelivery.
+const PICKUP_STATUSES = ['scheduled', 'pickup_pending', 'failed']
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { token, photo_urls, photo_count, notes } = req.body || {}
-  if (!token) return res.status(400).json({ error: 'Missing token' })
+  const { token, photo_urls, notes } = req.body || {}
+  if (!isToken(token)) return res.status(400).json({ error: 'Missing or invalid token' })
   if (!Array.isArray(photo_urls) || photo_urls.length < 3) {
     return res.status(400).json({ error: 'At least 3 photos required' })
+  }
+  if (notes != null && (typeof notes !== 'string' || notes.length > 2000)) {
+    return res.status(400).json({ error: 'Notes must be 2000 characters or fewer' })
   }
 
   try {
@@ -57,26 +69,43 @@ module.exports = async (req, res) => {
       .eq('pickup_link_token', token)
       .maybeSingle()
     if (error) throw error
-    if (!delivery) return res.status(404).json({ error: 'Delivery not found' })
+    if (!delivery || delivery.pickup_link_token !== token) {
+      return res.status(404).json({ error: 'Delivery not found' })
+    }
 
     if (['picked_up', 'in_transit', 'delivered'].includes(delivery.status)) {
-      return res.status(400).json({ error: 'Pickup already confirmed' })
+      return res.status(409).json({ error: 'Pickup already confirmed' })
     }
+    if (!PICKUP_STATUSES.includes(delivery.status)) {
+      return res.status(409).json({ error: 'This delivery is on hold. Please call Signature Pianos.' })
+    }
+
+    const photos = checkPhotoUrls(photo_urls, delivery.id, 'pickup')
+    if (!photos) {
+      return res.status(400).json({ error: 'Photo upload not recognised. Please upload the photos again.' })
+    }
+    const photo_count = photos.length
+    const cleanNotes = typeof notes === 'string' && notes.trim() ? notes.trim() : null
 
     const customer = delivery.order?.customer || {}
     const piano    = delivery.order?.piano    || {}
 
-    // 2. Row update via service role (bypasses anon guard trigger)
-    const { error: updErr } = await supabase
+    // 2. Row update via service role (bypasses anon guard trigger).
+    //    Conditional on the status so two submissions can't both apply.
+    const { data: updated, error: updErr } = await supabase
       .from('deliveries')
       .update({
-        pickup_photos:       photo_urls,
+        pickup_photos:       photos,
         pickup_confirmed_at: new Date().toISOString(),
-        pickup_notes:        notes || null,
+        pickup_notes:        cleanNotes,
         status:              'picked_up',
       })
       .eq('id', delivery.id)
+      .eq('pickup_link_token', token)
+      .in('status', PICKUP_STATUSES)
+      .select('id')
     if (updErr) throw updErr
+    if (!updated || !updated.length) return res.status(409).json({ error: 'Pickup already confirmed' })
 
     // 3. Company settings for the email footer (non-fatal)
     let settings = {}
@@ -87,60 +116,107 @@ module.exports = async (req, res) => {
       console.warn('[driver-pickup-confirm] settings load fell back', sErr)
     }
 
-    // 4. Customer email — "your piano is on its way"
+    // 4. Customer email — "your piano is on its way". Resend returns
+    //    { error } rather than throwing: failures are logged and flagged
+    //    to Eric, but the pickup itself stands.
+    let customerNotified = false
     if (customer.email) {
       try {
-        await resend.emails.send({
+        const { error: mailErr } = await resend.emails.send({
           from: FROM,
           to: customer.email,
           subject: 'Your piano is on its way — Signature Pianos',
           html: pianoOnItsWayEmail({ customer, piano, settings, delivery }),
         })
+        if (mailErr) throw mailErr
+        customerNotified = true
       } catch (mailErr) {
         console.error('[driver-pickup-confirm] customer email failed', mailErr)
       }
     }
 
-    // 5. Internal Eric notification
-    try {
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `Pickup confirmed — ${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''} · ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
-        html: internalPickupConfirmedEmail({ customer, piano, photo_count, notes }),
-      })
-    } catch (mailErr) {
-      console.error('[driver-pickup-confirm] internal email failed', mailErr)
-    }
-
-    // 6. Driver next-step — immediately send the delivery photo link
+    // 5. Driver next-step — immediately send the delivery photo link
     // so they have it ready when they arrive at the customer's home.
     const partner = delivery.partner || {}
+    let deliveryLinkSent = false
     if (partner.email && delivery.delivery_link_token) {
       const SITE_URL = process.env.SITE_URL || 'https://signaturepianos.com.au'
       const deliveryUrl = `${SITE_URL}/delivery/drop/${delivery.delivery_link_token}`
       try {
-        await resend.emails.send({
+        const { error: mailErr } = await resend.emails.send({
           from: FROM,
           to: partner.email,
           subject: `Next step: delivery photos required — ${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim(),
           html: driverDeliveryLinkEmail({
             driver_name: partner.name,
             customer, piano, delivery_url: deliveryUrl, settings,
+            address: delivery.customer_address_confirmed,
           }),
         })
+        if (mailErr) throw mailErr
+        deliveryLinkSent = true
       } catch (mailErr) {
         console.error('[driver-pickup-confirm] delivery-link email failed', mailErr)
       }
     }
 
-    return res.status(200).json({ success: true })
+    // 6. Internal Eric notification
+    try {
+      const { error: mailErr } = await resend.emails.send({
+        from: FROM,
+        to: internalRecipients(),
+        subject: `Pickup confirmed — ${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''} · ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
+        html: internalPickupConfirmedEmail({
+          customer, piano, photo_count, notes: cleanNotes,
+          customerNotified, hasCustomerEmail: !!customer.email,
+          deliveryLinkSent, hasPartnerEmail: !!partner.email,
+        }),
+      })
+      if (mailErr) throw mailErr
+    } catch (mailErr) {
+      console.error('[driver-pickup-confirm] internal email failed', mailErr)
+    }
+
+    return res.status(200).json({
+      success: true,
+      customer_notified: customerNotified,
+      delivery_link_sent: deliveryLinkSent,
+    })
   } catch (err) {
     console.error('[driver-pickup-confirm] handler failed', err)
     return res.status(500).json({ error: err.message || 'Confirm failed' })
   }
 }
 
+
+/* ---------- helpers ---------- */
+
+/*
+ * The photo URLs must be public delivery-photos objects in this delivery's
+ * own folder ({deliveryId}/{leg}/<file>), exactly as the upload page makes
+ * them, on our Supabase project. Anything else (another delivery's folder,
+ * an outside host, a javascript: link) is refused: these URLs end up as
+ * links and images in admin and in customer emails.
+ * Returns the de-duplicated list (3 to 20 photos), or null.
+ */
+function checkPhotoUrls(urls, deliveryId, leg) {
+  if (!Array.isArray(urls)) return null
+  let ourHost = ''
+  try { ourHost = new URL(process.env.SUPABASE_URL).host } catch { /* no env: fall back below */ }
+  const prefix = `/storage/v1/object/public/delivery-photos/${deliveryId}/${leg}/`
+  const out = []
+  for (const raw of urls) {
+    if (typeof raw !== 'string' || raw.length > 500) return null
+    let u
+    try { u = new URL(raw) } catch { return null }
+    if (u.protocol !== 'https:' || u.search || u.hash) return null
+    if (ourHost ? u.host !== ourHost : !u.host.endsWith('.supabase.co')) return null
+    if (!u.pathname.startsWith(prefix)) return null
+    if (!/^[A-Za-z0-9._-]+$/.test(u.pathname.slice(prefix.length))) return null
+    if (!out.includes(u.href)) out.push(u.href)
+  }
+  return out.length >= 3 && out.length <= 20 ? out : null
+}
 
 /* ---------- emails (built with lib/email-brand.js) ---------- */
 
@@ -196,13 +272,14 @@ function jobDetails(rows) {
  * piano is going, and the link to upload delivery photos once it is placed.
  * `settings` is still accepted; the footer now comes from the brand kit.
  */
-function driverDeliveryLinkEmail({ driver_name, customer, piano, delivery_url, settings }) {
+function driverDeliveryLinkEmail({ driver_name, customer, piano, delivery_url, settings, address: confirmedAddress }) {
   const pianoLabel = pianoName(piano)
   const customerName = `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim()
-  const address = addressText(customer)
+  // The address the customer confirmed on the preferences form wins over the one on file.
+  const address = (confirmedAddress && String(confirmedAddress).trim()) || addressText(customer)
   const deliverTo = [
     customerName ? `<strong style="font-weight:500;">${esc(customerName)}</strong>` : '',
-    addressHtml(customer),
+    confirmedAddress ? esc(address) : addressHtml(customer),
     address ? mapsLink(address) : '',
   ].filter(Boolean).join('<br>')
 
@@ -240,7 +317,11 @@ function pianoOnItsWayEmail({ customer, piano, settings, delivery }) {
   const timeWindow = delivery?.scheduled_time_window || ''
   const arriving = [date, timeWindow ? esc(timeWindow) : ''].filter(Boolean).join('<br>')
   const arrivingText = [date, timeWindow].filter(Boolean).join(', ')
-  const address = addressHtml(customer)
+  const confirmed = delivery?.customer_address_confirmed && String(delivery.customer_address_confirmed).trim()
+  const address = confirmed ? esc(confirmed) : addressHtml(customer)
+  // Warranty length and the included tuning come from the piano record.
+  const years = piano?.warranty_years == null ? 10 : Number(piano.warranty_years)
+  const tuning = piano?.requires_tuner_booking !== false
 
   return layout({
     preview: `Your ${pianoLabel} has been collected and is on its way.${arrivingText ? ` Arriving ${arrivingText}.` : ''}`,
@@ -259,17 +340,26 @@ function pianoOnItsWayEmail({ customer, piano, settings, delivery }) {
       steps([
         'The delivery team brings your piano in and places it exactly where you want it.',
         'Before they leave, they photograph it in its new position.',
-        'After delivery we email you your 10-year warranty certificate.',
-        'Your first tuning is included. We will book a tuner for 3–4 weeks after delivery.',
-      ]),
+        years > 0 ? `After delivery we email you your ${years}-year warranty certificate.` : null,
+        tuning ? 'Your first tuning is included. We will book a tuner for 3–4 weeks after delivery.' : null,
+      ].filter(Boolean)),
       note(`Questions, or need to make arrangements for the delivery? Call us on ${phoneLink()} or reply to this email.`),
     ].join(''),
   })
 }
 
 /* To Signature Pianos, when a driver confirms pickup. */
-function internalPickupConfirmedEmail({ customer, piano, photo_count, notes }) {
+function internalPickupConfirmedEmail({
+  customer, piano, photo_count, notes,
+  customerNotified = true, hasCustomerEmail = true, deliveryLinkSent = true, hasPartnerEmail = true,
+}) {
   const customerName = `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim()
+  const problems = [
+    !hasCustomerEmail ? 'The customer has no email address on file, so they have not been told the piano is on its way.' : '',
+    hasCustomerEmail && !customerNotified ? 'The customer “on its way” email FAILED to send.' : '',
+    !hasPartnerEmail ? 'The delivery partner has no email address, so they did not get the delivery photo link. Send it from admin.' : '',
+    hasPartnerEmail && !deliveryLinkSent ? 'The driver’s delivery photo link email FAILED to send. Send it from admin.' : '',
+  ].filter(Boolean)
   return layout({
     internal: true,
     preview: `${pianoName(piano)} picked up for ${customerName || 'a customer'}. ${photo_count ?? 0} photos uploaded.`,
@@ -284,7 +374,9 @@ function internalPickupConfirmedEmail({ customer, piano, photo_count, notes }) {
         notes ? ['Driver notes', esc(notes).replace(/\n/g, '<br>')] : null,
         ['Status', 'picked_up'],
       ]),
-      p('The customer has been notified.'),
+      problems.length
+        ? note(`<strong>Check:</strong><br>${problems.map(esc).join('<br>')}`, 'alert')
+        : p('The customer has been notified.'),
       buttonOutline(`${BUSINESS.adminUrl}deliveries.html`, 'Open deliveries'),
     ].join(''),
   })

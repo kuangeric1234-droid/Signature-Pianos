@@ -43,6 +43,11 @@
    three preferred windows; the driver picks one. The row update (and
    downstream emails) happen server-side in api/driver-accept.js so the
    anon guard trigger doesn't block the status change.
+
+   The job is loaded with the get_delivery_for_driver RPC
+   (supabase/rpc_delivery_links.sql), which matches the token exactly and
+   returns only this job's details. The page never reads the deliveries
+   table directly.
    ============================================================================ */
 
 const params = new URLSearchParams(window.location.search)
@@ -56,26 +61,21 @@ let selectedPrefNum = null
 ;(async function loadAcceptPage() {
   try {
     const { data: delivery, error } = await _supabase
-      .from('deliveries')
-      .select(`
-        *,
-        order:order_id (
-          *,
-          customer:customer_id ( * ),
-          piano:piano_id ( * )
-        )
-      `)
-      .eq('acceptance_token', token)
-      .maybeSingle()
+      .rpc('get_delivery_for_driver', { p_token: token })
 
     if (error) throw error
-    if (!delivery) return showError('This link is invalid or has expired.')
+    // The RPC also recognises pickup / drop tokens; only an acceptance
+    // token opens this page.
+    if (!delivery || delivery.kind !== 'accept') return showError('This link is invalid or has expired.')
 
     if (delivery.driver_accepted) return showAlreadyAccepted(delivery)
+    if (!['scheduled', 'pickup_pending'].includes(delivery.status)) {
+      return showError('This delivery is already under way. Please contact Signature Pianos if you need help.', 'Link closed')
+    }
     renderAcceptPage(delivery)
   } catch (err) {
     console.error('[accept] load failed', err)
-    showError('We could not load this assignment. Please try again or contact Signature Pianos.')
+    showError('We could not load this assignment. Please try again or contact Signature Pianos.', 'Something went wrong')
   }
 })()
 
@@ -87,29 +87,29 @@ function esc(s) {
 }
 function fmtPref(p) {
   if (!p) return null
-  return `${p.date || ''} ${p.time || ''}`.trim()
+  if (typeof p === 'string') return p.trim() || null
+  return `${p.date || ''} ${p.time || ''}`.trim() || null
 }
 
 function renderAcceptPage(delivery) {
-  const piano    = delivery.order?.piano    || {}
-  const customer = delivery.order?.customer || {}
-  // jsonb -> readable string. Falsy entries are filtered so we only
-  // render the prefs the customer actually picked.
+  const piano    = delivery.piano    || {}
+  const customer = delivery.customer || {}
+  // jsonb -> readable string. Each pref keeps its own number (1/2/3) so
+  // the server resolves the one the driver picked, even if one is missing.
   const prefs = [
-    fmtPref(delivery.customer_preference_1),
-    fmtPref(delivery.customer_preference_2),
-    fmtPref(delivery.customer_preference_3),
-  ].filter(Boolean)
+    { num: 1, text: fmtPref(delivery.customer_preference_1) },
+    { num: 2, text: fmtPref(delivery.customer_preference_2) },
+    { num: 3, text: fmtPref(delivery.customer_preference_3) },
+  ].filter(p => p.text)
 
-  const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
-  const deliverTo = delivery.customer_address_confirmed ||
-    [customer.address_line1, customer.suburb, customer.state, customer.postcode].filter(Boolean).join(', ')
+  const pianoLabel = [piano.brand, piano.model, piano.year].filter(Boolean).join(' ') || 'Piano'
+  const deliverTo = delivery.delivery_address || ''
 
   document.getElementById('pageContent').innerHTML = `
 
-    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(22, 34, 46, 0.2);">
-      <div style="font-size:16px;color:#16222E;font-style:italic;">Signature Pianos</div>
-      <div style="font-size:12px;color:rgba(22, 34, 46, 0.5);margin-top:2px;">Delivery acceptance</div>
+    <div style="background:#F3F0E9;padding:18px 24px;border-bottom:1px solid rgba(22, 34, 46, 0.12);">
+      <div style="font-family:var(--font-script);font-size:30px;line-height:1;color:#16222E;">Signature Pianos</div>
+      <div style="font-size:12px;color:#3A4855;margin-top:4px;letter-spacing:0.04em;">Delivery acceptance</div>
     </div>
 
     <div style="padding:24px;max-width:480px;margin:0 auto;">
@@ -140,8 +140,12 @@ function renderAcceptPage(delivery) {
         <div style="font-size:13px;color:#3A4855;margin-top:4px;">${esc(deliverTo || '—')}</div>
         ${customer.phone ? `
           <div style="margin-top:8px;">
-            <a href="tel:${esc(customer.phone)}" style="font-size:13px;color:#16222E;text-decoration:none;">${esc(customer.phone)}</a>
+            <a href="tel:${esc(String(customer.phone).replace(/[^\d+]/g, ''))}" style="font-size:13px;color:#16222E;text-decoration:none;">${esc(customer.phone)}</a>
           </div>
+        ` : ''}
+        ${delivery.special_instructions ? `
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-top:12px;margin-bottom:4px;">Access notes</div>
+          <div style="font-size:13px;color:#3A4855;line-height:1.6;white-space:pre-line;">${esc(delivery.special_instructions)}</div>
         ` : ''}
       </div>
 
@@ -151,15 +155,15 @@ function renderAcceptPage(delivery) {
           <div style="font-size:13px;color:#3A4855;padding:14px;background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;">
             The customer hasn't submitted preferred windows yet. Please contact Signature Pianos.
           </div>
-        ` : prefs.map((pref, i) => `
-          <label data-pref-num="${i + 1}" onclick="selectPref(${i + 1}, this)"
+        ` : prefs.map(pref => `
+          <label data-pref-num="${pref.num}" onclick="selectPref(${pref.num}, this)"
             style="display:flex;align-items:flex-start;gap:12px;padding:14px;margin-bottom:8px;background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;cursor:pointer;transition:border-color 0.2s;">
-            <input type="radio" name="preference" value="${i + 1}" style="margin-top:2px;accent-color:#16222E;flex-shrink:0;">
+            <input type="radio" name="preference" value="${pref.num}" style="margin-top:2px;accent-color:#16222E;flex-shrink:0;">
             <div>
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#3A4855;margin-bottom:3px;">
-                ${i === 0 ? "Customer's 1st choice" : i === 1 ? "Customer's 2nd choice" : "Customer's 3rd choice"}
+                ${pref.num === 1 ? "Customer's 1st choice" : pref.num === 2 ? "Customer's 2nd choice" : "Customer's 3rd choice"}
               </div>
-              <div style="font-size:14px;color:#16222E;font-weight:500;">${esc(pref)}</div>
+              <div style="font-size:14px;color:#16222E;font-weight:500;">${esc(pref.text)}</div>
             </div>
           </label>
         `).join('')}
@@ -172,7 +176,7 @@ function renderAcceptPage(delivery) {
           style="width:100%;padding:12px;background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;color:#16222E;font-size:14px;resize:vertical;box-sizing:border-box;font-family:var(--font-body);"></textarea>
       </div>
 
-      <button id="acceptBtn" onclick="submitAcceptance('${esc(delivery.id)}')"
+      <button id="acceptBtn" onclick="submitAcceptance('${esc(delivery.delivery_id)}')"
         disabled
         style="width:100%;background:#444;color:#888;border:none;border-radius:4px;padding:18px;font-size:15px;font-weight:500;letter-spacing:0.05em;cursor:not-allowed;transition:all 0.2s ease;font-family:var(--font-body);">
         SELECT A TIME WINDOW ABOVE
@@ -222,20 +226,25 @@ async function submitAcceptance(deliveryId) {
     })
     const result = await res.json().catch(() => ({}))
     if (res.ok && result.success) {
-      showAcceptedSuccess(result.confirmed_date)
+      showAcceptedSuccess(result.confirmed_date, result.pickup_link_sent)
     } else {
-      throw new Error(result.error || 'Unknown error')
+      // Server messages (already accepted, date passed…) are written for drivers.
+      const e = new Error(result.error || `Request failed (${res.status})`)
+      e.fromServer = !!result.error
+      throw e
     }
   } catch (err) {
     console.error('[accept] submit failed', err)
     btn.disabled = false
     btn.textContent = 'CONFIRM ACCEPTANCE'
     errorEl.style.display = 'block'
-    errorEl.textContent = 'Something went wrong — please try again.'
+    errorEl.textContent = err.fromServer
+      ? err.message
+      : 'Something went wrong. Please check your connection and try again.'
   }
 }
 
-function showAcceptedSuccess(confirmedDate) {
+function showAcceptedSuccess(confirmedDate, pickupLinkSent) {
   document.getElementById('pageContent').innerHTML = `
     <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
       <div style="text-align:center;max-width:360px;">
@@ -245,8 +254,9 @@ function showAcceptedSuccess(confirmedDate) {
           ${confirmedDate ? `Confirmed for ${esc(confirmedDate)}.` : 'Delivery confirmed.'} The customer has been notified.
         </p>
         <div style="background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:16px;font-size:13px;color:#3A4855;text-align:left;line-height:1.8;">
-          You will receive a reminder email 3 days before pickup and again on the day.<br><br>
-          Your pickup photo link will be sent 3 days before the confirmed date.
+          ${pickupLinkSent
+            ? 'The pickup is coming up soon, so your pickup photo link has been emailed to you now.<br><br>You will also get a reminder on the day.'
+            : 'Your pickup photo link will be emailed to you in the 3 days before the confirmed date.<br><br>You will also get a reminder on the day.'}
         </div>
       </div>
     </div>
@@ -265,12 +275,12 @@ function showAlreadyAccepted() {
   `
 }
 
-function showError(message) {
+function showError(message, title = 'Link not found') {
   document.getElementById('pageContent').innerHTML = `
     <div style="min-height:100vh;background:#F3F0E9;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
       <div style="text-align:center;max-width:360px;">
         <div style="font-size:48px;margin-bottom:16px;color:#16222E;">✗</div>
-        <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">Link not found</h2>
+        <h2 style="font-family:var(--font-display);font-size:28px;font-weight:300;color:#16222E;font-style:italic;margin:0 0 12px;">${esc(title)}</h2>
         <p style="font-size:13px;color:#3A4855;line-height:1.7;">${esc(message)}</p>
       </div>
     </div>
