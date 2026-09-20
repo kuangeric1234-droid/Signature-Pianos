@@ -7,7 +7,7 @@
 
 const { supabaseAdmin, SITE_URL } = require('../lib/ai')
 
-const xml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
+const xmlEscape = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
 
 const STATIC_PATHS = [
   '/', '/instruments/', '/services/book-a-viewing.html', '/services/delivery-warranty.html',
@@ -31,14 +31,14 @@ module.exports = async (req, res) => {
   const urls = [
     ...STATIC_PATHS.map((p) => ({ loc: SITE_URL + p })),
     ...posts.map((p) => ({
-      loc: `${SITE_URL}/blog/${p.slug}`,
+      loc: `${SITE_URL}/blog/${encodeURIComponent(p.slug)}`,
       lastmod: (p.updated_at || p.published_at || '').slice(0, 10),
     })),
   ]
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map((u) => `  <url><loc>${xml(u.loc)}</loc>${u.lastmod ? `<lastmod>${xml(u.lastmod)}</lastmod>` : ''}</url>`).join('\n')}
+${urls.map((u) => `  <url><loc>${xmlEscape(u.loc)}</loc>${u.lastmod ? `<lastmod>${xmlEscape(u.lastmod)}</lastmod>` : ''}</url>`).join('\n')}
 </urlset>`
 
   res.setHeader('Content-Type', 'application/xml; charset=utf-8')
