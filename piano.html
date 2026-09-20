@@ -1070,8 +1070,7 @@ function upsertSeoMeta(title, desc){
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Shared config — always load after Supabase JS -->
 <script src="/js/config.js"></script>
-<!-- Stripe.js -->
-<script src="https://js.stripe.com/v3/"></script>
+<!-- No Stripe.js here: checkout is a redirect to the Stripe-hosted page from /api/create-checkout-session. -->
 <script>
   /* -------- NAV: scrolled-state + dropdowns -------- */
   (function setupNav() {
@@ -1115,10 +1114,20 @@ function upsertSeoMeta(title, desc){
     window.location.replace('instruments/index.html')
   }
 
+  // Only the columns this page shows. Never select('*') with the anon key:
+  // cost and internal-note columns must not reach the browser.
+  const PIANO_PUBLIC_COLS = 'id, type, brand, model, year, serial_number, weight_kg, dimensions_cm, images, description, description_short, sale_price'
+  const RELATED_COLS = 'id, type, brand, model, year, images, sale_price'
+  const DEPOSIT = 500   // fixed website deposit; /api/create-checkout-session sets the real amount
+
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+  }
+
   async function loadPiano() {
     const { data: piano, error } = await _supabase
       .from('pianos')
-      .select('*')
+      .select(PIANO_PUBLIC_COLS)
       .eq('id', pianoId)
       .eq('stock_status', 'available')
       .single()
@@ -1161,15 +1170,10 @@ function upsertSeoMeta(title, desc){
     document.getElementById('productName').textContent = `${pianoName} ${formatType(piano.type)}`
     document.getElementById('productBrand').textContent = `${piano.brand || ''} · Model ${piano.model || ''}`
 
-    // "Book a visit" from this page carries the piano into the booking card
-    document.querySelectorAll('a[href*="book-a-viewing"]').forEach(a => {
-      if (!a.closest('nav, .sp-footer, .sp-bottombar')) a.dataset.piano = `${pianoName}${piano.year ? ' (' + piano.year + ')' : ''}`
-    })
-
     const height = parseDims(piano.dimensions_cm).height
     document.getElementById('productHeight').textContent = height ? `${height} cm` : '-'
 
-    document.getElementById('productYear').textContent = piano.year
+    document.getElementById('productYear').textContent = piano.year || '-'
     document.getElementById('productOrigin').textContent = 'Japan'
     document.getElementById('productPrice').textContent = Number(piano.sale_price) > 0
       ? '$' + Number(piano.sale_price).toLocaleString('en-AU') : 'Price on request'
@@ -1181,6 +1185,12 @@ function upsertSeoMeta(title, desc){
     renderGallery(piano)
     renderSpecs(piano)
     renderActions(piano)
+
+    // "Book a visit" from this page carries the piano into the booking card.
+    // After renderActions, so its "Book a showroom visit" link is tagged too.
+    document.querySelectorAll('a[href*="book-a-viewing"]').forEach(a => {
+      if (!a.closest('nav, .sp-footer, .sp-bottombar')) a.dataset.piano = `${pianoName}${piano.year ? ' (' + piano.year + ')' : ''}`
+    })
   }
 
   // dimensions_cm is stored as JSON text
@@ -1213,11 +1223,18 @@ function upsertSeoMeta(title, desc){
       return
     }
 
+    const altText = [piano.brand, piano.model, piano.year].filter(Boolean).join(' ') || 'Piano'
+
     function setMainImage(index) {
-      main.innerHTML = `<img src="${piano.images[index]}"
-        alt="Yamaha ${piano.model} ${piano.year}"
-        style="width:100%;height:100%;object-fit:cover;border-radius: 0;"
-        onerror="this.parentNode.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;\\'><i class=\\'ti ti-camera\\' style=\\'font-size:48px;color:rgba(22, 34, 46, 0.3);\\'></i></div>'">`
+      // Built as DOM nodes, not an HTML string, so a stored URL can't inject markup.
+      const img = document.createElement('img')
+      img.src = piano.images[index]
+      img.alt = altText
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius: 0;'
+      img.addEventListener('error', () => {
+        main.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;"><i class="ti ti-camera" style="font-size:48px;color:rgba(22, 34, 46, 0.3);"></i></div>`
+      })
+      main.replaceChildren(img)
       document.querySelectorAll('.thumb-item').forEach((t, i) => {
         t.style.borderColor = i === index
           ? 'rgba(22, 34, 46, 0.8)'
@@ -1235,7 +1252,7 @@ function upsertSeoMeta(title, desc){
           style="width:72px;height:56px;border-radius: 0;overflow:hidden;cursor:pointer;
                  border:1px solid rgba(184,147,90,${i === 0 ? '0.8' : '0.15'});
                  transition:border-color 0.2s ease;">
-          <img src="${img}" style="width:100%;height:100%;object-fit:cover;"
+          <img src="${esc(img)}" style="width:100%;height:100%;object-fit:cover;"
             alt="View ${i + 1}">
         </div>
       `).join('')
@@ -1249,27 +1266,28 @@ function upsertSeoMeta(title, desc){
     const dims = parseDims(piano.dimensions_cm)
 
     const specs = [
-      ['Brand', piano.brand || '-'],
+      ['Brand', piano.brand],
       ['Model', piano.model],
       ['Type', formatType(piano.type)],
       ['Year made', piano.year],
       ['Serial number', piano.serial_number],
       ['Origin', 'Japan'],
-      ['Weight', piano.weight_kg ? `${piano.weight_kg} kg` : '-'],
-      ['Height', dims.height ? `${dims.height} cm` : '-'],
-      ['Width', dims.width ? `${dims.width} cm` : '-'],
-      ['Depth', dims.depth ? `${dims.depth} cm` : '-'],
+      ['Weight', piano.weight_kg ? `${piano.weight_kg} kg` : null],
+      ['Height', dims.height ? `${dims.height} cm` : null],
+      ['Width', dims.width ? `${dims.width} cm` : null],
+      ['Depth', dims.depth ? `${dims.depth} cm` : null],
       ['Warranty', '10 years'],
       ['First tuning', 'Complimentary, auto-booked'],
     ]
 
+    // Values come from the database: escape them, and show a dash for blanks.
     specsTable.innerHTML = specs.map(([label, value]) => `
       <tr>
         <th style="color:#3A4855;font-weight:400;font-size:12px;padding:8px 12px;
                    text-align:left;border-bottom:1px solid rgba(22, 34, 46, 0.08);
                    white-space:nowrap;">${label}</th>
         <td style="color:#16222E;font-size:13px;padding:8px 12px;
-                   border-bottom:1px solid rgba(22, 34, 46, 0.08);">${value}</td>
+                   border-bottom:1px solid rgba(22, 34, 46, 0.08);">${value == null || value === '' ? '—' : esc(value)}</td>
       </tr>
     `).join('')
   }
@@ -1278,31 +1296,39 @@ function upsertSeoMeta(title, desc){
     const actionsEl = document.getElementById('productActions')
     if (!actionsEl) return
 
+    // Price 0 means "price on request": no online purchase. A deposit only
+    // makes sense when the piano costs more than the deposit itself.
+    const price = Number(piano.sale_price) || 0
+    const canBuy = price > 0
+    const canDeposit = price > DEPOSIT
+
     actionsEl.innerHTML = `
-      <button id="buyNowBtn"
+      ${canBuy ? `<button id="buyNowBtn"
         style="width:100%;background:#16222E;color:#FFFFFF;border:none;border-radius:0;
                padding:16px;font-family:var(--font-body);font-size:13px;
                font-weight:500;letter-spacing:0.1em;text-transform:uppercase;
                cursor:pointer;margin-bottom:10px;transition:opacity 0.2s ease;">
-        BUY NOW: $${Number(piano.sale_price).toLocaleString()}
-      </button>
+        BUY NOW: $${price.toLocaleString('en-AU')}
+      </button>` : ''}
 
-      <button id="depositBtn"
+      ${canDeposit ? `<button id="depositBtn"
         style="width:100%;background:transparent;color:#16222E;
                border:1px solid rgba(22, 34, 46, 0.5);border-radius:0;
                padding:16px;font-family:var(--font-body);font-size:13px;
                font-weight:500;letter-spacing:0.1em;text-transform:uppercase;
                cursor:pointer;margin-bottom:12px;transition:all 0.2s ease;">
-        RESERVE WITH $500 DEPOSIT
-      </button>
+        RESERVE WITH $${DEPOSIT} DEPOSIT
+      </button>` : ''}
 
-      <p style="font-size:11px;color:#3A4855;text-align:center;margin:0 0 20px;line-height:1.6;">
+      ${canBuy ? `<p style="font-size:11px;color:#3A4855;text-align:center;margin:0 0 20px;line-height:1.6;">
         Secure payment via Stripe · 10-year warranty included · Complimentary first tuning
-      </p>
+      </p>` : ''}
 
-      <div style="border-top:1px solid rgba(22, 34, 46, 0.1);padding-top:16px;margin-top:4px;">
+      <div style="${canBuy ? 'border-top:1px solid rgba(22, 34, 46, 0.1);padding-top:16px;margin-top:4px;' : ''}">
         <p style="font-size:13px;color:#3A4855;margin:0 0 10px;">
-          Not ready to commit? We understand.
+          ${canBuy
+            ? 'Not ready to commit? We understand.'
+            : 'Price on request. Call us on <a href="tel:+61479128955" style="color:#16222E;">0479 128 955</a> or come and play it.'}
         </p>
         <a href="services/book-a-viewing.html"
           style="color:#16222E;font-size:13px;text-decoration:none;
@@ -1320,38 +1346,33 @@ function upsertSeoMeta(title, desc){
       </div>
     `
 
-    // Stripe initialisation — STRIPE_PUBLIC_KEY is exported from /js/config.js
-    const stripe = Stripe(STRIPE_PUBLIC_KEY)
-
+    // The server works out the price, name and return URLs from piano_id.
     async function initiateCheckout(type) {
-      const btn = type === 'full_purchase'
+      const btn = type === 'full'
         ? document.getElementById('buyNowBtn')
         : document.getElementById('depositBtn')
+      const errorEl = document.getElementById('paymentError')
 
       const originalText = btn.textContent
       btn.disabled = true
       btn.textContent = 'Redirecting to payment...'
       btn.style.opacity = '0.6'
-      document.getElementById('paymentError').style.display = 'none'
+      errorEl.style.display = 'none'
 
+      let serverMessage = ''   // e.g. "Sorry, this piano is no longer available."
       try {
         const res = await fetch('/api/create-checkout-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type,
-            piano_id: piano.id,
-            piano_name: `Yamaha ${piano.model} ${piano.year}`,
-            amount: type === 'full_purchase' ? Number(piano.sale_price) * 100 : 50000,
-            currency: 'aud',
-            success_url: `${window.location.origin}/checkout-success.html?type=${type}`,
-            cancel_url: window.location.href
-          })
+          body: JSON.stringify({ piano_id: piano.id, type })
         })
 
-        const { url, error } = await res.json()
+        const { url, error } = await res.json().catch(() => ({}))
 
-        if (error || !url) throw new Error(error || 'No URL returned')
+        if (!res.ok || error || !url) {
+          serverMessage = error || ''
+          throw new Error(error || 'No URL returned')
+        }
 
         window.location.href = url
 
@@ -1360,12 +1381,13 @@ function upsertSeoMeta(title, desc){
         btn.disabled = false
         btn.textContent = originalText
         btn.style.opacity = '1'
-        document.getElementById('paymentError').style.display = 'block'
+        errorEl.textContent = serverMessage || 'Payment failed. Please try again or contact us directly.'
+        errorEl.style.display = 'block'
       }
     }
 
-    document.getElementById('buyNowBtn').addEventListener('click', () => initiateCheckout('full_purchase'))
-    document.getElementById('depositBtn').addEventListener('click', () => initiateCheckout('deposit'))
+    document.getElementById('buyNowBtn')?.addEventListener('click', () => initiateCheckout('full'))
+    document.getElementById('depositBtn')?.addEventListener('click', () => initiateCheckout('deposit'))
   }
 
   async function loadRelated(piano) {
@@ -1374,7 +1396,7 @@ function upsertSeoMeta(title, desc){
 
     let { data: related, error } = await _supabase
       .from('pianos')
-      .select('id, brand, model, year, sale_price, description_short, images, type')
+      .select(RELATED_COLS)
       .eq('stock_status', 'available')
       .eq('type', piano.type)
       .neq('id', piano.id)
@@ -1386,7 +1408,7 @@ function upsertSeoMeta(title, desc){
     if (!related || related.length < 3) {
       const { data: extra, error: extraErr } = await _supabase
         .from('pianos')
-        .select('id, brand, model, year, sale_price, description_short, images, type')
+        .select(RELATED_COLS)
         .eq('stock_status', 'available')
         .neq('id', piano.id)
         .limit(3)
@@ -1411,19 +1433,19 @@ function upsertSeoMeta(title, desc){
       <a class="related-card" href="/piano.html?id=${encodeURIComponent(p.id)}">
         <div class="related-card-image">
           ${photo
-            ? `<img src="${photo}" alt="${name}" loading="lazy">`
+            ? `<img src="${esc(photo)}" alt="${esc(name)}" loading="lazy">`
             : `<div class="sp-photo-empty"><img src="/media/brand/monogram-ink.svg" alt=""><span>Photographs soon</span></div>`}
         </div>
         <div class="related-card-body">
-          <h3 class="related-card-name">${name}</h3>
-          <p class="related-card-facts">${[p.year, formatType(p.type)].filter(Boolean).join(' · ')}</p>
+          <h3 class="related-card-name">${esc(name)}</h3>
+          <p class="related-card-facts">${esc([p.year, formatType(p.type)].filter(Boolean).join(' · '))}</p>
           <p class="related-card-price">${Number(p.sale_price) > 0 ? '$' + Number(p.sale_price).toLocaleString('en-AU') : 'Price on request'}</p>
         </div>
       </a>`
     }).join('')
   }
 
-  loadPiano()
+  if (pianoId) loadPiano()
 </script>
 
 <div class="sp-bottombar" role="navigation" aria-label="Quick contact">

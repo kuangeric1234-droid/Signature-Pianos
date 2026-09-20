@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Order confirmed — Signature Pianos Melbourne</title>
 <meta name="description" content="Thank you for your order with Signature Pianos. We'll be in touch within 24 hours." />
+<meta name="robots" content="noindex" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -591,22 +592,29 @@
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(null); });
   })();
 
-  /* -------- Swap copy based on ?type= -------- */
+  /* -------- Swap copy based on ?type= --------
+     Set server-side by the Stripe return URLs: 'full' or 'deposit' from
+     /api/create-checkout-session, 'balance' from the balance Payment Link.
+     Static copy only: this page reads nothing from the database. The order
+     itself is recorded by /api/stripe-webhook, not by this page. */
   (function setupCopy() {
-    const type = new URLSearchParams(window.location.search).get('type') || 'full_purchase';
-    const isDeposit = type === 'deposit';
+    const type = new URLSearchParams(window.location.search).get('type') || 'full';
 
     const titleEl = document.getElementById('successTitle');
     const bodyEl  = document.getElementById('successBody');
 
-    if (isDeposit) {
+    if (type === 'deposit') {
       document.title = 'Reservation confirmed — Signature Pianos Melbourne';
       titleEl.innerHTML = 'Your piano is <em>reserved</em>.';
-      bodyEl.textContent = "Your $500 deposit has been received. We'll be in touch within 24 hours to confirm your reservation and arrange delivery. Your piano will be held for 7 days.";
+      bodyEl.textContent = "Your $500 deposit has been received and the piano is off the website. We'll be in touch within 24 hours to confirm your reservation, the balance and delivery. Check your email for your confirmation.";
+    } else if (type === 'balance') {
+      document.title = 'Payment received — Signature Pianos Melbourne';
+      titleEl.innerHTML = 'Your piano is <em>paid in full</em>.';
+      bodyEl.textContent = "Thank you. Your balance payment has been received. Your tax invoice is on its way by email, and we'll be in touch to confirm delivery.";
     } else {
       document.title = 'Order confirmed — Signature Pianos Melbourne';
       titleEl.innerHTML = 'Your piano is <em>on its way</em>.';
-      bodyEl.textContent = "Payment confirmed. We'll contact you within 24 hours to schedule your delivery. Check your email for your receipt and next steps.";
+      bodyEl.textContent = "Payment confirmed. We'll contact you within 24 hours to arrange delivery or collection. Check your email for your receipt and next steps.";
     }
   })();
 </script>
