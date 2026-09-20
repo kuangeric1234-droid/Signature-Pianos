@@ -52,6 +52,11 @@
 
     <div class="admin-content">
 
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+        <p style="font-size:13px;color:var(--admin-text-muted);margin:0;">Add, verify and manage the teachers in your public directory.</p>
+        <button class="btn-gold" onclick="openAddTeacher()"><i class="ti ti-plus"></i> Add teacher</button>
+      </div>
+
       <div class="stats-strip">
         <div class="stat"><span class="stat-label">Total teachers</span><span class="stat-value" id="statTotal">—</span></div>
         <div class="stat-divider"></div>
@@ -83,6 +88,100 @@
   </main>
 </div>
 
+<!-- Add / edit teacher -->
+<div class="slide-panel-overlay" id="teacherPanelOverlay" onclick="closeSlidePanel('teacherPanel')"></div>
+<aside class="slide-panel" id="teacherPanel" aria-hidden="true" style="max-width:640px;">
+  <div class="slide-panel-header">
+    <h2 class="slide-panel-title" id="teacherPanelTitle">Add teacher</h2>
+    <button onclick="closeSlidePanel('teacherPanel')" class="slide-panel-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="slide-panel-body" style="padding:20px;">
+    <input type="hidden" id="tf_id">
+
+    <h3 class="tf-h">Contact</h3>
+    <div class="tf-2col">
+      <div class="admin-form-row"><label class="admin-label">First name *</label><input id="tf_first" class="admin-input"></div>
+      <div class="admin-form-row"><label class="admin-label">Last name *</label><input id="tf_last" class="admin-input"></div>
+    </div>
+    <div class="tf-2col">
+      <div class="admin-form-row"><label class="admin-label">Email *</label><input id="tf_email" class="admin-input" type="email"></div>
+      <div class="admin-form-row"><label class="admin-label">Phone</label><input id="tf_phone" class="admin-input"></div>
+    </div>
+
+    <h3 class="tf-h">Location</h3>
+    <div class="tf-3col">
+      <div class="admin-form-row"><label class="admin-label">Suburb</label><input id="tf_suburb" class="admin-input"></div>
+      <div class="admin-form-row"><label class="admin-label">State</label><input id="tf_state" class="admin-input" placeholder="VIC"></div>
+      <div class="admin-form-row"><label class="admin-label">Postcode</label><input id="tf_postcode" class="admin-input"></div>
+    </div>
+
+    <h3 class="tf-h">Profile</h3>
+    <div class="admin-form-row"><label class="admin-label">Bio</label><textarea id="tf_bio" class="admin-input" style="min-height:70px;"></textarea></div>
+    <div class="tf-2col">
+      <div class="admin-form-row"><label class="admin-label">Years experience</label><input id="tf_years" class="admin-input" type="number" min="0"></div>
+      <div class="admin-form-row"><label class="admin-label">Profile photo URL</label><input id="tf_photo" class="admin-input" placeholder="https://…"></div>
+    </div>
+    <div class="admin-form-row"><label class="admin-label">Specialties (comma-separated)</label><input id="tf_specialties" class="admin-input" placeholder="Classical, Jazz, Theory"></div>
+    <div class="admin-form-row"><label class="admin-label">Qualifications (comma-separated)</label><input id="tf_quals" class="admin-input" placeholder="AMusA, Bachelor of Music"></div>
+    <div class="tf-checks">
+      <label><input type="checkbox" id="tf_children"> Teaches children</label>
+      <label><input type="checkbox" id="tf_adults"> Teaches adults</label>
+      <label><input type="checkbox" id="tf_inperson"> In-person</label>
+      <label><input type="checkbox" id="tf_online"> Online</label>
+    </div>
+
+    <h3 class="tf-h">Public listing</h3>
+    <div class="admin-form-row"><label class="admin-label">Headline</label><input id="tf_headline" class="admin-input" placeholder="Patient, experienced piano teacher in Hawthorn"><div class="hint">Leave blank to onboard the teacher without a public listing yet.</div></div>
+    <div class="tf-2col">
+      <div class="admin-form-row"><label class="admin-label">Hourly rate (AUD)</label><input id="tf_rate" class="admin-input" type="number" min="0"></div>
+      <div class="admin-form-row"><label class="admin-label">Trial lesson rate (AUD)</label><input id="tf_trial" class="admin-input" type="number" min="0"></div>
+    </div>
+
+    <h3 class="tf-h">Working With Children Check</h3>
+    <p class="tf-note">Legally required in Victoria to teach minors. A teacher of children can't go live without a verified WWCC.</p>
+    <div class="tf-2col">
+      <div class="admin-form-row"><label class="admin-label">WWCC number</label><input id="tf_wwcc" class="admin-input"></div>
+      <div class="admin-form-row"><label class="admin-label">WWCC expiry</label><input id="tf_wwcc_exp" class="admin-input" type="date"></div>
+    </div>
+    <label class="tf-inline"><input type="checkbox" id="tf_wwcc_verified"> WWCC sighted &amp; verified</label>
+
+    <h3 class="tf-h">Status</h3>
+    <div class="tf-2col">
+      <div class="admin-form-row"><label class="admin-label">Verification</label>
+        <select id="tf_vstatus" class="admin-input">
+          <option value="pending">Pending</option>
+          <option value="approved">Approved (live)</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="admin-form-row"><label class="admin-label">Tier</label>
+        <select id="tf_tier" class="admin-input">
+          <option value="listing_only">Listing only</option>
+          <option value="full_saas">Full SaaS</option>
+        </select>
+      </div>
+    </div>
+    <label class="tf-inline"><input type="checkbox" id="tf_active" checked> Listing active (shown publicly)</label>
+    <div class="admin-form-row" style="margin-top:12px;"><label class="admin-label">Verification notes (internal)</label><textarea id="tf_vnotes" class="admin-input" style="min-height:50px;"></textarea></div>
+
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="btn-gold" id="tf_saveBtn" onclick="saveTeacher()"><i class="ti ti-device-floppy"></i> Save teacher</button>
+      <button class="btn-outline" onclick="closeSlidePanel('teacherPanel')">Cancel</button>
+    </div>
+  </div>
+</aside>
+
+<style>
+  .tf-h { font-size:13px; font-weight:600; color:var(--admin-text); margin:22px 0 10px; border-top:1px solid var(--admin-border); padding-top:16px; }
+  .tf-2col { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .tf-3col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  .tf-checks { display:flex; flex-wrap:wrap; gap:16px; font-size:13px; color:var(--admin-text-muted); margin:8px 0 2px; }
+  .tf-checks label, .tf-inline { display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+  .tf-inline { font-size:13px; color:var(--admin-text-muted); margin-top:4px; }
+  .tf-note { font-size:12px; color:var(--admin-text-faint); margin:0 0 10px; line-height:1.5; }
+  @media (max-width:560px){ .tf-2col, .tf-3col { grid-template-columns:1fr; } }
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/config.js"></script>
 <script src="js/admin-auth.js"></script>
@@ -100,7 +199,7 @@ async function loadTeachers() {
   try {
     const { data, error } = await adminSupabase
       .from('teachers')
-      .select('*, teacher_listings(id, slug, status)')
+      .select('*, teacher_listings(id, slug, status, headline, hourly_rate, trial_lesson_rate)')
       .order('created_at', { ascending: false })
     if (error) throw error
     allTeachers = data || []
@@ -148,6 +247,7 @@ function renderTable() {
         <td>${fmtDate(t.created_at)}</td>
         <td>
           <div class="actions-cell">
+            <button class="icon-btn" data-action="edit" title="Edit / verify"><i class="ti ti-pencil"></i></button>
             ${viewLink}
             <button class="icon-btn is-green" data-action="verify" title="${t.verified ? 'Unverify' : 'Mark verified'}"><i class="ti ti-check"></i></button>
             <button class="icon-btn" data-action="tier" title="Toggle tier"><i class="ti ti-shield"></i></button>
@@ -157,11 +257,22 @@ function renderTable() {
     `
   }).join('')
 
+  body.querySelectorAll('[data-action="edit"]').forEach(btn => {
+    btn.addEventListener('click', () => openEditTeacher(btn.closest('tr').dataset.id))
+  })
   body.querySelectorAll('[data-action="verify"]').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.closest('tr').dataset.id
       const t = allTeachers.find(x => x.id === id)
-      if (t) updateTeacher(id, { verified: !t.verified })
+      if (!t) return
+      // `verified` is a mirror of verification_status (DB trigger), so toggle the status.
+      if (t.verified) { updateTeacher(id, { verification_status: 'pending' }); return }
+      // Approving a teacher of children requires a verified WWCC.
+      if (t.teaches_children && !t.wwcc_verified) {
+        showToast('Record & verify the Working With Children Check first — open the teacher to add it.', 'error')
+        return
+      }
+      updateTeacher(id, { verification_status: 'approved' })
     })
   })
   body.querySelectorAll('[data-action="tier"]').forEach(btn => {
@@ -183,7 +294,163 @@ async function updateTeacher(id, patch) {
     await loadTeachers()
   } catch (err) {
     console.error('[teachers] update failed', err)
-    alert("Couldn't update teacher — please try again.")
+    showToast(err.message || "Couldn't update teacher.", 'error')
+  }
+}
+
+/* ---------- Add / edit teacher form ---------- */
+const g = (id) => document.getElementById(id)
+let editingListingId = null
+
+function slugifyName(s) {
+  return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60)
+}
+
+function openAddTeacher() {
+  g('teacherPanelTitle').textContent = 'Add teacher'
+  editingListingId = null
+  ;['tf_id','tf_first','tf_last','tf_email','tf_phone','tf_suburb','tf_state','tf_postcode',
+    'tf_bio','tf_years','tf_photo','tf_specialties','tf_quals','tf_headline','tf_rate','tf_trial',
+    'tf_wwcc','tf_wwcc_exp','tf_vnotes'].forEach(id => g(id).value = '')
+  g('tf_children').checked = true
+  g('tf_adults').checked = true
+  g('tf_inperson').checked = true
+  g('tf_online').checked = false
+  g('tf_wwcc_verified').checked = false
+  g('tf_active').checked = true
+  g('tf_vstatus').value = 'pending'
+  g('tf_tier').value = 'listing_only'
+  openSlidePanel('teacherPanel')
+}
+
+function openEditTeacher(id) {
+  const t = allTeachers.find(x => x.id === id)
+  if (!t) return
+  g('teacherPanelTitle').textContent = 'Edit teacher'
+  g('tf_id').value = t.id
+  g('tf_first').value = t.first_name || ''
+  g('tf_last').value = t.last_name || ''
+  g('tf_email').value = t.email || ''
+  g('tf_phone').value = t.phone || ''
+  g('tf_suburb').value = t.suburb || ''
+  g('tf_state').value = t.state || ''
+  g('tf_postcode').value = t.postcode || ''
+  g('tf_bio').value = t.bio || ''
+  g('tf_years').value = (t.years_experience ?? '')
+  g('tf_photo').value = t.profile_photo_url || ''
+  g('tf_specialties').value = (t.specialties || []).join(', ')
+  g('tf_quals').value = (t.qualifications || []).join(', ')
+  g('tf_children').checked = !!t.teaches_children
+  g('tf_adults').checked = !!t.teaches_adults
+  g('tf_inperson').checked = !!t.teaches_in_person
+  g('tf_online').checked = !!t.teaches_online
+  g('tf_wwcc').value = t.wwcc_number || ''
+  g('tf_wwcc_exp').value = t.wwcc_expiry || ''
+  g('tf_wwcc_verified').checked = !!t.wwcc_verified
+  g('tf_vstatus').value = t.verification_status || (t.verified ? 'approved' : 'pending')
+  g('tf_tier').value = t.tier || 'listing_only'
+  g('tf_active').checked = !!t.listing_active
+  g('tf_vnotes').value = t.verification_notes || ''
+  const listing = (t.teacher_listings && t.teacher_listings[0]) || null
+  editingListingId = listing ? listing.id : null
+  g('tf_headline').value = listing ? (listing.headline || '') : ''
+  g('tf_rate').value = listing && listing.hourly_rate != null ? listing.hourly_rate : ''
+  g('tf_trial').value = listing && listing.trial_lesson_rate != null ? listing.trial_lesson_rate : ''
+  openSlidePanel('teacherPanel')
+}
+
+async function saveTeacher() {
+  const first = g('tf_first').value.trim()
+  const last  = g('tf_last').value.trim()
+  const email = g('tf_email').value.trim()
+  if (!first || !last || !email) {
+    showToast('First name, last name and email are required.', 'error')
+    return
+  }
+  const teachesChildren = g('tf_children').checked
+  const vstatus = g('tf_vstatus').value
+  const wwccVerified = g('tf_wwcc_verified').checked
+  // WWCC gate: can't approve a teacher of children without a verified check.
+  if (vstatus === 'approved' && teachesChildren && !wwccVerified) {
+    showToast('Cannot approve: a verified Working With Children Check is required to teach children.', 'error')
+    return
+  }
+
+  const arr = (id) => g(id).value.split(',').map(s => s.trim()).filter(Boolean)
+  const numOrNull = (id) => { const v = g(id).value.trim(); return v === '' ? null : Number(v) }
+
+  const row = {
+    first_name: first, last_name: last, email,
+    phone: g('tf_phone').value.trim() || null,
+    suburb: g('tf_suburb').value.trim() || null,
+    state: g('tf_state').value.trim() || null,
+    postcode: g('tf_postcode').value.trim() || null,
+    bio: g('tf_bio').value.trim() || null,
+    years_experience: numOrNull('tf_years'),
+    profile_photo_url: g('tf_photo').value.trim() || null,
+    specialties: arr('tf_specialties'),
+    qualifications: arr('tf_quals'),
+    teaches_children: teachesChildren,
+    teaches_adults: g('tf_adults').checked,
+    teaches_in_person: g('tf_inperson').checked,
+    teaches_online: g('tf_online').checked,
+    wwcc_number: g('tf_wwcc').value.trim() || null,
+    wwcc_expiry: g('tf_wwcc_exp').value || null,
+    wwcc_verified: wwccVerified,
+    verification_status: vstatus,
+    verification_notes: g('tf_vnotes').value.trim() || null,
+    tier: g('tf_tier').value,
+    listing_active: g('tf_active').checked,
+    updated_at: new Date().toISOString(),
+  }
+
+  const btn = g('tf_saveBtn')
+  const original = btn.innerHTML
+  btn.disabled = true
+  btn.innerHTML = 'Saving…'
+  try {
+    const id = g('tf_id').value
+    let teacherId = id
+    if (id) {
+      const { error } = await adminSupabase.from('teachers').update(row).eq('id', id)
+      if (error) throw error
+    } else {
+      const { data, error } = await adminSupabase.from('teachers').insert(row).select('id').single()
+      if (error) throw error
+      teacherId = data.id
+    }
+
+    // Optional public listing.
+    const headline = g('tf_headline').value.trim()
+    if (headline) {
+      const trialRate = numOrNull('tf_trial')
+      const listingRow = {
+        teacher_id: teacherId,
+        headline,
+        hourly_rate: numOrNull('tf_rate'),
+        trial_lesson_available: trialRate != null,
+        trial_lesson_rate: trialRate,
+      }
+      if (editingListingId) {
+        const { error } = await adminSupabase.from('teacher_listings')
+          .update({ ...listingRow, updated_at: new Date().toISOString() }).eq('id', editingListingId)
+        if (error) throw error
+      } else {
+        listingRow.slug = slugifyName(first + '-' + last) + '-' + Math.random().toString(36).slice(2, 6)
+        const { error } = await adminSupabase.from('teacher_listings').insert(listingRow)
+        if (error) throw error
+      }
+    }
+
+    showToast('Teacher saved.', 'success')
+    closeSlidePanel('teacherPanel')
+    await loadTeachers()
+  } catch (err) {
+    console.error('[teachers] save failed', err)
+    showToast(err.message || "Couldn't save teacher.", 'error')
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = original
   }
 }
 </script>
