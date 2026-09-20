@@ -16,15 +16,21 @@ module.exports = async (req, res) => {
 
   let post
   try {
-    const { data } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('blog_posts')
       .select('*')
       .eq('slug', slug)
       .eq('status', 'published')
       .maybeSingle()
+    if (error) throw error
     post = data
   } catch (err) {
+    // A database hiccup is not a missing article: don't tell crawlers it's gone.
     console.error('[blog post] load failed', err)
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+    res.setHeader('Cache-Control', 'no-store')
+    res.setHeader('Retry-After', '120')
+    return res.status(503).send('The journal is briefly unavailable. Please try again in a minute.')
   }
   if (!post) return notFound(res)
 

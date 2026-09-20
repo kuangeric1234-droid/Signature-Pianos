@@ -11,15 +11,21 @@
 -- Safe to re-run: if the user already exists it just (re)sets the password and
 -- makes sure the admin_users row is present + active.
 --
--- >>> CHANGE THE PASSWORD on the next line before running. <<<
+-- >>> Set the password at run time: paste it over the placeholder on the
+-- v_password line in the SQL editor, run, then close the tab WITHOUT saving.
+-- Never commit a real password to this file (it is in the public repo). <<<
 -- =============================================================================
 
 DO $$
 DECLARE
   v_email    text := 'info@signaturepianos.com.au';
-  v_password text := 'Admin!Signature2026';     -- <<< CHANGE ME
+  v_password text := '<set-a-strong-password-here>';     -- <<< set at run time, never commit
   v_uid      uuid;
 BEGIN
+  IF v_password = '<set-a-strong-password-here>' OR length(v_password) < 12 THEN
+    RAISE EXCEPTION 'Set v_password to a strong password (12+ characters) before running.';
+  END IF;
+
   -- 1. Auth user -------------------------------------------------------------
   SELECT id INTO v_uid FROM auth.users WHERE email = v_email;
 

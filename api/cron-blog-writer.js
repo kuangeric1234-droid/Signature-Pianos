@@ -13,7 +13,8 @@
  * so we reject anything else (keeps the endpoint unhittable publicly).
  */
 
-const { writeAutoDraft } = require('../lib/blog')
+const { supabaseAdmin } = require('../lib/ai')
+const { writeAutoDraft, runBlogJob } = require('../lib/blog')
 
 module.exports = async (req, res) => {
   const expected = process.env.CRON_SECRET
@@ -24,17 +25,33 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
-  try {
-    const { post, topic } = await writeAutoDraft()
-    return res.status(200).json({
-      ok: true,
-      created: post.title,
-      slug: post.slug,
-      fromQueue: !!topic,
-      queuedTopic: topic ? topic.working_title : null,
-    })
-  } catch (err) {
-    console.error('[cron-blog-writer] failed', err)
-    return res.status(500).json({ error: err.message || 'Failed' })
+  // Record the run as a blog_jobs row (kind 'auto') so the admin sees cron
+  // runs and failures; runBlogJob always leaves it 'done' or 'error'.
+  const { data: job, error: jobErr } = await supabaseAdmin
+    .from('blog_jobs')
+    .insert({ status: 'pending', kind: 'auto', research: true })
+    .select('id')
+    .single()
+  if (jobErr) {
+    console.error('[cron-blog-writer] could not create job', jobErr)
+    return res.status(500).json({ error: 'Could not start generation.' })
   }
+
+  let topic = null
+  const result = await runBlogJob(job.id, async ({ deadline, setTopic }) => {
+    const run = await writeAutoDraft({ onTopic: setTopic, deadline })
+    topic = run.topic
+    return run.post
+  })
+  if (result.error) {
+    return res.status(500).json({ error: result.error, jobId: job.id })
+  }
+  return res.status(200).json({
+    ok: true,
+    jobId: job.id,
+    created: result.post.title,
+    slug: result.post.slug,
+    fromQueue: !!topic,
+    queuedTopic: topic ? topic.working_title : null,
+  })
 }

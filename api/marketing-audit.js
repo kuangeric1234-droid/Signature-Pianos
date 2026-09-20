@@ -74,9 +74,11 @@ module.exports = async (req, res) => {
   // Fetch the page HTML (cap size so we don't blow the token budget).
   let html = ''
   try {
+    // Bounded, so a slow page can't push the AI call past maxDuration (300s).
     const r = await fetch(url, {
       headers: { 'User-Agent': 'SignaturePianosAuditBot/1.0' },
       redirect: 'follow',
+      signal: AbortSignal.timeout(20000),
     })
     if (!r.ok) return res.status(400).json({ error: `Page returned HTTP ${r.status}` })
     html = (await r.text()).slice(0, 60000)

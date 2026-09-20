@@ -2,3 +2,22 @@
 # Anchored with a leading slash: a bare "brand/" also matches media/brand/ and images/brand/,
 # which the live site needs (logos, monogram, favicons, email-signature logo).
 /brand/
+
+# Internal files that must never be served as static files. Every pattern is
+# anchored to the repo root, so it can't catch a same-named file the site uses
+# deeper down. Keep lib/ and api/ (the functions need them), package.json and
+# vercel.json (the build needs them).
+#   SQL migrations and seeds (one held an admin password), internal system docs,
+#   the local dev server, the SEO command-line tool (nothing in api/ or lib/
+#   requires it), a copy-paste snippet that isn't a page, secrets and
+#   editor/agent metadata. Root .txt files (robots.txt, the IndexNow key) stay.
+/supabase/
+/*.md
+/server.js
+/tools/
+/_includes/
+/.env*
+/.gitignore
+/.claude/
+/.vscode/
+/.idea/

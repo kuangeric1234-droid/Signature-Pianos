@@ -10,6 +10,7 @@ const { renderIndex } = require('../lib/blog-render')
 
 module.exports = async (req, res) => {
   let posts = []
+  let failed = false
   try {
     const { data, error } = await supabaseAdmin
       .from('blog_posts')
@@ -21,12 +22,14 @@ module.exports = async (req, res) => {
     posts = data || []
   } catch (err) {
     console.error('[blog index] load failed', err)
+    failed = true
   }
 
   const tag = (req.query?.tag || '').toString().trim().slice(0, 60)
   const html = renderIndex(posts, { tag })
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
-  res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=86400')
-  return res.status(200).send(html)
+  // A failed load renders the empty journal: never let the CDN keep that.
+  res.setHeader('Cache-Control', failed ? 'no-store' : 's-maxage=600, stale-while-revalidate=86400')
+  return res.status(failed ? 503 : 200).send(html)
 }

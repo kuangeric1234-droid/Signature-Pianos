@@ -2,7 +2,10 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
+// Local static preview only (no api/ functions). Bound to loopback so the
+// working tree (.env.local included) is never reachable from the network.
 const PORT = 5173;
+const HOST = '127.0.0.1';
 const ROOT = __dirname;
 
 const TYPES = {
@@ -22,11 +25,22 @@ const TYPES = {
 };
 
 http.createServer((req, res) => {
-  let urlPath = decodeURIComponent(req.url.split('?')[0]);
+  let urlPath;
+  try {
+    urlPath = decodeURIComponent(req.url.split('?')[0]);
+  } catch {
+    res.writeHead(400); return res.end('Bad request');
+  }
   if (urlPath === '/') urlPath = '/index.html';
   const filePath = path.join(ROOT, urlPath);
 
-  if (!filePath.startsWith(ROOT)) {
+  // Must stay inside ROOT (path.relative, so /repo-evil can't pass as /repo),
+  // and never serve dot-files/dot-dirs (.env.local, .git, .claude) or node_modules.
+  const rel = path.relative(ROOT, filePath);
+  const parts = rel.split(path.sep);
+  if (!rel || rel.startsWith('..') || path.isAbsolute(rel) ||
+      urlPath.includes('\0') ||
+      parts.some(p => p.startsWith('.') || p === 'node_modules')) {
     res.writeHead(403); return res.end('Forbidden');
   }
 
@@ -42,6 +56,6 @@ http.createServer((req, res) => {
     });
     fs.createReadStream(filePath).pipe(res);
   });
-}).listen(PORT, () => {
-  console.log(`Signature Pianos → http://localhost:${PORT}`);
+}).listen(PORT, HOST, () => {
+  console.log(`Signature Pianos → http://${HOST}:${PORT}`);
 });

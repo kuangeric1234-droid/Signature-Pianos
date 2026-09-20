@@ -12,7 +12,7 @@
 
 const { waitUntil } = require('@vercel/functions')
 const { requireAdmin, supabaseAdmin } = require('../lib/ai')
-const { writeAutoDraft } = require('../lib/blog')
+const { writeAutoDraft, runBlogJob } = require('../lib/blog')
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
@@ -33,23 +33,11 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Could not start generation.' })
   }
 
-  waitUntil(runJob(job.id))
+  // runBlogJob never throws and always leaves the row 'done' or 'error'.
+  // Same run as the cron: the planned queue first, free choice if it's empty.
+  waitUntil(runBlogJob(job.id, async ({ deadline, setTopic }) => {
+    const { post } = await writeAutoDraft({ onTopic: setTopic, deadline })
+    return post
+  }))
   return res.status(202).json({ jobId: job.id })
-}
-
-async function runJob(jobId) {
-  const set = (fields) =>
-    supabaseAdmin.from('blog_jobs').update(fields).eq('id', jobId)
-
-  try {
-    await set({ status: 'running' })
-
-    // Same run as the cron: the planned queue first, free choice if it's empty.
-    const { post: saved } = await writeAutoDraft({ onTopic: (topic) => set({ topic }) })
-
-    await set({ status: 'done', post_id: saved.id, title: saved.title })
-  } catch (err) {
-    console.error('[run-blog-writer] job failed', err)
-    await set({ status: 'error', error: String(err?.message || err).slice(0, 500) })
-  }
 }

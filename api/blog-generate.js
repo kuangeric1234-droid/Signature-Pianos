@@ -13,8 +13,8 @@
  */
 
 const { waitUntil } = require('@vercel/functions')
-const { requireAdmin, research, supabaseAdmin } = require('../lib/ai')
-const { generatePost, savePostDraft } = require('../lib/blog')
+const { requireAdmin, research, researchDeadline, supabaseAdmin } = require('../lib/ai')
+const { generatePost, savePostDraft, runBlogJob } = require('../lib/blog')
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
@@ -41,38 +41,29 @@ module.exports = async (req, res) => {
   }
 
   // Do the heavy lifting AFTER responding. waitUntil keeps the function alive
-  // until the promise settles (bounded by this route's maxDuration).
-  waitUntil(runJob(job.id, { topic, doResearch }))
+  // until the promise settles (bounded by this route's maxDuration); runBlogJob
+  // keeps the work inside that and always leaves the row 'done' or 'error'.
+  waitUntil(runBlogJob(job.id, ({ deadline }) => writeDraft({ topic, doResearch, deadline })))
 
   return res.status(202).json({ jobId: job.id })
 }
 
-async function runJob(jobId, { topic, doResearch }) {
-  const set = (fields) =>
-    supabaseAdmin.from('blog_jobs').update(fields).eq('id', jobId)
+async function writeDraft({ topic, doResearch, deadline }) {
+  // Avoid repeating recent titles.
+  const { data: recent } = await supabaseAdmin
+    .from('blog_posts').select('title').order('created_at', { ascending: false }).limit(25)
+  const avoidTitles = (recent || []).map((r) => r.title)
 
-  try {
-    await set({ status: 'running' })
-
-    // Avoid repeating recent titles.
-    const { data: recent } = await supabaseAdmin
-      .from('blog_posts').select('title').order('created_at', { ascending: false }).limit(25)
-    const avoidTitles = (recent || []).map((r) => r.title)
-
-    let notes = ''
-    if (doResearch) {
-      notes = await research(
-        `Research up-to-date, accurate facts for a blog article on: "${topic}". ` +
-        `Focus on details relevant to Australian piano buyers. Summarise key points, ` +
-        `specs, models, and any recent releases with sources.`
-      )
-    }
-
-    const post = await generatePost({ topic, research: notes, avoidTitles })
-    const saved = await savePostDraft(post, 'manual')
-    await set({ status: 'done', post_id: saved.id, title: saved.title })
-  } catch (err) {
-    console.error('[blog-generate] job failed', err)
-    await set({ status: 'error', error: String(err?.message || err).slice(0, 500) })
+  let notes = ''
+  if (doResearch) {
+    notes = await research(
+      `Research up-to-date, accurate facts for a blog article on: "${topic}". ` +
+      `Focus on details relevant to Australian piano buyers. Summarise key points, ` +
+      `specs, models, and any recent releases with sources.`,
+      { deadline: researchDeadline(deadline) }
+    )
   }
+
+  const post = await generatePost({ topic, research: notes, avoidTitles, deadline })
+  return savePostDraft(post, 'manual')
 }

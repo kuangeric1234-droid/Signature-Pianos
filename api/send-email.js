@@ -10,394 +10,491 @@
  *
  * Required env (configured in the Vercel dashboard):
  *   RESEND_API_KEY  — Resend API key
- *   BUSINESS_EMAIL  — Internal address (e.g. info@signaturepianos.com.au)
+ *   BUSINESS_EMAIL  — Internal address (e.g. info@signaturepianos.com.au), via lib/notify.js
+ *   SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY — company settings, delivery lookups, auth
  *
  * The forms call this in fire-and-forget mode AFTER the row is safely
  * in Supabase, so any email failure is logged but never blocks the UX.
+ *
+ * Who may send what
+ * -----------------
+ * PUBLIC_TYPES come from public forms and need no sign-in, so they are locked
+ * down: the customer copy goes only to the one address in the submission, the
+ * internal copy only to internalRecipients(), every field is length-capped
+ * and escaped, and delivery_preferences_submitted is built from the database
+ * (looked up by the customer's preference token), never from the body.
+ * Every other type needs an admin session (admin pages attach the bearer
+ * automatically) or a server-to-server call (lib/auth.js internalHeaders()).
+ * Bank details, ABN and invoice notes always come from company_settings, never
+ * the request, and links must be https:// on our own domain (or stripe.com,
+ * for payment links).
+ *
+ * Responses: 200 { success, sent, failed } · 400 bad request or unknown type ·
+ * 401/403 not allowed · 502 { error, sent, failed } when an email the caller
+ * asked for (not just an internal copy) was refused by Resend.
  */
 
 const { Resend } = require('resend')
+const { createClient } = require('@supabase/supabase-js')
 const { internalRecipients } = require('../lib/notify')
+const { requireAdminOrInternal, sendAuthError } = require('../lib/auth')
+const { melbourneDate, addDays } = require('../lib/dates')
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const BUSINESS_EMAIL = process.env.BUSINESS_EMAIL
 const FROM = 'Signature Pianos <info@signaturepianos.com.au>'
+
+// Created on first use: new Resend() throws when RESEND_API_KEY is unset.
+let _resend
+function resend() {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY)
+  return _resend
+}
+
+let _db
+function db() {
+  if (!_db) {
+    _db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    })
+  }
+  return _db
+}
+
+// Types the public site sends without signing in. delivery_preferences_submitted
+// is public only with a preference token; without one it's the admin test send.
+const PUBLIC_TYPES = new Set(['viewing_booking', 'service_request', 'delivery_preferences_submitted'])
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { type, ...data } = req.body || {}
+  // Vercel's req.body getter throws on malformed JSON.
+  let body
+  try { body = req.body } catch { body = null }
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return res.status(400).json({ error: 'Expected a JSON body' })
+  }
 
+  const { type, ...data } = body
+  const handler = typeof type === 'string' && Object.prototype.hasOwnProperty.call(HANDLERS, type)
+    ? HANDLERS[type]
+    : null
+  if (!handler) return res.status(400).json({ error: 'Unknown email type' })
+
+  const isPublic = PUBLIC_TYPES.has(type) &&
+    (type !== 'delivery_preferences_submitted' || !!preferenceToken(data))
+  if (!isPublic) {
+    try {
+      await requireAdminOrInternal(req)
+    } catch (err) {
+      return sendAuthError(res, err)
+    }
+  }
+
+  const out = outbox()
   try {
-    if (type === 'viewing_booking') {
-      // Customer confirmation
-      await resend.emails.send({
-        from: FROM,
-        to: data.email,
-        subject: 'Your viewing request — Signature Pianos',
-        html: viewingConfirmationEmail(data)
-      })
-      // Internal notification
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `New viewing request — ${data.first_name} ${data.last_name}`,
-        html: viewingInternalEmail(data)
-      })
-    }
+    await handler(data, out)
+  } catch (err) {
+    if (err instanceof BadRequest) return res.status(400).json({ error: err.message })
+    console.error('Email error:', err)
+    // Say what already went, so nobody resends a customer email that arrived.
+    return res.status(500).json({ error: 'Email failed', sent: out.sent.map(s => s.email), failed: out.failed })
+  }
 
-    if (type === 'service_request') {
-      await resend.emails.send({
-        from: FROM,
-        to: data.email,
-        subject: 'Your service request — Signature Pianos',
-        html: serviceConfirmationEmail(data)
-      })
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `New service request — ${data.first_name} ${data.last_name}`,
-        html: serviceInternalEmail(data)
-      })
-    }
+  const sent = out.sent.map(s => s.email)
+  const primaryFailed = out.failed.filter(f => f.primary)
+  if (primaryFailed.length) {
+    return res.status(502).json({
+      success: false,
+      error: `Email failed: ${primaryFailed.map(f => f.email).join(', ')}`,
+      sent,
+      failed: out.failed
+    })
+  }
+  return res.status(200).json({ success: true, sent, failed: out.failed })
+}
 
-    if (type === 'overdue_reminder') {
-      // Customer-facing reminder only — no internal copy needed since admin triggered it.
-      await resend.emails.send({
-        from: FROM,
-        to: data.email,
-        subject: `Payment reminder — invoice ${data.invoice_number || ''}`.trim(),
-        html: overdueReminderEmail(data)
-      })
-    }
+/* ===========================================================================
+ * One handler per type: (data, out) => validate, build, out.send(...).
+ * Validate everything before the first send, so a 400 never follows a
+ * half-sent request. `primary: false` marks the internal copies.
+ * ======================================================================== */
 
-    if (type === 'purchase_confirmation') {
-      // Customer confirmation + delivery-preferences link, fired by the Stripe webhook.
-      await resend.emails.send({
-        from: FROM,
-        to: data.email,
-        subject: `Your Signature Pianos purchase — order ${data.order_number || ''}`.trim(),
-        html: purchaseConfirmationEmail(data)
-      })
+const HANDLERS = {
+  /* ===== PUBLIC: viewing request from the website ===== */
+  async viewing_booking(data, out) {
+    const email = oneEmail(data.email)
+    const v = {
+      email,
+      first_name:        text(data.first_name, 60),
+      last_name:         text(data.last_name, 60),
+      phone:             text(data.phone, 40),
+      preferred_date:    ymd(data.preferred_date),
+      preferred_time:    text(data.preferred_time, 40),
+      pianos_interested: textList(data.pianos_interested, 20, 120),
+      how_heard:         text(data.how_heard, 80),
+      message:           text(data.message, 2000)
     }
+    await out.send('customer confirmation', {
+      to: email,
+      subject: 'Your viewing request — Signature Pianos',
+      html: viewingConfirmationEmail(v)
+    })
+    await out.send('internal copy', {
+      to: internalRecipients(),
+      subject: subjectLine(`New viewing request — ${v.first_name} ${v.last_name}`),
+      html: viewingInternalEmail(v)
+    }, { primary: false })
+  },
 
-    if (type === 'internal_sale_notification') {
-      // Eric-facing notification for every Stripe sale.
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(data.email),
-        subject: `New ${data.payment_type === 'deposit' ? 'deposit' : 'sale'} — ${data.piano_label || 'piano'} (${data.order_number || ''})`,
-        html: internalSaleEmail(data)
-      })
+  /* ===== PUBLIC: tuning / service request from the website ===== */
+  async service_request(data, out) {
+    const email = oneEmail(data.email)
+    const v = {
+      email,
+      first_name:          text(data.first_name, 60),
+      last_name:           text(data.last_name, 60),
+      phone:               text(data.phone, 40),
+      suburb:              text(data.suburb, 80),
+      piano_brand:         text(data.piano_brand, 80),
+      piano_age:           text(data.piano_age, 40),
+      last_tuned:          text(data.last_tuned, 40),
+      service_required:    text(data.service_required, 60),
+      preferred_timeframe: text(data.preferred_timeframe, 60),
+      is_signature_piano:  data.is_signature_piano === true,
+      message:             text(data.message, 2000)
     }
+    await out.send('customer confirmation', {
+      to: email,
+      subject: 'Your service request — Signature Pianos',
+      html: serviceConfirmationEmail(v)
+    })
+    await out.send('internal copy', {
+      to: internalRecipients(),
+      subject: subjectLine(`New service request — ${v.first_name} ${v.last_name}`),
+      html: serviceInternalEmail(v)
+    }, { primary: false })
+  },
 
-    if (type === 'delivery_preferences_submitted') {
-      // The client only sends preference_token + the form fields (anon
-      // can't read orders/customers/pianos through RLS, so client-side
-      // joins were returning null and the email was rendering as
-      // dashes). We resolve the full record server-side via service
-      // role, then hand the flattened payload to the template.
-      const enriched = await enrichDeliveryPreferencesPayload(data)
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `Delivery preferences received — ${enriched.customer_name || 'customer'} · ${enriched.order_number || ''}`,
-        html: deliveryPreferencesEmail(enriched)
-      })
+  /* ===== PUBLIC (with token): customer chose delivery windows =====
+     Public calls send { token } (or the older { preference_token, ...form })
+     and the email is built from the deliveries row only. Without a token it
+     is the admin "test emails" send, which carries its own sample data. */
+  async delivery_preferences_submitted(data, out) {
+    const token = preferenceToken(data)
+    const d = token ? await deliveryPreferencesFromDb(token) : {
+      customer_name:  text(data.customer_name, 120),
+      customer_email: text(data.customer_email, 254),
+      customer_phone: text(data.customer_phone, 40),
+      piano:          text(data.piano, 200),
+      order_number:   text(data.order_number, 40),
+      invoice_number: text(data.invoice_number, 40),
+      pref1:          text(data.pref1, 120),
+      pref2:          text(data.pref2, 120),
+      pref3:          text(data.pref3, 120),
+      address:        text(data.address, 300),
+      notes:          text(data.notes, 2000)
     }
+    await out.send('internal notification', {
+      to: internalRecipients(),
+      subject: subjectLine(`Delivery preferences received — ${d.customer_name || 'customer'} · ${d.order_number || ''}`),
+      html: deliveryPreferencesEmail(d)
+    })
+  },
 
-    /* ===== Invoice email — manual resend from admin/orders.html ===== */
-    if (type === 'send_invoice') {
-      const { customer, piano, order, settings } = data
-      if (!customer?.email) {
-        return res.status(400).json({ error: 'Customer email missing' })
-      }
-      await resend.emails.send({
-        from: FROM,
-        to: customer.email,
-        subject: `Invoice ${order.invoice_number} — Signature Pianos`,
+  /* ===== Overdue invoice — admin/orders.html. Customer only. ===== */
+  async overdue_reminder(data, out) {
+    const email = oneEmail(data.email, 'Customer email')
+    await out.send('customer reminder', {
+      to: email,
+      subject: subjectLine(`Payment reminder — invoice ${text(data.invoice_number, 40)}`),
+      html: overdueReminderEmail(data)
+    })
+  },
+
+  /* ===== Stripe purchase — customer confirmation + delivery-preferences link ===== */
+  async purchase_confirmation(data, out) {
+    const email = oneEmail(data.email, 'Customer email')
+    const preferences_url = safeLink(data.preferences_url, 'Delivery preferences link')
+    await out.send('customer confirmation', {
+      to: email,
+      subject: subjectLine(`Your Signature Pianos purchase — order ${text(data.order_number, 40)}`),
+      html: purchaseConfirmationEmail({ ...data, preferences_url })
+    })
+  },
+
+  /* ===== Stripe sale — Eric-facing. Recipients are never taken from the body. ===== */
+  async internal_sale_notification(data, out) {
+    await out.send('internal notification', {
+      to: internalRecipients(),
+      subject: subjectLine(`New ${data.payment_type === 'deposit' ? 'deposit' : 'sale'} — ${text(data.piano_label, 120) || 'piano'} (${text(data.order_number, 40)})`),
+      html: internalSaleEmail(data)
+    })
+  },
+
+  /* ===== Invoice email — manual resend from admin/orders.html, or Stripe ===== */
+  async send_invoice(data, out) {
+    const customer = obj(data.customer), piano = obj(data.piano), order = obj(data.order)
+    const to = oneEmail(customer.email, 'Customer email')
+    const settings = await loadSettings()
+    await out.send('invoice', {
+      to,
+      subject: subjectLine(`Invoice ${text(order.invoice_number, 40)} — Signature Pianos`),
+      html: generateInvoiceEmailHTML({ customer, piano, order, settings })
+    })
+    await out.send('internal copy', {
+      to: internalRecipients(),
+      subject: subjectLine(`Invoice sent — ${text(order.invoice_number, 40)} to ${fullName(customer)}`),
+      html: alertEmail({
+        title: 'Invoice sent',
+        rows: [['Invoice', esc(order.invoice_number), true], ['Sent to', esc(to)]]
+      })
+    }, { primary: false })
+  },
+
+  /* ===== POS sale — acoustic piano. Confirmation + invoice + internal ===== */
+  async pos_order_confirmation(data, out) {
+    const customer = obj(data.customer), piano = obj(data.piano), order = obj(data.order)
+    const to = customer.email ? oneEmail(customer.email, 'Customer email') : ''
+    const preferenceUrl = safeLink(data.preferenceUrl, 'Delivery preferences link')
+    const settings = await loadSettings()
+    if (to) {
+      await out.send('customer confirmation', {
+        to,
+        subject: subjectLine(`Your piano purchase confirmed — Invoice ${text(order.invoice_number, 40)}`),
+        html: posOrderConfirmationEmail({ customer, piano, order, settings, preferenceUrl })
+      })
+      await out.send('invoice', {
+        to,
+        subject: subjectLine(`Invoice ${text(order.invoice_number, 40)} — Signature Pianos`),
         html: generateInvoiceEmailHTML({ customer, piano, order, settings })
       })
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `Invoice sent — ${order.invoice_number} to ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
-        html: alertEmail({
-          title: 'Invoice sent',
-          rows: [['Invoice', esc(order.invoice_number), true], ['Sent to', esc(customer.email)]]
-        })
+    }
+    await out.send('internal copy', {
+      to: internalRecipients(),
+      subject: subjectLine(`New POS sale — ${text(order.invoice_number, 40)} · ${fullName(customer)}`),
+      html: posSaleInternalEmail({ customer, piano, order, isAcoustic: true })
+    }, { primary: !to })
+  },
+
+  /* ===== POS or Stripe sale — digital piano. Collection note + invoice + internal ===== */
+  async digital_order_confirmation(data, out) {
+    const customer = obj(data.customer), piano = obj(data.piano), order = obj(data.order)
+    const to = customer.email ? oneEmail(customer.email, 'Customer email') : ''
+    const settings = await loadSettings()
+    if (to) {
+      await out.send('customer confirmation', {
+        to,
+        subject: subjectLine(`Your purchase confirmed — Invoice ${text(order.invoice_number, 40)}`),
+        html: digitalOrderConfirmationEmail({ customer, piano, order, settings })
+      })
+      await out.send('invoice', {
+        to,
+        subject: subjectLine(`Invoice ${text(order.invoice_number, 40)} — Signature Pianos`),
+        html: generateInvoiceEmailHTML({ customer, piano, order, settings })
       })
     }
+    await out.send('internal copy', {
+      to: internalRecipients(),
+      subject: subjectLine(`New digital sale — ${text(order.invoice_number, 40)} · ${fullName(customer)}`),
+      html: posSaleInternalEmail({ customer, piano, order, isAcoustic: false })
+    }, { primary: !to })
+  },
 
-    /* ===== POS sale — acoustic piano. Confirmation + invoice + internal ===== */
-    if (type === 'pos_order_confirmation') {
-      const { customer, piano, order, settings, preferenceUrl } = data
-      if (customer?.email) {
-        await resend.emails.send({
-          from: FROM,
-          to: customer.email,
-          subject: `Your piano purchase confirmed — Invoice ${order.invoice_number}`,
-          html: posOrderConfirmationEmail({ customer, piano, order, settings, preferenceUrl })
-        })
-        await resend.emails.send({
-          from: FROM,
-          to: customer.email,
-          subject: `Invoice ${order.invoice_number} — Signature Pianos`,
-          html: generateInvoiceEmailHTML({ customer, piano, order, settings })
-        })
-      }
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `New POS sale — ${order.invoice_number} · ${customer?.first_name || ''} ${customer?.last_name || ''}`.trim(),
-        html: posSaleInternalEmail({ customer, piano, order, isAcoustic: true })
+  /* ===== Payment plan — contract sent to customer ===== */
+  async payment_plan_contract(data, out) {
+    const plan = obj(data.plan), customer = obj(data.customer), piano = obj(data.piano)
+    const to = oneEmail(customer.email, 'Customer email')
+    const signUrl = safeLink(data.signUrl, 'Signing link')
+    const instalments = Array.isArray(data.instalments) ? data.instalments.map(obj) : []
+    await out.send('customer contract', {
+      to,
+      subject: subjectLine(`Payment plan contract — ${text(plan.plan_number, 40)} · Signature Pianos`),
+      html: paymentPlanContractEmail({ plan, customer, piano, instalments, signUrl })
+    })
+    await out.send('internal copy', {
+      to: internalRecipients(),
+      subject: subjectLine(`Contract sent — ${text(plan.plan_number, 40)} · ${fullName(customer)}`),
+      html: alertEmail({
+        label: 'Payment plan',
+        title: 'Contract sent',
+        rows: [
+          ['Sent to', esc(to)],
+          ['Plan', esc(plan.plan_number || ''), true],
+          planSurcharge(plan)
+            ? ['Total payable', `${planCurrency(planSurcharge(plan).total)} (incl. card surcharge ${planCurrency(plan.surcharge_amount)})`]
+            : ['Total', planCurrency(plan.total_amount)]
+        ],
+        message: 'Waiting for the customer to sign.'
       })
+    }, { primary: false })
+  },
+
+  /* ===== Payment plan — overdue instalment reminder ===== */
+  async instalment_reminder(data, out) {
+    const plan = obj(data.plan), customer = obj(data.customer), piano = obj(data.piano)
+    const to = oneEmail(customer.email, 'Customer email')
+    const overdueInstalments = Array.isArray(data.overdueInstalments) ? data.overdueInstalments.map(obj) : []
+    const settings = await loadSettings()
+    await out.send('customer reminder', {
+      to,
+      subject: subjectLine(`Payment reminder — Plan ${text(plan.plan_number, 40)} · Signature Pianos`),
+      html: instalmentReminderEmail({ plan, customer, piano, overdueInstalments, settings })
+    })
+    await out.send('internal copy', {
+      to: internalRecipients(),
+      subject: subjectLine(`Reminder sent — ${text(plan.plan_number, 40)} · ${fullName(customer)}`),
+      html: alertEmail({
+        label: 'Payment plan',
+        title: 'Overdue reminder sent',
+        rows: [['Sent to', esc(to)], ['Plan', esc(plan.plan_number || ''), true], ['Overdue instalments', String(overdueInstalments.length)]]
+      })
+    }, { primary: false })
+  },
+
+  /* ===== Viewing appointment — admin-created direct booking ===== */
+  async viewing_confirmed(data, out) {
+    const to = oneEmail(data.email, 'Customer email')
+    const { first_name, appointment_date, appointment_time, notes } = data
+    await out.send('customer confirmation', {
+      to,
+      subject: 'Your viewing is confirmed — Signature Pianos',
+      html: viewingConfirmedBookingEmail({ first_name, appointment_date, appointment_time, notes })
+    })
+  },
+
+  /* ===== Viewing reminder — "Send reminder" button, any day ===== */
+  async viewing_reminder(data, out) {
+    const to = oneEmail(data.email, 'Customer email')
+    const { first_name, appointment_date, appointment_time } = data
+    await out.send('customer reminder', {
+      to,
+      subject: subjectLine(`Reminder: your viewing is ${viewingWhen(appointment_date)} — Signature Pianos`),
+      html: viewingReminderBookingEmail({ first_name, appointment_date, appointment_time })
+    })
+  },
+
+  /* ===== Balance reminder — admin pings reserved-piano customer ===== */
+  async balance_reminder(data, out) {
+    const customer = obj(data.customer), piano = obj(data.piano), order = obj(data.order)
+    const to = oneEmail(customer.email, 'Customer email')
+    const settings = await loadSettings()
+    await out.send('customer reminder', {
+      to,
+      subject: subjectLine(`Balance payment reminder — ${text(piano.brand, 40) || 'Yamaha'} ${text(piano.model, 40)} ${text(piano.year, 10)}`),
+      html: balanceReminderEmail({ customer, piano, order, settings })
+    })
+  },
+
+  /* ===== Driver assignment — admin assigns a partner, customer
+     prefs go out for selection ===== */
+  async driver_assignment(data, out) {
+    const driver_email = oneEmail(data.driver_email, 'Driver email')
+    const customer = obj(data.customer), piano = obj(data.piano), preferences = obj(data.preferences)
+    const accept_url = safeLink(data.accept_url, 'Accept link')
+    const { driver_name, delivery_address } = data
+    const pianoLabel = `${text(piano.brand, 40) || 'Yamaha'} ${text(piano.model, 40)} ${text(piano.year, 10)}`.trim()
+    await out.send('driver assignment', {
+      to: driver_email,
+      subject: subjectLine(`Delivery assignment — ${pianoLabel} · ${fullName(customer)}`),
+      html: driverAssignmentEmail({ driver_name, customer, piano, preferences, delivery_address, accept_url })
+    })
+    await out.send('internal copy', {
+      to: internalRecipients(),
+      subject: subjectLine(`Driver assigned — ${text(driver_name, 80)} · ${pianoLabel}`),
+      html: alertEmail({
+        label: 'Delivery',
+        title: 'Delivery partner assigned',
+        rows: [['Partner', `${esc(driver_name)}<br>${esc(driver_email)}`, true], ['Customer', esc(fullName(customer))]],
+        message: 'Waiting for the partner to accept a delivery window.'
+      })
+    }, { primary: false })
+  },
+
+  /* ===== Driver — pickup or delivery photo upload link ===== */
+  driver_pickup_link: (data, out) => driverPhotoLink(data, out, true),
+  driver_delivery_link: (data, out) => driverPhotoLink(data, out, false),
+
+  /* ===== Delivery date confirmed by admin ===== */
+  async delivery_confirmed(data, out) {
+    const customer = obj(data.customer), piano = obj(data.piano), delivery = obj(data.delivery)
+    const to = oneEmail(customer.email, 'Customer email')
+    const fmtDelDate = (d) => {
+      if (!d) return '—'
+      const [y, m, day] = String(d).split('T')[0].split('-')
+      if (!y || !m || !day) return String(d)
+      return `${day}/${m}/${y}`
     }
-
-    /* ===== POS sale — digital piano. Collection note + invoice + internal ===== */
-    if (type === 'digital_order_confirmation') {
-      const { customer, piano, order, settings } = data
-      if (customer?.email) {
-        await resend.emails.send({
-          from: FROM,
-          to: customer.email,
-          subject: `Your purchase confirmed — Invoice ${order.invoice_number}`,
-          html: digitalOrderConfirmationEmail({ customer, piano, order, settings })
-        })
-        await resend.emails.send({
-          from: FROM,
-          to: customer.email,
-          subject: `Invoice ${order.invoice_number} — Signature Pianos`,
-          html: generateInvoiceEmailHTML({ customer, piano, order, settings })
-        })
-      }
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `New digital sale — ${order.invoice_number} · ${customer?.first_name || ''} ${customer?.last_name || ''}`.trim(),
-        html: posSaleInternalEmail({ customer, piano, order, isAcoustic: false })
+    await out.send('customer confirmation', {
+      to,
+      subject: 'Your piano delivery is confirmed — Signature Pianos',
+      html: deliveryConfirmedEmail({ customer, piano, delivery, formatDate: fmtDelDate })
+    })
+    await out.send('internal copy', {
+      to: internalRecipients(),
+      subject: subjectLine(`Delivery confirmed — ${fullName(customer)} · ${fmtDelDate(delivery.scheduled_date)}`),
+      html: alertEmail({
+        label: 'Delivery',
+        title: 'Delivery date sent to the customer',
+        rows: [['Sent to', esc(to)], ['Date', `${esc(fmtDelDate(delivery.scheduled_date))} ${esc(delivery.scheduled_time_window || '')}`, true]]
       })
-    }
+    }, { primary: false })
+  }
+}
 
-    /* ===== Payment plan — contract sent to customer ===== */
-    if (type === 'payment_plan_contract') {
-      const { plan, customer, piano, instalments, settings, signUrl } = data
-      if (!customer?.email) {
-        return res.status(400).json({ error: 'Customer email missing' })
-      }
-      await resend.emails.send({
-        from: FROM,
-        to: customer.email,
-        subject: `Payment plan contract — ${plan.plan_number} · Signature Pianos`,
-        html: paymentPlanContractEmail({ plan, customer, piano, instalments, settings, signUrl })
-      })
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `Contract sent — ${plan.plan_number} · ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
-        html: alertEmail({
-          label: 'Payment plan',
-          title: 'Contract sent',
-          rows: [['Sent to', esc(customer.email)], ['Plan', esc(plan.plan_number || ''), true], ['Total', planCurrency(plan.total_amount)]],
-          message: 'Waiting for the customer to sign.'
-        })
-      })
-    }
+async function driverPhotoLink(data, out, isPickup) {
+  const driver_email = oneEmail(data.driver_email, 'Driver email')
+  const customer = obj(data.customer), piano = obj(data.piano)
+  const tokenUrl = safeLink(isPickup ? data.pickup_url : data.delivery_url, isPickup ? 'Pickup link' : 'Delivery link')
+  const { driver_name, scheduled_date, scheduled_time } = data
+  const pianoLabel = `${text(piano.brand, 40)} ${text(piano.model, 40)} ${text(piano.year, 10)}`.trim()
+  await out.send(isPickup ? 'driver pickup link' : 'driver delivery link', {
+    to: driver_email,
+    subject: subjectLine(isPickup
+      ? `Piano pickup — photos required · ${pianoLabel}`
+      : `Piano delivery — photos required · ${pianoLabel}`),
+    html: buildDriverLiveEmail({ isPickup, driver_name, customer, piano, tokenUrl, scheduled_date, scheduled_time })
+  })
+  await out.send('internal copy', {
+    to: internalRecipients(),
+    subject: subjectLine(isPickup ? `Pickup link sent to ${text(driver_name, 80)}` : `Delivery link sent to ${text(driver_name, 80)}`),
+    html: alertEmail({
+      label: 'Delivery',
+      title: isPickup ? 'Pickup link sent' : 'Delivery link sent',
+      rows: [['Partner', `${esc(driver_name)}<br>${esc(driver_email)}`, true], ['Piano', esc(pianoLabel)], ['Customer', esc(fullName(customer))]]
+    })
+  }, { primary: false })
+}
 
-    /* ===== Payment plan — customer has signed (fired by api/sign-contract.js) ===== */
-    if (type === 'payment_plan_signed') {
-      const { plan, customer, piano, signed_at, full_name, contract_url } = data
-      // Pull settings for the email footer; non-fatal if missing.
-      let settings = {}
+/* ===========================================================================
+ * Sending: Resend 3.x never throws, it resolves { data, error }. Every send
+ * goes through sendOrThrow, and outbox() records each result so the response
+ * says exactly which emails went and which didn't.
+ * ======================================================================== */
+
+async function sendOrThrow(payload) {
+  const { data, error } = await resend().emails.send({ from: FROM, ...payload })
+  if (error) throw new Error(error.message || error.name || 'Resend refused the email')
+  return data
+}
+
+/* `primary` emails decide the status code. An internal copy failing is
+   reported but never hides the customer email's result either way. */
+function outbox() {
+  const sent = []
+  const failed = []
+  return {
+    sent,
+    failed,
+    async send(label, payload, { primary = true } = {}) {
       try {
-        const { data: s } = await pickSettings()
-        if (s) settings = s
-      } catch {}
-      if (customer?.email) {
-        await resend.emails.send({
-          from: FROM,
-          to: customer.email,
-          subject: `Contract signed — Payment plan ${plan.plan_number} · Signature Pianos`,
-          html: paymentPlanSignedCustomerEmail({ plan, customer, piano, signed_at, settings })
-        })
+        const data = await sendOrThrow(payload)
+        sent.push({ email: label, id: data?.id || null })
+      } catch (err) {
+        console.error(`[send-email] ${label} failed:`, err.message)
+        failed.push({ email: label, primary, error: String(err.message || err).slice(0, 300) })
       }
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `Contract signed — ${plan.plan_number} · ${customer?.first_name || ''} ${customer?.last_name || ''}`.trim(),
-        html: alertEmail({
-          label: 'Payment plan',
-          title: 'Contract signed',
-          rows: [
-            ['Customer', `${esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))}<br>${esc(customer?.email || '')}`, true],
-            ['Plan', esc(plan.plan_number || '')],
-            ['Piano', esc((piano?.brand || '') + ' ' + (piano?.model || '') + ' ' + (piano?.year || ''))],
-            ['Total', planCurrency(plan.total_amount)],
-            ['Signed at', esc(signed_at || '')],
-            ['Name confirmed', esc(full_name || '')],
-            ['Signature file', esc(contract_url || 'Not saved')],
-            ['Plan status', 'Active']
-          ]
-        })
-      })
     }
-
-    /* ===== Payment plan — overdue instalment reminder ===== */
-    if (type === 'instalment_reminder') {
-      const { plan, customer, piano, overdueInstalments, settings } = data
-      if (!customer?.email) {
-        return res.status(400).json({ error: 'Customer email missing' })
-      }
-      await resend.emails.send({
-        from: FROM,
-        to: customer.email,
-        subject: `Payment reminder — Plan ${plan.plan_number} · Signature Pianos`,
-        html: instalmentReminderEmail({ plan, customer, piano, overdueInstalments, settings })
-      })
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `Reminder sent — ${plan.plan_number} · ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
-        html: alertEmail({
-          label: 'Payment plan',
-          title: 'Overdue reminder sent',
-          rows: [['Sent to', esc(customer.email)], ['Plan', esc(plan.plan_number || ''), true], ['Overdue instalments', String(overdueInstalments?.length || 0)]]
-        })
-      })
-    }
-
-    /* ===== Viewing appointment — admin-created direct booking ===== */
-    if (type === 'viewing_confirmed') {
-      const { first_name, email, appointment_date, appointment_time, notes, settings } = data
-      if (!email) return res.status(400).json({ error: 'Customer email missing' })
-      await resend.emails.send({
-        from: FROM,
-        to: email,
-        subject: 'Your viewing is confirmed — Signature Pianos',
-        html: viewingConfirmedBookingEmail({ first_name, appointment_date, appointment_time, notes, settings })
-      })
-    }
-
-    if (type === 'viewing_reminder') {
-      const { first_name, email, appointment_date, appointment_time, settings } = data
-      if (!email) return res.status(400).json({ error: 'Customer email missing' })
-      await resend.emails.send({
-        from: FROM,
-        to: email,
-        subject: 'Reminder: Your viewing is tomorrow — Signature Pianos',
-        html: viewingReminderBookingEmail({ first_name, appointment_date, appointment_time, settings })
-      })
-    }
-
-    /* ===== Balance reminder — admin pings reserved-piano customer ===== */
-    if (type === 'balance_reminder') {
-      const { customer, piano, order, settings } = data
-      if (!customer?.email) return res.status(400).json({ error: 'Customer email missing' })
-      await resend.emails.send({
-        from: FROM,
-        to: customer.email,
-        subject: `Balance payment reminder — ${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim(),
-        html: balanceReminderEmail({ customer, piano, order, settings })
-      })
-    }
-
-    /* ===== Driver assignment — admin assigns a partner, customer
-       prefs go out for selection ===== */
-    if (type === 'driver_assignment') {
-      const { driver_name, driver_email, customer, piano,
-              preferences, delivery_address, accept_url, settings } = data
-      if (!driver_email) {
-        return res.status(400).json({ error: 'Driver email missing' })
-      }
-      const pianoLabel = `${piano?.brand || 'Yamaha'} ${piano?.model || ''} ${piano?.year || ''}`.trim()
-      await resend.emails.send({
-        from: FROM,
-        to: driver_email,
-        subject: `Delivery assignment — ${pianoLabel} · ${customer?.first_name || ''} ${customer?.last_name || ''}`.trim(),
-        html: driverAssignmentEmail({ driver_name, customer, piano, preferences, delivery_address, accept_url, settings })
-      })
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `Driver assigned — ${driver_name} · ${pianoLabel}`.trim(),
-        html: alertEmail({
-          label: 'Delivery',
-          title: 'Delivery partner assigned',
-          rows: [['Partner', `${esc(driver_name)}<br>${esc(driver_email)}`, true], ['Customer', esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))]],
-          message: 'Waiting for the partner to accept a delivery window.'
-        })
-      })
-    }
-
-    /* ===== Driver — pickup or delivery photo upload link ===== */
-    if (type === 'driver_pickup_link' || type === 'driver_delivery_link') {
-      const isPickup = type === 'driver_pickup_link'
-      const { driver_name, driver_email, customer, piano,
-              pickup_url, delivery_url, scheduled_date, scheduled_time } = data
-      if (!driver_email) {
-        return res.status(400).json({ error: 'Driver email missing' })
-      }
-      const pianoLabel = `${piano?.brand || ''} ${piano?.model || ''} ${piano?.year || ''}`.trim()
-      await resend.emails.send({
-        from: FROM,
-        to: driver_email,
-        subject: isPickup
-          ? `Piano pickup — photos required · ${pianoLabel}`
-          : `Piano delivery — photos required · ${pianoLabel}`,
-        html: buildDriverLiveEmail({
-          isPickup, driver_name, customer, piano,
-          tokenUrl: isPickup ? pickup_url : delivery_url,
-          scheduled_date, scheduled_time,
-        })
-      })
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: isPickup ? `Pickup link sent to ${driver_name}` : `Delivery link sent to ${driver_name}`,
-        html: alertEmail({
-          label: 'Delivery',
-          title: isPickup ? 'Pickup link sent' : 'Delivery link sent',
-          rows: [['Partner', `${esc(driver_name)}<br>${esc(driver_email)}`, true], ['Piano', esc(pianoLabel)], ['Customer', esc((customer?.first_name || '') + ' ' + (customer?.last_name || ''))]]
-        })
-      })
-    }
-
-    /* ===== Delivery date confirmed by admin ===== */
-    if (type === 'delivery_confirmed') {
-      const { customer, piano, delivery, settings } = data
-      if (!customer?.email) {
-        return res.status(400).json({ error: 'Customer email missing' })
-      }
-      const fmtDelDate = (d) => {
-        if (!d) return '—'
-        const [y, m, day] = String(d).split('T')[0].split('-')
-        if (!y || !m || !day) return d
-        return `${day}/${m}/${y}`
-      }
-      await resend.emails.send({
-        from: FROM,
-        to: customer.email,
-        subject: 'Your piano delivery is confirmed — Signature Pianos',
-        html: deliveryConfirmedEmail({ customer, piano, delivery, settings, formatDate: fmtDelDate })
-      })
-      await resend.emails.send({
-        from: FROM,
-        to: internalRecipients(),
-        subject: `Delivery confirmed — ${customer.first_name || ''} ${customer.last_name || ''} · ${fmtDelDate(delivery.scheduled_date)}`.trim(),
-        html: alertEmail({
-          label: 'Delivery',
-          title: 'Delivery date sent to the customer',
-          rows: [['Sent to', esc(customer.email)], ['Date', `${esc(fmtDelDate(delivery.scheduled_date))} ${esc(delivery.scheduled_time_window || '')}`, true]]
-        })
-      })
-    }
-
-    return res.status(200).json({ success: true })
-  } catch (err) {
-    console.error('Email error:', err)
-    return res.status(500).json({ error: 'Email failed' })
   }
 }
 
@@ -572,7 +669,7 @@ function overdueReminderEmail(data) {
       ['Order', esc(data.order_number || '—')],
       ['Issued', data.issued_at ? formatDate(data.issued_at) : '—'],
       ['Amount due', B.money(data.total), true],
-      ['Payment method', esc(paymentLabels[data.payment_method] || data.payment_method || '—')]
+      ['Payment method', esc((Object.prototype.hasOwnProperty.call(paymentLabels, data.payment_method) && paymentLabels[data.payment_method]) || data.payment_method || '—')]
     ])}
     ${p(`If you would like to pay another way, or have a question about the invoice, reply to this email and we will sort it out.`, { muted: true })}
     ${signOff()}
@@ -588,6 +685,8 @@ function overdueReminderEmail(data) {
 /* ---------- PURCHASE CONFIRMATION (Stripe) — customer ---------- */
 function purchaseConfirmationEmail(data) {
   const isDeposit = data.payment_type === 'deposit'
+  // No link (e.g. a digital-piano deposit: nothing to deliver) means no delivery section.
+  const hasPrefs = !!data.preferences_url
   const body = `
     ${hello(data.first_name)}
     ${p(isDeposit
@@ -598,14 +697,17 @@ function purchaseConfirmationEmail(data) {
       ['Order', esc(data.order_number || '—')],
       [isDeposit ? 'Deposit paid' : 'Total paid', B.money(data.total), true]
     ])}
+    ${hasPrefs ? `
     ${h2('Next: choose your delivery window')}
     ${p(`Share three delivery windows that suit you. We will confirm one of them by email or phone within 48 hours.`, { muted: true })}
-    ${data.preferences_url ? button(data.preferences_url, 'Choose delivery windows') : ''}
-    ${data.preferences_url ? p(`If the button doesn't work, copy this link into your browser:<br><span style="word-break:break-all;">${esc(data.preferences_url)}</span>`, { small: true, muted: true }) : ''}
+    ${button(data.preferences_url, 'Choose delivery windows')}
+    ${p(`If the button doesn't work, copy this link into your browser:<br><span style="word-break:break-all;">${esc(data.preferences_url)}</span>`, { small: true, muted: true })}` : ''}
     ${signOff()}
   `
   return layout({
-    preview: isDeposit ? 'Deposit received: choose your delivery window' : 'Purchase confirmed: choose your delivery window',
+    preview: hasPrefs
+      ? (isDeposit ? 'Deposit received: choose your delivery window' : 'Purchase confirmed: choose your delivery window')
+      : (isDeposit ? 'Deposit received: your piano is reserved' : 'Purchase confirmed'),
     label: isDeposit ? 'Your reservation' : 'Your purchase',
     title: isDeposit ? 'Your piano is reserved' : 'Thank you for your purchase',
     body
@@ -839,16 +941,22 @@ function paymentPlanContractEmail({ plan, customer, piano, instalments, settings
   const list = Array.isArray(instalments) ? instalments : []
   const cell = `padding:10px 0;border-bottom:1px solid ${C.ivoryDeep};font-family:${TEXT};font-size:14px;line-height:20px;color:${C.ink};`
   const head = `padding:0 0 8px;border-bottom:1px solid ${C.ink};font-family:${TEXT};font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${C.inkSoft};font-weight:400;`
+  // Card plans carry a surcharge on the balance, and the instalments include it,
+  // so the contract shows price, surcharge and the total actually payable.
+  const s = planSurcharge(plan)
   const body = `
     ${hello(customer?.first_name)}
     ${p('Your payment plan is ready. Please check the details below, then sign the contract to confirm it.', { muted: true })}
     ${details([
       ['Plan', esc(plan.plan_number || '—')],
       ['Piano', esc(pianoName(piano) || '—'), true],
-      ['Total price', planCurrency(plan.total_amount), true],
+      [s ? 'Price' : 'Total price', planCurrency(plan.total_amount), !s],
+      s ? [`Card surcharge${s.pct ? ` (${esc(s.pct)}%)` : ''}`, planCurrency(s.amount)] : null,
+      s ? ['Total payable', planCurrency(s.total), true] : null,
       ['Deposit', planCurrency(plan.deposit_amount) + (plan.deposit_paid ? ' (paid)' : '')],
       ['Instalments', `${esc(plan.number_of_instalments || '')} × ${planCurrency(plan.instalment_amount)} ${esc(plan.instalment_frequency || '')}`],
-      ['Start date', planDateAU(plan.start_date)]
+      ['Start date', planDateAU(plan.start_date)],
+      plan.end_date ? ['Final payment', planDateAU(plan.end_date)] : null
     ])}
     ${list.length ? `${h2('Payment schedule')}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;">
@@ -865,29 +973,6 @@ function paymentPlanContractEmail({ plan, customer, piano, instalments, settings
     preview: `Your payment plan ${plan.plan_number || ''} is ready to sign`,
     label: `Payment plan · ${esc(plan.plan_number || '')}`,
     title: 'Your payment plan is ready',
-    body
-  })
-}
-
-/* ---------- PAYMENT PLAN SIGNED — customer ---------- */
-function paymentPlanSignedCustomerEmail({ plan, customer, piano, signed_at, settings }) {
-  const body = `
-    ${hello(customer?.first_name)}
-    ${p('Thank you for signing your payment plan contract. It has been saved and your plan is now active.', { muted: true })}
-    ${details([
-      ['Plan', esc(plan.plan_number || '—')],
-      ['Piano', esc(pianoName(piano) || '—'), true],
-      ['Total', planCurrency(plan.total_amount), true],
-      ['Instalments', `${esc(plan.number_of_instalments || '')} × ${planCurrency(plan.instalment_amount)} ${esc(plan.instalment_frequency || '')}`],
-      ['Signed', planDateAU(signed_at)]
-    ])}
-    ${p('We will be in touch to arrange delivery of your piano. Any question, just reply to this email.', { muted: true })}
-    ${signOff()}
-  `
-  return layout({
-    preview: `Contract signed: payment plan ${plan.plan_number || ''} is active`,
-    label: `Payment plan · ${esc(plan.plan_number || '')}`,
-    title: 'Your contract is signed',
     body
   })
 }
@@ -1026,11 +1111,14 @@ function viewingConfirmedBookingEmail({ first_name, appointment_date, appointmen
   })
 }
 
-/* ---------- VIEWING REMINDER (manual button) — customer ---------- */
-function viewingReminderBookingEmail({ first_name, appointment_date, appointment_time, settings }) {
+/* ---------- VIEWING REMINDER (manual button, any day) — customer ----------
+   Worded from the booking's own date: "today", "tomorrow", or "on Saturday 26 September". */
+function viewingReminderBookingEmail({ first_name, appointment_date, appointment_time }) {
+  const when = viewingWhen(appointment_date)
+  const When = when.charAt(0).toUpperCase() + when.slice(1)
   const body = `
     ${hello(first_name)}
-    ${p('A reminder that we are looking forward to seeing you tomorrow.', { muted: true })}
+    ${p(`A reminder that we are looking forward to seeing you ${esc(when)}.`, { muted: true })}
     ${details([
       ['Date', formatDate(appointment_date), true],
       ['Time', esc(appointment_time || '—'), true]
@@ -1041,9 +1129,9 @@ function viewingReminderBookingEmail({ first_name, appointment_date, appointment
     ${signOff()}
   `
   return layout({
-    preview: `Tomorrow at ${appointment_time || ''}: your viewing at Signature Pianos`,
+    preview: `${When}${appointment_time ? ` at ${appointment_time}` : ''}: your viewing at Signature Pianos`,
     label: 'Your viewing',
-    title: 'Your viewing is tomorrow',
+    title: esc(`Your viewing is ${when}`),
     body
   })
 }
@@ -1088,108 +1176,182 @@ function balanceReminderEmail({ customer, piano, order, settings }) {
 const planCurrency = (v) =>
   '$' + Math.abs(Number(v || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
+/* A card plan's surcharge, or null when there isn't one:
+   { amount, pct (e.g. '1.5', '' if unknown), total (price + surcharge) }. */
+function planSurcharge(plan) {
+  const amount = Number(plan?.surcharge_amount)
+  if (!Number.isFinite(amount) || amount <= 0) return null
+  const pctNum = Number(plan.surcharge_percentage)
+  const stated = Number(plan.total_with_surcharge)
+  return {
+    amount,
+    pct: Number.isFinite(pctNum) && pctNum > 0 ? String(Math.round(pctNum * 100) / 100) : '',
+    total: Number.isFinite(stated) && stated > 0 ? stated : Number(plan.total_amount || 0) + amount
+  }
+}
+
+// DD/MM/YYYY, as safe HTML.
 const planDateAU = (d) => {
   if (!d) return '—'
   const [y, m, day] = String(d).split('T')[0].split('-')
-  if (!y || !m || !day) return d
-  return `${day}/${m}/${y}`
+  if (!y || !m || !day) return esc(d)
+  return esc(`${day}/${m}/${y}`)
 }
 
-/* Server-side resolver for the delivery preferences email.
- *
- * The public delivery-preferences.html page can only read the deliveries
- * table (anon RLS by preference_token). The orders / customers / pianos
- * tables have no anon SELECT policy, so client-side joins returned null
- * and the resulting email payload was all dashes. This helper does the
- * lookup under the service role so the email can fully populate from a
- * single source of truth: the preference_token the customer just used.
- *
- * Returns a flat payload matching what deliveryPreferencesEmail expects:
- *   customer_name / customer_email / customer_phone / piano / order_number
- *   / invoice_number / pref1 / pref2 / pref3 / address / notes
+/* company_settings, read server-side with the service role. Bank details, ABN,
+   address and invoice notes only ever come from here: a request body can't
+   put someone else's bank account into an email from info@. */
+async function loadSettings() {
+  const { data, error } = await db().from('company_settings').select('*').limit(1).maybeSingle()
+  if (error) throw new Error('Could not load company settings: ' + error.message)
+  return data || {}
+}
+
+/* The delivery-preferences email for a public call, built only from the
+ * deliveries row the customer's preference token points at (plus its order,
+ * customer and piano, which anon can't read). Nothing from the request body
+ * reaches the email. Sent only straight after the customer saves their
+ * windows (the save bumps updated_at), so a token can't be replayed to flood
+ * the inbox.
  */
-async function enrichDeliveryPreferencesPayload(data) {
-  const out = {
-    customer_name:  '',
-    customer_email: '',
-    customer_phone: '',
-    piano:          '',
-    order_number:   '',
-    invoice_number: '',
-    pref1:          data?.pref1   || '—',
-    pref2:          data?.pref2   || '—',
-    pref3:          data?.pref3   || '—',
-    address:        data?.address || '',
-    notes:          data?.notes   || '',
+const PREFS_FRESH_MS = 15 * 60 * 1000
+
+async function deliveryPreferencesFromDb(token) {
+  if (!/^[A-Za-z0-9_-]{12,128}$/.test(token)) throw new BadRequest('Invalid delivery link')
+  const { data: row, error } = await db()
+    .from('deliveries')
+    .select(`
+      customer_preference_1, customer_preference_2, customer_preference_3,
+      customer_address_confirmed, customer_special_instructions,
+      customer_preferences_submitted, updated_at,
+      order:order_id (
+        order_number,
+        invoice_number,
+        customer:customer_id ( first_name, last_name, email, phone ),
+        piano:piano_id ( brand, model, year, serial_number )
+      )
+    `)
+    .eq('preference_token', token)
+    .maybeSingle()
+  if (error) throw new Error('Delivery lookup failed: ' + error.message)
+  if (!row) throw new BadRequest('Delivery not found')
+  if (!row.customer_preferences_submitted) throw new BadRequest('No delivery windows have been saved yet')
+  if (Date.now() - new Date(row.updated_at).getTime() > PREFS_FRESH_MS) {
+    throw new BadRequest('These delivery windows were already sent')
   }
 
-  const token = data?.preference_token
-  if (!token) {
-    // Fall back to the legacy direct-payload shape for any old callers.
-    return Object.assign(out, {
-      customer_name:  data?.customer_name  || out.customer_name,
-      customer_email: data?.customer_email || out.customer_email,
-      customer_phone: data?.customer_phone || out.customer_phone,
-      piano:          data?.piano          || out.piano,
-      order_number:   data?.order_number   || out.order_number,
-      invoice_number: data?.invoice_number || out.invoice_number,
-    })
+  const order = row.order || {}
+  const c = order.customer || {}
+  const pn = order.piano || {}
+  // A saved window is { date: 'YYYY-MM-DD', time: 'Morning (9am–12pm)' }.
+  const pref = (w) => {
+    if (!w || typeof w !== 'object') return '—'
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(String(w.date || '')) ? B.longDate(w.date) : text(w.date, 40)
+    return [date, text(w.time, 60)].filter(Boolean).join(', ') || '—'
   }
-
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return out
+  return {
+    customer_name:  `${c.first_name || ''} ${c.last_name || ''}`.trim(),
+    customer_email: c.email || '',
+    customer_phone: c.phone || '',
+    order_number:   order.order_number || '',
+    invoice_number: order.invoice_number || '',
+    piano: [
+      `${pn.brand || ''} ${pn.model || ''} ${pn.year || ''}`.trim(),
+      pn.serial_number ? `Serial ${pn.serial_number}` : ''
+    ].filter(Boolean).join(' — '),
+    pref1:   pref(row.customer_preference_1),
+    pref2:   pref(row.customer_preference_2),
+    pref3:   pref(row.customer_preference_3),
+    address: row.customer_address_confirmed || '',
+    notes:   row.customer_special_instructions || ''
   }
-  try {
-    const { createClient } = require('@supabase/supabase-js')
-    const supa = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    )
-    const { data: row, error } = await supa
-      .from('deliveries')
-      .select(`
-        id,
-        order:order_id (
-          order_number,
-          invoice_number,
-          customer:customer_id ( first_name, last_name, email, phone ),
-          piano:piano_id ( brand, model, year, serial_number )
-        )
-      `)
-      .eq('preference_token', token)
-      .maybeSingle()
-    if (error || !row?.order) return out
-    const c = row.order.customer || {}
-    const p = row.order.piano    || {}
-    out.customer_name  = `${c.first_name || ''} ${c.last_name || ''}`.trim()
-    out.customer_email = c.email || ''
-    out.customer_phone = c.phone || ''
-    out.order_number   = row.order.order_number || ''
-    out.invoice_number = row.order.invoice_number || ''
-    out.piano = [
-      `${p.brand || ''} ${p.model || ''} ${p.year || ''}`.trim(),
-      p.serial_number ? `Serial ${p.serial_number}` : '',
-    ].filter(Boolean).join(' — ')
-  } catch (err) {
-    console.error('[send-email] enrichDeliveryPreferencesPayload failed', err)
-  }
-  return out
 }
 
-// Lazy company_settings fetch — only loaded when payment_plan_signed fires,
-// since the other endpoints already pass `settings` in the payload.
-async function pickSettings() {
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return { data: null }
+/* ============================================================================
+ * Request validation. Anything invalid throws BadRequest (a 400).
+ * ======================================================================== */
+
+class BadRequest extends Error {}
+
+// The preference token of a public delivery_preferences_submitted call.
+function preferenceToken(data) {
+  const t = data.token ?? data.preference_token
+  return typeof t === 'string' && t.trim() ? t.trim() : ''
+}
+
+// Plain text from the request: strings and numbers only, whitespace collapsed, capped.
+function text(value, max = 200) {
+  if (typeof value !== 'string' && typeof value !== 'number') return ''
+  return String(value).replace(/\s+/g, ' ').trim().slice(0, max)
+}
+
+// A list of short strings (e.g. pianos of interest).
+function textList(value, maxItems, maxLen) {
+  const list = Array.isArray(value) ? value : (value ? [value] : [])
+  return list.slice(0, maxItems).map(v => text(v, maxLen)).filter(Boolean)
+}
+
+// 'YYYY-MM-DD' or ''.
+function ymd(value) {
+  const s = text(value, 10)
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : ''
+}
+
+// A plain object (nested payloads), so a missing one can't crash a template.
+function obj(value) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+}
+
+// Exactly one recipient: a string, one valid address, no lists (no , or ;).
+const EMAIL_RE = /^[^\s@,;<>"()[\]\\]+@[^\s@,;<>"()[\]\\.]+(\.[^\s@,;<>"()[\]\\.]+)+$/
+function oneEmail(value, label = 'Email') {
+  if (typeof value !== 'string' || !value.trim()) throw new BadRequest(`${label} missing`)
+  const email = value.trim()
+  if (email.length > 254 || !EMAIL_RE.test(email)) throw new BadRequest(`${label} is not a valid email address`)
+  return email
+}
+
+// One line, no line breaks, sensible length.
+function subjectLine(s) {
+  return String(s).replace(/\s+/g, ' ').trim().slice(0, 200)
+}
+
+/* Links in emails: https:// on our own domain (any subdomain, plus this
+   deployment's own host for previews), or stripe.com when `stripe` is set
+   (payment links). '' when absent; anything else is a 400. */
+function ownHosts() {
+  const hosts = new Set(['signaturepianos.com.au'])
+  for (const v of [process.env.SITE_URL, process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL]) {
+    if (!v) continue
+    try { hosts.add(new URL(v.includes('://') ? v : `https://${v}`).hostname.toLowerCase()) } catch {}
   }
-  const { createClient } = require('@supabase/supabase-js')
-  const supa = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  )
-  return supa.from('company_settings').select('*').limit(1).maybeSingle()
+  return [...hosts]
+}
+
+function safeLink(value, label, { stripe = false } = {}) {
+  if (value === undefined || value === null || value === '') return ''
+  let url
+  try { url = new URL(String(value)) } catch { throw new BadRequest(`${label} is not a valid link`) }
+  const host = url.hostname.toLowerCase()
+  const allowed = [...ownHosts(), ...(stripe ? ['stripe.com'] : [])]
+  if (url.protocol !== 'https:' || url.username || url.password ||
+      !allowed.some(h => host === h || host.endsWith('.' + h))) {
+    throw new BadRequest(`${label} must be an https:// link to signaturepianos.com.au${stripe ? ' or stripe.com' : ''}`)
+  }
+  return url.toString()
+}
+
+/* How to say when a viewing is, from its date in Melbourne:
+   'today', 'tomorrow', or 'on Saturday 26 September'. */
+function viewingWhen(value) {
+  const d = String(value || '').slice(0, 10)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return 'coming up'
+  const today = melbourneDate()
+  if (d === today) return 'today'
+  if (d === addDays(today, 1)) return 'tomorrow'
+  const date = new Date(d + 'T12:00:00Z')
+  if (isNaN(date)) return 'coming up'
+  return 'on ' + date.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Australia/Melbourne' })
 }
 
 /* Template functions, exposed for email previews and tests (the default export is the handler). */
@@ -1207,7 +1369,6 @@ module.exports.templates = {
   digitalOrderConfirmationEmail,
   deliveryConfirmedEmail,
   paymentPlanContractEmail,
-  paymentPlanSignedCustomerEmail,
   instalmentReminderEmail,
   buildDriverLiveEmail,
   driverAssignmentEmail,

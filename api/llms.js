@@ -10,16 +10,19 @@ const { supabaseAdmin, SITE_URL } = require('../lib/ai')
 
 module.exports = async (req, res) => {
   let posts = []
+  let failed = false
   try {
-    const { data } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('blog_posts')
       .select('slug, title, excerpt')
       .eq('status', 'published')
       .order('published_at', { ascending: false })
       .limit(50)
+    if (error) throw error
     posts = data || []
   } catch (err) {
     console.error('[llms] load failed', err)
+    failed = true
   }
 
   const lines = [
@@ -42,11 +45,23 @@ module.exports = async (req, res) => {
     `- [Blog](${SITE_URL}/blog): Buying advice and piano care from the showroom.`,
     '',
     '## Latest articles',
-    ...posts.map((p) => `- [${p.title}](${SITE_URL}/blog/${p.slug}): ${(p.excerpt || '').replace(/\s+/g, ' ').trim()}`),
+    ...posts.filter((p) => p.slug && p.title).map((p) =>
+      `- [${mdText(p.title)}](${SITE_URL}/blog/${encodeURIComponent(p.slug)}): ${oneLine(p.excerpt)}`),
     '',
   ]
 
   res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400')
+  // Without the articles (load failed), serve it but don't let the CDN keep it.
+  res.setHeader('Cache-Control', failed ? 'no-store' : 's-maxage=3600, stale-while-revalidate=86400')
   return res.status(200).send(lines.join('\n'))
+}
+
+// One line of plain text (a stray newline would start a new Markdown block).
+function oneLine(s) {
+  return String(s || '').replace(/\s+/g, ' ').trim()
+}
+
+// Link text: brackets would end the [text](url) early.
+function mdText(s) {
+  return oneLine(s).replace(/([[\]\\])/g, '\\$1')
 }
