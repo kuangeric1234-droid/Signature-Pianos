@@ -1195,6 +1195,11 @@
     align-items: start;
   }
   .h-grand:nth-child(2) { margin-top: 90px; }
+  /* Fewer than three grands in stock: keep the row centred (set by the live stock script) */
+  @media (min-width: 961px) {
+    .h-grands-grid[data-count="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 880px; }
+    .h-grands-grid[data-count="1"] { grid-template-columns: minmax(0, 1fr); max-width: 440px; }
+  }
   .h-grand a { display: flex; flex-direction: column; gap: 18px; color: var(--h-ink); }
   .h-grand figure { margin: 0; aspect-ratio: 4 / 5; overflow: hidden; background: var(--h-ivory-2); }
   .h-grand img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--h-ease); }
@@ -1296,6 +1301,10 @@
   .h-card-all .h-script { font-size: 64px; margin-top: -0.3em; }
   .h-card-all:hover { background: var(--h-ink); color: var(--h-ivory); }
   .h-collection-note { text-align: center; font-size: 13px; color: var(--h-ink-2); margin: 28px 24px 0; }
+  /* A piano in stock without photographs yet (same placeholder as the catalogue) */
+  .h-grand figure.is-empty, .h-card figure.is-empty { display: grid; place-items: center; align-content: center; gap: 18px; }
+  .h-grand figure.is-empty img, .h-card figure.is-empty img { width: 64px; height: auto; opacity: 0.55; }
+  .h-grand figure.is-empty span, .h-card figure.is-empty span { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--h-ink-2); }
 
   /* ============ 08 DETAIL COLLAGE ============ */
   .h-detail { position: relative; padding: 150px 24px 170px; background: var(--h-ivory); overflow: hidden; }
@@ -2018,10 +2027,6 @@
     <address class="sp-footer-contact">
       <span class="sp-line"><a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="tel:+61479128955">0479 128 955</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></span>
     </address>
-    <div class="sp-footer-socials">
-      <a href="#" aria-label="Instagram"><i class="ti ti-brand-instagram" aria-hidden="true"></i></a>
-      <a href="#" aria-label="Facebook"><i class="ti ti-brand-facebook" aria-hidden="true"></i></a>
-    </div>
   </div>
   <div class="sp-footer-bottom">© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></div>
 </footer>
@@ -2469,6 +2474,115 @@
   });
 
   /* -------- MATCHER: js/signature-matcher.js matches against live stock -------- */
+
+  /* -------- LIVE STOCK: the grand and upright cards come from the pianos in stock --------
+     The cards written in the page are the fallback, kept only when stock can't
+     be loaded or nothing is listed. Up to 3 grands and 7 uprights (featured
+     first, then newest), each linking to its own page. With no grand in stock,
+     only the grand cards marked "Representative photo" stay. Supabase comes from
+     the on-demand loader in js/signature-book.js, fetched as the section nears. */
+  (function liveStock() {
+    const grandsGrid = document.querySelector('.h-grands-grid');
+    const track = document.querySelector('.h-collection-track');
+    const allCard = track && track.querySelector('.h-card-all');
+    if (!grandsGrid || !track || !allCard) return;
+    const COLUMNS = 'id, type, brand, model, year, dimensions_cm, finish, colour, sale_price, images, featured';
+    const TYPE = { acoustic_upright: 'Upright', acoustic_grand: 'Grand piano', digital: 'Digital piano' };
+    const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const dims = (d) => { if (typeof d === 'string') { try { return JSON.parse(d) || {}; } catch (e) { return {}; } } return d || {}; };
+    const price = (p) => Number(p.sale_price) > 0 ? '$' + Number(p.sale_price).toLocaleString('en-AU') : 'Price on request';
+    const href = (p) => '/piano.html?id=' + encodeURIComponent(p.id);
+    const figure = (p, alt) => {
+      const photo = Array.isArray(p.images) && p.images[0];
+      return photo
+        ? `<figure><img src="${esc(photo)}" loading="lazy" alt="${esc(alt)}"></figure>`
+        : '<figure class="is-empty"><img src="/media/brand/monogram-ink.svg" alt=""><span>Photographs soon</span></figure>';
+    };
+    const grandCard = (p) => {
+      const name = [p.brand, p.model].filter(Boolean).join(' ');
+      const facts = [p.year, p.finish || p.colour, price(p)].filter(Boolean).join(' · ');
+      return `<article class="h-grand" data-piano="${esc(name + (p.year ? ' (' + p.year + ')' : ''))}">
+        <a href="${href(p)}">
+          ${figure(p, name + ' grand piano')}
+          <div class="h-grand-row">
+            <div><span class="h-grand-brand">${esc(p.brand)}</span><h3>${esc(p.model || p.brand)}</h3><p>${esc(facts)}</p></div>
+            <span class="h-card-cta">View piano</span>
+          </div>
+        </a>
+      </article>`;
+    };
+    const uprightCard = (p) => {
+      const name = [p.brand, p.model].filter(Boolean).join(' ');
+      const height = dims(p.dimensions_cm).height;
+      const facts = [p.year, TYPE[p.type] || '', height ? height + ' cm tall' : '', p.finish || p.colour, price(p)].filter(Boolean).join(' · ');
+      return `<a class="h-card" href="${href(p)}" data-piano="${esc(name + (p.year ? ' (' + p.year + ')' : ''))}">
+        ${figure(p, name + ' piano')}
+        <div class="h-card-meta"><div><h3>${esc(name)}</h3><p>${esc(facts)}</p></div><span class="h-card-cta">View piano</span></div>
+      </a>`;
+    };
+
+    function render(stock) {
+      if (!stock.length) return; // nothing listed: keep the cards in the page
+      const grands = stock.filter((p) => p.type === 'acoustic_grand').slice(0, 3);
+      const rest = stock.filter((p) => p.type !== 'acoustic_grand');
+      const others = rest.filter((p) => p.type === 'acoustic_upright')
+        .concat(rest.filter((p) => p.type !== 'acoustic_upright')).slice(0, 7);
+
+      if (grands.length) {
+        grandsGrid.innerHTML = grands.map(grandCard).join('');
+        const credits = document.querySelector('.h-grands .h-credits');
+        if (credits) credits.hidden = true;
+      } else {
+        // No grand in stock: drop the named example, keep the representative photos
+        grandsGrid.querySelectorAll('.h-grand').forEach((card) => { if (!card.querySelector('.h-grand-note')) card.remove(); });
+      }
+      grandsGrid.dataset.count = String(grandsGrid.querySelectorAll('.h-grand').length);
+
+      track.querySelectorAll('.h-card:not(.h-card-all)').forEach((card) => card.remove());
+      allCard.insertAdjacentHTML('beforebegin', others.map(uprightCard).join(''));
+      const lede = document.querySelector('.h-collection-head .h-body');
+      if (lede) lede.textContent = others.length
+        ? 'Every pre-loved upright is one of a kind. These are in the Mount Waverley showroom today.'
+        : 'New uprights arrive from Japan regularly. In the meantime, see every piano we have in stock.';
+      const note = document.querySelector('.h-collection-note');
+      if (note) note.hidden = true;
+
+      if (window.ScrollTrigger) ScrollTrigger.refresh();
+    }
+
+    let started = false;
+    function load() {
+      if (started) return;
+      started = true;
+      if (!window.spBook || !window.spBook.supabase) return;
+      window.spBook.supabase()
+        .then((sb) => {
+          if (!sb) throw new Error('Supabase unavailable');
+          return sb.from('pianos').select(COLUMNS)
+            .eq('stock_status', 'available')
+            .order('featured', { ascending: false })
+            .order('created_at', { ascending: false })
+            .limit(24);
+        })
+        .then((res) => {
+          if (res.error) throw res.error;
+          render(res.data || []);
+        })
+        .catch((err) => console.error('[home] live stock failed, keeping the showroom cards', err));
+    }
+
+    // Start once the grands are within a few screens; after the deferred
+    // scripts (js/signature-book.js) have run.
+    const watch = () => {
+      if (!('IntersectionObserver' in window)) return load();
+      const io = new IntersectionObserver((entries) => {
+        if (entries.some((e) => e.isIntersecting)) { io.disconnect(); load(); }
+      }, { rootMargin: '1600px 0px' });
+      io.observe(document.getElementById('grands') || grandsGrid);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch);
+    else watch();
+  })();
 
   /* -------- BUYER'S GUIDE FORM --------
      Placeholder submit — swap the body of the handler for a real

@@ -680,6 +680,7 @@
   }
   .td-pop[hidden] { display: none; }
   .td-pop-photo { display: block; aspect-ratio: 2 / 1; background: var(--sp-ivory-deep); }
+  .td-pop-photo[hidden] { display: none; }
   .td-pop-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .td-pop-body { padding: 18px 20px 14px; }
   .td-pop-name { margin: 0; font-size: 28px; line-height: 0.95; color: var(--sp-ink); }
@@ -1042,10 +1043,6 @@
     <address class="sp-footer-contact">
       <span class="sp-line"><a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="tel:+61479128955">0479 128 955</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></span>
     </address>
-    <div class="sp-footer-socials">
-      <a href="#" aria-label="Instagram"><i class="ti ti-brand-instagram" aria-hidden="true"></i></a>
-      <a href="#" aria-label="Facebook"><i class="ti ti-brand-facebook" aria-hidden="true"></i></a>
-    </div>
   </div>
   <div class="sp-footer-bottom">© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></div>
 </footer>
@@ -1386,6 +1383,11 @@
         popImg.src = photo.url;
         popImg.style.objectPosition = TM.framing(photo);
         popPhoto.href = t.pageUrl;
+      } else {
+        // No photo: clear the last teacher's face and link
+        popImg.removeAttribute('src');
+        popImg.style.objectPosition = '';
+        popPhoto.removeAttribute('href');
       }
       popName.textContent = t.name;
       popFacts.textContent = [t.suburb, TM.priceLine(t)].filter(Boolean).join(' · ');

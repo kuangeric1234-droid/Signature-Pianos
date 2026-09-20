@@ -723,10 +723,6 @@
     <address class="sp-footer-contact">
       <span class="sp-line"><a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="tel:+61479128955">0479 128 955</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></span>
     </address>
-    <div class="sp-footer-socials">
-      <a href="#" aria-label="Instagram"><i class="ti ti-brand-instagram" aria-hidden="true"></i></a>
-      <a href="#" aria-label="Facebook"><i class="ti ti-brand-facebook" aria-hidden="true"></i></a>
-    </div>
   </div>
   <div class="sp-footer-bottom">© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></div>
 </footer>
@@ -780,14 +776,21 @@
     { key: 'digital',          title: 'Digital pianos' },
   ]
 
+  // Only the public columns the cards show (the anon key can't read the rest)
+  const PIANO_CARD_COLUMNS = 'id, type, brand, model, year, dimensions_cm, finish, colour, sale_price, images'
+  // Each filter click bumps this; a response that comes back after a newer
+  // click is dropped, so the grid always matches the active chip.
+  let loadSeq = 0
+
   async function loadPianos(filters = {}) {
+    const seq = ++loadSeq
     const grid = document.querySelector('#piano-grid')
     grid.innerHTML = '<p class="ins-empty">Loading pianos</p>'
 
     try {
       let query = _supabase
         .from('pianos')
-        .select('*')
+        .select(PIANO_CARD_COLUMNS)
         .eq('stock_status', 'available')
         .order('created_at', { ascending: false })
 
@@ -795,6 +798,7 @@
       if (filters.maxPrice) query = query.lte('sale_price', filters.maxPrice)
 
       const { data, error } = await query
+      if (seq !== loadSeq) return
 
       if (error) {
         console.error('[instruments] supabase query failed', error)
@@ -821,6 +825,7 @@
           .join('')
       }
     } catch (err) {
+      if (seq !== loadSeq) return
       console.error('[instruments] loadPianos threw', err)
       grid.innerHTML = emptyMessage()
     }
@@ -867,7 +872,7 @@
           ${image}
         </div>
         <div class="card-body">
-          <span class="card-tag">${formatType(piano.type)}</span>
+          <span class="card-tag">${esc(formatType(piano.type))}</span>
           <h3 class="card-name">${esc(name)}</h3>
           <p class="card-facts">${esc(facts)}</p>
           <div class="card-row">

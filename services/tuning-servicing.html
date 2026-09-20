@@ -1665,10 +1665,6 @@
     <address class="sp-footer-contact">
       <span class="sp-line"><a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="tel:+61479128955">0479 128 955</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></span>
     </address>
-    <div class="sp-footer-socials">
-      <a href="#" aria-label="Instagram"><i class="ti ti-brand-instagram" aria-hidden="true"></i></a>
-      <a href="#" aria-label="Facebook"><i class="ti ti-brand-facebook" aria-hidden="true"></i></a>
-    </div>
   </div>
   <div class="sp-footer-bottom">© 2026 Signature Pianos · <a href="#">Privacy</a> · <a href="#">Terms</a></div>
 </footer>
@@ -1774,51 +1770,73 @@
   })();
 
   /* -------- SERVICE REQUEST FORM: validate, submit to service_requests -------- */
+  // The form is novalidate (our own messages), so check formats here as well
+  // as presence: a bad email or phone would save a request we can't answer.
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+  // Phone numbers, loosely: 0412 345 678, +61 412 345 678, (03) 9876 5432, 9876 5432
+  const phoneOk = (v) => /^\+?[\d\s().-]+$/.test(v) && /^\d{8,12}$/.test(v.replace(/\D/g, ''))
+  function fieldProblem(field) {
+    const v = field.value.trim()
+    if (!v) return 'This field is required'
+    if (field.type === 'email' && !EMAIL_RE.test(v)) return 'Please check your email address'
+    if (field.type === 'tel' && !phoneOk(v)) return 'Please check your phone number'
+    return ''
+  }
+
   document.querySelector('#service-request-form').addEventListener('submit', async (e) => {
     e.preventDefault()
+    const form = e.target
+    const errEl = document.querySelector('#form-error')
+    if (errEl) errEl.style.display = 'none'
 
     // Validate all required fields
-    let valid = true
-    const required = e.target.querySelectorAll('[required]')
-    required.forEach(field => {
+    let firstBad = null
+    form.querySelectorAll('[required]').forEach(field => {
       field.style.borderColor = ''
       const err = field.parentNode.querySelector('.field-error')
       if (err) err.remove()
-      if (!field.value.trim()) {
-        valid = false
+      const problem = fieldProblem(field)
+      if (problem) {
+        firstBad = firstBad || field
         field.style.borderColor = 'rgba(220, 80, 80, 0.6)'
         const msg = document.createElement('p')
         msg.className = 'field-error'
         msg.style.cssText = 'font-size:11px;color:rgba(220,80,80,0.8);margin-top:4px;'
-        msg.textContent = 'This field is required'
+        msg.textContent = problem
         field.parentNode.appendChild(msg)
       }
     })
-    if (!valid) return
+    if (firstBad) { firstBad.focus(); return }
 
-    const btn = e.target.querySelector('[type="submit"]')
+    const btn = form.querySelector('[type="submit"]')
+    const btnLabel = btn.textContent
     btn.disabled = true
     btn.textContent = 'Sending...'
+    const fail = () => {
+      btn.disabled = false
+      btn.textContent = btnLabel
+      if (errEl) errEl.style.display = 'block'
+    }
 
-    const fullName = e.target.full_name.value.trim()
+    const fullName = form.full_name.value.trim().replace(/\s+/g, ' ')
     const nameParts = fullName.split(' ')
     const firstName = nameParts[0]
     const lastName = nameParts.slice(1).join(' ') || ''
 
+    // status is left to the table default ('pending')
     const payload = {
       first_name: firstName,
       last_name: lastName,
-      email: e.target.email.value.trim(),
-      phone: e.target.phone.value.trim(),
-      suburb: e.target.suburb.value.trim(),
-      piano_brand: e.target.piano_brand.value.trim(),
-      piano_age: e.target.piano_age.value,
-      last_tuned: e.target.last_tuned.value,
-      service_required: e.target.service_required.value,
-      preferred_timeframe: e.target.preferred_timeframe.value,
-      is_signature_piano: e.target.is_signature_piano.value === 'yes',
-      message: e.target.message.value.trim(),
-      status: 'pending'
+      email: form.email.value.trim(),
+      phone: form.phone.value.trim(),
+      suburb: form.suburb.value.trim(),
+      piano_brand: form.piano_brand.value.trim(),
+      piano_age: form.piano_age.value,
+      last_tuned: form.last_tuned.value,
+      service_required: form.service_required.value,
+      preferred_timeframe: form.preferred_timeframe.value,
+      is_signature_piano: form.is_signature_piano.value === 'yes',
+      message: form.message.value.trim()
     }
 
     try {
@@ -1828,35 +1846,30 @@
 
       if (error) {
         console.error('[tuning] supabase insert failed', error)
-        btn.disabled = false
-        btn.textContent = 'REQUEST A SERVICE'
-        const errEl = document.querySelector('#form-error')
-        if (errEl) errEl.style.display = 'block'
-        return
+        return fail()
       }
-
-      // Send confirmation email (fire-and-forget — request is already saved)
-      try {
-        await fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'service_request', ...payload })
-        })
-      } catch (mailErr) {
-        console.error('[tuning] send-email failed', mailErr)
-      }
-
-      // Show success state
-      document.querySelector('#service-request-form').style.display = 'none'
-      document.querySelector('#form-success').style.display = 'block'
-      document.querySelector('#success-name').textContent = firstName
     } catch (err) {
       console.error('[tuning] submission threw', err)
-      btn.disabled = false
-      btn.textContent = 'REQUEST A SERVICE'
-      const errEl = document.querySelector('#form-error')
-      if (errEl) errEl.style.display = 'block'
+      return fail()
     }
+
+    // The request is saved, so the visitor sees success whatever happens to
+    // the confirmation email; a failed email is logged for us to follow up.
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'service_request', ...payload })
+      })
+      if (!res.ok) console.error('[tuning] send-email failed', res.status, await res.text().catch(() => ''))
+    } catch (mailErr) {
+      console.error('[tuning] send-email failed', mailErr)
+    }
+
+    // Show success state
+    form.style.display = 'none'
+    document.querySelector('#form-success').style.display = 'block'
+    document.querySelector('#success-name').textContent = firstName
   })
 
   /* -------------------------------------------------------------------------

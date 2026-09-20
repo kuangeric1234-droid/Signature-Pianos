@@ -220,10 +220,18 @@
   }
 
   /* ---------- Submit ---------- */
+  // Phone numbers, loosely: 0412 345 678, +61 412 345 678, (03) 9876 5432
+  function phoneOk(v) {
+    return /^\+?[\d\s().-]+$/.test(v) && /^\d{8,12}$/.test(v.replace(/\D/g, ''));
+  }
   function validate() {
     var ok = true;
     form.querySelectorAll('[required]').forEach(function (f) {
-      var bad = !f.value.trim() || (f.type === 'email' && !/^\S+@\S+\.\S+$/.test(f.value.trim()));
+      var v = f.value.trim();
+      var bad = !v ||
+        (f.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) ||
+        (f.type === 'tel' && !phoneOk(v)) ||
+        (f.type === 'date' && v < todayISO());
       f.closest('.sp-book-field').classList.toggle('is-invalid', bad);
       if (bad && ok) { f.focus(); ok = false; }
     });
@@ -250,9 +258,8 @@
       preferred_date: form.preferred_date.value,
       preferred_time: form.preferred_time.value,
       pianos_interested: Array.prototype.map.call(form.querySelectorAll('input[name="pianos_interested"]:checked'), function (c) { return c.value; }),
-      message: form.message.value.trim(),
-      status: 'pending',
-      notified: false
+      message: form.message.value.trim()
+      // status / notified are left to the table defaults ('pending', false)
     };
 
     loadSupabase()
@@ -262,11 +269,13 @@
       })
       .then(function (res) {
         if (res && res.error) throw res.error;
-        // The booking is saved; the email is best effort.
+        // The booking is saved; the email is best effort (a failure is logged).
         fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(Object.assign({ type: 'viewing_booking' }, payload))
+        }).then(function (mailRes) {
+          if (!mailRes.ok) console.error('[book] send-email failed', mailRes.status);
         }).catch(function (mailErr) { console.error('[book] send-email failed', mailErr); });
 
         success.querySelector('[data-book-name]').textContent = payload.first_name;

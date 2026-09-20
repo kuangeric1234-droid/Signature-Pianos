@@ -107,9 +107,9 @@
   <div class="tagline">My Account</div>
 
   <div id="loginView">
-    <label>Email address</label>
+    <label for="loginEmail">Email address</label>
     <input type="email" id="loginEmail"
-      placeholder="your@email.com"
+      placeholder="your@email.com" autocomplete="email" inputmode="email"
       onkeydown="if(event.key==='Enter')sendMagicLink()">
 
     <div class="error" id="loginError"></div>
@@ -136,34 +136,64 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/config.js"></script>
 <script>
+function showLoginError(msg) {
+  const errorEl = document.getElementById('loginError')
+  errorEl.textContent = msg
+  errorEl.style.display = msg ? 'block' : 'none'
+}
+
+// Already signed in: straight to the account. Back from an expired link: say so.
+;(async function init() {
+  if (new URLSearchParams(location.search).get('link') === 'expired') {
+    showLoginError('That login link has expired or was already used. Enter your email and we’ll send a new one.')
+  }
+  try {
+    const { data: { session } } = await _supabase.auth.getSession()
+    if (session) window.location.replace('/portal/dashboard')
+  } catch (e) { /* stay on the sign-in form */ }
+})()
+
+// The link in the email lands on the dashboard. The redirect target must be on
+// the Supabase Auth allow-list (Studio → Authentication → URL Configuration):
+// https://signaturepianos.com.au/portal/dashboard (plus the local / preview
+// origin + /portal/dashboard if you sign in there; anything not on the list
+// falls back to the Site URL).
+function portalRedirectUrl() {
+  return /(^|\.)signaturepianos\.com\.au$/.test(location.hostname)
+    ? 'https://signaturepianos.com.au/portal/dashboard'
+    : location.origin + '/portal/dashboard'
+}
+
 async function sendMagicLink() {
   const email = document.getElementById('loginEmail').value.trim()
-  const errorEl = document.getElementById('loginError')
   const btn = document.getElementById('loginBtn')
+  if (btn.disabled) return
 
-  if (!email) {
-    errorEl.style.display = 'block'
-    errorEl.textContent = 'Please enter your email address.'
-    return
-  }
+  if (!email) return showLoginError('Please enter your email address.')
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return showLoginError('Please check your email address.')
 
   btn.textContent = 'SENDING…'
   btn.disabled = true
-  errorEl.style.display = 'none'
+  showLoginError('')
 
-  // The redirect target must be on the Supabase Auth allow-list
-  // (Supabase Studio → Authentication → URL Configuration). Add
-  // both https://signaturepianos.com.au/portal/dashboard.html and
-  // https://my.signaturepianos.com.au/portal/dashboard.html if a
-  // custom subdomain is set up later.
-  const { error } = await _supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.origin + '/portal/dashboard.html' },
-  })
+  let error = null
+  try {
+    ;({ error } = await _supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: portalRedirectUrl() },
+    }))
+  } catch (err) {
+    error = err
+  }
 
   if (error) {
-    errorEl.style.display = 'block'
-    errorEl.textContent = error.message
+    console.error('[portal] magic link failed', error)
+    // Never echo the server's message: the same wording for everyone, so the
+    // page doesn't say whether an email address has an account.
+    const tooSoon = error.status === 429 || /rate limit|security purposes|seconds/i.test(error.message || '')
+    showLoginError(tooSoon
+      ? 'A login link was sent recently. Please check your inbox, or wait a minute and try again.'
+      : 'We couldn’t send the link just now. Please try again, or call us on 0479 128 955.')
     btn.textContent = 'SEND LOGIN LINK'
     btn.disabled = false
     return

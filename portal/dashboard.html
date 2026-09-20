@@ -17,21 +17,17 @@
     -webkit-font-smoothing: antialiased;
   }
   .header-strip {
-    background: #1a1917;
+    background: #F3F0E9;
     padding: 20px 24px;
-    border-bottom: 1px solid rgba(22, 34, 46, 0.2);
+    border-bottom: 1px solid rgba(22, 34, 46, 0.14);
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
   }
-  .logo {
-    font-family: var(--font-display);
-    font-size: 22px;
-    color: #16222E;
-    font-style: italic;
-  }
+  .logo { display: block; width: 150px; color: #16222E; }
+  .logo img { display: block; width: 100%; height: auto; }
   .signout-btn {
     background: none;
     border: 1px solid rgba(22, 34, 46, 0.3);
@@ -140,8 +136,8 @@
 
 <div class="header-strip">
   <div>
-    <div class="logo">Signature Pianos</div>
-    <div style="font-size:10px;color:#3A4855;letter-spacing:0.15em;text-transform:uppercase;margin-top:2px;">My Account</div>
+    <a href="/" class="logo"><img src="/media/brand/logo-ink.svg" width="1542" height="592" alt="Signature Pianos"></a>
+    <div style="font-size:10px;color:#3A4855;letter-spacing:0.15em;text-transform:uppercase;margin-top:6px;">My Account</div>
   </div>
   <button class="signout-btn" onclick="signOut()">
     <i class="ti ti-logout" style="font-size:13px;"></i> Sign out
@@ -158,14 +154,13 @@
 /* ============================================================================
    Signature Pianos — customer portal dashboard
    ----------------------------------------------------------------------------
-   Magic-link auth: redirected here from portal/index.html. We check the
-   session, look up the customer record by auth.user.email, then load
-   orders / deliveries / warranties / tuner bookings scoped to that
-   customer. RLS on those tables currently restricts to is_admin() —
-   for the portal to read them, add a Supabase Auth policy that allows
-   SELECT WHERE customer_id IN (SELECT id FROM customers WHERE email =
-   auth.jwt() ->> 'email'). The dashboard handles the no-rows case
-   gracefully so it doesn't crash before those policies are added.
+   Magic-link auth: redirected here from portal/index.html. On load we call
+   claim_customer() (supabase/rpc_portal.sql), which links this sign-in to
+   the customer record with the same verified email, then portal_summary(),
+   which returns only what this page shows for that customer: orders (not
+   voided) with the piano's brand / model / year, delivery progress,
+   warranties and tuner bookings. The tables themselves are not readable by
+   customers; the RPCs are the only way in.
    ============================================================================ */
 
 function esc(s) {
@@ -174,11 +169,24 @@ function esc(s) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
+// Dates show as dd/mm/yyyy in Melbourne time. Plain dates (2026-09-19) are
+// calendar days already; timestamps are converted from UTC.
 function fmtDateAU(d) {
   if (!d) return '—'
-  const [y, m, day] = String(d).split('T')[0].split('-')
-  if (!y || !m || !day) return d
-  return `${day}/${m}/${y}`
+  const s = String(d)
+  const plain = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s)
+  if (plain) return `${plain[3]}/${plain[2]}/${plain[1]}`
+  const dt = new Date(s)
+  if (isNaN(dt.getTime())) return s
+  return dt.toLocaleDateString('en-AU', { timeZone: 'Australia/Melbourne', day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+// "14:30:00" -> "2:30 pm"; anything else ("Morning") is shown as entered
+function fmtTime(t) {
+  if (!t) return ''
+  const m = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(String(t).trim())
+  if (!m) return String(t)
+  const h = Number(m[1])
+  return `${h % 12 || 12}:${m[2]} ${h < 12 ? 'am' : 'pm'}`
 }
 function fmtCur(v) {
   return '$' + Math.abs(Number(v || 0)).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -186,58 +194,55 @@ function fmtCur(v) {
 
 async function signOut() {
   await _supabase.auth.signOut()
-  window.location.replace('/portal/index.html')
+  window.location.replace('/portal')
 }
 
 ;(async function loadDashboard() {
+  // An expired or already-used magic link comes back with the error in the hash
+  if (/error_code=|error=/.test(location.hash)) {
+    window.location.replace('/portal?link=expired')
+    return
+  }
   const { data: { user } } = await _supabase.auth.getUser()
-  if (!user) { window.location.replace('/portal/index.html'); return }
+  if (!user) {
+    // Clear any stale local session so the sign-in page doesn't bounce back here
+    try { await _supabase.auth.signOut({ scope: 'local' }) } catch (e) {}
+    window.location.replace('/portal')
+    return
+  }
 
-  let customer = null
+  let summary = null
   try {
-    const { data, error } = await _supabase
-      .from('customers')
-      .select('*')
-      .eq('email', user.email)
-      .maybeSingle()
+    // Link this sign-in to the customer record with the same verified email
+    const { error: claimErr } = await _supabase.rpc('claim_customer')
+    if (claimErr) throw claimErr
+    const { data, error } = await _supabase.rpc('portal_summary')
     if (error) throw error
-    customer = data
+    summary = data
   } catch (err) {
-    console.error('[portal] customer lookup failed', err)
+    console.error('[portal] account load failed', err)
+    return showLoadError()
   }
-  if (!customer) return showNoAccountFound(user.email)
+  if (!summary) return showNoAccountFound(user.email)
 
-  let orders = [], tunerBookings = []
-  try {
-    const [ordersRes, tbRes] = await Promise.all([
-      _supabase.from('orders')
-        .select(`*, piano:piano_id(*), warranties(*), deliveries(*)`)
-        .eq('customer_id', customer.id)
-        .eq('voided', false)
-        .order('created_at', { ascending: false }),
-      _supabase.from('tuner_bookings').select('*').eq('customer_id', customer.id).order('created_at', { ascending: false }),
-    ])
-    orders        = ordersRes.data || []
-    tunerBookings = tbRes.data     || []
-  } catch (err) {
-    console.error('[portal] data load failed', err)
-  }
-
-  renderDashboard(customer, orders, tunerBookings)
+  renderDashboard(summary)
 })()
 
-function renderDashboard(customer, orders, tunerBookings) {
+function renderDashboard(summary) {
   const wrap = document.getElementById('dashboardContent')
+  const orders = Array.isArray(summary.orders) ? summary.orders : []
+  const tunerBookings = Array.isArray(summary.tuner_bookings) ? summary.tuner_bookings : []
+  const name = esc(summary.first_name || 'friend')
   if (!orders.length) {
     wrap.innerHTML = `
-      <h1 class="welcome">Welcome back, ${esc(customer.first_name || 'friend')}.</h1>
+      <h1 class="welcome">Welcome back, ${name}.</h1>
       <p class="tagline">No orders yet — once you make a purchase, you'll see your piano and delivery details here.</p>
     `
     return
   }
 
   wrap.innerHTML = `
-    <h1 class="welcome">Welcome back, ${esc(customer.first_name || 'friend')}.</h1>
+    <h1 class="welcome">Welcome back, ${name}.</h1>
     <p class="tagline">Here's everything on your account.</p>
 
     ${renderMyPianos(orders)}
@@ -247,24 +252,48 @@ function renderDashboard(customer, orders, tunerBookings) {
   `
 }
 
+// The piano on the order: its record when there is one, otherwise the first
+// line on the invoice (orders store the piano as their first line item).
+function pianoLabel(o) {
+  const p = o.piano
+  if (p && (p.brand || p.model)) return [p.brand, p.model, p.year].filter(Boolean).join(' ')
+  return o.item || 'Your order'
+}
+
+// Every order_status, in words that match what has actually happened
+function orderStatusPill(o) {
+  const delivered = (o.deliveries || []).some(d => d.status === 'delivered')
+  switch (o.status) {
+    case 'cancelled':  return '<span class="pill pill-red">Cancelled</span>'
+    case 'complete':   return '<span class="pill pill-green">Complete</span>'
+    case 'delivered':  return '<span class="pill pill-green">Delivered</span>'
+  }
+  if (delivered) return '<span class="pill pill-green">Delivered</span>'
+  switch (o.status) {
+    case 'delivering': return '<span class="pill pill-blue">Delivery under way</span>'
+    case 'paid':       return '<span class="pill pill-blue">Paid in full</span>'
+    case 'confirmed':  return '<span class="pill pill-blue">Confirmed</span>'
+    case 'pending':
+      return o.payment_method === 'deposit_paid_online'
+        ? '<span class="pill pill-amber">Reserved · deposit paid</span>'
+        : '<span class="pill pill-amber">Awaiting confirmation</span>'
+    default:           return `<span class="pill pill-blue">${esc(o.status || 'Received')}</span>`
+  }
+}
+
 /* ---------- Section 1 — My pianos ---------- */
 function renderMyPianos(orders) {
   return `
     <div class="section">
       <div class="section-title">My pianos</div>
       ${orders.map(o => {
-        const piano = o.piano || {}
-        const pianoLabel = `${piano.brand || 'Yamaha'} ${piano.model || ''} ${piano.year || ''}`.trim()
-        const statusPill = (() => {
-          if (o.status === 'paid' || o.status === 'complete' || o.status === 'delivered') return '<span class="pill pill-green">Delivered</span>'
-          if (o.payment_method === 'deposit_paid_online' || o.status === 'pending') return '<span class="pill pill-amber">Reserved</span>'
-          return `<span class="pill pill-blue">${esc(o.status || 'confirmed')}</span>`
-        })()
+        const label = pianoLabel(o)
+        const statusPill = orderStatusPill(o)
         return `
           <div style="padding:14px 0;border-bottom:1px solid rgba(22, 34, 46, 0.1);">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
               <div>
-                <div style="font-family:var(--font-display);font-size:20px;font-style:italic;color:#16222E;">${esc(pianoLabel)}</div>
+                <div style="font-family:var(--font-display);font-size:20px;font-style:italic;color:#16222E;">${esc(label)}</div>
                 <div style="font-size:12px;color:#3A4855;margin-top:2px;">
                   Invoice ${esc(o.invoice_number || '—')} · ${fmtDateAU(o.created_at)} · ${fmtCur(o.total)}
                 </div>
@@ -282,17 +311,16 @@ function renderMyPianos(orders) {
   `
 }
 
-/* ---------- Section 2 — Delivery status (first order only) ---------- */
+/* ---------- Section 2 — Delivery status (most recent order with a delivery) ---------- */
 function renderDeliveryStatus(orders) {
-  const first = orders[0]
+  const first = orders.find(o => o.status !== 'cancelled' && o.deliveries?.length)
   const delivery = first?.deliveries?.[0]
   if (!delivery) return ''
 
   // Map delivery status to a 5-step progress.
   const steps = ['Order placed', 'Preferences', 'Confirmed', 'Picked up', 'Delivered']
   let stepIdx = 0
-  if (first.status) stepIdx = 0
-  if (delivery.customer_preferences_submitted) stepIdx = Math.max(stepIdx, 1)
+  if (delivery.preferences_submitted)          stepIdx = Math.max(stepIdx, 1)
   if (delivery.driver_accepted)                stepIdx = Math.max(stepIdx, 2)
   if (delivery.status === 'picked_up' || delivery.status === 'in_transit') stepIdx = Math.max(stepIdx, 3)
   if (delivery.status === 'delivered')         stepIdx = 4
@@ -324,11 +352,23 @@ function renderDeliveryStatus(orders) {
 
 /* ---------- Section 3 — Tuning appointment ---------- */
 function renderTuningStatus(orders, tunerBookings) {
-  const tb = tunerBookings[0]
+  // Most recent booking that is still going ahead (newest first from the RPC)
+  const tb = tunerBookings.find(t => t.status !== 'cancelled')
+  // No booking yet: only promise a tuning for an acoustic piano on a live order
+  const acoustic = orders.some(o => o.status !== 'cancelled' && (!o.piano || o.piano.type !== 'digital'))
+  if (!tb && !acoustic) return ''
   let body
-  if (tb?.confirmed_date) {
-    body = `Your tuning is scheduled for <strong style="color:#16222E;">${fmtDateAU(tb.confirmed_date)}</strong>${tb.confirmed_time ? ' · ' + esc(tb.confirmed_time) : ''}.`
-  } else if (tb?.contact_sent) {
+  const scheduled = (date, time) =>
+    `Your tuning is scheduled for <strong style="color:#16222E;">${fmtDateAU(date)}</strong>${time ? ' · ' + esc(fmtTime(time)) : ''}.`
+  if (tb?.completed) {
+    body = tb.completed_at
+      ? `Your first tuning was completed on ${fmtDateAU(tb.completed_at)}.`
+      : 'Your first tuning has been completed.'
+  } else if (tb?.confirmed_date) {
+    body = scheduled(tb.confirmed_date, tb.confirmed_time)
+  } else if (tb?.scheduled_date && tb.status === 'confirmed') {
+    body = scheduled(tb.scheduled_date, tb.scheduled_time)
+  } else if (tb?.contact_sent || tb?.status === 'contact_sent') {
     body = 'A tuner will be in contact with you shortly to arrange your first tuning appointment.'
   } else {
     body = 'Your complimentary first tuning will be arranged approximately 25 days after delivery.'
@@ -369,7 +409,7 @@ async function downloadWarranty(id, btn) {
   if (btn) { btn.disabled = true; btn.textContent = 'Preparing…' }
   try {
     const { data: { session } } = await _supabase.auth.getSession()
-    if (!session) { window.location.replace('/portal/index.html'); return }
+    if (!session) { window.location.replace('/portal'); return }
     const res = await fetch('/api/warranty-certificate?id=' + encodeURIComponent(id), {
       headers: { Authorization: 'Bearer ' + session.access_token }
     })
@@ -398,7 +438,18 @@ function showNoAccountFound(email) {
       We couldn't find a customer record for <strong style="color:#16222E;">${esc(email)}</strong>.
     </p>
     <p style="font-size:13px;color:#3A4855;line-height:1.7;max-width:480px;">
-      If you've purchased from us before, the email you logged in with may not match the one we have on file. Please contact us and we'll sort it out.
+      If you've purchased from us before, the email you logged in with may not match the one we have on file. Please <a href="mailto:info@signaturepianos.com.au" style="color:#16222E;">contact us</a> and we'll sort it out.
+    </p>
+    <button class="signout-btn" style="margin-top:24px;" onclick="signOut()">Sign out</button>
+  `
+}
+
+function showLoadError() {
+  document.getElementById('dashboardContent').innerHTML = `
+    <h1 class="welcome">We couldn't load your account</h1>
+    <p class="tagline">Something went wrong on our side.</p>
+    <p style="font-size:13px;color:#3A4855;line-height:1.7;max-width:480px;">
+      Please refresh the page in a minute. If it keeps happening, call us on <a href="tel:+61479128955" style="color:#16222E;">0479 128 955</a> or email <a href="mailto:info@signaturepianos.com.au" style="color:#16222E;">info@signaturepianos.com.au</a>.
     </p>
     <button class="signout-btn" style="margin-top:24px;" onclick="signOut()">Sign out</button>
   `
