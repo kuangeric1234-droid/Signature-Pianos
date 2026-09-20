@@ -228,7 +228,7 @@
     <!-- Section A — Link to order -->
     <div class="admin-form-row">
       <label class="admin-label">A · Link to an existing order (optional)</label>
-      <input type="text" id="pp_order_search" class="admin-input" placeholder="Search by invoice # or customer name…">
+      <input type="text" id="pp_order_search" class="admin-input" placeholder="Search by invoice #, order # or customer name…">
       <div id="pp_order_results" style="margin-top:6px;font-size:12px;"></div>
     </div>
 
@@ -441,8 +441,64 @@ function fmtDateAU(s) {
   if (!y || !m || !d) return s
   return `${d}/${m}/${y}`
 }
+// Today's date on this computer's calendar (toISOString() is UTC, which is
+// still yesterday in Melbourne before 10–11am).
 function todayISO() {
-  return new Date().toISOString().split('T')[0]
+  const d = new Date()
+  return ymdString(d.getFullYear(), d.getMonth() + 1, d.getDate())
+}
+
+/* ---------- Schedule maths (shared by the preview and plan creation) ----------
+   Dates are plain Y/M/D integers, so no timezone can shift a due date.
+   Monthly: same day-of-month as the start date, clamped to short months
+   (start 31 Jan → 28 Feb → 31 Mar …, never drifting). Weekly/fortnightly:
+   +7/+14 days. Amounts are whole cents; the leftover cents go on the last
+   instalment so the schedule adds up to the financed amount exactly. */
+function ymdString(y, m, d) {
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+}
+function daysInMonth(y, m) {
+  return new Date(Date.UTC(y, m, 0)).getUTCDate() // m is 1-based
+}
+function toCents(n) {
+  return Math.round(Number(n || 0) * 100)
+}
+function scheduleDate(startDate, freq, i) {
+  const [y, m, d] = startDate.split('-').map(Number)
+  if (freq === 'weekly' || freq === 'fortnightly') {
+    const dt = new Date(Date.UTC(y, m - 1, d + i * (freq === 'weekly' ? 7 : 14)))
+    return ymdString(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate())
+  }
+  const monthIndex = (m - 1) + i
+  const ty = y + Math.floor(monthIndex / 12)
+  const tm = (monthIndex % 12) + 1
+  return ymdString(ty, tm, Math.min(d, daysInMonth(ty, tm)))
+}
+// → { surchargeAmt, financed, instalmentAmt, schedule: [{ number, date, amount }] }
+function buildPlanSchedule({ total, deposit, num, freq, startDate, method }) {
+  const remainingCents = toCents(total) - toCents(deposit)
+  // Surcharge applies only to the remaining balance, not the deposit.
+  const surchargeCents = method === 'credit_card' ? Math.round(remainingCents * SURCHARGE_RATE) : 0
+  const financedCents  = remainingCents + surchargeCents
+  const baseCents      = Math.floor(financedCents / num)
+  const schedule = []
+  for (let i = 0; i < num; i++) {
+    const cents = i === num - 1 ? financedCents - baseCents * (num - 1) : baseCents
+    schedule.push({ number: i + 1, date: scheduleDate(startDate, freq, i), amount: cents / 100 })
+  }
+  return {
+    remaining:     remainingCents / 100,
+    surchargeAmt:  surchargeCents / 100,
+    financed:      financedCents / 100,
+    instalmentAmt: baseCents / 100,
+    schedule,
+  }
+}
+
+// PostgREST .or() filters break on , ( ) and quotes, so search text is
+// reduced to plain words before it goes into one.
+function cleanSearch(q) {
+  return String(q || '').replace(/[,()"'\\%*:]/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
 /* ---------- Stats ---------- */
@@ -453,8 +509,11 @@ async function loadStats() {
       adminSupabase.from('payment_plans').select('*', { count: 'exact', head: true }).eq('status', 'active'),
       adminSupabase.from('payment_plans').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       adminSupabase.from('payment_plans').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
-      adminSupabase.from('payment_instalments').select('*', { count: 'exact', head: true }).eq('paid', false).lt('due_date', today),
+      // Unpaid past-due instalments, ignoring cancelled plans.
+      adminSupabase.from('payment_instalments').select('id, payment_plans!inner(status)', { count: 'exact', head: true })
+        .eq('paid', false).lt('due_date', today).neq('payment_plans.status', 'cancelled'),
     ])
+    ;[active, pending, completed, overdue].forEach(r => { if (r.error) console.error('[payment-plans] stat query failed', r.error) })
     document.getElementById('mActive').textContent    = active.count    || 0
     document.getElementById('mPending').textContent   = pending.count   || 0
     document.getElementById('mCompleted').textContent = completed.count || 0
@@ -526,8 +585,8 @@ function renderPlansTable() {
         <td>
           <div class="actions-cell">
             <button class="icon-btn" data-action="view" title="Open detail"><i class="ti ti-eye"></i></button>
-            <button class="icon-btn" data-action="send" title="${p.contract_sent ? 'Resend' : 'Send'} contract"><i class="ti ti-send"></i></button>
-            <button class="icon-btn" data-action="remind" title="Send overdue reminder" style="border-color:var(--admin-amber);color:var(--admin-amber);"><i class="ti ti-bell"></i></button>
+            ${canSendContract(p) ? `<button class="icon-btn" data-action="send" title="${p.contract_sent ? 'Resend' : 'Send'} contract"><i class="ti ti-send"></i></button>` : ''}
+            ${p.status !== 'cancelled' ? `<button class="icon-btn" data-action="remind" title="Send overdue reminder" style="border-color:var(--admin-amber);color:var(--admin-amber);"><i class="ti ti-bell"></i></button>` : ''}
           </div>
         </td>
       </tr>
@@ -550,6 +609,12 @@ function renderPlansTable() {
   body.querySelectorAll('[data-action="remind"]').forEach(b => {
     b.addEventListener('click', (e) => { e.stopPropagation(); sendInstalmentReminder(b.closest('tr').dataset.planId, b) })
   })
+}
+
+// A contract can be (re)sent only until the customer signs it. Resending a
+// signed plan used to reset it to 'pending' and strand it.
+function canSendContract(plan) {
+  return !plan.contract_signed && plan.status !== 'cancelled'
 }
 
 /* ============================================================================
@@ -584,14 +649,14 @@ async function openNewPlanPanel() {
   try {
     const { data, error } = await adminSupabase
       .from('pianos')
-      .select('id, brand, model, year, condition, sale_price, type, stock_status')
+      .select('id, brand, model, year, sale_price, type, stock_status')
       .order('brand', { ascending: true })
     if (error) throw error
     availablePianos = data || []
     const sel = document.getElementById('pp_piano')
     sel.innerHTML = `<option value="">— Choose a piano —</option>` +
       availablePianos.map(p =>
-        `<option value="${esc(p.id)}">${esc(p.brand || '')} ${esc(p.model || '')} · ${esc(p.year ?? '—')} · ${esc(p.condition || '')} · ${fmtCur(p.sale_price)} · ${esc(p.stock_status || '')}</option>`
+        `<option value="${esc(p.id)}">${esc(p.brand || '')} ${esc(p.model || '')} · ${esc(p.year ?? '—')} · ${fmtCur(p.sale_price)} · ${esc(p.stock_status || '')}</option>`
       ).join('')
   } catch (err) {
     console.error('[payment-plans] load pianos failed', err)
@@ -600,15 +665,27 @@ async function openNewPlanPanel() {
   openSlidePanel('newPlanPanel')
 }
 
+// .or() filter matching a customer's first name, last name or email; "Jo
+// Smith" also matches first name Jo + last name Smith. q must be cleanSearch()ed.
+function customerMatchFilter(q) {
+  const like = (s) => `"%${s}%"`
+  const parts = [`first_name.ilike.${like(q)}`, `last_name.ilike.${like(q)}`, `email.ilike.${like(q)}`]
+  const words = q.split(' ')
+  if (words.length > 1) {
+    parts.push(`and(first_name.ilike.${like(words[0])},last_name.ilike.${like(words.slice(1).join(' '))})`)
+  }
+  return parts.join(',')
+}
+
 async function searchCustomers() {
-  const q = document.getElementById('pp_customer_search').value.trim()
+  const q = cleanSearch(document.getElementById('pp_customer_search').value)
   const out = document.getElementById('pp_customer_results')
   if (q.length < 2) { out.innerHTML = ''; return }
   try {
     const { data, error } = await adminSupabase
       .from('customers')
       .select('id, first_name, last_name, email, phone')
-      .or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,email.ilike.%${q}%`)
+      .or(customerMatchFilter(q))
       .limit(6)
     if (error) throw error
     if (!data?.length) { out.innerHTML = `<span style="color:var(--admin-text-faint);">No matches</span>`; return }
@@ -647,11 +724,26 @@ async function saveNewCustomer() {
     return
   }
   try {
-    // Upsert by email so we don't duplicate existing customers.
-    const { data: existing } = await adminSupabase.from('customers').select('id').eq('email', payload.email).maybeSingle()
+    // Reuse an existing customer with the same email (any letter case) so we
+    // don't duplicate them. Only fields typed here overwrite theirs — a
+    // blank box never wipes a saved phone or last name.
+    const emailPattern = payload.email.replace(/[\\%_]/g, '\\$&')
+    const { data: matches, error: findErr } = await adminSupabase
+      .from('customers')
+      .select('id, first_name, last_name, email, phone')
+      .ilike('email', emailPattern)
+      .order('created_at', { ascending: true })
+      .limit(1)
+    if (findErr) throw findErr
+    const existing = matches && matches[0]
     if (existing?.id) {
-      await adminSupabase.from('customers').update(payload).eq('id', existing.id)
-      selectCustomer({ id: existing.id, ...payload })
+      const updates = {}
+      ;['first_name', 'last_name', 'phone'].forEach(k => { if (payload[k]) updates[k] = payload[k] })
+      if (Object.keys(updates).length) {
+        const { error: updErr } = await adminSupabase.from('customers').update(updates).eq('id', existing.id)
+        if (updErr) throw updErr
+      }
+      selectCustomer({ ...existing, ...updates })
     } else {
       const { data: newCust, error } = await adminSupabase.from('customers').insert(payload).select().single()
       if (error) throw error
@@ -665,17 +757,29 @@ async function saveNewCustomer() {
 }
 
 async function searchOrders() {
-  const q = document.getElementById('pp_order_search').value.trim()
+  const q = cleanSearch(document.getElementById('pp_order_search').value)
   const out = document.getElementById('pp_order_results')
   if (q.length < 2) { out.innerHTML = ''; return }
   try {
+    // Customers matching the text, so a name finds their orders too.
+    const { data: custs, error: custErr } = await adminSupabase
+      .from('customers')
+      .select('id')
+      .or(customerMatchFilter(q))
+      .limit(20)
+    if (custErr) throw custErr
+    const filters = [`invoice_number.ilike."%${q}%"`, `order_number.ilike."%${q}%"`]
+    const custIds = (custs || []).map(c => c.id)
+    if (custIds.length) filters.push(`customer_id.in.(${custIds.join(',')})`)
+
     const { data, error } = await adminSupabase
       .from('orders')
       .select(`id, invoice_number, order_number, total, customer_id, piano_id,
                customers(first_name, last_name, email),
                pianos(id, brand, model, year, type, sale_price)`)
-      .or(`invoice_number.ilike.%${q}%,order_number.ilike.%${q}%`)
+      .or(filters.join(','))
       .eq('voided', false)
+      .order('created_at', { ascending: false })
       .limit(6)
     if (error) throw error
     if (!data?.length) { out.innerHTML = `<span style="color:var(--admin-text-faint);">No matches</span>`; return }
@@ -725,7 +829,7 @@ function onPianoChange() {
   const meta = document.getElementById('pp_piano_meta')
   const p = availablePianos.find(x => x.id === selectedPianoId)
   if (!p) { meta.textContent = ''; return }
-  meta.textContent = `${p.brand} ${p.model} ${p.year || ''} · ${p.condition || ''} · ${fmtCur(p.sale_price)} · ${p.stock_status}`
+  meta.textContent = `${p.brand} ${p.model} ${p.year || ''} · ${fmtCur(p.sale_price)} · ${p.stock_status}`
   // Auto-fill total if empty
   const totalEl = document.getElementById('pp_total')
   if (!totalEl.value && p.sale_price) {
@@ -772,11 +876,9 @@ function generateSchedule() {
     return
   }
 
-  // Surcharge applies only to the remaining balance, not the deposit.
-  const remaining = total - deposit
-  const surchargeAmt = method === 'credit_card' ? remaining * SURCHARGE_RATE : 0
-  const remainingWithSurcharge = remaining + surchargeAmt
-  const instalmentAmt = remainingWithSurcharge / num
+  // Same maths as createPaymentPlan, so the preview is what gets saved.
+  const { remaining, surchargeAmt, financed: remainingWithSurcharge, schedule } =
+    buildPlanSchedule({ total, deposit, num, freq, startDate, method })
 
   // Surcharge banner copy
   const surchargeEl = document.getElementById('surchargeDisplay')
@@ -790,20 +892,6 @@ function generateSchedule() {
     surchargeEl.innerHTML = ''
   }
 
-  const schedule = []
-  let date = new Date(startDate + 'T00:00:00')
-  for (let i = 0; i < num; i++) {
-    if (i > 0) {
-      if (freq === 'weekly')      date.setDate(date.getDate() + 7)
-      else if (freq === 'fortnightly') date.setDate(date.getDate() + 14)
-      else                        date.setMonth(date.getMonth() + 1)
-    }
-    schedule.push({
-      number: i + 1,
-      date:   date.toISOString().split('T')[0],
-      amount: instalmentAmt,
-    })
-  }
   const endDate = schedule[schedule.length - 1]?.date
 
   document.getElementById('schedulePreview').innerHTML = `
@@ -864,12 +952,15 @@ async function createPaymentPlan() {
     errEl.textContent = 'Set a start date.'
     errEl.classList.add('is-shown'); return
   }
+  if (toCents(total) - toCents(deposit) <= 0) {
+    errEl.textContent = 'The deposit covers the full amount, so there is nothing to pay off in instalments.'
+    errEl.classList.add('is-shown'); return
+  }
 
   const method = getSelectedPaymentMethod()
-  const remaining = total - deposit
-  const surchargeAmt = method === 'credit_card' ? remaining * SURCHARGE_RATE : 0
-  const remainingWithSurcharge = remaining + surchargeAmt
-  const instalmentAmt = remainingWithSurcharge / num
+  // Same maths as the preview: cents-exact amounts, timezone-free dates.
+  const { surchargeAmt, financed: remainingWithSurcharge, instalmentAmt, schedule: planned } =
+    buildPlanSchedule({ total, deposit, num, freq, startDate, method })
 
   const btn = document.getElementById('createPlanBtn')
   btn.disabled = true
@@ -893,30 +984,16 @@ async function createPaymentPlan() {
       : 0
     const planNumber = `PP-${year}-${String(lastNum + 1).padStart(5, '0')}`
 
-    // signature_token has a column default (generate_token()), but we set
-    // one client-side too so it's deterministic for unit tests.
-    const signatureToken =
-      Math.random().toString(36).substring(2) +
-      Date.now().toString(36) +
-      Math.random().toString(36).substring(2)
+    // signature_token is left to the column default (generate_token(),
+    // 24 random bytes) and read back from the insert below.
 
-    // Build instalment schedule client-side so we can insert them in
-    // one call after the plan inserts.
-    const schedule = []
-    let date = new Date(startDate + 'T00:00:00')
-    for (let i = 0; i < num; i++) {
-      if (i > 0) {
-        if (freq === 'weekly')      date.setDate(date.getDate() + 7)
-        else if (freq === 'fortnightly') date.setDate(date.getDate() + 14)
-        else                        date.setMonth(date.getMonth() + 1)
-      }
-      schedule.push({
-        instalment_number: i + 1,
-        due_date:          date.toISOString().split('T')[0],
-        amount:            instalmentAmt,
-        paid:              false,
-      })
-    }
+    // Instalment rows, inserted in one call after the plan inserts.
+    const schedule = planned.map(s => ({
+      instalment_number: s.number,
+      due_date:          s.date,
+      amount:            s.amount,
+      paid:              false,
+    }))
     const endDate = schedule[schedule.length - 1]?.due_date
 
     const { data: plan, error } = await adminSupabase
@@ -937,22 +1014,27 @@ async function createPaymentPlan() {
         start_date:            startDate,
         end_date:              endDate,
         status:                'pending',
-        signature_token:       signatureToken,
         notes,
         // Step 3 — payment method + surcharge
         payment_method:        method,
         surcharge_percentage:  method === 'credit_card' ? SURCHARGE_RATE * 100 : 0,
         surcharge_amount:      surchargeAmt,
-        total_with_surcharge:  total + surchargeAmt,
+        total_with_surcharge:  (toCents(total) + toCents(surchargeAmt)) / 100,
       })
       .select()
       .single()
     if (error) throw error
+    if (!plan?.signature_token) console.warn('[payment-plans] new plan has no signature_token', plan?.id)
 
-    // Insert the instalment rows with the new plan_id stamped in.
+    // Insert the instalment rows with the new plan_id stamped in. If that
+    // fails, remove the plan too rather than leave one with no schedule.
     const instalmentRows = schedule.map(s => ({ ...s, payment_plan_id: plan.id }))
     const { error: insErr } = await adminSupabase.from('payment_instalments').insert(instalmentRows)
-    if (insErr) throw insErr
+    if (insErr) {
+      const { error: delErr } = await adminSupabase.from('payment_plans').delete().eq('id', plan.id)
+      if (delErr) console.error('[payment-plans] cleanup of half-created plan failed', delErr)
+      throw insErr
+    }
 
     closeSlidePanel('newPlanPanel')
     showToast(`Payment plan ${planNumber} created.`, 'success')
@@ -1085,13 +1167,112 @@ function renderPlanDetail(plan, instalments) {
          the standalone ID document block; renderContractSection includes
          the View customer ID button when an ID is on file). -->
     ${renderContractSection(plan)}
+
+    ${renderPlanActions(plan)}
   `
 
-  // Wire actions still using data-action attrs (mark-paid only — the
-  // contract-section buttons use inline onclick handlers).
+  // Wire actions still using data-action attrs (mark-paid, deposit, cancel —
+  // the contract-section buttons use inline onclick handlers).
   document.querySelectorAll('[data-action="mark-paid"]').forEach(btn => {
     btn.addEventListener('click', () => markInstalmentPaid(btn.closest('tr').dataset.insId, plan.id))
   })
+  document.querySelector('#planDetailBody [data-action="deposit-paid"]')
+    ?.addEventListener('click', (e) => markDepositPaid(plan.id, e.currentTarget))
+  document.querySelector('#planDetailBody [data-action="cancel-plan"]')
+    ?.addEventListener('click', (e) => cancelPlan(plan, e.currentTarget))
+}
+
+/* ---------- Plan actions: deposit received, cancel ---------- */
+function renderPlanActions(plan) {
+  const cancelled  = plan.status === 'cancelled'
+  const depositDue = !plan.deposit_paid && Number(plan.deposit_amount || 0) > 0 && !cancelled
+  const canCancel  = !cancelled && plan.status !== 'completed'
+  if (!depositDue && !canCancel) return ''
+  return `
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--admin-border);">
+      <h4 style="font-size:13px;font-weight:500;margin:0 0 10px;">Plan</h4>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${depositDue ? `
+          <button type="button" data-action="deposit-paid" style="background:none;border:1px solid var(--admin-border);border-radius:4px;padding:7px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;">
+            <i class="ti ti-cash" style="color:var(--admin-green);"></i> Mark deposit paid (${fmtCur(plan.deposit_amount)})
+          </button>` : ''}
+        ${canCancel ? `
+          <button type="button" data-action="cancel-plan" style="background:none;border:1px solid var(--admin-red);color:var(--admin-red);border-radius:4px;padding:7px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;">
+            <i class="ti ti-ban"></i> Cancel plan
+          </button>` : ''}
+      </div>
+    </div>
+  `
+}
+
+async function markDepositPaid(planId, btn) {
+  if (!window.confirm('Mark the deposit on this plan as paid?')) return
+  if (btn) btn.disabled = true
+  try {
+    const { error } = await adminSupabase
+      .from('payment_plans')
+      .update({ deposit_paid: true, deposit_paid_at: new Date().toISOString() })
+      .eq('id', planId)
+    if (error) throw error
+    const progress = await syncPlanProgress(planId)
+    showToast(progress.completed ? 'Deposit paid — everything is in, plan completed!' : 'Deposit marked as paid', 'success')
+    await loadPlanDetail(planId)
+    await loadStats()
+    await loadPaymentPlans()
+  } catch (err) {
+    console.error('[payment-plans] markDepositPaid failed', err)
+    showToast('Could not mark the deposit paid — see console.', 'error')
+    if (btn) btn.disabled = false
+  }
+}
+
+async function cancelPlan(plan, btn) {
+  const ok = window.confirm(
+    `Cancel payment plan ${plan.plan_number || ''}?\n\n` +
+    'It will be marked cancelled and can no longer be signed. The piano\'s stock status, ' +
+    'any order or delivery, and a saved card are NOT changed — update those separately.'
+  )
+  if (!ok) return
+  if (btn) btn.disabled = true
+  try {
+    const { error } = await adminSupabase
+      .from('payment_plans')
+      .update({ status: 'cancelled' })
+      .eq('id', plan.id)
+    if (error) throw error
+    showToast(`Plan ${plan.plan_number || ''} cancelled.`, 'success')
+    await loadPlanDetail(plan.id)
+    await loadStats()
+    await loadPaymentPlans()
+  } catch (err) {
+    console.error('[payment-plans] cancelPlan failed', err)
+    showToast('Could not cancel the plan — see console.', 'error')
+    if (btn) btn.disabled = false
+  }
+}
+
+// Recount paid instalments onto the plan, and complete it once every
+// instalment AND the deposit are paid (never a cancelled plan).
+async function syncPlanProgress(planId) {
+  const [{ data: rows, error: rErr }, { data: plan, error: pErr }] = await Promise.all([
+    adminSupabase.from('payment_instalments').select('id, paid').eq('payment_plan_id', planId),
+    adminSupabase.from('payment_plans').select('status, deposit_paid, deposit_amount').eq('id', planId).single(),
+  ])
+  if (rErr) throw rErr
+  if (pErr) throw pErr
+
+  const list = rows || []
+  const paidCount = list.filter(r => r.paid).length
+  const allInstalmentsPaid = list.length > 0 && paidCount === list.length
+  const depositSettled = !!plan.deposit_paid || Number(plan.deposit_amount || 0) === 0
+  const completed = allInstalmentsPaid && depositSettled
+    && plan.status !== 'cancelled' && plan.status !== 'completed'
+
+  const updates = { instalments_paid: paidCount }
+  if (completed) updates.status = 'completed'
+  const { error } = await adminSupabase.from('payment_plans').update(updates).eq('id', planId)
+  if (error) throw error
+  return { completed, allInstalmentsPaid, depositSettled }
 }
 
 /* ---------- Contract section (Session 14 Step 5) ---------- */
@@ -1163,9 +1344,9 @@ function renderContractSection(plan) {
           </a>
         ` : ''}
 
-        ${plan.contract_sent ? `
+        ${!canSendContract(plan) ? '' : plan.contract_sent ? `
           <button onclick="sendContract('${esc(plan.id)}', this)" style="background:none;border:1px solid var(--admin-border);border-radius:4px;padding:7px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
-            <i class="ti ti-send"></i> ${state === 'awaiting_countersign' ? 'Resend to customer' : 'Resend contract'}
+            <i class="ti ti-send"></i> Resend contract
           </button>
         ` : `
           <button onclick="sendContract('${esc(plan.id)}', this)" style="background:var(--admin-gold);color:#000;border:none;border-radius:4px;padding:9px;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
@@ -1173,9 +1354,9 @@ function renderContractSection(plan) {
           </button>
         `}
 
-        ${plan.contract_url ? `
+        ${(plan.final_contract_url || plan.agreement_pdf_url || plan.contract_url) ? `
           <button onclick="downloadSignedContract('${esc(plan.id)}')" style="background:none;border:1px solid var(--admin-border);border-radius:4px;padding:7px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
-            <i class="ti ti-download"></i> Download signed contract
+            <i class="ti ti-download"></i> ${(plan.final_contract_url || plan.agreement_pdf_url) ? 'Download signed contract' : 'Download customer signature'}
           </button>
         ` : ''}
 
@@ -1194,17 +1375,32 @@ function renderContractSection(plan) {
   `
 }
 
+// Downloads the full signed contract when one has been rendered
+// (final_contract_url, else agreement_pdf_url). Until then the only file on
+// record is the customer's signature image (contract_url), and the button
+// says so. All live in the private `contracts` bucket → signed URLs.
 async function downloadSignedContract(planId) {
-  console.log('[diag] downloadSignedContract called', planId)
   try {
     const { data: plan, error } = await adminSupabase
       .from('payment_plans')
-      .select('contract_url, plan_number')
+      .select('final_contract_url, agreement_pdf_url, contract_url, plan_number')
       .eq('id', planId)
       .single()
     if (error) throw error
-    if (!plan?.contract_url) {
+    const path = plan?.final_contract_url || plan?.agreement_pdf_url || plan?.contract_url
+    if (!path) {
       showToast('No signed contract on file', 'warning')
+      return
+    }
+    const isFullContract = path !== plan.contract_url
+    const ext = (String(path).split('?')[0].split('.').pop() || 'png').toLowerCase()
+    const filename = isFullContract
+      ? `Signature-Pianos-Contract-${plan.plan_number}.${ext}`
+      : `Signature-Pianos-Customer-Signature-${plan.plan_number}.${ext}`
+
+    // A stored absolute URL (not a bucket path) can be opened as-is.
+    if (/^https?:\/\//i.test(path)) {
+      window.open(path, '_blank', 'noopener')
       return
     }
 
@@ -1217,9 +1413,7 @@ async function downloadSignedContract(planId) {
     // DOM. Forcing the header is the only reliable cross-origin path.
     const { data, error: sErr } = await adminSupabase.storage
       .from('contracts')
-      .createSignedUrl(plan.contract_url, 300, {
-        download: `Signature-Pianos-Contract-${plan.plan_number}.png`,
-      })
+      .createSignedUrl(path, 300, { download: filename })
     if (sErr) throw sErr
     if (!data?.signedUrl) throw new Error('No signed URL returned')
 
@@ -1310,22 +1504,14 @@ async function markInstalmentPaid(instalmentId, planId) {
       .eq('id', instalmentId)
     if (error) throw error
 
-    // Recount paid instalments and write back to plan; auto-complete when all paid.
-    const { data: remaining, error: remErr } = await adminSupabase
-      .from('payment_instalments')
-      .select('id, paid')
-      .eq('payment_plan_id', planId)
-    if (remErr) throw remErr
-    const paidCount = (remaining || []).filter(r => r.paid).length
+    // Recount paid instalments onto the plan; it completes only once the
+    // deposit is in too.
+    const progress = await syncPlanProgress(planId)
 
-    const updates = { instalments_paid: paidCount }
-    if (paidCount === (remaining || []).length && remaining?.length > 0) {
-      updates.status = 'completed'
-    }
-    await adminSupabase.from('payment_plans').update(updates).eq('id', planId)
-
-    if (updates.status === 'completed') {
+    if (progress.completed) {
       showToast('All instalments paid — plan completed!', 'success')
+    } else if (progress.allInstalmentsPaid && !progress.depositSettled) {
+      showToast('All instalments paid, but the deposit is still unpaid — plan stays open.', 'warning')
     } else {
       showToast('Instalment marked as paid', 'success')
     }
@@ -1367,8 +1553,19 @@ async function sendContract(planId, btn) {
     return
   }
 
+  if (!canSendContract(plan)) {
+    showToast(plan.contract_signed
+      ? 'The customer has already signed this contract.'
+      : 'This plan is cancelled.', 'warning')
+    return
+  }
   if (!plan.customer?.email) {
     showToast('No customer email on this plan', 'error')
+    return
+  }
+  if (!plan.signature_token) {
+    showToast('This plan has no signing link token — see console.', 'error')
+    console.error('[payment-plans] plan has no signature_token', plan.id)
     return
   }
   const fullName = `${plan.customer.first_name || ''} ${plan.customer.last_name || ''}`.trim()
@@ -1385,7 +1582,7 @@ async function sendContract(planId, btn) {
       .order('instalment_number')
 
     const settings = await getCompanySettings()
-    const signUrl = `${window.location.origin}/payment-plan-sign.html?token=${encodeURIComponent(plan.signature_token)}`
+    const signUrl = `https://signaturepianos.com.au/payment-plan-sign.html?token=${encodeURIComponent(plan.signature_token)}`
 
     const res = await fetch('/api/send-email', {
       method: 'POST',
@@ -1403,8 +1600,15 @@ async function sendContract(planId, btn) {
           instalment_frequency:  plan.instalment_frequency,
           number_of_instalments: plan.number_of_instalments,
           start_date:            plan.start_date,
+          end_date:              plan.end_date,
           signature_token:       plan.signature_token,
           notes:                 plan.notes,
+          // Card plans: the instalments include the surcharge, so the email
+          // needs these to show the total actually payable.
+          payment_method:        plan.payment_method,
+          surcharge_percentage:  plan.surcharge_percentage,
+          surcharge_amount:      plan.surcharge_amount,
+          total_with_surcharge:  plan.total_with_surcharge,
         },
         customer: plan.customer,
         piano:    plan.piano,
@@ -1415,12 +1619,12 @@ async function sendContract(planId, btn) {
     })
     const result = await res.json().catch(() => ({}))
     if (res.ok && result.success) {
+      // Status is left alone: an unsigned plan is already 'pending'.
       const { error: updErr } = await adminSupabase
         .from('payment_plans')
         .update({
           contract_sent:    true,
           contract_sent_at: new Date().toISOString(),
-          status:           'pending',
         })
         .eq('id', planId)
       if (updErr) console.error('[payment-plans] sent flag update failed', updErr)
@@ -1469,6 +1673,10 @@ async function sendInstalmentReminder(planId, btn) {
   } catch (err) {
     console.error('[payment-plans] reminder fetch failed', err)
     showToast('Could not load plan — see console.', 'error')
+    return
+  }
+  if (plan.status === 'cancelled') {
+    showToast('This plan is cancelled.', 'warning')
     return
   }
 

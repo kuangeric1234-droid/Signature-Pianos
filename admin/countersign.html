@@ -77,7 +77,9 @@
    Signature Pianos — Eric's countersign page
    ----------------------------------------------------------------------------
    Token-gated admin page. The countersign_token comes via email link;
-   admin-auth.js still enforces a real admin session on top.
+   admin-auth.js still enforces a real admin session on top, and attaches
+   the admin's bearer token to /api/countersign-contract, which checks it.
+   The API records the signed-in admin as the countersigner.
    ============================================================================ */
 
 const params = new URLSearchParams(window.location.search)
@@ -87,6 +89,7 @@ if (!token) window.location.replace('dashboard.html')
 let currentPlan        = null
 let currentInstalments = null
 let currentSettings    = null
+let currentAdminName   = ''
 
 function esc(s) {
   if (s == null) return ''
@@ -99,8 +102,20 @@ async function loadCountersignPage() {
   // Verify admin session — defence in depth on top of admin-auth.js.
   const { data: { user } } = await adminSupabase.auth.getUser()
   if (!user) {
-    window.location.replace('index.html?redirect=' + encodeURIComponent(window.location.href))
+    window.location.replace('/admin/index.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search))
     return
+  }
+
+  // The countersigner on record is the signed-in admin; prefill their name.
+  try {
+    const { data: me } = await adminSupabase
+      .from('admin_users')
+      .select('first_name, last_name')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (me) currentAdminName = `${me.first_name || ''} ${me.last_name || ''}`.trim()
+  } catch (e) {
+    console.warn('[countersign] admin name lookup failed', e)
   }
 
   const { data: plan, error } = await adminSupabase
@@ -112,6 +127,7 @@ async function loadCountersignPage() {
   if (error || !plan) return showError('Contract not found or link expired.')
   if (plan.countersigned)     return showAlreadyCountersigned(plan)
   if (!plan.contract_signed)  return showError('Customer has not signed yet.')
+  if (plan.status === 'cancelled') return showError('This payment plan has been cancelled.')
 
   const [{ data: instalments }, { data: settings }] = await Promise.all([
     adminSupabase.from('payment_instalments').select('*').eq('payment_plan_id', plan.id).order('instalment_number'),
@@ -232,8 +248,11 @@ function renderCountersignPage(plan, instalments, settings) {
               <label style="font-size:11px;color:var(--admin-text-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
                 Your full name
               </label>
-              <input type="text" id="countersignName" placeholder="Eric Kuang"
+              <input type="text" id="countersignName" placeholder="Eric Kuang" value="${esc(currentAdminName)}"
                 style="width:100%;padding:8px 10px;border:1px solid var(--admin-border);border-radius:4px;font-size:13px;box-sizing:border-box;">
+              <div style="font-size:11px;color:var(--admin-text-faint);margin-top:4px;">
+                The contract records the signed-in admin${currentAdminName ? ` (${esc(currentAdminName)})` : ''} as the countersigner.
+              </div>
             </div>
 
             <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-bottom:16px;font-size:12px;color:var(--admin-text-muted);">
@@ -408,6 +427,8 @@ async function submitCountersignature() {
   btn.disabled    = true
 
   try {
+    // admin-auth.js adds the Authorization header. The API stamps the
+    // countersigner (signed-in admin) and the time itself.
     const res = await fetch('/api/countersign-contract', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -415,13 +436,13 @@ async function submitCountersignature() {
         token,
         plan_id:          currentPlan.id,
         signature_data:   signatureData,
-        countersigned_by: name,
-        countersigned_at: new Date().toISOString(),
       }),
     })
     const result = await res.json().catch(() => ({}))
     if (res.ok && result.success) {
-      showCountersignSuccess()
+      showCountersignSuccess(result)
+    } else if (res.status === 401 || res.status === 403) {
+      throw new Error('your admin session has expired. Sign in again and retry.')
     } else {
       throw new Error(result.error || 'Unknown error')
     }
@@ -433,7 +454,19 @@ async function submitCountersignature() {
   }
 }
 
-function showCountersignSuccess() {
+// Only claim what the API says actually happened (email sent, delivery
+// created); anything that didn't is listed so it can be done by hand.
+function showCountersignSuccess(result = {}) {
+  const name = `${esc(currentPlan.customer?.first_name || '')} ${esc(currentPlan.customer?.last_name || '')}`.trim()
+  const warnings = Array.isArray(result.warnings) ? result.warnings : []
+  const emailLine = result.customer_emailed
+    ? `The fully executed contract has been emailed to ${name}.`
+    : `The contract is executed, but the email to ${name} did not send. Send them a copy by hand.`
+  const deliveryLine = !result.is_acoustic
+    ? 'Digital piano, so no delivery was created.'
+    : result.delivery_created
+      ? 'Their piano is now scheduled for delivery.'
+      : 'Their piano has NOT been scheduled for delivery yet.'
   document.getElementById('pageContent').innerHTML = `
     <div style="max-width:560px;text-align:center;padding:60px 24px;">
       <div style="font-size:64px;margin-bottom:20px;color:var(--admin-green);">✓</div>
@@ -441,9 +474,15 @@ function showCountersignSuccess() {
         Contract executed.
       </h2>
       <p style="font-size:14px;color:var(--admin-text-muted);line-height:1.7;margin:0 0 20px;">
-        The fully executed contract has been emailed to ${esc(currentPlan.customer?.first_name || '')} ${esc(currentPlan.customer?.last_name || '')}.
-        Their piano is now scheduled for delivery.
+        ${emailLine}
+        ${deliveryLine}
       </p>
+      ${warnings.length ? `
+        <div style="text-align:left;background:var(--admin-amber-light);border:1px solid var(--admin-amber);border-radius:4px;padding:12px 14px;margin:0 0 20px;font-size:13px;color:var(--admin-text);line-height:1.6;">
+          <div style="font-weight:500;color:var(--admin-amber);margin-bottom:4px;"><i class="ti ti-alert-triangle"></i> Needs attention</div>
+          ${warnings.map(w => `<div>${esc(w)}</div>`).join('')}
+        </div>
+      ` : ''}
       <a href="payment-plans.html"
          style="display:inline-block;background:var(--admin-gold);color:#000;padding:10px 24px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:500;">
         Back to payment plans →
@@ -457,6 +496,26 @@ function showCountersignSuccess() {
    admin page is self-contained. If this diverges from the customer
    page's version it'll be a real bug — keep both in sync.
    ============================================================================ */
+// Same helpers as payment-plan-sign.html.
+function fmtAddress(o) {
+  if (!o) return ''
+  const parts = [o.address_line1, o.address_line2, o.suburb, [o.state, o.postcode].filter(Boolean).join(' ')]
+    .map(s => (s == null ? '' : String(s).trim()))
+    .filter(Boolean)
+  return parts.length ? parts.join(', ') : (o.address ? String(o.address).trim() : '')
+}
+function pianoLabel(piano) {
+  if (!piano) return '—'
+  const type = piano.type ? String(piano.type).replace(/_/g, ' ') : ''
+  return [piano.brand, piano.model, type].filter(Boolean).join(' ') || '—'
+}
+function buyerName(plan) {
+  return `${plan.customer?.first_name || ''} ${plan.customer?.last_name || ''}`.trim()
+}
+function sellerName(settings) {
+  return settings?.business_name || 'Signature Pianos'
+}
+
 function renderAgreementHTML(plan, instalments, settings) {
   const formatCurrency = (v) =>
     '$' + Math.abs(v || 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -484,24 +543,43 @@ function renderAgreementHTML(plan, instalments, settings) {
 
       <div style="font-size:13px;line-height:1.8;margin-bottom:16px;color:#1a1917;">
         This Payment Plan Agreement (<strong>"Agreement"</strong>) is entered into between
-        <strong>${esc(settings?.business_name || 'Signature Pianos')}</strong>
+        <strong>${esc(sellerName(settings))}</strong>
         ${settings?.abn ? `(ABN ${esc(settings.abn)})` : ''}
-        of ${esc([settings?.address_line1, settings?.suburb, settings?.state, settings?.postcode].filter(Boolean).join(', ') || 'Melbourne, Victoria')}
+        of ${esc(fmtAddress(settings) || 'Melbourne, Victoria')}
         (<strong>"Seller"</strong>) and
-        <strong>${esc(plan.customer?.first_name || '')} ${esc(plan.customer?.last_name || '')}</strong>
-        ${plan.customer?.email ? `(${esc(plan.customer.email)})` : ''}
+        <strong>${esc(buyerName(plan) || '—')}</strong>
+        ${fmtAddress(plan.customer) ? `of ${esc(fmtAddress(plan.customer))}` : ''}
         (<strong>"Buyer"</strong>).
       </div>
+
+      <table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:16px;">
+        <tr>
+          <td style="width:50%;vertical-align:top;padding:0 12px 0 0;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#9a9590;margin-bottom:6px;">Seller</div>
+            <div style="font-weight:bold;">${esc(sellerName(settings))}</div>
+            ${settings?.abn ? `<div>ABN ${esc(settings.abn)}</div>` : ''}
+            ${fmtAddress(settings) ? `<div>${esc(fmtAddress(settings))}</div>` : ''}
+            ${settings?.email ? `<div>${esc(settings.email)}</div>` : ''}
+            ${settings?.phone ? `<div>${esc(settings.phone)}</div>` : ''}
+          </td>
+          <td style="width:50%;vertical-align:top;padding:0;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#9a9590;margin-bottom:6px;">Buyer</div>
+            <div style="font-weight:bold;">${esc(buyerName(plan) || '—')}</div>
+            ${fmtAddress(plan.customer) ? `<div>${esc(fmtAddress(plan.customer))}</div>` : ''}
+            ${plan.customer?.email ? `<div>${esc(plan.customer.email)}</div>` : ''}
+            ${plan.customer?.phone ? `<div>${esc(plan.customer.phone)}</div>` : ''}
+          </td>
+        </tr>
+      </table>
 
       <div style="background:#f8f7f5;padding:14px;border-radius:4px;margin-bottom:16px;">
         <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#9a9590;margin-bottom:8px;">Instrument</div>
         <div style="font-size:14px;font-weight:bold;">
-          ${esc(plan.piano?.brand || 'Yamaha')} ${esc(plan.piano?.model || '')} ${plan.piano?.type ? esc(String(plan.piano.type).replace(/_/g, ' ')) : ''}
+          ${esc(pianoLabel(plan.piano))}
         </div>
         <div style="font-size:12px;color:#6b6760;margin-top:2px;">
           Year: ${esc(plan.piano?.year || '—')} ·
-          Serial: ${esc(plan.piano?.serial_number || '—')} ·
-          Condition: ${esc(plan.piano?.condition || '—')}
+          Serial: ${esc(plan.piano?.serial_number || '—')}
         </div>
       </div>
 
@@ -604,10 +682,11 @@ async function downloadContractPDF() {
       { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 495, y2: 0, lineWidth: 1.5, lineColor: '#1a1917' }], margin: [0, 0, 0, 16] },
       {
         text: [
-          settings?.abn ? `ABN: ${settings.abn}   ` : '',
-          settings?.address_line1 || '',
-          settings?.suburb ? `   ${settings.suburb} ${settings.state || ''} ${settings.postcode || ''}` : '',
-        ].filter(Boolean).join(''),
+          settings?.abn ? `ABN: ${settings.abn}` : '',
+          fmtAddress(settings),
+          settings?.email || '',
+          settings?.phone || '',
+        ].filter(Boolean).join('   '),
         style: 'subText',
         margin: [0, 0, 0, 16],
       },
@@ -616,14 +695,36 @@ async function downloadContractPDF() {
           'This Payment Plan Agreement ',
           { text: '("Agreement") ', bold: true },
           'is entered into between ',
-          { text: settings?.business_name || 'Signature Pianos', bold: true },
-          settings?.abn ? ` (ABN ${settings.abn}) ` : ' ',
+          { text: sellerName(settings), bold: true },
+          settings?.abn ? ` (ABN ${settings.abn})` : '',
+          ` of ${fmtAddress(settings) || 'Melbourne, Victoria'} `,
           '("Seller") and ',
-          { text: `${plan.customer?.first_name || ''} ${plan.customer?.last_name || ''}`, bold: true },
-          plan.customer?.email ? ` (${plan.customer.email}) ` : ' ',
+          { text: buyerName(plan) || '—', bold: true },
+          fmtAddress(plan.customer) ? ` of ${fmtAddress(plan.customer)} ` : ' ',
           '("Buyer").',
         ],
         style: 'body',
+        margin: [0, 0, 0, 12],
+      },
+      {
+        columns: [
+          {
+            stack: [
+              { text: 'SELLER', style: 'sectionHeader', margin: [0, 0, 0, 4] },
+              { text: sellerName(settings), bold: true },
+              ...[settings?.abn ? `ABN ${settings.abn}` : '', fmtAddress(settings), settings?.email, settings?.phone]
+                .filter(Boolean).map(t => ({ text: t, style: 'subText' })),
+            ],
+          },
+          {
+            stack: [
+              { text: 'BUYER', style: 'sectionHeader', margin: [0, 0, 0, 4] },
+              { text: buyerName(plan) || '—', bold: true },
+              ...[fmtAddress(plan.customer), plan.customer?.email, plan.customer?.phone]
+                .filter(Boolean).map(t => ({ text: t, style: 'subText' })),
+            ],
+          },
+        ],
         margin: [0, 0, 0, 16],
       },
       { text: 'INSTRUMENT', style: 'sectionHeader' },
@@ -632,8 +733,8 @@ async function downloadContractPDF() {
           widths: ['*'],
           body: [[{
             stack: [
-              { text: `${plan.piano?.brand || 'Yamaha'} ${plan.piano?.model || ''} ${plan.piano?.type ? String(plan.piano.type).replace(/_/g, ' ') : ''}`, style: 'instrumentName' },
-              { text: `Year: ${plan.piano?.year || '—'}   Serial: ${plan.piano?.serial_number || '—'}   Condition: ${plan.piano?.condition || '—'}`, style: 'subText', margin: [0, 4, 0, 0] },
+              { text: pianoLabel(plan.piano), style: 'instrumentName' },
+              { text: `Year: ${plan.piano?.year || '—'}   Serial: ${plan.piano?.serial_number || '—'}`, style: 'subText', margin: [0, 4, 0, 0] },
             ],
             fillColor: '#f8f7f5',
             border: [false, false, false, false],
@@ -698,6 +799,7 @@ async function downloadContractPDF() {
           { text: [{ text: 'Late payments. ', bold: true }, 'Payments overdue by more than 3 days will incur a $50 administration fee.' + (plan.payment_method === 'credit_card' ? ' Where a credit card has been provided, overdue amounts will be automatically charged to the saved card.' : '')], style: 'body', margin: [0, 0, 0, 6] },
           { text: [{ text: 'Default. ', bold: true }, `If the Buyer fails to make two consecutive payments, ${settings?.business_name || 'Signature Pianos'} reserves the right to reclaim the instrument and retain all payments received as compensation.`], style: 'body', margin: [0, 0, 0, 6] },
           { text: [{ text: 'Warranty. ', bold: true }, `The instrument is covered by the ${settings?.business_name || 'Signature Pianos'} 10-year warranty from the date of delivery, subject to the full purchase price being paid.`], style: 'body', margin: [0, 0, 0, 6] },
+          { text: [{ text: 'Delivery. ', bold: true }, 'Delivery will be arranged once the deposit has been received and this agreement has been signed. The instrument will be delivered to the address provided.'], style: 'body', margin: [0, 0, 0, 6] },
           { text: [{ text: 'Governing law. ', bold: true }, 'This agreement is governed by the laws of Victoria, Australia.'], style: 'body', margin: [0, 0, 0, 0] },
         ],
         margin: [0, 0, 0, 20],

@@ -77,10 +77,13 @@
      3. Payment method       — Stripe Elements (credit_card) OR bank details
      4. Sign                 — signature canvas + full name + checkbox
 
-   Public — token-gated via signature_token on payment_plans. Anon RLS lets
-   us SELECT the plan and INSERT into the id-documents bucket. Every writing
-   action routes through /api/save-payment-method or /api/sign-contract under
-   the service role.
+   Public — token-gated via signature_token on payment_plans. The page reads
+   ONLY through the get_plan_for_signing(p_token) RPC (security definer,
+   supabase/rpc_plan_signing.sql), which returns this one plan's terms,
+   schedule, buyer, piano and seller details — never the tables directly.
+   Anon may still INSERT into the id-documents bucket. Every writing action
+   routes through /api/save-payment-method or /api/sign-contract under the
+   service role.
    ============================================================================ */
 
 const params = new URLSearchParams(window.location.search)
@@ -96,6 +99,7 @@ let idFileSelected     = null
 let idDocumentUrl      = null
 let stripe             = null
 let cardElement        = null
+let cardSaved          = false
 
 // Exposed for the user-spec snippets that reference window.planToken.
 window.planToken = token
@@ -118,30 +122,46 @@ function fmtDateAU(d) {
   if (!y || !m || !day) return d
   return `${day}/${m}/${y}`
 }
+// One-line postal address from a customers / company_settings shape.
+function fmtAddress(o) {
+  if (!o) return ''
+  const parts = [o.address_line1, o.address_line2, o.suburb, [o.state, o.postcode].filter(Boolean).join(' ')]
+    .map(s => (s == null ? '' : String(s).trim()))
+    .filter(Boolean)
+  return parts.length ? parts.join(', ') : (o.address ? String(o.address).trim() : '')
+}
+function pianoLabel(piano) {
+  if (!piano) return '—'
+  const type = piano.type ? String(piano.type).replace(/_/g, ' ') : ''
+  return [piano.brand, piano.model, type].filter(Boolean).join(' ') || '—'
+}
+function buyerName(plan) {
+  return `${plan.customer?.first_name || ''} ${plan.customer?.last_name || ''}`.trim()
+}
+function sellerName(settings) {
+  return settings?.business_name || 'Signature Pianos'
+}
+// "call us on 03 …" when a phone number is on file, else just "contact us".
+function callUs(settings) {
+  return settings?.phone ? `call us on ${settings.phone}` : 'contact us'
+}
 
 /* ---------- Load plan ---------- */
 ;(async function loadPlan() {
+  if (!token) return
   try {
-    const { data: plan, error } = await _supabase
-      .from('payment_plans')
-      .select(`*, customer:customer_id(*), piano:piano_id(*)`)
-      .eq('signature_token', token)
-      .maybeSingle()
+    const { data, error } = await _supabase.rpc('get_plan_for_signing', { p_token: token })
     if (error) throw error
-    if (!plan)  return showError("We couldn't find this contract. The link may have expired.")
+    const plan = data && data.plan
+    if (!plan) return showError("We couldn't find this contract. The link may have expired.")
     if (plan.contract_signed) return showAlreadySigned(plan)
-
-    const [{ data: ins }, { data: cs }] = await Promise.all([
-      _supabase.from('payment_instalments')
-        .select('*')
-        .eq('payment_plan_id', plan.id)
-        .order('instalment_number'),
-      _supabase.from('company_settings').select('*').limit(1).maybeSingle(),
-    ])
+    if (plan.status === 'cancelled') {
+      return showError('This payment plan has been cancelled. Please contact us if you have any questions.')
+    }
 
     currentPlan        = plan
-    currentInstalments = ins || []
-    currentSettings    = cs || {}
+    currentInstalments = Array.isArray(data.instalments) ? data.instalments : []
+    currentSettings    = data.settings || {}
 
     renderSigningPage(plan, currentInstalments, currentSettings)
   } catch (err) {
@@ -156,7 +176,7 @@ function fmtDateAU(d) {
 function renderSigningPage(plan, instalments, settings) {
   document.getElementById('pageContent').innerHTML = `
 
-    <div style="background:#1a1917;padding:20px 24px;border-bottom:1px solid rgba(22, 34, 46, 0.2);position:sticky;top:0;z-index:10;">
+    <div style="background:#E9E5DB;padding:20px 24px;border-bottom:1px solid rgba(22, 34, 46, 0.2);position:sticky;top:0;z-index:10;">
       <div style="font-size:16px;color:#16222E;font-style:italic;">Signature Pianos</div>
       <div style="font-size:12px;color:rgba(22, 34, 46, 0.5);margin-top:2px;">
         Payment Plan Agreement · ${esc(plan.plan_number || '')}
@@ -220,6 +240,7 @@ function renderSigningPage(plan, instalments, settings) {
 
         <div id="idPreview" style="display:none;margin-bottom:16px;text-align:center;">
           <img id="idPreviewImg" style="max-width:100%;max-height:200px;border-radius:4px;border:1px solid rgba(22, 34, 46, 0.3);">
+          <div id="idPreviewFile" style="display:none;padding:16px;background:#E9E5DB;border-radius:4px;font-size:13px;color:#1D9E75;"></div>
           <div style="font-size:12px;color:#1D9E75;margin-top:8px;">
             <i class="ti ti-check"></i> ID document selected
           </div>
@@ -235,6 +256,8 @@ function renderSigningPage(plan, instalments, settings) {
         <button id="idContinueBtn" disabled style="width:100%;background:#444;color:#888;border:none;border-radius:4px;padding:16px;font-size:15px;font-weight:500;cursor:not-allowed;font-family:var(--font-body);">
           SELECT YOUR ID TO CONTINUE
         </button>
+
+        <div id="idError" role="alert" style="display:none;margin-top:12px;padding:12px;background:rgba(192,57,43,0.1);border-radius:4px;font-size:13px;color:#c0392b;text-align:center;line-height:1.6;"></div>
       </div>
 
       <!-- Section 3 — Payment method -->
@@ -252,6 +275,9 @@ function renderSigningPage(plan, instalments, settings) {
           <div style="background:#E9E5DB;border:1px solid rgba(22, 34, 46, 0.2);border-radius:4px;padding:20px;margin-bottom:20px;">
             <div style="font-size:12px;color:#3A4855;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Card details</div>
             <div id="cardElement" style="background:#F3F0E9;padding:14px;border-radius:4px;border:1px solid rgba(22, 34, 46, 0.2);"></div>
+            <div id="cardUnavailable" role="alert" style="display:none;font-size:13px;color:#16222E;line-height:1.6;">
+              Card payments aren't set up yet — please ${esc(callUs(settings))} and we'll finish your agreement with you.
+            </div>
             <div id="cardError" style="color:#e74c3c;font-size:12px;margin-top:8px;display:none;"></div>
           </div>
 
@@ -409,7 +435,7 @@ function renderAgreementHTML(plan, instalments, settings) {
 
       <div style="text-align:center;padding-bottom:20px;border-bottom:2px solid #1a1917;margin-bottom:20px;">
         <div style="font-size:22px;color:#16222E;font-style:italic;margin-bottom:4px;">
-          ${esc(settings?.business_name || 'Signature Pianos')}
+          ${esc(sellerName(settings))}
         </div>
         ${settings?.abn ? `<div style="font-size:11px;color:#3A4855;">ABN: ${esc(settings.abn)}</div>` : ''}
         <div style="font-size:16px;font-weight:bold;text-transform:uppercase;letter-spacing:0.12em;margin-top:12px;color:#1a1917;">
@@ -422,24 +448,43 @@ function renderAgreementHTML(plan, instalments, settings) {
 
       <div style="font-size:13px;line-height:1.8;margin-bottom:16px;color:#1a1917;">
         This Payment Plan Agreement (<strong>"Agreement"</strong>) is entered into between
-        <strong>${esc(settings?.business_name || 'Signature Pianos')}</strong>
+        <strong>${esc(sellerName(settings))}</strong>
         ${settings?.abn ? `(ABN ${esc(settings.abn)})` : ''}
-        of ${esc([settings?.address_line1, settings?.suburb, settings?.state, settings?.postcode].filter(Boolean).join(', ') || 'Melbourne, Victoria')}
+        of ${esc(fmtAddress(settings) || 'Melbourne, Victoria')}
         (<strong>"Seller"</strong>) and
-        <strong>${esc(plan.customer?.first_name || '')} ${esc(plan.customer?.last_name || '')}</strong>
-        ${plan.customer?.email ? `(${esc(plan.customer.email)})` : ''}
+        <strong>${esc(buyerName(plan) || '—')}</strong>
+        ${fmtAddress(plan.customer) ? `of ${esc(fmtAddress(plan.customer))}` : ''}
         (<strong>"Buyer"</strong>).
       </div>
+
+      <table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:16px;">
+        <tr>
+          <td style="width:50%;vertical-align:top;padding:0 12px 0 0;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#3A4855;margin-bottom:6px;">Seller</div>
+            <div style="font-weight:bold;">${esc(sellerName(settings))}</div>
+            ${settings?.abn ? `<div>ABN ${esc(settings.abn)}</div>` : ''}
+            ${fmtAddress(settings) ? `<div>${esc(fmtAddress(settings))}</div>` : ''}
+            ${settings?.email ? `<div>${esc(settings.email)}</div>` : ''}
+            ${settings?.phone ? `<div>${esc(settings.phone)}</div>` : ''}
+          </td>
+          <td style="width:50%;vertical-align:top;padding:0;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#3A4855;margin-bottom:6px;">Buyer</div>
+            <div style="font-weight:bold;">${esc(buyerName(plan) || '—')}</div>
+            ${fmtAddress(plan.customer) ? `<div>${esc(fmtAddress(plan.customer))}</div>` : ''}
+            ${plan.customer?.email ? `<div>${esc(plan.customer.email)}</div>` : ''}
+            ${plan.customer?.phone ? `<div>${esc(plan.customer.phone)}</div>` : ''}
+          </td>
+        </tr>
+      </table>
 
       <div style="background:#f8f7f5;padding:14px;border-radius:4px;margin-bottom:16px;">
         <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#3A4855;margin-bottom:8px;">Instrument</div>
         <div style="font-size:14px;font-weight:bold;">
-          ${esc(plan.piano?.brand || 'Yamaha')} ${esc(plan.piano?.model || '')} ${plan.piano?.type ? esc(String(plan.piano.type).replace(/_/g, ' ')) : ''}
+          ${esc(pianoLabel(plan.piano))}
         </div>
         <div style="font-size:12px;color:#3A4855;margin-top:2px;">
           Year: ${esc(plan.piano?.year || '—')} ·
-          Serial: ${esc(plan.piano?.serial_number || '—')} ·
-          Condition: ${esc(plan.piano?.condition || '—')}
+          Serial: ${esc(plan.piano?.serial_number || '—')}
         </div>
       </div>
 
@@ -565,10 +610,11 @@ async function downloadAgreementPDF() {
       { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 495, y2: 0, lineWidth: 1.5, lineColor: '#1a1917' }], margin: [0, 0, 0, 16] },
       {
         text: [
-          settings?.abn ? `ABN: ${settings.abn}   ` : '',
-          settings?.address_line1 || '',
-          settings?.suburb ? `   ${settings.suburb} ${settings.state || ''} ${settings.postcode || ''}` : '',
-        ].filter(Boolean).join(''),
+          settings?.abn ? `ABN: ${settings.abn}` : '',
+          fmtAddress(settings),
+          settings?.email || '',
+          settings?.phone || '',
+        ].filter(Boolean).join('   '),
         style: 'subText',
         margin: [0, 0, 0, 16],
       },
@@ -578,14 +624,36 @@ async function downloadAgreementPDF() {
           'This Payment Plan Agreement ',
           { text: '("Agreement") ', bold: true },
           'is entered into between ',
-          { text: settings?.business_name || 'Signature Pianos', bold: true },
-          settings?.abn ? ` (ABN ${settings.abn}) ` : ' ',
+          { text: sellerName(settings), bold: true },
+          settings?.abn ? ` (ABN ${settings.abn})` : '',
+          ` of ${fmtAddress(settings) || 'Melbourne, Victoria'} `,
           '("Seller") and ',
-          { text: `${plan.customer?.first_name || ''} ${plan.customer?.last_name || ''}`, bold: true },
-          plan.customer?.email ? ` (${plan.customer.email}) ` : ' ',
+          { text: buyerName(plan) || '—', bold: true },
+          fmtAddress(plan.customer) ? ` of ${fmtAddress(plan.customer)} ` : ' ',
           '("Buyer").',
         ],
         style: 'body',
+        margin: [0, 0, 0, 12],
+      },
+      {
+        columns: [
+          {
+            stack: [
+              { text: 'SELLER', style: 'sectionHeader', margin: [0, 0, 0, 4] },
+              { text: sellerName(settings), bold: true },
+              ...[settings?.abn ? `ABN ${settings.abn}` : '', fmtAddress(settings), settings?.email, settings?.phone]
+                .filter(Boolean).map(t => ({ text: t, style: 'subText' })),
+            ],
+          },
+          {
+            stack: [
+              { text: 'BUYER', style: 'sectionHeader', margin: [0, 0, 0, 4] },
+              { text: buyerName(plan) || '—', bold: true },
+              ...[fmtAddress(plan.customer), plan.customer?.email, plan.customer?.phone]
+                .filter(Boolean).map(t => ({ text: t, style: 'subText' })),
+            ],
+          },
+        ],
         margin: [0, 0, 0, 16],
       },
 
@@ -595,8 +663,8 @@ async function downloadAgreementPDF() {
           widths: ['*'],
           body: [[{
             stack: [
-              { text: `${plan.piano?.brand || 'Yamaha'} ${plan.piano?.model || ''} ${plan.piano?.type ? String(plan.piano.type).replace(/_/g, ' ') : ''}`, style: 'instrumentName' },
-              { text: `Year: ${plan.piano?.year || '—'}   Serial: ${plan.piano?.serial_number || '—'}   Condition: ${plan.piano?.condition || '—'}`, style: 'subText', margin: [0, 4, 0, 0] },
+              { text: pianoLabel(plan.piano), style: 'instrumentName' },
+              { text: `Year: ${plan.piano?.year || '—'}   Serial: ${plan.piano?.serial_number || '—'}`, style: 'subText', margin: [0, 4, 0, 0] },
             ],
             fillColor: '#f8f7f5',
             border: [false, false, false, false],
@@ -679,6 +747,7 @@ async function downloadAgreementPDF() {
           { text: [{ text: 'Late payments. ', bold: true }, 'Payments overdue by more than 3 days will incur a $50 administration fee.' + (plan.payment_method === 'credit_card' ? ' Where a credit card has been provided, overdue amounts will be automatically charged to the saved card.' : '')], style: 'body', margin: [0, 0, 0, 6] },
           { text: [{ text: 'Default. ', bold: true }, `If the Buyer fails to make two consecutive payments, ${settings?.business_name || 'Signature Pianos'} reserves the right to reclaim the instrument and retain all payments received as compensation.`], style: 'body', margin: [0, 0, 0, 6] },
           { text: [{ text: 'Warranty. ', bold: true }, `The instrument is covered by the ${settings?.business_name || 'Signature Pianos'} 10-year warranty from the date of delivery, subject to the full purchase price being paid.`], style: 'body', margin: [0, 0, 0, 6] },
+          { text: [{ text: 'Delivery. ', bold: true }, 'Delivery will be arranged once the deposit has been received and this agreement has been signed. The instrument will be delivered to the address provided.'], style: 'body', margin: [0, 0, 0, 6] },
           { text: [{ text: 'Governing law. ', bold: true }, 'This agreement is governed by the laws of Victoria, Australia.'], style: 'body', margin: [0, 0, 0, 0] },
         ],
         margin: [0, 0, 0, 20],
@@ -691,7 +760,7 @@ async function downloadAgreementPDF() {
             stack: [
               { text: 'Buyer signature', style: 'signatureLabel' },
               { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 200, y2: 0, lineWidth: 0.5, lineColor: '#1a1917' }], margin: [0, 30, 0, 4] },
-              { text: `${plan.customer?.first_name || ''} ${plan.customer?.last_name || ''}`, style: 'signatureName' },
+              { text: buyerName(plan), style: 'signatureName' },
               { text: `Date: _______________`, style: 'subText' },
             ],
           },
@@ -739,27 +808,30 @@ function handleIDUpload(e) {
   if (!file) return
 
   idFileSelected = file
+  idDocumentUrl  = null
+  document.getElementById('idError').style.display = 'none'
 
   const preview = document.getElementById('idPreview')
   const previewImg = document.getElementById('idPreviewImg')
+  const previewFile = document.getElementById('idPreviewFile')
 
   if (file.type && file.type.startsWith('image/')) {
     const reader = new FileReader()
     reader.onload = (ev) => {
       previewImg.src = ev.target.result
       previewImg.style.display = ''
+      previewFile.style.display = 'none'
       preview.style.display = 'block'
       document.getElementById('idUploadArea').style.borderColor = 'rgba(29,158,117,0.5)'
     }
     reader.readAsDataURL(file)
   } else {
-    // PDF or other — show filename instead of image preview
+    // PDF or other — show filename instead of image preview (toggled, not
+    // replaced, so picking a photo afterwards still has an <img> to fill)
+    previewImg.style.display = 'none'
+    previewFile.innerHTML = `<i class="ti ti-file-check"></i> ${esc(file.name)} selected`
+    previewFile.style.display = 'block'
     preview.style.display = 'block'
-    preview.innerHTML = `
-      <div style="padding:16px;background:#E9E5DB;border-radius:4px;font-size:13px;color:#1D9E75;">
-        <i class="ti ti-file-check"></i> ${esc(file.name)} selected
-      </div>
-    `
   }
 
   const btn = document.getElementById('idContinueBtn')
@@ -774,6 +846,8 @@ async function uploadIDAndContinue() {
   if (!idFileSelected) return
 
   const btn = document.getElementById('idContinueBtn')
+  const errEl = document.getElementById('idError')
+  errEl.style.display = 'none'
   btn.textContent = 'UPLOADING…'
   btn.disabled = true
 
@@ -789,31 +863,66 @@ async function uploadIDAndContinue() {
         upsert: false,
       })
     if (error) throw error
+    if (!data?.path) throw new Error('Upload returned no path')
 
     // Save the Storage path. /api/sign-contract converts it to a signed URL
     // or fetches it as service role — we never publicly expose it.
     idDocumentUrl = data.path
     goToSection(3)
   } catch (err) {
+    // No path, no way forward: section 3 (and so the signature) is only
+    // reachable after a successful upload.
     console.error('[sign] ID upload failed', err)
+    idDocumentUrl = null
     btn.disabled = false
     btn.style.background = '#c0392b'
     btn.style.color = '#fff'
     btn.textContent = 'UPLOAD FAILED — TRY AGAIN'
+    errEl.textContent = `We couldn't upload your ID, so your agreement can't be signed yet. Check your connection and try again, or choose a smaller photo. If it keeps failing, please ${callUs(currentSettings)}.`
+    errEl.style.display = 'block'
   }
 }
 
 /* ============================================================================
    Stripe Elements (Step 7)
    ============================================================================ */
+// Card step without a working Stripe: say so and stop there, rather than
+// letting Stripe() throw and take the whole contract down with it.
+function showCardUnavailable() {
+  stripe = null
+  cardElement = null
+  const cardEl = document.getElementById('cardElement')
+  const msgEl  = document.getElementById('cardUnavailable')
+  const btn    = document.getElementById('saveCardBtn')
+  if (cardEl) cardEl.style.display = 'none'
+  if (msgEl)  msgEl.style.display = 'block'
+  if (btn) {
+    btn.disabled = true
+    btn.style.background = '#444'
+    btn.style.color = '#888'
+    btn.style.cursor = 'not-allowed'
+    btn.textContent = 'CARD PAYMENTS UNAVAILABLE'
+  }
+}
+
 function initStripeIfNeeded(plan) {
   if (plan.payment_method !== 'credit_card') return
-  if (!window.Stripe || !window.STRIPE_PUBLIC_KEY) {
-    console.warn('[sign] Stripe.js or STRIPE_PUBLIC_KEY not available')
-    return
+  const key = String(window.STRIPE_PUBLIC_KEY || '')
+  if (!window.Stripe || !key.startsWith('pk_')) {
+    console.warn('[sign] Stripe.js or a real STRIPE_PUBLIC_KEY is not available')
+    return showCardUnavailable()
   }
 
-  stripe = Stripe(window.STRIPE_PUBLIC_KEY)
+  try {
+    mountCardElement(key)
+  } catch (err) {
+    console.error('[sign] Stripe init failed', err)
+    showCardUnavailable()
+  }
+}
+
+function mountCardElement(key) {
+  stripe = Stripe(key)
   const elements = stripe.elements({
     appearance: {
       theme: 'night',
@@ -854,7 +963,7 @@ function initStripeIfNeeded(plan) {
 async function saveCardAndContinue() {
   if (!stripe || !cardElement) {
     document.getElementById('cardError').style.display = 'block'
-    document.getElementById('cardError').textContent = 'Card form not ready — please refresh.'
+    document.getElementById('cardError').textContent = `Card form not ready — please refresh, or ${callUs(currentSettings)}.`
     return
   }
 
@@ -883,16 +992,16 @@ async function saveCardAndContinue() {
     const res = await fetch('/api/save-payment-method', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      // Brand and last four are read from Stripe server-side.
       body: JSON.stringify({
         token:             window.planToken,
         plan_id:           currentPlan.id,
         payment_method_id: paymentMethod.id,
-        card_last_four:    paymentMethod.card.last4,
-        card_brand:        paymentMethod.card.brand,
       }),
     })
     const result = await res.json().catch(() => ({}))
     if (res.ok && result.success) {
+      cardSaved = true
       goToSection(4)
     } else {
       throw new Error(result.error || 'Could not save card')
@@ -902,7 +1011,10 @@ async function saveCardAndContinue() {
     btn.textContent = 'SAVE CARD & CONTINUE'
     btn.disabled = false
     document.getElementById('cardError').style.display = 'block'
-    document.getElementById('cardError').textContent = 'Failed to save card — please try again.'
+    document.getElementById('cardError').textContent =
+      (err && err.message && err.message !== 'Could not save card' && err.message !== 'Failed to fetch')
+        ? err.message
+        : 'Failed to save card — please try again.'
   }
 }
 
@@ -1020,6 +1132,10 @@ async function submitSignature(planId) {
   }
   err.style.display = 'none'
 
+  if (!idDocumentUrl) return showErr("Your ID hasn't been uploaded yet. Please go back to step 2 and upload it.")
+  if (currentPlan?.payment_method === 'credit_card' && !cardSaved) {
+    return showErr("Your card hasn't been saved yet. Please go back to step 3.")
+  }
   if (!hasDrawn) return showErr('Please draw your signature above.')
   if (!fullName) return showErr('Please type your full name to confirm.')
   if (!agreed)   return showErr('Please check the box to confirm you agree to the terms.')
@@ -1038,7 +1154,6 @@ async function submitSignature(planId) {
         token,
         signature_data:  sigData,
         full_name:       fullName,
-        signed_at:       new Date().toISOString(),
         id_document_url: idDocumentUrl,
       }),
     })
@@ -1077,7 +1192,7 @@ function showAlreadySigned(plan) {
     <div class="success-wrap">
       <i class="ti ti-circle-check icon"></i>
       <h2>Contract already signed.</h2>
-      <p>This contract was signed on ${fmtDateAU(plan.contract_signed_at)}. Please contact us if you have any questions.</p>
+      <p>This contract was signed on ${plan.contract_signed_at ? esc(new Date(plan.contract_signed_at).toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric' })) : '—'}. Please contact us if you have any questions.</p>
     </div>
   `
 }
