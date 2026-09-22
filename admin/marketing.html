@@ -344,7 +344,7 @@ function renderEngineNotes() {
           ${changes.map(c => `<li>${esc(c)}</li>`).join('')}
         </ul>
         ${loadedProposal
-          ? `<div class="hint">Loaded into the editor below. Read it through, then <strong>Save</strong> to apply it${u.faq ? ' (the FAQ updates too)' : ''}.</div>`
+          ? `<div class="hint">Loaded into the editor below. Read it through, then <strong>Save</strong> to apply it${['faq', 'tags', 'keywords'].filter(k => u[k]).length ? ` (${['faq', 'tags', 'keywords'].filter(k => u[k]).join(', ')} update too)` : ''}.</div>`
           : `<button class="btn-gold" onclick="loadProposal()"><i class="ti ti-download"></i> Load into editor</button>
              <button class="btn-outline" onclick="dismissProposal()" style="margin-left:6px;">Dismiss</button>`}
       </div>` : ''}
@@ -399,8 +399,11 @@ async function saveEdit() {
     excerpt: document.getElementById('fExcerpt').value.trim(),
     body_html: document.getElementById('fBody').value,
   }
+  // Fields the form doesn't show, applied straight from the suggestion.
   const applying = loadedProposal
-  if (applying && Array.isArray(applying.faq)) patch.faq = applying.faq
+  if (applying) {
+    for (const k of ['faq', 'tags', 'keywords']) if (Array.isArray(applying[k])) patch[k] = applying[k]
+  }
   const { error } = await adminSupabase.from('blog_posts').update(patch).eq('id', id)
   if (error) { showToast(error.message, 'error'); return }
   if (applying) {

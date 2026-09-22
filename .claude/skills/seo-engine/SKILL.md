@@ -128,7 +128,9 @@ in a way you can't fix within these rules, end with
    `<slug>.update.html`, the complete revised body. Keep the slug. Keep what's
    still true and change what needs changing. If the article breaks the rules
    throughout, rewrite it to them. `notes` has one line per change: what
-   changed, why, and the source.
+   changed, why, and the source. An update may also correct `tags` and
+   `keywords` (older posts often carry tags outside the allowed list); the
+   admin applies those with the rest when Eric saves.
 5. `check-update`, fix, then `propose-update`. The live page doesn't change:
    Eric loads the suggestion into the editor, reads it and saves. Done.
 
@@ -205,7 +207,7 @@ some) or when the plan is empty.
 ```json
 {
   "slug": "yamaha-u1-vs-u3",
-  "update": { "title": "...", "meta_description": "...", "excerpt": "...", "faq": [] },
+  "update": { "title": "...", "meta_description": "...", "excerpt": "...", "faq": [], "tags": ["Yamaha", "Buying guide"], "keywords": [] },
   "notes": ["Replaced the dead /pianos.html link with /instruments/.", "U1J price updated to $7,299 (dwmusic.com.au, September 2026)."],
   "reverify_by": "2027-03-20",
   "reverify_notes": "What to recheck next time, with URLs.",
