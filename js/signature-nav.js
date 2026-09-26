@@ -11,6 +11,10 @@
   menu.className = 'sp-menu';
   menu.id = 'sp-menu';
   menu.setAttribute('aria-label', 'Site menu');
+  // The home page runs Lenis smooth scrolling, which swallows touch moves
+  // while it is stopped, so the panel would not scroll there. Lenis leaves
+  // anything inside data-lenis-prevent to the browser (the map uses it too).
+  menu.setAttribute('data-lenis-prevent', '');
 
   function link(href, title, note) {
     var a = document.createElement('a');

@@ -990,6 +990,19 @@
   body.home.over-hero nav#nav .nav-cta { background: #FFFFFF; border-color: #FFFFFF; color: var(--h-ink); }
   body.home.over-hero nav#nav .nav-cta:hover { background: transparent; color: #FFFFFF; }
 
+  /* With the phone menu open, the cream panel sits under the header, so the
+     white-over-hero header would be invisible. Put it back to ink. */
+  body.home.over-hero.sp-menu-open nav#nav { background: var(--bg-1); }
+  body.home.over-hero.sp-menu-open nav#nav .logo,
+  body.home.over-hero.sp-menu-open nav#nav .nav-link-plain,
+  body.home.over-hero.sp-menu-open nav#nav .nav-link-trigger,
+  body.home.over-hero.sp-menu-open nav#nav .nav-chevron,
+  body.home.over-hero.sp-menu-open nav#nav .nav-burger,
+  body.home.over-hero.sp-menu-open nav#nav .sp-nav-call { color: var(--text-1); }
+  body.home.over-hero.sp-menu-open nav#nav .logo span { color: var(--gold); }
+  body.home.over-hero.sp-menu-open nav#nav .nav-account-trigger { color: var(--text-1); border-color: var(--border-hover); }
+  body.home.over-hero.sp-menu-open nav#nav .nav-cta { background: transparent; border-color: var(--gold); color: var(--gold); }
+
   /* ============ 01 HERO ============ */
   .h-hero {
     position: relative;

@@ -466,6 +466,8 @@ nav#nav .nav-links .nav-dropdown--services { width: min(680px, calc(100vw - 48px
   padding: 108px 24px calc(96px + env(safe-area-inset-bottom, 0px));
   background: var(--bg-1);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px);
