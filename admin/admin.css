@@ -55,17 +55,24 @@ button { font-family: inherit; }
   background: var(--admin-sidebar-bg);
   display: flex;
   flex-direction: column;
-  padding: 24px 0;
+  padding: 24px 0 calc(24px + env(safe-area-inset-bottom, 0px));
   position: fixed;
   top: 0; left: 0; bottom: 0;
   z-index: 100;
+  /* The nav is taller than a phone screen, so the sidebar scrolls itself.
+     overscroll-behavior keeps that scroll from dragging the page behind it. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 .admin-logo {
   padding: 0 20px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   margin-bottom: 16px;
 }
-.admin-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+/* grow to push the footer down, never shrink: shrinking hid the last nav
+   items behind the edge of the sidebar with no way to scroll to them. */
+.admin-nav { display: flex; flex-direction: column; gap: 2px; flex: 1 0 auto; }
 .admin-nav-item {
   display: flex;
   align-items: center;
@@ -521,8 +528,15 @@ button { font-family: inherit; }
   .admin-sidebar {
     transform: translateX(-100%);
     transition: transform 0.25s ease;
+    /* dvh follows the browser bars as they hide, so the last nav item and
+       Sign out stay reachable. Ignored where unsupported: top/bottom hold. */
+    height: 100dvh;
   }
   .admin-sidebar.is-open { transform: translateX(0); }
+  /* While the sidebar is open, the page behind it stays put, so a swipe
+     scrolls the menu rather than the page underneath. */
+  body.sidebar-open { overflow: hidden; }
+  .admin-nav-item { padding: 12px 20px; }
   .admin-main { margin-left: 0; }
   .admin-burger { display: inline-flex; align-items: center; }
   .admin-content { padding: 20px; }

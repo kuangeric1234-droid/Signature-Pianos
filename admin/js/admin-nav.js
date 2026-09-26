@@ -42,18 +42,31 @@
     if (item.dataset.page === file) item.classList.add('active')
   })
 
-  // Hamburger button toggles the sidebar on mobile.
+  // Hamburger button toggles the sidebar on mobile. body.sidebar-open holds
+  // the page behind still, so a swipe scrolls the menu, not the page.
   const burger = document.querySelector('.admin-burger')
   const sidebar = document.querySelector('.admin-sidebar')
   if (burger && sidebar) {
+    const setOpen = (open) => {
+      sidebar.classList.toggle('is-open', open)
+      document.body.classList.toggle('sidebar-open', open)
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false')
+      if (open) sidebar.scrollTop = 0
+    }
+    burger.setAttribute('aria-expanded', 'false')
     burger.addEventListener('click', (e) => {
       e.stopPropagation()
-      sidebar.classList.toggle('is-open')
+      setOpen(!sidebar.classList.contains('is-open'))
     })
     document.addEventListener('click', (e) => {
-      if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
-        sidebar.classList.remove('is-open')
-      }
+      if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) setOpen(false)
+    })
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sidebar.classList.contains('is-open')) setOpen(false)
+    })
+    // Back on a wide screen the sidebar is permanent again; drop the lock.
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) setOpen(false)
     })
   }
 })()
