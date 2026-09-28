@@ -2,6 +2,7 @@
 //
 //   node tools/seo/engine.mjs status [--json]
 //   node tools/seo/engine.mjs post <slug>                 # saves drafts/<slug>.live.json + .live.html
+//   node tools/seo/engine.mjs covers                      # the cover images a post can use
 //   node tools/seo/engine.mjs topic <topic_key>
 //   node tools/seo/engine.mjs check <drafts/slug.json>    # a new article (body in drafts/slug.html)
 //   node tools/seo/engine.mjs check-update <drafts/slug.update.json>
@@ -164,7 +165,16 @@ const commands = {
       writeFileSync(join(DRAFTS, `${slug}.live.html`), body_html || '')
       console.log(`"${post.title}" (${post.status}, published ${post.published_at || 'never'})`)
       console.log(`  keyword: ${seo && seo.primary_keyword} · recheck notes: ${(seo && seo.reverify_notes) || 'none'}`)
+      console.log(`  cover: ${post.hero_image_url || 'NONE (suggest one with hero_image_url)'}`)
       console.log(`  saved: tools/seo/drafts/${slug}.live.json and .live.html`)
+    })
+  },
+
+  async covers() {
+    finish(await call('status'), (s) => {
+      for (const c of s.covers) console.log(`${c.url}
+    ${c.about}${c.used_by.length ? `
+    used by: ${c.used_by.join(', ')}` : ''}`)
     })
   },
 

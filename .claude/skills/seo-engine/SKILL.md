@@ -104,6 +104,11 @@ in a way you can't fix within these rules, end with
    - `reverify_by`: 3 months out if the article quotes prices, 6 months if it
      relies on rules, policies or programs, 12 months otherwise.
      `reverify_notes` lists exactly what to recheck, with URLs.
+   - **Cover image.** Every post needs one to be published. Run
+     `node tools/seo/engine.mjs covers`, pick the photo whose `about` best
+     fits the article, preferring one no other post uses, and put its `url`
+     in the draft as `hero_image_url`. Only listed covers are accepted. If you
+     leave it out, the door picks one by keyword.
 6. **Check.** `node tools/seo/engine.mjs check tools/seo/drafts/<slug>.json`.
    Fix every ✗. Read every ⚠, and fix it unless it's a deliberate, correct
    choice (for example "one owner" used as advice to verify such claims).
@@ -130,7 +135,9 @@ in a way you can't fix within these rules, end with
    throughout, rewrite it to them. `notes` has one line per change: what
    changed, why, and the source. An update may also correct `tags` and
    `keywords` (older posts often carry tags outside the allowed list); the
-   admin applies those with the rest when Eric saves.
+   admin applies those with the rest when Eric saves. If `post` prints
+   `cover: NONE`, add `hero_image_url` to the update, chosen as in the draft
+   job (`covers`).
 5. `check-update`, fix, then `propose-update`. The live page doesn't change:
    Eric loads the suggestion into the editor, reads it and saves. Done.
 
@@ -192,6 +199,7 @@ some) or when the plan is empty.
   "meta_description": "Up to 155 characters, carrying the primary keyword, plain and specific.",
   "excerpt": "One or two plain sentences for the Journal listing.",
   "primary_keyword": "used yamaha piano price",
+  "hero_image_url": "/media/home/unit-yu33.webp",
   "tags": ["Buying guide", "Yamaha"],
   "keywords": ["used yamaha piano price", "yamaha u3 price", "second hand piano price australia", "upright piano price australia"],
   "faq": [{ "question": "What is a used U3 worth?", "answer": "One to three plain sentences." }],
@@ -207,7 +215,7 @@ some) or when the plan is empty.
 ```json
 {
   "slug": "yamaha-u1-vs-u3",
-  "update": { "title": "...", "meta_description": "...", "excerpt": "...", "faq": [], "tags": ["Yamaha", "Buying guide"], "keywords": [] },
+  "update": { "title": "...", "meta_description": "...", "excerpt": "...", "hero_image_url": "/media/home/unit-u3h.webp", "faq": [], "tags": ["Yamaha", "Buying guide"], "keywords": [] },
   "notes": ["Replaced the dead /pianos.html link with /instruments/.", "U1J price updated to $7,299 (dwmusic.com.au, September 2026)."],
   "reverify_by": "2027-03-20",
   "reverify_notes": "What to recheck next time, with URLs.",
