@@ -488,15 +488,7 @@ async function togglePublish() {
  * public blog-images bucket), or a pasted URL. A post can't be published
  * without one; the database enforces that too.
  */
-// Keep in step with COVERS in lib/blog-covers.js (what the writers pick from).
-const SITE_COVERS = [
-  ...['brand-new-yamaha-u3-australia', 'yamaha-u1-vs-u3', 'second-hand-piano-checklist-melbourne', 'grey-market-yamaha-pianos']
-    .map(n => ({ url: `/media/blog/${n}.jpg`, thumb: `/media/blog/${n}.jpg` })),
-  ...['grand-c3x', 'grand-shigeru-kawai', 'grand-bosendorfer', 'stage-cfx', 'stage-cf', 'hall-japan', 'hall-stage',
-      'hands', 'strings', 'detail-action', 'detail-hammers', 'detail-keys-ebony', 'detail-keys-walnut', 'detail-pedals',
-      'unit-u3h', 'unit-yu33', 'unit-ux30a', 'unit-b121', 'unit-w3a-mahogany', 'unit-yus5-walnut', 'unit-bosendorfer-130']
-    .map(n => ({ url: `/media/home/${n}.webp`, thumb: `/media/home/${n}-sm.webp` })),
-]
+let siteCovers = null        // media/blog/covers.json, the same library the writers pick from
 
 function renderCover() {
   const box = document.getElementById('coverCurrent')
@@ -520,6 +512,10 @@ async function toggleCoverLib() {
 
 async function renderCoverLib() {
   const lib = document.getElementById('coverLib')
+  if (siteCovers === null) {
+    siteCovers = await fetch('/media/blog/covers.json').then(r => r.json()).catch(() => null)
+    if (!siteCovers) { lib.innerHTML = '<div class="hint">Couldn’t load the photo library.</div>'; return }
+  }
   if (uploadedCovers === null) {
     const { data, error } = await adminSupabase.storage.from('blog-images')
       .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } })
@@ -532,7 +528,7 @@ async function renderCoverLib() {
     `<button type="button" data-url="${esc(i.url)}" onclick="setCover(this.dataset.url)"><img src="${esc(i.thumb)}" alt="" loading="lazy"></button>`).join('')}</div>`
   lib.innerHTML = `
     ${uploadedCovers.length ? `<h4>Uploaded</h4>${grid(uploadedCovers)}` : ''}
-    <h4>Site photos</h4>${grid(SITE_COVERS)}`
+    <h4>Photo library</h4>${grid(siteCovers)}`
   renderCover()
 }
 

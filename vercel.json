@@ -34,6 +34,11 @@
       "destination": "/js/$1"
     },
     {
+      "source": "/media/(.*)",
+      "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }],
+      "destination": "/media/$1"
+    },
+    {
       "source": "/(.*)",
       "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }],
       "destination": "/admin/$1"
