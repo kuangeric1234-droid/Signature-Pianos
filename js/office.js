@@ -38,30 +38,6 @@
     } catch (e) { return ''; }
   }
 
-  /* The words each form shows beside its box and their version, word for word
-     as the office keeps them (Signature-Pianos-office modules/sales/consent.ts,
-     the newest of each at build c48e4c0). The office keeps every version it has
-     shown, so these stay valid when it adds a newer one; a change of words is
-     made there first, then copied here with its version. */
-  var CONSENT = {
-    guide: {
-      version: 'guide-2026-10-26',
-      words: 'Email me the buyer’s guide. Signature Pianos may also contact me about pianos, and I can ask them to stop at any time.'
-    },
-    visit: {
-      version: 'visit-2026-10-27',
-      words: 'Signature Pianos will use what I have sent to arrange my visit, and may contact me about pianos afterwards. I can ask them to stop at any time.'
-    },
-    service: {
-      version: 'service-2026-10-27',
-      words: 'Signature Pianos will use what I have sent to arrange my tuning or service, and may contact me about pianos later. I can ask them to stop at any time.'
-    },
-    question: {
-      version: 'question-2026-10-27',
-      words: 'Signature Pianos will use what I have sent to answer my question, and may contact me about pianos later. I can ask them to stop at any time.'
-    }
-  };
-
   /* The times of day the office's visit form takes, and the hour each is over by
      on the day itself, Melbourne time (modules/sales/forms.ts VISIT_TIME_WORDS).
      The pages offer morning and afternoon: the showroom's evening hours are
@@ -75,7 +51,11 @@
     /* the same send kept already: the office answers it as kept, without words */
     kept: 'Thank you. We have this already.',
     /* the office's own words for a send without a passed bot check (its guard's) */
-    check: 'This page could not tell that a person sent it. Complete the check on the page, then send it again.'
+    check: 'This page could not tell that a person sent it. Complete the check on the page, then send it again.',
+    /* this site's own words where the office's consent words could not be read: the form is not sent without them */
+    noConsent: 'This form can’t be sent just now. Please try again later, or call us on 0479 128 955.',
+    /* the box shown but not ticked */
+    tick: 'Please tick the box to send this.'
   };
 
   /** a refusal: the office's own words and the field they are about, or none
@@ -128,6 +108,13 @@
   function photoUrl(u) {
     return typeof u === 'string' && /^\/public\/file\?[A-Za-z0-9_.~=&%-]+$/.test(u) ? ORIGIN + u : null;
   }
+  /** where a piano came from, as the website says it for now: an import or a
+      local purchase, in the office's words; a trade-in, or a word it doesn't
+      know, is not said (Eric's to decide, office Q88) */
+  function fromWhere(v) {
+    var t = text(v);
+    return t && /^(import|local purchase)$/i.test(t) ? t : null;
+  }
   function kindKey(kind) {
     return /grand/i.test(kind) ? 'grand' : /upright/i.test(kind) ? 'upright' : /digital/i.test(kind) ? 'digital' : '';
   }
@@ -146,14 +133,18 @@
       kind: kind,
       kindKey: kindKey(kind),
       year: typeof p.year === 'number' && isFinite(p.year) ? p.year : null,
+      /* its model's height and story, as the office keeps them */
+      heightCm: typeof p.height_cm === 'number' && isFinite(p.height_cm) && p.height_cm > 0 ? Math.round(p.height_cm) : null,
+      story: text(p.story),
       finish: text(p.finish),
       condition: text(p.condition),
+      cameFrom: fromWhere(p.came_from),
       defects: text(p.defects_told),
       status: p.status,
       priceCents: p.status === 'Sold' ? null : cents(p.price_cents),
       depositCents: p.status === 'For sale' ? cents(p.deposit_cents) : null,
-      /* the deposit's terms, once the feed carries them (office step S3.6) */
-      depositTerms: p.status === 'For sale' ? text(p.deposit_terms) : null,
+      /* the deposit's terms, in the words the checkout's answer gives them */
+      depositTerms: p.status === 'For sale' && cents(p.deposit_cents) ? text(p.deposit_terms) : null,
       photos: (Array.isArray(p.photos) ? p.photos : [])
         .map(function (f) { return f && photoUrl(f.url); }).filter(Boolean),
       href: '/piano.html?slug=' + encodeURIComponent(p.slug)
@@ -191,12 +182,12 @@
   var OLD_TYPE = { grand: 'acoustic_grand', upright: 'acoustic_upright', digital: 'digital' };
   /** a piano in the shape the catalogue's, the homepage's and the matcher's cards
       were written for (the old Supabase columns), from the feed: what the feed
-      doesn't give (height, colour, featured) is left empty, never guessed */
+      doesn't give (colour, featured) is left empty, never guessed */
   function asStock(p) {
     return {
       id: null, slug: p.slug, href: p.href, status: p.status,
       type: OLD_TYPE[p.kindKey] || '', brand: p.brand, model: p.model, year: p.year,
-      dimensions_cm: null, finish: p.finish, colour: null,
+      dimensions_cm: p.heightCm ? { height: p.heightCm } : null, finish: p.finish, colour: null,
       sale_price: p.priceCents ? p.priceCents / 100 : 0, images: p.photos, featured: false
     };
   }
@@ -356,13 +347,75 @@
     return out && typeof out.said === 'string' && out.said ? out.said : WORDS.kept;
   }
 
+  /* ---------- the words each form shows beside its box: read from the office ---------- */
+
+  var FORM_NAMES = ['guide', 'visit', 'service', 'question'];
+  var consentRead = null;
+  /** the words each form shows now and their version, as the office answers
+      them (GET /public/m/sales/consent): one read for every form on the page */
+  function consentWords() {
+    if (!ORIGIN) return Promise.reject(new Refused(0, null));
+    if (!consentRead) {
+      consentRead = call('/public/m/sales/consent').then(function (r) {
+        var forms = r.ok && r.body && r.body.forms;
+        if (!forms || typeof forms !== 'object') throw refusedBy(r);
+        var out = {};
+        FORM_NAMES.forEach(function (f) {
+          var w = forms[f];
+          if (w && typeof w.version === 'string' && /^[A-Za-z0-9._-]{1,80}$/.test(w.version) &&
+              typeof w.words === 'string' && w.words.trim() && w.words.length <= 2000) out[f] = { version: w.version, words: w.words };
+        });
+        return out;
+      });
+      consentRead.catch(function () { consentRead = null; });
+    }
+    return consentRead;
+  }
+
+  /** the words and version each form has shown on this page, as read */
+  var SHOWN = {};
+  /** the office's words for `form` put beside its box: `label` holds the box
+      (an <input>) and a <span> for the words. The label stays out of sight until
+      they are read, and the version shown is the one sent. Where they can't be
+      read, it says the form can't be sent just now, with no box to tick.
+      Resolves true once shown */
+  function showConsent(form, label) {
+    var box = label && label.querySelector('input');
+    var span = label && label.querySelector('span');
+    if (!box || !span) return Promise.resolve(false);
+    if (!SHOWN[form]) label.style.display = 'none';
+    return consentWords().then(function (all) {
+      var w = all[form];
+      if (!w) throw new Refused(0, null);
+      if (!SHOWN[form] || SHOWN[form].version !== w.version) box.checked = false;
+      span.textContent = w.words;
+      box.hidden = false;
+      label.classList.remove('is-unavailable');
+      label.style.display = '';
+      SHOWN[form] = w;
+      return true;
+    }).catch(function (err) {
+      console.error('[office] the consent words could not be read', err);
+      if (SHOWN[form]) { label.style.display = ''; return true; }
+      span.textContent = WORDS.noConsent;
+      box.checked = false;
+      box.hidden = true;
+      label.classList.add('is-unavailable');
+      label.style.display = '';
+      return false;
+    });
+  }
+  /** whether `form`'s words have been shown on this page */
+  function consentShown(form) { return !!SHOWN[form]; }
+
   var FIELDS = ['name', 'email', 'phone', 'message', 'day', 'time', 'piano', 'their_piano', 'suburb', 'sp_check'];
   /** one of the four forms, sent as the office takes it: its fields, the box
-      ticked with its words' version, the page, the QR's code and the campaign */
+      ticked with the version of the words it showed, the page, the QR's code and
+      the campaign. Never sent without the office's words shown */
   function sendForm(form, fields, check) {
-    var consent = CONSENT[form];
-    if (!consent) return Promise.reject(new Refused(0, null));
-    var body = { consent: true, consent_version: consent.version, page: location.pathname };
+    var shown = SHOWN[form];
+    if (!shown) return Promise.reject(new Refused(0, WORDS.noConsent));
+    var body = { consent: true, consent_version: shown.version, page: location.pathname };
     FIELDS.forEach(function (k) {
       var v = fields[k];
       if (typeof v === 'string' && v.trim()) body[k] = v.trim();
@@ -454,7 +507,8 @@
        in words, never falling back to the old ways the switch turned off */
     on: typeof cfg.origin === 'string' && cfg.origin.trim() !== '',
     origin: ORIGIN,
-    CONSENT: CONSENT,
+    showConsent: showConsent,
+    consentShown: consentShown,
     WORDS: WORDS,
     Refused: Refused,
     isSlug: isSlug,

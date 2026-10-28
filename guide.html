@@ -119,6 +119,7 @@
   .gd-field.is-invalid input { border-bottom-color: var(--sp-felt); box-shadow: 0 1px 0 var(--sp-felt); }
   .gd-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
   .gd-check { min-height: 65px; margin-bottom: 18px; }
+  .gd-consent.is-unavailable { color: var(--sp-ink-soft); }
   .gd-check[hidden] { display: none; }
   .gd-consent {
     display: flex;
@@ -403,7 +404,8 @@
      its bot check; its answer says a confirm email may come first, so nothing here
      says the guide opens straight away. The QR's ?src= goes as its placement. */
   if (OFFICE) {
-    form.querySelector('#gdConsentRow span').textContent = OFFICE.CONSENT.guide.words;
+    // the office's words for its guide form and their version, read from it, never a copy here
+    OFFICE.showConsent('guide', document.getElementById('gdConsentRow'));
     OFFICE.honeypot(form.querySelector('.gd-hp'));
     form.querySelector('.gd-small').textContent = 'Free, 33 pages, sent to you by email.';
     var box = document.createElement('div');
@@ -467,6 +469,13 @@
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     var f = form.elements;
+    if (OFFICE && !OFFICE.consentShown('guide')) {
+      // not read yet: read again; shown now, they tick it first; still not, the form can't be sent
+      OFFICE.showConsent('guide', document.getElementById('gdConsentRow')).then(function (shown) {
+        showError(errorEl, shown ? OFFICE.WORDS.tick : OFFICE.WORDS.noConsent);
+      });
+      return;
+    }
     var bad = false;
     bad = mark('firstName', !f.firstName.value.trim()) || bad;
     bad = mark('email', !f.email.value.trim() || !f.email.checkValidity()) || bad;

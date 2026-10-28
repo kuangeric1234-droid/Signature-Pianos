@@ -2629,7 +2629,8 @@
   const GUIDE_OFFICE_DOWN = !GUIDE_OFFICE && !!(window.SP_OFFICE_CONFIG && window.SP_OFFICE_CONFIG.origin);
   let guideCheck = null;
   if (playableGuideForm && GUIDE_OFFICE) {
-    playableGuideForm.querySelector('.pg-consent span').textContent = GUIDE_OFFICE.CONSENT.guide.words;
+    // the office's words for its guide form and their version, read from it, never a copy here
+    GUIDE_OFFICE.showConsent('guide', playableGuideForm.querySelector('.pg-consent'));
     GUIDE_OFFICE.honeypot(playableGuideForm.querySelector('.pg-hp'));
     playableGuideSubmit.innerHTML = 'Send me the guide <i class="ti ti-arrow-right"></i>';
     const box = document.createElement('div');
@@ -2647,6 +2648,11 @@
     playableGuideForm.addEventListener('submit', async e => {
       e.preventDefault();
       const f = playableGuideForm.elements;
+      if (GUIDE_OFFICE && !GUIDE_OFFICE.consentShown('guide')) {
+        // not read yet: read again; shown now, they tick it first; still not, the form can't be sent
+        const shown = await GUIDE_OFFICE.showConsent('guide', playableGuideForm.querySelector('.pg-consent'));
+        return showGuideStatus(escGuide(shown ? GUIDE_OFFICE.WORDS.tick : GUIDE_OFFICE.WORDS.noConsent), true);
+      }
       const email = f.email.value.trim();
       if (!f.firstName.value.trim() || !f.lastName.value.trim() || !email) {
         return showGuideStatus('Please enter your first name, last name and email.', true);

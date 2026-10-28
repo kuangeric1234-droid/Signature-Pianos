@@ -642,6 +642,7 @@
   .bv-consent { display: grid; grid-template-columns: 18px 1fr; gap: 12px; align-items: start; font-size: 14px; line-height: 1.6; color: var(--text-1); cursor: pointer; }
   .bv-consent input { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--sp-ink); }
   .bv-consent.is-invalid span { text-decoration: underline; text-decoration-color: var(--sp-felt); text-underline-offset: 4px; }
+  .bv-consent.is-unavailable { grid-template-columns: 1fr; color: var(--text-2); }
   .bv-hp { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; }
   .bv-check { min-height: 65px; margin-bottom: 8px; }
   .bv-check[hidden] { display: none; }
@@ -1502,9 +1503,10 @@
     officeTick.type = 'checkbox'
     officeTick.name = 'consent'
     const words = document.createElement('span')
-    words.textContent = OFFICE.CONSENT.visit.words
     label.append(officeTick, words)
     row.append(label)
+    // the office's words for this form and their version, read from it, never a copy here
+    OFFICE.showConsent('visit', label)
     officeTick.addEventListener('change', () => label.classList.remove('is-invalid'))
     officeHp = document.createElement('input')
     officeHp.type = 'text'
@@ -1559,6 +1561,13 @@
       }
     })
     if (firstBad) { firstBad.focus(); return }
+    if (OFFICE && !OFFICE.consentShown('visit')) {
+      // not read yet: read again; shown now, they tick it first; still not, the form can't be sent
+      const shown = await OFFICE.showConsent('visit', officeTick.closest('.bv-consent'))
+      errEl.textContent = shown ? OFFICE.WORDS.tick : OFFICE.WORDS.noConsent
+      errEl.style.display = 'block'
+      return
+    }
     if (OFFICE_DOWN) {
       errEl.textContent = 'Sorry, that didn’t go through. Please try again, or call us on 0479 128 955.'
       errEl.style.display = 'block'

@@ -840,6 +840,8 @@ function upsertSeoMeta(title, desc){
   .sp-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 24px; }
   .sp-consent { display: grid; grid-template-columns: 18px 1fr; gap: 12px; align-items: start; font-size: 13.5px; line-height: 1.55; color: var(--sp-ink); cursor: pointer; }
   .sp-consent input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--sp-ink); }
+  .sp-consent.is-unavailable { grid-template-columns: 1fr; color: var(--text-2); }
+  .sp-know { margin: 28px 0 10px; font-size: 11px; font-weight: 500; letter-spacing: 0.24em; text-transform: uppercase; color: var(--text-2); }
   .sp-consent.is-invalid span { text-decoration: underline; text-decoration-color: var(--sp-felt); text-underline-offset: 4px; }
   .sp-hp { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
   .sp-check { min-height: 65px; }
@@ -1614,7 +1616,10 @@ function upsertSeoMeta(title, desc){
     const kindWords = p.kind ? p.kind.toLowerCase() + ' piano' : 'piano'
     document.title = `${title} | Signature Pianos Melbourne`
     const said = p.status === 'Sold' ? 'Sold.' : p.status === 'Reserved' ? 'Reserved.' : (p.priceCents ? OFFICE.money(p.priceCents) + '.' : '')
-    const desc = `${p.name} ${kindWords}${p.year ? ', made in ' + p.year : ''}${p.finish ? ', ' + p.finish.toLowerCase() : ''}. ${said} Signature Pianos, Mount Waverley.`.replace(/\s+/g, ' ').trim()
+    const facts = `${p.name} ${kindWords}${p.year ? ', made in ' + p.year : ''}${p.finish ? ', ' + p.finish.toLowerCase() : ''}. ${said} Signature Pianos, Mount Waverley.`
+    // its model's story where the office keeps one, cut at a word near 155 characters; else the facts
+    const story = p.story ? p.story.replace(/\s+/g, ' ').trim() : ''
+    const desc = (story ? (story.length > 155 ? story.slice(0, 155).replace(/\s+\S*$/, '') + '…' : story) : facts).replace(/\s+/g, ' ').trim()
     document.getElementById('docDesc')?.setAttribute('content', desc)
     upsertSeoMeta(document.title, desc)
 
@@ -1627,30 +1632,37 @@ function upsertSeoMeta(title, desc){
     document.getElementById('productName').textContent = p.name
     document.getElementById('productBrand').textContent = p.model ? `${p.brand} · Model ${p.model}` : p.brand
 
-    // The facts under the name: what the feed holds, nothing guessed
+    // The facts under the name where the old page had height, year and origin: what the feed holds, nothing guessed
+    // (where it came from only as an import or a local purchase, office Q88; never a country it doesn't say)
     const meta = document.querySelector('.product-meta-row')
-    const facts = [['Year', p.year], ['Finish', p.finish], ['Condition', p.condition]].filter(([, v]) => v != null && v !== '')
-    meta.replaceChildren(...facts.map(([label, value]) => {
+    const height = p.heightCm ? `${p.heightCm} cm` : null
+    const shown = [['Height', height], ['Year', p.year], ['Came from', p.cameFrom]].filter(([, v]) => v != null && v !== '')
+    meta.replaceChildren(...shown.map(([label, value]) => {
       const box = el('div', { class: 'product-meta' })
       box.append(el('div', { class: 'product-meta-label' }, label), el('div', { class: 'product-meta-value' }, String(value)))
       return box
     }))
-    meta.hidden = !facts.length
+    meta.hidden = !shown.length
 
     renderOfficePrice(p)
     document.getElementById('productSummary').hidden = true
 
-    // About this instrument: the defects every buyer is told of, in the office's words; no story is in the feed
+    // About this instrument: its model's story, then the defects every buyer is told of, each in the office's words
     const about = document.getElementById('productDescription')
+    about.style.whiteSpace = 'pre-line'
+    about.textContent = p.story || ''
+    about.hidden = !p.story
     if (p.defects) {
-      about.parentElement.querySelector('.details-block-title').textContent = 'What to know before you buy'
-      about.textContent = p.defects
-    } else {
+      const know = el('p', { class: 'product-description', style: 'white-space:pre-line;' }, p.defects)
+      about.after(el('h3', { class: 'sp-know' }, 'What to know before you buy'), know)
+    }
+    if (!p.story && !p.defects) {
       about.parentElement.hidden = true
       document.querySelector('.product-details-inner').style.gridTemplateColumns = '1fr'
     }
     document.getElementById('specsTable').innerHTML = [
-      ['Brand', p.brand], ['Model', p.model], ['Type', p.kind], ['Year made', p.year], ['Finish', p.finish], ['Condition', p.condition],
+      ['Brand', p.brand], ['Model', p.model], ['Type', p.kind], ['Year made', p.year], ['Came from', p.cameFrom],
+      ['Height', height], ['Finish', p.finish], ['Condition', p.condition],
     ].filter(([, v]) => v != null && v !== '').map(([label, value]) => `
       <tr>
         <th style="color:#3A4855;font-weight:400;font-size:12px;padding:8px 12px;
@@ -1709,7 +1721,7 @@ function upsertSeoMeta(title, desc){
         choice.append(deposit)
       }
       actions.append(choice)
-      // the deposit's terms before the form, as the office gives them (office step S3.6 adds them to the feed)
+      // the deposit's terms before the form, in the words the office's checkout gives them
       if (p.depositTerms) actions.append(el('p', { class: 'sp-terms' }, p.depositTerms))
       actions.append(el('p', { class: 'sp-fine' }, 'Secure payment via Stripe · 10-year warranty included · Complimentary first tuning'))
       const form = checkoutForm(p, actions)
@@ -1764,13 +1776,12 @@ function upsertSeoMeta(title, desc){
     const name = field('Name', { type: 'text', autocomplete: 'name', maxlength: '120', required: true }, { hint: 'As on your card' })
     const email = field('Email', { type: 'email', autocomplete: 'email', inputmode: 'email', maxlength: '254', required: true }, { hint: 'For your receipt' })
     const phone = field('Phone', { type: 'tel', autocomplete: 'tel', inputmode: 'tel', maxlength: '40' }, { optional: true })
-    const terms = el('p', { class: 'sp-terms', hidden: true })
     const box = el('div', { class: 'sp-check' })
     const send = el('button', { type: 'submit', class: 'sp-pay-btn sp-send' }, 'Continue to payment')
     const answer = el('p', { class: 'sp-answer', role: 'status', 'aria-live': 'polite', hidden: true })
     const pair = el('div', { class: 'sp-pair' })
     pair.append(email.box, phone.box)
-    form.append(head, name.box, pair, terms, box, send, answer)
+    form.append(head, name.box, pair, box, send, answer)
     let pay = 'full'
     let check = null
 
@@ -1779,8 +1790,7 @@ function upsertSeoMeta(title, desc){
       head.textContent = how === 'deposit'
         ? `Reserve the ${p.name} with a ${OFFICE.money(p.depositCents)} deposit`
         : `Buy the ${p.name} for ${OFFICE.money(p.priceCents)}`
-      terms.textContent = how === 'deposit' && p.depositTerms ? p.depositTerms : ''
-      terms.hidden = !terms.textContent
+      // the deposit's terms are said once, under the buttons, before this form
       say(answer, '')
       for (const n of [name.box, pair, send]) n.hidden = false
       form.hidden = false
@@ -1801,7 +1811,7 @@ function upsertSeoMeta(title, desc){
       try {
         const out = await OFFICE.checkout({ piano: p.slug, pay, name: name.input.value, email: email.input.value, phone: phone.input.value }, check)
         // Kept: the office's answer, its terms among its words, then its own pay page
-        for (const n of [head, name.box, pair, terms, box, send]) n.hidden = true
+        for (const n of [head, name.box, pair, box, send]) n.hidden = true
         actions.querySelector('.sp-pay-choice')?.remove()
         if (out.duplicate && !out.pay) {
           // sent again after its answer was lost: the office kept the first, and answers this one without its pay link
@@ -1826,7 +1836,7 @@ function upsertSeoMeta(title, desc){
         // The office won't take this checkout (the piano is being bought, or can't be bought online just now):
         // ask about it instead, with what they typed, so the office keeps them as interested in this piano
         if (err.status === 409) {
-          for (const n of [name.box, pair, terms, box, send]) n.hidden = true
+          for (const n of [name.box, pair, box, send]) n.hidden = true
           if (!form.parentElement.querySelector('.sp-question')) {
             form.after(questionForm(p, {
               intro: 'Ask us about this piano instead.',
@@ -1866,7 +1876,7 @@ function upsertSeoMeta(title, desc){
     message.input.value = `Please let me know if the ${p.name}${p.year ? ' (' + p.year + ')' : ''} comes back on sale.`
     const consent = el('label', { class: 'sp-consent' })
     const tick = el('input', { type: 'checkbox', name: 'consent' })
-    consent.append(tick, el('span', null, OFFICE.CONSENT.question.words))
+    consent.append(tick, el('span'))
     const hp = el('input', { type: 'text', class: 'sp-hp', name: 'sp_check', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' })
     const box = el('div', { class: 'sp-check' })
     const send = el('button', { type: 'submit', class: 'sp-pay-btn sp-send' }, 'Send my question')
@@ -1876,9 +1886,17 @@ function upsertSeoMeta(title, desc){
     form.append(head, intro, name.box, pair, message.box, consent, hp, box, send, answer)
     if (!opts.intro) intro.hidden = true
     const check = OFFICE.challenge(box)
+    // the office's words for its question form and their version, read from it, never a copy here
+    OFFICE.showConsent('question', consent)
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
+      if (!OFFICE.consentShown('question')) {
+        // not read yet: read again; shown now, they tick it first; still not, the form can't be sent
+        const shownNow = await OFFICE.showConsent('question', consent)
+        say(answer, shownNow ? OFFICE.WORDS.tick : OFFICE.WORDS.noConsent, true)
+        return
+      }
       let bad = mark(name, !name.input.value.trim())
       const mail = email.input.value.trim()
       bad = mark(email, (!mail && !phone.input.value.trim()) || (!!mail && !EMAIL_OK.test(mail))) || bad

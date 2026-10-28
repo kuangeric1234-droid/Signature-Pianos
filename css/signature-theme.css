@@ -798,6 +798,7 @@ html.sp-book-open body { overflow: hidden; }
 .sp-book-consent { display: grid; grid-template-columns: 18px 1fr; gap: 12px; align-items: start; margin-top: 2px; font-size: 13px; line-height: 1.55; color: var(--ink); cursor: pointer; }
 .sp-book-consent input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--ink); }
 .sp-book-consent.is-invalid span { text-decoration: underline; text-decoration-color: var(--felt); text-underline-offset: 4px; }
+.sp-book-consent.is-unavailable { grid-template-columns: 1fr; opacity: 0.85; }
 .sp-book-hp { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; }
 .sp-book-check { min-height: 65px; }
 .sp-book-check[hidden] { display: none; }

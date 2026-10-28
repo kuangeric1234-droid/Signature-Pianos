@@ -267,7 +267,8 @@
     fit();
     date.addEventListener('change', fit);
     var consent = el('<label class="sp-book-consent"><input type="checkbox" name="consent"><span></span></label>');
-    consent.querySelector('span').textContent = o.CONSENT.visit.words;
+    // the office's words for its visit form and their version, read from it, never a copy here
+    o.showConsent('visit', consent);
     consent.querySelector('input').addEventListener('change', function () { consent.classList.remove('is-invalid'); });
     var hp = el('<input class="sp-book-hp" type="text">');
     o.honeypot(hp);
@@ -285,6 +286,13 @@
 
   function sendToOffice(o, btn, err) {
     var f = fitForOffice(o);
+    if (!o.consentShown('visit')) {
+      // not read yet: read again; shown now, they tick it first; still not, the card can't be sent
+      return o.showConsent('visit', f.consent).then(function (shown) {
+        err.textContent = shown ? o.WORDS.tick : o.WORDS.noConsent;
+        err.hidden = false;
+      });
+    }
     if (!f.tick.checked) {
       f.consent.classList.add('is-invalid');
       err.textContent = 'Please tick the box so we may arrange your visit.';
