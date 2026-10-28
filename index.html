@@ -2627,6 +2627,11 @@
      its answer (a confirm email may come first, so the guide is sent, not downloaded here) */
   const GUIDE_OFFICE = window.SPOffice && window.SPOffice.on ? window.SPOffice : null;
   const GUIDE_OFFICE_DOWN = !GUIDE_OFFICE && !!(window.SP_OFFICE_CONFIG && window.SP_OFFICE_CONFIG.origin);
+  if (playableGuideForm && GUIDE_OFFICE_DOWN) {
+    // the office's words can't be read without js/office.js: the old words in the page are not shown in their place
+    playableGuideForm.querySelector('.pg-consent span').textContent = 'This form can’t be sent just now. Please try again later, or call us on 0479 128 955.';
+    playableGuideForm.querySelector('.pg-consent input').hidden = true;
+  }
   let guideCheck = null;
   if (playableGuideForm && GUIDE_OFFICE) {
     // the office's words for its guide form and their version, read from it, never a copy here
@@ -2648,6 +2653,7 @@
     playableGuideForm.addEventListener('submit', async e => {
       e.preventDefault();
       const f = playableGuideForm.elements;
+      if (GUIDE_OFFICE_DOWN) return showGuideStatus('Sorry, that didn’t go through. Please try again, or call us on 0479 128 955.', true);
       if (GUIDE_OFFICE && !GUIDE_OFFICE.consentShown('guide')) {
         // not read yet: read again; shown now, they tick it first; still not, the form can't be sent
         const shown = await GUIDE_OFFICE.showConsent('guide', playableGuideForm.querySelector('.pg-consent'));
