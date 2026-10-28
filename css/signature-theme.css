@@ -794,6 +794,13 @@ html.sp-book-open body { overflow: hidden; }
   padding-top: 8px;
 }
 .sp-book-privacy { margin: 0; max-width: 30ch; font-size: 12.5px; line-height: 1.6; color: var(--ink-2); }
+/* The office (S3.4): the visit form's consent box, its hidden box and its bot check */
+.sp-book-consent { display: grid; grid-template-columns: 18px 1fr; gap: 12px; align-items: start; margin-top: 2px; font-size: 13px; line-height: 1.55; color: var(--ink); cursor: pointer; }
+.sp-book-consent input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--ink); }
+.sp-book-consent.is-invalid span { text-decoration: underline; text-decoration-color: var(--felt); text-underline-offset: 4px; }
+.sp-book-hp { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; }
+.sp-book-check { min-height: 65px; }
+.sp-book-check[hidden] { display: none; }
 .sp-book-error { display: block; margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--felt); color: var(--ink); font-weight: 500; }
 .sp-book-error[hidden] { display: none; }
 .sp-book-send {

@@ -433,6 +433,8 @@
   .playable-guide-form button[type="submit"]:hover { background: transparent; color: var(--gold); }
   .playable-guide-form button[type="submit"]:disabled { opacity: 0.6; cursor: default; }
   .pg-hp { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; }
+  .pg-check { min-height: 65px; }
+  .pg-check[hidden] { display: none; }
   .pg-status { margin: 4px 0 0; font-size: 14px; line-height: 1.55; color: var(--text-1); }
   .pg-status.is-error { color: #4A1520; }
   .pg-status a { color: inherit; text-decoration: underline; }
@@ -2619,6 +2621,19 @@
   const playableGuideSubmit = document.getElementById('playableGuideSubmit');
   // Buyer's guide: /api/buyer-guide saves the lead to the CRM and emails the guide.
   const playableGuideStatus = document.getElementById('playableGuideStatus');
+  /* The office (S3.4): its guide form's consent words and version word for word, its hidden box and bot check, and
+     its answer (a confirm email may come first, so the guide is sent, not downloaded here) */
+  const GUIDE_OFFICE = window.SPOffice && window.SPOffice.on ? window.SPOffice : null;
+  let guideCheck = null;
+  if (playableGuideForm && GUIDE_OFFICE) {
+    playableGuideForm.querySelector('.pg-consent span').textContent = GUIDE_OFFICE.CONSENT.guide.words;
+    GUIDE_OFFICE.honeypot(playableGuideForm.querySelector('.pg-hp'));
+    playableGuideSubmit.innerHTML = 'Send me the guide <i class="ti ti-arrow-right"></i>';
+    const box = document.createElement('div');
+    box.className = 'pg-check';
+    playableGuideSubmit.before(box);
+    guideCheck = GUIDE_OFFICE.challenge(box);
+  }
   if (playableGuideForm) {
     const showGuideStatus = (html, isError) => {
       playableGuideStatus.innerHTML = html;
@@ -2640,6 +2655,23 @@
       playableGuideSubmit.disabled = true;
       playableGuideSubmit.innerHTML = 'Sending…';
       playableGuideStatus.hidden = true;
+
+      if (GUIDE_OFFICE) {
+        try {
+          const out = await GUIDE_OFFICE.sendForm('guide', {
+            name: (f.firstName.value.trim() + ' ' + f.lastName.value.trim()).trim(), email, phone: f.phone.value,
+            sp_check: GUIDE_OFFICE.honeypot(playableGuideForm.querySelector('.pg-hp'))
+          }, guideCheck);
+          playableGuideForm.reset();
+          playableGuideSubmit.innerHTML = 'Sent';
+          showGuideStatus(escGuide(GUIDE_OFFICE.answerWords(out)));
+        } catch (err) {
+          playableGuideSubmit.disabled = false;
+          playableGuideSubmit.innerHTML = originalLabel;
+          showGuideStatus(escGuide(err.message), true);
+        }
+        return;
+      }
 
       const params = new URLSearchParams(location.search);
       const utm = {};

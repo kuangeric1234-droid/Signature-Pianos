@@ -837,6 +837,14 @@
   }
   .ts-submit:disabled { opacity: 0.7; cursor: progress; transform: none; }
 
+  /* The office (S3.4): its consent box, its hidden box and its bot check */
+  .ts-consent { display: grid; grid-template-columns: 18px 1fr; gap: 12px; align-items: start; font-size: 14px; line-height: 1.6; color: var(--text-1); cursor: pointer; }
+  .ts-consent input { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--sp-ink); }
+  .ts-consent.is-invalid span { text-decoration: underline; text-decoration-color: var(--sp-felt); text-underline-offset: 4px; }
+  .ts-hp { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; }
+  .ts-check { min-height: 65px; margin-bottom: 8px; }
+  .ts-check[hidden] { display: none; }
+
   .ts-form-error {
     display: none;
     margin-top: 18px;
@@ -1673,6 +1681,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Shared config — always load after Supabase JS -->
 <script src="/js/config.js"></script>
+<!-- The office (S3.4): with its origin set in js/office-config.js, this form posts to the office's tuning or service
+     form; with none, to service_requests and /api/send-email as before. -->
+<script src="/js/office-config.js"></script>
+<script src="/js/office.js"></script>
 
 <script>
   /* -------- NAV: scrolled-state + dropdowns -------- */
@@ -1769,6 +1781,33 @@
     });
   })();
 
+  /* -------- THE OFFICE (S3.4): the tuning or service form as the office takes it --------
+     Its consent words and version beside a box to tick, its hidden box and its bot check. */
+  const OFFICE = window.SPOffice && window.SPOffice.on ? window.SPOffice : null
+  let officeTick = null, officeHp = null, officeCheck = null
+  if (OFFICE) {
+    const row = document.createElement('div')
+    row.className = 'ts-form-row'
+    const label = document.createElement('label')
+    label.className = 'ts-consent'
+    officeTick = document.createElement('input')
+    officeTick.type = 'checkbox'
+    officeTick.name = 'consent'
+    const words = document.createElement('span')
+    words.textContent = OFFICE.CONSENT.service.words
+    label.append(officeTick, words)
+    row.append(label)
+    officeTick.addEventListener('change', () => label.classList.remove('is-invalid'))
+    officeHp = document.createElement('input')
+    officeHp.type = 'text'
+    officeHp.className = 'ts-hp'
+    OFFICE.honeypot(officeHp)
+    const box = document.createElement('div')
+    box.className = 'ts-check'
+    document.getElementById('ts-submit').before(row, officeHp, box)
+    officeCheck = OFFICE.challenge(box)
+  }
+
   /* -------- SERVICE REQUEST FORM: validate, submit to service_requests -------- */
   // The form is novalidate (our own messages), so check formats here as well
   // as presence: a bad email or phone would save a request we can't answer.
@@ -1807,6 +1846,13 @@
       }
     })
     if (firstBad) { firstBad.focus(); return }
+    if (OFFICE && !officeTick.checked) {
+      officeTick.closest('.ts-consent').classList.add('is-invalid')
+      errEl.textContent = 'Please tick the box so we may arrange your tuning or service.'
+      errEl.style.display = 'block'
+      officeTick.focus()
+      return
+    }
 
     const btn = form.querySelector('[type="submit"]')
     const btnLabel = btn.textContent
@@ -1822,6 +1868,37 @@
     const nameParts = fullName.split(' ')
     const firstName = nameParts[0]
     const lastName = nameParts.slice(1).join(' ') || ''
+
+    if (OFFICE) {
+      // The office keeps their piano and suburb; the rest of what they chose goes in their message, said plainly
+      const said = (sel) => sel.value ? sel.selectedOptions[0].textContent.trim() : ''
+      const yes = form.is_signature_piano.value
+      const asked = [
+        said(form.service_required) && `Service: ${said(form.service_required)}`,
+        said(form.last_tuned) && `Last tuned: ${said(form.last_tuned)}`,
+        said(form.preferred_timeframe) && `When: ${said(form.preferred_timeframe)}`,
+        yes && `Bought from Signature Pianos: ${yes === 'yes' ? 'Yes' : 'No'}`,
+      ].filter(Boolean).join('\n')
+      const age = form.piano_age.value && form.piano_age.value !== 'unknown' ? said(form.piano_age) : ''
+      try {
+        const out = await OFFICE.sendForm('service', {
+          name: fullName, email: form.email.value, phone: form.phone.value,
+          their_piano: [form.piano_brand.value.trim(), age && `${age.toLowerCase()} old`].filter(Boolean).join(', '),
+          suburb: form.suburb.value,
+          message: [asked, form.message.value.trim()].filter(Boolean).join('\n\n'),
+          sp_check: OFFICE.honeypot(officeHp),
+        }, officeCheck)
+        const done = document.querySelector('#form-success')
+        done.querySelector('h3').textContent = `Request sent, ${firstName}.`
+        done.querySelector('p').textContent = OFFICE.answerWords(out)
+        form.style.display = 'none'
+        done.style.display = 'block'
+      } catch (err) {
+        errEl.textContent = err.message
+        fail()
+      }
+      return
+    }
 
     // status is left to the table default ('pending')
     const payload = {

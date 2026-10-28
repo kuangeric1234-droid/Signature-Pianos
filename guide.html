@@ -118,6 +118,8 @@
   .gd-field input:focus { border-bottom-color: var(--sp-ink); box-shadow: 0 1px 0 var(--sp-ink); }
   .gd-field.is-invalid input { border-bottom-color: var(--sp-felt); box-shadow: 0 1px 0 var(--sp-felt); }
   .gd-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  .gd-check { min-height: 65px; margin-bottom: 18px; }
+  .gd-check[hidden] { display: none; }
   .gd-consent {
     display: flex;
     gap: 12px;
@@ -373,6 +375,10 @@
   &middot; <a href="tel:+61479128955">0479 128 955</a> &middot; <a href="/">signaturepianos.com.au</a>
 </footer>
 
+<!-- The office (S3.4): with its origin set in js/office-config.js, this form posts to the office's guide form; with
+     none, to /api/buyer-guide as before. -->
+<script src="/js/office-config.js"></script>
+<script src="/js/office.js"></script>
 <script>
 /* The guide page: /api/buyer-guide saves the lead to the pipeline, emails the
    guide and returns a one-time token for the optional follow-up answers.
@@ -388,6 +394,44 @@
   var more = document.getElementById('gdMore');
   var thanks = document.getElementById('gdThanks');
   var lead = null;
+  var OFFICE = window.SPOffice && window.SPOffice.on ? window.SPOffice : null;
+  var check = null;
+
+  /* The office (S3.4): its guide form's consent words and version, its hidden box,
+     its bot check; its answer says a confirm email may come first, so nothing here
+     says the guide opens straight away. The QR's ?src= goes as its placement. */
+  if (OFFICE) {
+    form.querySelector('#gdConsentRow span').textContent = OFFICE.CONSENT.guide.words;
+    OFFICE.honeypot(form.querySelector('.gd-hp'));
+    form.querySelector('.gd-small').textContent = 'Free, 33 pages, sent to you by email.';
+    var box = document.createElement('div');
+    box.className = 'gd-check';
+    submit.before(box);
+    check = OFFICE.challenge(box);
+  }
+
+  function sendToOffice(f) {
+    OFFICE.sendForm('guide', {
+      name: f.firstName.value, email: f.email.value, phone: f.phone.value,
+      sp_check: OFFICE.honeypot(form.querySelector('.gd-hp'))
+    }, check).then(function (out) {
+      document.getElementById('gdDoneTitle').textContent = 'Thank you, ' + f.firstName.value.trim().split(' ')[0];
+      document.getElementById('gdDoneNote').textContent = OFFICE.answerWords(out);
+      document.getElementById('gdOpen').style.display = 'none';
+      form.hidden = true;
+      done.hidden = false;
+      more.hidden = true;
+      thanks.hidden = false;
+      document.getElementById('gdDoneTitle').focus({ preventScroll: true });
+      done.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    }).catch(function (err) {
+      submit.disabled = false;
+      submit.innerHTML = 'Get the guide <i class="ti ti-arrow-right" aria-hidden="true"></i>';
+      if (err.field === 'email') mark('email', true);
+      if (err.field === 'name') mark('firstName', true);
+      showError(errorEl, err.message);
+    });
+  }
 
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -434,6 +478,7 @@
     showError(errorEl, '');
     submit.disabled = true;
     submit.textContent = 'One moment…';
+    if (OFFICE) return sendToOffice(f);
 
     fetch(API, {
       method: 'POST',

@@ -11,7 +11,13 @@
 
    A piano can be passed along with data-piano="Yamaha U3H" on the link or on
    any ancestor; it is prefilled into the message. Ctrl/Cmd/middle clicks still
-   open the full booking page. */
+   open the full booking page.
+
+   With the office's origin set (js/office-config.js, S3.4) the card posts to
+   the office's visit form instead: the days and times it takes, its consent
+   words and version beside a box to tick, its hidden box, its bot check, the
+   piano by its lasting address (data-piano-slug), and the office's answer.
+   The setting and js/office.js are loaded on demand, as Supabase is. */
 (function () {
   'use strict';
 
@@ -22,6 +28,7 @@
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   var root, card, form, success, lastFocus, openAnim;
+  var asked = { words: '', slug: '' };
 
   function el(html) {
     var t = document.createElement('template');
@@ -152,19 +159,20 @@
     if (lenis) { on ? lenis.stop() : lenis.start(); }
   }
 
-  function open(piano) {
+  function open(piano, slug) {
     if (!root) build();
     if (!root.hidden) return;
     lastFocus = document.activeElement;
     form.hidden = false;
     success.hidden = true;
+    asked = { words: piano || '', slug: slug || '' };
     if (piano) {
       var msg = form.querySelector('#spb-message');
       if (!msg.value) { msg.value = 'I\'d like to see the ' + piano + '.'; autogrow(msg); }
     }
     root.hidden = false;
     lockScroll(true);
-    loadSupabase();
+    office().then(function (o) { if (o) fitForOffice(o); else loadSupabase(); });
 
     var backdrop = root.querySelector('.sp-book-backdrop');
     if (openAnim) openAnim.cancel();
@@ -219,6 +227,88 @@
     return sbReady;
   }
 
+  /* ---------- The office (S3.4), on demand ---------- */
+  var officeReady = null;
+  /** the office's client where its origin is set, else null (the old ways) */
+  function office() {
+    if (officeReady) return officeReady;
+    var on = function () { return window.SPOffice && window.SPOffice.on ? window.SPOffice : null; };
+    officeReady = (window.SPOffice ? Promise.resolve() :
+      (window.SP_OFFICE_CONFIG ? Promise.resolve() : loadScript('/js/office-config.js'))
+        .then(function () {
+          var cfg = window.SP_OFFICE_CONFIG;
+          return cfg && cfg.origin ? loadScript('/js/office.js') : null;
+        })
+    ).then(on, function (err) {
+      console.error('[book] the office setting could not be loaded', err);
+      officeReady = null;
+      return null;
+    });
+    return officeReady;
+  }
+
+  var officeFit = null;
+  /** the card made to send what the office's visit form takes, once */
+  function fitForOffice(o) {
+    if (officeFit) return officeFit;
+    var date = form.querySelector('#spb-date');
+    var time = form.querySelector('#spb-time');
+    var days = o.visitDays();
+    date.min = days.min;
+    date.max = days.max;
+    var fit = function () { o.fitTimes(time, date.value); };
+    fit();
+    date.addEventListener('change', fit);
+    var consent = el('<label class="sp-book-consent"><input type="checkbox" name="consent"><span></span></label>');
+    consent.querySelector('span').textContent = o.CONSENT.visit.words;
+    consent.querySelector('input').addEventListener('change', function () { consent.classList.remove('is-invalid'); });
+    var hp = el('<input class="sp-book-hp" type="text">');
+    o.honeypot(hp);
+    var box = el('<div class="sp-book-check"></div>');
+    var foot = form.querySelector('.sp-book-foot');
+    foot.parentNode.insertBefore(consent, foot);
+    foot.parentNode.insertBefore(hp, foot);
+    foot.parentNode.insertBefore(box, foot);
+    // its own words say what is done with what is sent, so the old line's promise goes
+    var privacy = form.querySelector('.sp-book-privacy');
+    if (privacy.firstChild && privacy.firstChild.nodeType === 3) privacy.firstChild.textContent = '';
+    officeFit = { tick: consent.querySelector('input'), consent: consent, hp: hp, check: o.challenge(box) };
+    return officeFit;
+  }
+
+  function sendToOffice(o, btn, err) {
+    var f = fitForOffice(o);
+    if (!f.tick.checked) {
+      f.consent.classList.add('is-invalid');
+      err.textContent = 'Please tick the box so we may arrange your visit.';
+      err.hidden = false;
+      return Promise.resolve();
+    }
+    var fullName = form.full_name.value.trim().replace(/\s+/g, ' ');
+    var see = Array.prototype.map.call(form.querySelectorAll('input[name="pianos_interested"]:checked'), function (c) { return c.value; });
+    var message = [see.length ? 'I\'d like to see: ' + see.join(', ') : '', form.message.value.trim()].filter(Boolean).join('\n\n');
+    return o.sendForm('visit', {
+      name: fullName, email: form.email.value, phone: form.phone.value,
+      day: form.preferred_date.value, time: form.preferred_time.value, message: message,
+      piano: asked.slug || asked.words, sp_check: o.honeypot(f.hp)
+    }, f.check).then(function (out) {
+      // the office's answer: a request, booked once a time is confirmed
+      success.querySelector('.sp-book-script').textContent = 'Request sent';
+      success.querySelector('.sp-book-success-text').textContent = o.answerWords(out);
+      form.hidden = true;
+      success.hidden = false;
+      success.querySelector('.sp-book-done').focus({ preventScroll: true });
+      form.reset();
+      f.tick.checked = false;
+      if (!reduced.matches) {
+        success.animate([{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }], { duration: 700, easing: EASE_OUT });
+      }
+    }, function (ex) {
+      err.textContent = ex.message;
+      err.hidden = false;
+    });
+  }
+
   /* ---------- Submit ---------- */
   // Phone numbers, loosely: 0412 345 678, +61 412 345 678, (03) 9876 5432
   function phoneOk(v) {
@@ -247,6 +337,15 @@
     var btn = form.querySelector('.sp-book-send');
     btn.disabled = true;
     btn.classList.add('is-sending');
+    var settle = function () { btn.disabled = false; btn.classList.remove('is-sending'); };
+    office().then(function (o) {
+      if (!o) return sendOld(btn);
+      return sendToOffice(o, btn, err).then(settle, settle);
+    });
+  }
+
+  function sendOld(btn) {
+    var err = form.querySelector('.sp-book-error');
 
     var fullName = form.full_name.value.trim().replace(/\s+/g, ' ');
     var parts = fullName.split(' ');
@@ -262,7 +361,7 @@
       // status / notified are left to the table defaults ('pending', false)
     };
 
-    loadSupabase()
+    return loadSupabase()
       .then(function (sb) {
         if (!sb) throw new Error('Supabase unavailable');
         return sb.from('viewing_bookings').insert(payload);
@@ -310,7 +409,7 @@
     if (!a || !isBookingLink(a)) return;
     e.preventDefault();
     var holder = a.closest('[data-piano]');
-    open(holder ? holder.getAttribute('data-piano') : '');
+    open(holder ? holder.getAttribute('data-piano') : '', holder ? holder.getAttribute('data-piano-slug') : '');
   });
 
   // /any-page#book opens the card on arrival
