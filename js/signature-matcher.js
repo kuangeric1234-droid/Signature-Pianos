@@ -6,7 +6,9 @@
    Every piano is scored on budget, room size and who is playing, and the top
    three are shown with reasons built only from that piano's own details.
    Condition grades are internal and never shown. Supabase comes from the
-   on-demand loader in js/signature-book.js (window.spBook.supabase). */
+   on-demand loader in js/signature-book.js (window.spBook.supabase); with the
+   office's origin set (js/office-config.js, S3.4), the office's stock feed:
+   the pianos for sale with a price, its reserved ones left out. */
 (function () {
   'use strict';
 
@@ -50,6 +52,13 @@
 
   function loadStock() {
     if (stock) return Promise.resolve(stock);
+    var office = window.SPOffice && window.SPOffice.on ? window.SPOffice : null;
+    if (office) {
+      return office.pianos().then(function (list) {
+        stock = list.filter(function (p) { return p.status === 'For sale' && p.priceCents; }).map(office.asStock);
+        return stock;
+      });
+    }
     if (!window.spBook || !window.spBook.supabase) return Promise.reject(new Error('loader missing'));
     return window.spBook.supabase().then(function (sb) {
       if (!sb) throw new Error('Supabase unavailable');
@@ -112,7 +121,8 @@
     else if (m.full && m.height) out.push(m.height + ' cm tall: the longer strings give a fuller bass');
     else if (m.height) out.push(m.height + ' cm tall, so it sits comfortably ' + (space === 'small' ? 'in a smaller room' : 'against a wall'));
 
-    if (p.year) out.push('Made in ' + p.year + ', hand-picked in Japan');
+    // the office's feed doesn't say where a piano came from (a trade-in may not be from Japan), so nothing is claimed
+    if (p.year) out.push('Made in ' + p.year + (p.slug ? '' : ', hand-picked in Japan'));
     return out;
   }
 
@@ -121,18 +131,22 @@
     var name = ((p.brand || '') + ' ' + (p.model || '')).trim();
     var photo = p.images && p.images[0];
     var facts = [p.year, m.height ? m.height + ' cm tall' : '', p.finish || p.colour].filter(Boolean).join(' · ');
+    var href = esc(p.href || '/piano.html?id=' + encodeURIComponent(p.id));
+    // an office piano: its address for the visit card, and its photo read again if its address runs out
+    var slug = p.slug ? ' data-piano-slug="' + esc(p.slug) + '"' : '';
+    var fresh = p.slug ? ' data-office-slug="' + esc(p.slug) + '" data-office-photo="0"' : '';
     return '' +
-      '<article class="sp-match-card" data-piano="' + esc(name + (p.year ? ' (' + p.year + ')' : '')) + '">' +
-        '<a class="sp-match-photo' + (photo ? '' : ' is-empty') + '" href="/piano.html?id=' + encodeURIComponent(p.id) + '" tabindex="-1" aria-hidden="true">' +
-          (photo ? '<img src="' + esc(photo) + '" alt="" loading="lazy">'
+      '<article class="sp-match-card" data-piano="' + esc(name + (p.year ? ' (' + p.year + ')' : '')) + '"' + slug + '>' +
+        '<a class="sp-match-photo' + (photo ? '' : ' is-empty') + '" href="' + href + '" tabindex="-1" aria-hidden="true">' +
+          (photo ? '<img src="' + esc(photo) + '" alt="" loading="lazy"' + fresh + '>'
                  : '<img src="/media/brand/monogram-ink.svg" alt=""><span>Photographs soon</span>') +
         '</a>' +
         '<div class="sp-match-body">' +
-          '<h3 class="sp-match-name"><a href="/piano.html?id=' + encodeURIComponent(p.id) + '">' + esc(name) + '</a></h3>' +
+          '<h3 class="sp-match-name"><a href="' + href + '">' + esc(name) + '</a></h3>' +
           '<p class="sp-match-facts">' + esc(facts) + '</p>' +
           '<ul class="sp-match-why">' + reasons(m, space).map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul>' +
           '<div class="sp-match-actions">' +
-            '<a class="sp-match-link" href="/piano.html?id=' + encodeURIComponent(p.id) + '">View piano<i class="ti ti-arrow-right" aria-hidden="true"></i></a>' +
+            '<a class="sp-match-link" href="' + href + '">View piano<i class="ti ti-arrow-right" aria-hidden="true"></i></a>' +
             '<a class="sp-match-link" href="/services/book-a-viewing.html">Play it in the showroom<i class="ti ti-arrow-right" aria-hidden="true"></i></a>' +
           '</div>' +
         '</div>' +

@@ -731,6 +731,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Shared config — always load after Supabase JS -->
 <script src="/js/config.js"></script>
+<!-- The office (S3.4): with its origin set in js/office-config.js, the grid reads the office's stock feed; with none,
+     Supabase as before. -->
+<script src="/js/office-config.js"></script>
+<script src="/js/office.js"></script>
 
 <script>
   /* -------- NAV: scrolled-state + dropdowns -------- */
@@ -767,7 +771,8 @@
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(null); });
   })();
 
-  /* -------- PIANO GRID: load from Supabase, render by category -------- */
+  /* -------- PIANO GRID: load from the office's stock feed (S3.4), else Supabase; render by category -------- */
+  const OFFICE = window.SPOffice && window.SPOffice.on ? window.SPOffice : null
   // Section order (matches the filter pill order). Each section heading
   // shows above its own card grid when no type filter is active.
   const CATEGORY_SECTIONS = [
@@ -788,21 +793,30 @@
     grid.innerHTML = '<p class="ins-empty">Loading pianos</p>'
 
     try {
-      let query = _supabase
-        .from('pianos')
-        .select(PIANO_CARD_COLUMNS)
-        .eq('stock_status', 'available')
-        .order('created_at', { ascending: false })
+      let data, error
+      if (OFFICE) {
+        // The office's feed: the pianos for sale and reserved, newest listed first, in the cards' shape
+        try {
+          const all = (await OFFICE.pianos()).map(OFFICE.asStock)
+          data = filters.type ? all.filter(p => p.type === filters.type) : all
+        } catch (err) { error = err }
+      } else {
+        let query = _supabase
+          .from('pianos')
+          .select(PIANO_CARD_COLUMNS)
+          .eq('stock_status', 'available')
+          .order('created_at', { ascending: false })
 
-      if (filters.type) query = query.eq('type', filters.type)
-      if (filters.maxPrice) query = query.lte('sale_price', filters.maxPrice)
+        if (filters.type) query = query.eq('type', filters.type)
+        if (filters.maxPrice) query = query.lte('sale_price', filters.maxPrice)
 
-      const { data, error } = await query
+        ;({ data, error } = await query)
+      }
       if (seq !== loadSeq) return
 
       if (error) {
-        console.error('[instruments] supabase query failed', error)
-        grid.innerHTML = emptyMessage()
+        console.error(OFFICE ? '[instruments] the office feed failed' : '[instruments] supabase query failed', error)
+        grid.innerHTML = OFFICE ? notLoadedMessage() : emptyMessage()
         return
       }
       if (!data.length) {
@@ -861,13 +875,17 @@
     const height = parseDims(piano.dimensions_cm).height
     const facts = [piano.year, height ? `${height} cm tall` : '', piano.finish || piano.colour]
       .filter(Boolean).join(' · ')
-    const price = Number(piano.sale_price) > 0 ? '$' + Number(piano.sale_price).toLocaleString('en-AU') : 'Price on request'
+    const price = piano.status === 'Reserved' ? 'Reserved'
+      : Number(piano.sale_price) > 0 ? '$' + Number(piano.sale_price).toLocaleString('en-AU') : 'Price on request'
     const photo = piano.images && piano.images[0]
+    // an office photo's address is read again if it runs out (js/office.js)
+    const fresh = piano.slug ? ` data-office-slug="${esc(piano.slug)}" data-office-photo="0"` : ''
     const image = photo
-      ? `<img src="${esc(photo)}" alt="${esc(name)}" loading="lazy">`
+      ? `<img src="${esc(photo)}" alt="${esc(name)}" loading="lazy"${fresh}>`
       : `<img src="/media/brand/monogram-ink.svg" alt=""><span>Photographs soon</span>`
+    const href = piano.href || `/piano.html?id=${encodeURIComponent(piano.id)}`
     return `
-      <a class="piano-card" href="/piano.html?id=${encodeURIComponent(piano.id)}">
+      <a class="piano-card" href="${esc(href)}">
         <div class="card-image${photo ? '' : ' card-image--empty'}">
           ${image}
         </div>
@@ -881,6 +899,10 @@
           </div>
         </div>
       </a>`
+  }
+
+  function notLoadedMessage() {
+    return '<p class="ins-empty">Our pianos could not be loaded just now. Please try again in a minute, or call us on <a href="tel:+61479128955">0479 128 955</a>.</p>'
   }
 
   function emptyMessage() {

@@ -2052,6 +2052,10 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.21/dist/lenis.min.js"></script>
+<!-- The office (S3.4): with its origin set in js/office-config.js, the stock cards, the matcher and the guide form read
+     and post to the office; with none, Supabase and /api as before. -->
+<script src="/js/office-config.js"></script>
+<script src="/js/office.js"></script>
 <script>
   /* ======================================================================
      HOMEPAGE MOTION
@@ -2503,19 +2507,22 @@
     const TYPE = { acoustic_upright: 'Upright', acoustic_grand: 'Grand piano', digital: 'Digital piano' };
     const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
     const dims = (d) => { if (typeof d === 'string') { try { return JSON.parse(d) || {}; } catch (e) { return {}; } } return d || {}; };
-    const price = (p) => Number(p.sale_price) > 0 ? '$' + Number(p.sale_price).toLocaleString('en-AU') : 'Price on request';
-    const href = (p) => '/piano.html?id=' + encodeURIComponent(p.id);
+    const price = (p) => p.status === 'Reserved' ? 'Reserved'
+      : Number(p.sale_price) > 0 ? '$' + Number(p.sale_price).toLocaleString('en-AU') : 'Price on request';
+    const href = (p) => p.href || '/piano.html?id=' + encodeURIComponent(p.id);
+    // an office photo's address is read again if it runs out (js/office.js)
+    const fresh = (p) => p.slug ? ` data-office-slug="${esc(p.slug)}" data-office-photo="0"` : '';
     const figure = (p, alt) => {
       const photo = Array.isArray(p.images) && p.images[0];
       return photo
-        ? `<figure><img src="${esc(photo)}" loading="lazy" alt="${esc(alt)}"></figure>`
+        ? `<figure><img src="${esc(photo)}" loading="lazy" alt="${esc(alt)}"${fresh(p)}></figure>`
         : '<figure class="is-empty"><img src="/media/brand/monogram-ink.svg" alt=""><span>Photographs soon</span></figure>';
     };
     const grandCard = (p) => {
       const name = [p.brand, p.model].filter(Boolean).join(' ');
       const facts = [p.year, p.finish || p.colour, price(p)].filter(Boolean).join(' · ');
-      return `<article class="h-grand" data-piano="${esc(name + (p.year ? ' (' + p.year + ')' : ''))}">
-        <a href="${href(p)}">
+      return `<article class="h-grand" data-piano="${esc(name + (p.year ? ' (' + p.year + ')' : ''))}"${p.slug ? ` data-piano-slug="${esc(p.slug)}"` : ''}>
+        <a href="${esc(href(p))}">
           ${figure(p, name + ' grand piano')}
           <div class="h-grand-row">
             <div><span class="h-grand-brand">${esc(p.brand)}</span><h3>${esc(p.model || p.brand)}</h3><p>${esc(facts)}</p></div>
@@ -2528,7 +2535,7 @@
       const name = [p.brand, p.model].filter(Boolean).join(' ');
       const height = dims(p.dimensions_cm).height;
       const facts = [p.year, TYPE[p.type] || '', height ? height + ' cm tall' : '', p.finish || p.colour, price(p)].filter(Boolean).join(' · ');
-      return `<a class="h-card" href="${href(p)}" data-piano="${esc(name + (p.year ? ' (' + p.year + ')' : ''))}">
+      return `<a class="h-card" href="${esc(href(p))}" data-piano="${esc(name + (p.year ? ' (' + p.year + ')' : ''))}"${p.slug ? ` data-piano-slug="${esc(p.slug)}"` : ''}>
         ${figure(p, name + ' piano')}
         <div class="h-card-meta"><div><h3>${esc(name)}</h3><p>${esc(facts)}</p></div><span class="h-card-cta">View piano</span></div>
       </a>`;
@@ -2564,9 +2571,17 @@
     }
 
     let started = false;
+    const OFFICE = window.SPOffice && window.SPOffice.on ? window.SPOffice : null;
     function load() {
       if (started) return;
       started = true;
+      if (OFFICE) {
+        // The office's feed: for sale and reserved, newest listed first
+        OFFICE.pianos()
+          .then((list) => render(list.map(OFFICE.asStock).slice(0, 24)))
+          .catch((err) => console.error('[home] the office feed failed, keeping the showroom cards', err));
+        return;
+      }
       if (!window.spBook || !window.spBook.supabase) return;
       window.spBook.supabase()
         .then((sb) => {

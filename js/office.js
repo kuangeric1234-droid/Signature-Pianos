@@ -187,6 +187,42 @@
     });
   }
 
+  var OLD_TYPE = { grand: 'acoustic_grand', upright: 'acoustic_upright', digital: 'digital' };
+  /** a piano in the shape the catalogue's, the homepage's and the matcher's cards
+      were written for (the old Supabase columns), from the feed: what the feed
+      doesn't give (height, colour, featured) is left empty, never guessed */
+  function asStock(p) {
+    return {
+      id: null, slug: p.slug, href: p.href, status: p.status,
+      type: OLD_TYPE[p.kindKey] || '', brand: p.brand, model: p.model, year: p.year,
+      dimensions_cm: null, finish: p.finish, colour: null,
+      sale_price: p.priceCents ? p.priceCents / 100 : 0, images: p.photos, featured: false
+    };
+  }
+
+  /* A photo's address from the feed lasts five minutes (until engine step E42
+     gives a lasting one): an <img data-office-slug data-office-photo> that fails
+     to load reads the feed afresh once and takes its new address. */
+  var refreshing = null;
+  document.addEventListener('error', function (e) {
+    var img = e.target;
+    if (!img || img.tagName !== 'IMG' || !img.getAttribute('data-office-slug') || img.getAttribute('data-office-retried')) return;
+    img.setAttribute('data-office-retried', '1');
+    if (!refreshing) {
+      feed = null;
+      refreshing = pianos();
+      refreshing.then(done, done);
+    }
+    refreshing.then(function (list) {
+      var slug = img.getAttribute('data-office-slug');
+      var at = Number(img.getAttribute('data-office-photo')) || 0;
+      var p = list.filter(function (x) { return x.slug === slug; })[0];
+      if (p && p.photos[at]) img.src = p.photos[at];
+      else img.style.visibility = 'hidden';
+    }, function () { img.style.visibility = 'hidden'; });
+    function done() { setTimeout(function () { refreshing = null; }, 2000); }
+  }, true);
+
   /** an amount in cents as the brand writes it: $6,900, or $1,998.50 */
   function money(c) {
     if (typeof c !== 'number' || !isFinite(c)) return '';
@@ -416,6 +452,7 @@
     isSlug: isSlug,
     pianos: pianos,
     piano: piano,
+    asStock: asStock,
     money: money,
     challenge: challenge,
     sendForm: sendForm,
