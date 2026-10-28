@@ -32,6 +32,17 @@ http.createServer((req, res) => {
     res.writeHead(400); return res.end('Bad request');
   }
   if (urlPath === '/') urlPath = '/index.html';
+
+  // A local run against a local office (S3.4): OFFICE_ORIGIN, and TURNSTILE_SITE_KEY for its bot check, answer
+  // js/office-config.js in place of the file, so the switch is never edited to try it. Unset, the file as it is.
+  if (urlPath === '/js/office-config.js' && process.env.OFFICE_ORIGIN) {
+    res.writeHead(200, { 'Content-Type': TYPES['.js'], 'Cache-Control': 'no-store' });
+    return res.end('window.SP_OFFICE_CONFIG = Object.freeze(' + JSON.stringify({
+      origin: process.env.OFFICE_ORIGIN,
+      turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || ''
+    }) + ');\n');
+  }
+
   const filePath = path.join(ROOT, urlPath);
 
   // Must stay inside ROOT (path.relative, so /repo-evil can't pass as /repo),
