@@ -752,6 +752,121 @@ function upsertSeoMeta(title, desc){
   .footer-bottom a { color: var(--text-3); transition: color 0.2s ease; }
   .footer-bottom a:hover { color: var(--text-1); }
 
+  /* ============ THE OFFICE (S3.4): status, checkout and the question form ============ */
+  .sp-status {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 7px 10px 6px;
+    border: 1px solid var(--sp-ink);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+  .sp-office-actions { display: block; }
+  .sp-pay-choice { display: grid; gap: 10px; }
+  .sp-pay-btn {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid var(--sp-ink);
+    background: var(--sp-ink);
+    color: var(--sp-white);
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.4s linear, color 0.4s linear;
+  }
+  .sp-pay-btn:hover, .sp-pay-btn[aria-pressed="true"] { background: transparent; color: var(--sp-ink); }
+  .sp-pay-btn--quiet { background: transparent; color: var(--sp-ink); border-color: rgba(22, 34, 46, 0.5); }
+  .sp-pay-btn--quiet:hover, .sp-pay-btn--quiet[aria-pressed="true"] { border-color: var(--sp-ink); background: rgba(22, 34, 46, 0.06); }
+  .sp-fine { margin: 14px 0 0; font-size: 12px; line-height: 1.6; color: var(--text-2); }
+  .sp-terms { margin: 14px 0 0; padding-left: 12px; border-left: 2px solid var(--sp-felt); font-size: 14px; line-height: 1.6; color: var(--sp-ink); }
+  .sp-terms[hidden] { display: none; }
+  .sp-note { margin: 0 0 6px; font-size: 15px; line-height: 1.65; color: var(--sp-ink); }
+  .sp-office-form {
+    display: grid;
+    gap: 18px;
+    margin-top: 24px;
+    padding: 28px 28px 30px;
+    background: var(--sp-white);
+    border: 1px solid var(--border);
+  }
+  .sp-office-form[hidden], .sp-office-form [hidden], .product-meta-row[hidden] { display: none !important; }
+  .sp-office-head {
+    margin: 0;
+    font-family: var(--sp-font-display);
+    font-stretch: 62.5%;
+    font-variation-settings: 'wdth' 62.5;
+    font-weight: 500;
+    font-size: 30px;
+    line-height: 0.95;
+    text-transform: uppercase;
+    color: var(--sp-ink);
+  }
+  .sp-office-intro { margin: -6px 0 0; font-size: 14.5px; line-height: 1.6; color: var(--text-2); }
+  .sp-field { display: flex; flex-direction: column; min-width: 0; }
+  .sp-field label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+  .sp-field label small { font-size: inherit; letter-spacing: 0.1em; text-transform: none; }
+  .sp-field input, .sp-field textarea {
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px 0 9px;
+    border: 0;
+    border-bottom: 1px solid rgba(22, 34, 46, 0.4);
+    border-radius: 0;
+    background: transparent;
+    color: var(--sp-ink);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.4;
+    outline: none;
+    -webkit-appearance: none;
+            appearance: none;
+  }
+  .sp-field textarea { resize: vertical; min-height: 72px; }
+  .sp-field input:focus, .sp-field textarea:focus { border-bottom-color: var(--sp-ink); box-shadow: 0 1px 0 var(--sp-ink); }
+  .sp-field.is-invalid input, .sp-field.is-invalid textarea { border-bottom-color: var(--sp-felt); box-shadow: 0 1px 0 var(--sp-felt); }
+  .sp-field-hint { margin-top: 6px; font-size: 12.5px; color: var(--text-2); }
+  .sp-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 24px; }
+  .sp-consent { display: grid; grid-template-columns: 18px 1fr; gap: 12px; align-items: start; font-size: 13.5px; line-height: 1.55; color: var(--sp-ink); cursor: pointer; }
+  .sp-consent input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--sp-ink); }
+  .sp-consent.is-invalid span { text-decoration: underline; text-decoration-color: var(--sp-felt); text-underline-offset: 4px; }
+  .sp-hp { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .sp-check { min-height: 65px; }
+  .sp-check[hidden] { display: none; }
+  .sp-send:disabled { cursor: progress; opacity: 0.7; }
+  .sp-answer { margin: 0; padding-left: 12px; border-left: 2px solid var(--sp-ink); font-size: 15px; line-height: 1.65; color: var(--sp-ink); }
+  .sp-answer.is-refused { border-left-color: var(--sp-felt); }
+  .sp-answer[hidden] { display: none; }
+  .sp-go {
+    display: block;
+    padding: 16px;
+    background: var(--sp-ink);
+    border: 1px solid var(--sp-ink);
+    color: var(--sp-white);
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    transition: background 0.4s linear, color 0.4s linear;
+  }
+  .sp-go:hover { background: transparent; color: var(--sp-ink); }
+  @media (max-width: 560px) {
+    .sp-office-form { padding: 22px 18px 24px; }
+    .sp-pair { grid-template-columns: 1fr; }
+  }
+
   /* ============ MOBILE ============ */
   @media (max-width: 960px) {
     nav { padding: 18px 24px; }
@@ -1070,6 +1185,10 @@ function upsertSeoMeta(title, desc){
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Shared config — always load after Supabase JS -->
 <script src="/js/config.js"></script>
+<!-- The office (S3.4): with its origin set in js/office-config.js, this page reads the office's stock feed and starts its
+     checkout; with none, the Supabase read and /api/create-checkout-session below, as before. -->
+<script src="/js/office-config.js"></script>
+<script src="/js/office.js"></script>
 <!-- No Stripe.js here: checkout is a redirect to the Stripe-hosted page from /api/create-checkout-session. -->
 <script>
   /* -------- NAV: scrolled-state + dropdowns -------- */
@@ -1106,11 +1225,13 @@ function upsertSeoMeta(title, desc){
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(null); });
   })();
 
-  /* -------- Load a single piano by ?id= URL param. -------- */
+  /* -------- Load a single piano: by ?slug= from the office, or by ?id= from Supabase. -------- */
+  const OFFICE = window.SPOffice && window.SPOffice.on ? window.SPOffice : null
   const params = new URLSearchParams(window.location.search)
   const pianoId = params.get('id')
+  const pianoSlug = params.get('slug')
 
-  if (!pianoId) {
+  if (OFFICE ? !OFFICE.isSlug(pianoSlug) : !pianoId) {
     window.location.replace('instruments/index.html')
   }
 
@@ -1232,6 +1353,12 @@ function upsertSeoMeta(title, desc){
       img.alt = altText
       img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius: 0;'
       img.addEventListener('error', () => {
+        // The office's photo addresses last 5 minutes (until engine step E42): read them again once, then retry
+        if (piano.refresh && !img.dataset.retried) {
+          img.dataset.retried = '1'
+          piano.refresh().then(() => { img.src = piano.images[index] }, () => img.dispatchEvent(new Event('error')))
+          return
+        }
         main.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;"><i class="ti ti-camera" style="font-size:48px;color:rgba(22, 34, 46, 0.3);"></i></div>`
       })
       main.replaceChildren(img)
@@ -1445,7 +1572,360 @@ function upsertSeoMeta(title, desc){
     }).join('')
   }
 
-  if (pianoId) loadPiano()
+  /* -------- THE OFFICE (S3.4): the piano from the office's stock feed, its checkout and its question form --------
+     Only what the feed gives is shown (its brand, model, kind, year, finish, condition, the defects every buyer is
+     told of, its price, deposit and photos); nothing is filled in where it gives nothing. */
+  function el(tag, attrs, text) {
+    const n = document.createElement(tag)
+    if (attrs) for (const k in attrs) {
+      if (k === 'class') n.className = attrs[k]
+      else if (attrs[k] === true) n.setAttribute(k, '')
+      else if (attrs[k] != null && attrs[k] !== false) n.setAttribute(k, attrs[k])
+    }
+    if (text != null) n.textContent = text
+    return n
+  }
+
+  async function loadFromOffice(slug) {
+    let piano
+    try {
+      piano = await OFFICE.piano(slug)
+    } catch (err) {
+      console.error('[piano] the office feed failed', err)
+      document.getElementById('productName').textContent = 'This piano could not be loaded'
+      document.getElementById('breadcrumbName').textContent = ''
+      const actions = document.getElementById('productActions')
+      actions.replaceChildren(el('p', { class: 'sp-note' }, 'Its details could not be loaded just now. Please try again in a minute, or call us on 0479 128 955.'))
+      return
+    }
+    if (!piano) { window.location.replace('/instruments/'); return }
+    renderOfficePiano(piano)
+    loadOfficeRelated(piano)
+  }
+
+  function renderOfficePiano(p) {
+    const title = [p.name, p.year].filter(Boolean).join(' ')
+    const kindWords = p.kind ? p.kind.toLowerCase() + ' piano' : 'piano'
+    document.title = `${title} | Signature Pianos Melbourne`
+    const said = p.status === 'Sold' ? 'Sold.' : p.status === 'Reserved' ? 'Reserved.' : (p.priceCents ? OFFICE.money(p.priceCents) + '.' : '')
+    const desc = `${p.name} ${kindWords}${p.year ? ', made in ' + p.year : ''}${p.finish ? ', ' + p.finish.toLowerCase() : ''}. ${said} Signature Pianos, Mount Waverley.`.replace(/\s+/g, ' ').trim()
+    document.getElementById('docDesc')?.setAttribute('content', desc)
+    upsertSeoMeta(document.title, desc)
+
+    const cat = document.getElementById('breadcrumbCat')
+    cat.textContent = p.kind ? p.kind + ' pianos' : 'Pianos'
+    cat.href = '/instruments/' + (p.kindKey ? '?cat=' + p.kindKey : '')
+    document.getElementById('breadcrumbName').textContent = title
+
+    document.getElementById('productCategory').textContent = p.kind ? p.kind + ' piano' : 'Piano'
+    document.getElementById('productName').textContent = p.name
+    document.getElementById('productBrand').textContent = p.model ? `${p.brand} · Model ${p.model}` : p.brand
+
+    // The facts under the name: what the feed holds, nothing guessed
+    const meta = document.querySelector('.product-meta-row')
+    const facts = [['Year', p.year], ['Finish', p.finish], ['Condition', p.condition]].filter(([, v]) => v != null && v !== '')
+    meta.replaceChildren(...facts.map(([label, value]) => {
+      const box = el('div', { class: 'product-meta' })
+      box.append(el('div', { class: 'product-meta-label' }, label), el('div', { class: 'product-meta-value' }, String(value)))
+      return box
+    }))
+    meta.hidden = !facts.length
+
+    renderOfficePrice(p)
+    document.getElementById('productSummary').hidden = true
+
+    // About this instrument: the defects every buyer is told of, in the office's words; no story is in the feed
+    const about = document.getElementById('productDescription')
+    if (p.defects) {
+      about.parentElement.querySelector('.details-block-title').textContent = 'What to know before you buy'
+      about.textContent = p.defects
+    } else {
+      about.parentElement.hidden = true
+      document.querySelector('.product-details-inner').style.gridTemplateColumns = '1fr'
+    }
+    document.getElementById('specsTable').innerHTML = [
+      ['Brand', p.brand], ['Model', p.model], ['Type', p.kind], ['Year made', p.year], ['Finish', p.finish], ['Condition', p.condition],
+    ].filter(([, v]) => v != null && v !== '').map(([label, value]) => `
+      <tr>
+        <th style="color:#3A4855;font-weight:400;font-size:12px;padding:8px 12px;
+                   text-align:left;border-bottom:1px solid rgba(22, 34, 46, 0.08);
+                   white-space:nowrap;">${label}</th>
+        <td style="color:#16222E;font-size:13px;padding:8px 12px;
+                   border-bottom:1px solid rgba(22, 34, 46, 0.08);">${esc(value)}</td>
+      </tr>`).join('')
+
+    // Its photos: the office's signed addresses, read again if they run out while the page is open
+    const gallery = { brand: p.brand, model: p.model, year: p.year, images: p.photos.slice() }
+    gallery.refresh = () => OFFICE.piano(p.slug).then((fresh) => {
+      if (!fresh || !fresh.photos.length) throw new Error('no photos now')
+      gallery.images.splice(0, gallery.images.length, ...fresh.photos)
+    })
+    renderGallery(gallery)
+    renderOfficeActions(p)
+
+    // "Book a visit" from this page carries the piano: its name for the message, its address for the office
+    document.querySelectorAll('a[href*="book-a-viewing"]').forEach(a => {
+      if (a.closest('nav, .sp-footer, .sp-bottombar')) return
+      a.dataset.piano = `${p.name}${p.year ? ' (' + p.year + ')' : ''}`
+      a.dataset.pianoSlug = p.slug
+    })
+  }
+
+  function renderOfficePrice(p) {
+    const row = document.querySelector('.product-price-row')
+    const label = row.querySelector('.product-price-label')
+    const price = document.getElementById('productPrice')
+    row.querySelector('.sp-status')?.remove()
+    if (p.status === 'Sold') {
+      label.textContent = 'This piano'
+      price.textContent = 'Sold'
+      return
+    }
+    label.textContent = 'Price'
+    price.textContent = p.priceCents ? OFFICE.money(p.priceCents) : 'Price on request'
+    if (p.status === 'Reserved') row.append(el('span', { class: 'sp-status' }, 'Reserved'))
+  }
+
+  /* The actions: Buy and Reserve start the office's checkout; a reserved piano, or a checkout the office refuses,
+     offers the question form for this piano, so the office keeps the person as interested in it (S3.W finding 3). */
+  function renderOfficeActions(p) {
+    const actions = document.getElementById('productActions')
+    actions.className = 'sp-office-actions'
+    actions.replaceChildren()
+
+    if (p.status === 'For sale' && p.priceCents) {
+      const choice = el('div', { class: 'sp-pay-choice' })
+      const full = el('button', { type: 'button', class: 'sp-pay-btn', 'aria-pressed': 'false' }, `Buy now: ${OFFICE.money(p.priceCents)}`)
+      choice.append(full)
+      let deposit = null
+      if (p.depositCents) {
+        deposit = el('button', { type: 'button', class: 'sp-pay-btn sp-pay-btn--quiet', 'aria-pressed': 'false' }, `Reserve with a ${OFFICE.money(p.depositCents)} deposit`)
+        choice.append(deposit)
+      }
+      actions.append(choice)
+      // the deposit's terms before the form, as the office gives them (office step S3.6 adds them to the feed)
+      if (p.depositTerms) actions.append(el('p', { class: 'sp-terms' }, p.depositTerms))
+      actions.append(el('p', { class: 'sp-fine' }, 'Secure payment via Stripe · 10-year warranty included · Complimentary first tuning'))
+      const form = checkoutForm(p, actions)
+      actions.append(form.node)
+      full.addEventListener('click', () => { form.open('full'); full.setAttribute('aria-pressed', 'true'); deposit?.setAttribute('aria-pressed', 'false') })
+      deposit?.addEventListener('click', () => { form.open('deposit'); deposit.setAttribute('aria-pressed', 'true'); full.setAttribute('aria-pressed', 'false') })
+    } else if (p.status === 'Reserved') {
+      actions.append(el('p', { class: 'sp-note' }, 'This piano is reserved just now.'))
+      actions.append(questionForm(p, { intro: 'Ask us about it.' }).node)
+    } else if (p.status === 'Sold') {
+      actions.append(el('p', { class: 'sp-note' }, 'This piano has been sold.'))
+      const more = el('a', { class: 'btn-link', href: '/instruments/' }, 'See the pianos for sale ')
+      more.append(el('i', { class: 'ti ti-arrow-right', 'aria-hidden': 'true' }))
+      actions.append(more)
+    } else {
+      const note = el('p', { class: 'sp-note' }, 'Price on request. Call us on ')
+      note.append(el('a', { href: 'tel:+61479128955' }, '0479 128 955'), document.createTextNode(' or come and play it.'))
+      actions.append(note)
+    }
+
+    const visit = el('div', { style: 'border-top:1px solid rgba(22, 34, 46, 0.1);padding-top:16px;margin-top:20px;' })
+    const link = el('a', { href: 'services/book-a-viewing.html', style: 'color:#16222E;font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px;' })
+    link.append(el('i', { class: 'ti ti-calendar', style: 'font-size:15px;' }), document.createTextNode('Book a showroom visit to try this piano'))
+    visit.append(link)
+    actions.append(visit)
+  }
+
+  /* -------- the pieces a form here is made of -------- */
+  let fieldSeq = 0
+  function field(label, attrs, opts = {}) {
+    const id = 'spf' + (++fieldSeq)
+    const box = el('div', { class: 'sp-field' })
+    const l = el('label', { for: id }, label)
+    if (opts.optional) l.append(' ', el('small', null, '(optional)'))
+    const input = el(opts.textarea ? 'textarea' : 'input', Object.assign({ id }, attrs))
+    box.append(l, input)
+    if (opts.hint) box.append(el('span', { class: 'sp-field-hint' }, opts.hint))
+    return { box, input }
+  }
+  function mark(f, bad) { f.box.classList.toggle('is-invalid', bad); return bad }
+  function say(answer, words, refused) {
+    answer.textContent = words
+    answer.classList.toggle('is-refused', !!refused)
+    answer.hidden = !words
+  }
+  const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+
+  /** the checkout's form: who is buying, the bot check, then the office's answer and its pay page */
+  function checkoutForm(p, actions) {
+    const form = el('form', { class: 'sp-office-form', novalidate: true, hidden: true })
+    const head = el('p', { class: 'sp-office-head' })
+    const name = field('Name', { type: 'text', autocomplete: 'name', maxlength: '120', required: true }, { hint: 'As on your card' })
+    const email = field('Email', { type: 'email', autocomplete: 'email', inputmode: 'email', maxlength: '254', required: true }, { hint: 'For your receipt' })
+    const phone = field('Phone', { type: 'tel', autocomplete: 'tel', inputmode: 'tel', maxlength: '40' }, { optional: true })
+    const terms = el('p', { class: 'sp-terms', hidden: true })
+    const box = el('div', { class: 'sp-check' })
+    const send = el('button', { type: 'submit', class: 'sp-pay-btn sp-send' }, 'Continue to payment')
+    const answer = el('p', { class: 'sp-answer', role: 'status', 'aria-live': 'polite', hidden: true })
+    const pair = el('div', { class: 'sp-pair' })
+    pair.append(email.box, phone.box)
+    form.append(head, name.box, pair, terms, box, send, answer)
+    let pay = 'full'
+    let check = null
+
+    function open(how) {
+      pay = how
+      head.textContent = how === 'deposit'
+        ? `Reserve the ${p.name} with a ${OFFICE.money(p.depositCents)} deposit`
+        : `Buy the ${p.name} for ${OFFICE.money(p.priceCents)}`
+      terms.textContent = how === 'deposit' && p.depositTerms ? p.depositTerms : ''
+      terms.hidden = !terms.textContent
+      say(answer, '')
+      for (const n of [name.box, pair, send]) n.hidden = false
+      form.hidden = false
+      if (!check) check = OFFICE.challenge(box)
+      else box.hidden = !check.on
+      name.input.focus({ preventScroll: true })
+      form.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' })
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      let bad = mark(name, !name.input.value.trim())
+      bad = mark(email, !EMAIL_OK.test(email.input.value.trim())) || bad
+      if (bad) { say(answer, 'Please add your name and email.', true); return }
+      send.disabled = true
+      send.textContent = 'One moment…'
+      say(answer, '')
+      try {
+        const out = await OFFICE.checkout({ piano: p.slug, pay, name: name.input.value, email: email.input.value, phone: phone.input.value }, check)
+        // Kept: the office's answer, its terms among its words, then its own pay page
+        for (const n of [head, name.box, pair, terms, box, send]) n.hidden = true
+        actions.querySelector('.sp-pay-choice')?.remove()
+        say(answer, out.said || `Order ${out.order || ''}`)
+        if (out.pay) {
+          const go = el('a', { class: 'sp-go', href: out.pay }, `Pay ${OFFICE.money(out.amount_cents) || ''} now`.replace('  ', ' '))
+          form.append(go)
+          go.focus({ preventScroll: true })
+        } else {
+          form.append(el('p', { class: 'sp-answer is-refused' },
+            `We could not open the payment page from here. Call us on 0479 128 955 and quote order ${out.order || 'number above'}.`))
+        }
+      } catch (err) {
+        send.disabled = false
+        send.textContent = 'Continue to payment'
+        say(answer, err.message, true)
+        if (err.field === 'email') mark(email, true)
+        if (err.field === 'name') mark(name, true)
+        // The office won't take this checkout (the piano is being bought, or can't be bought online just now):
+        // ask about it instead, with what they typed, so the office keeps them as interested in this piano
+        if (err.status === 409) {
+          for (const n of [name.box, pair, terms, box, send]) n.hidden = true
+          if (!form.parentElement.querySelector('.sp-question')) {
+            form.after(questionForm(p, {
+              intro: 'Ask us about this piano instead.',
+              name: name.input.value, email: email.input.value, phone: phone.input.value,
+            }).node)
+          }
+          // the piano as the office has it now: taken, its price says Reserved and Buy and Reserve go
+          OFFICE.piano(p.slug).then((now) => {
+            if (!now) return
+            renderOfficePrice(now)
+            if (now.status !== 'For sale') actions.querySelectorAll('.sp-pay-choice, .sp-fine').forEach((n) => n.remove())
+          }, () => {})
+        }
+        if (err.status === 404) {
+          const more = el('a', { class: 'btn-link', href: '/instruments/' }, 'See the pianos for sale ')
+          more.append(el('i', { class: 'ti ti-arrow-right', 'aria-hidden': 'true' }))
+          form.append(more)
+        }
+      }
+    })
+    return { node: form, open }
+  }
+
+  /** the office's question form for this piano: its words and their version beside the box, the bot check, and the
+      office's answer */
+  function questionForm(p, opts) {
+    const form = el('form', { class: 'sp-office-form sp-question', novalidate: true })
+    const head = el('p', { class: 'sp-office-head' }, `Ask about the ${p.name}`)
+    const intro = el('p', { class: 'sp-office-intro' }, opts.intro || '')
+    const name = field('Name', { type: 'text', autocomplete: 'name', maxlength: '80', required: true })
+    const email = field('Email', { type: 'email', autocomplete: 'email', inputmode: 'email', maxlength: '254' })
+    const phone = field('Phone', { type: 'tel', autocomplete: 'tel', inputmode: 'tel', maxlength: '30' }, { optional: true })
+    const message = field('Your question', { rows: '3', maxlength: '2000', required: true }, { textarea: true })
+    name.input.value = opts.name || ''
+    email.input.value = opts.email || ''
+    phone.input.value = opts.phone || ''
+    message.input.value = `Please let me know if the ${p.name}${p.year ? ' (' + p.year + ')' : ''} comes back on sale.`
+    const consent = el('label', { class: 'sp-consent' })
+    const tick = el('input', { type: 'checkbox', name: 'consent' })
+    consent.append(tick, el('span', null, OFFICE.CONSENT.question.words))
+    const hp = el('input', { type: 'text', class: 'sp-hp', name: 'sp_check', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' })
+    const box = el('div', { class: 'sp-check' })
+    const send = el('button', { type: 'submit', class: 'sp-pay-btn sp-send' }, 'Send my question')
+    const answer = el('p', { class: 'sp-answer', role: 'status', 'aria-live': 'polite', hidden: true })
+    const pair = el('div', { class: 'sp-pair' })
+    pair.append(email.box, phone.box)
+    form.append(head, intro, name.box, pair, message.box, consent, hp, box, send, answer)
+    if (!opts.intro) intro.hidden = true
+    const check = OFFICE.challenge(box)
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      let bad = mark(name, !name.input.value.trim())
+      const mail = email.input.value.trim()
+      bad = mark(email, (!mail && !phone.input.value.trim()) || (!!mail && !EMAIL_OK.test(mail))) || bad
+      bad = mark(message, !message.input.value.trim()) || bad
+      consent.classList.toggle('is-invalid', !tick.checked)
+      if (bad) { say(answer, 'Please add your name, your email or phone, and your question.', true); return }
+      if (!tick.checked) { say(answer, 'Please tick the box so we may answer your question.', true); return }
+      send.disabled = true
+      send.textContent = 'Sending…'
+      say(answer, '')
+      try {
+        const out = await OFFICE.sendForm('question', {
+          name: name.input.value, email: mail, phone: phone.input.value, message: message.input.value,
+          piano: p.slug, sp_check: OFFICE.honeypot(hp),
+        }, check)
+        for (const n of [intro, name.box, pair, message.box, consent, box, send]) n.hidden = true
+        say(answer, OFFICE.answerWords(out))
+      } catch (err) {
+        send.disabled = false
+        send.textContent = 'Send my question'
+        say(answer, err.message, true)
+        if (err.field === 'email') mark(email, true)
+        if (err.field === 'name') mark(name, true)
+        if (err.field === 'message') mark(message, true)
+      }
+    })
+    return { node: form }
+  }
+
+  async function loadOfficeRelated(piano) {
+    const section = document.getElementById('relatedSection')
+    const grid = document.getElementById('relatedGrid')
+    let list = []
+    try { list = await OFFICE.pianos() } catch (err) { console.error('[piano] the office feed failed for related pianos', err) }
+    const others = list.filter((x) => x.slug !== piano.slug)
+    const related = others.filter((x) => x.kindKey === piano.kindKey).concat(others.filter((x) => x.kindKey !== piano.kindKey)).slice(0, 3)
+    if (!related.length) { section.style.display = 'none'; return }
+    grid.innerHTML = related.map((x) => {
+      const photo = x.photos[0]
+      const price = x.status === 'Reserved' ? 'Reserved' : x.priceCents ? OFFICE.money(x.priceCents) : 'Price on request'
+      return `
+      <a class="related-card" href="${esc(x.href)}">
+        <div class="related-card-image">
+          ${photo
+            ? `<img src="${esc(photo)}" alt="${esc(x.name)}" loading="lazy">`
+            : `<div class="sp-photo-empty"><img src="/media/brand/monogram-ink.svg" alt=""><span>Photographs soon</span></div>`}
+        </div>
+        <div class="related-card-body">
+          <h3 class="related-card-name">${esc(x.name)}</h3>
+          <p class="related-card-facts">${esc([x.year, x.kind].filter(Boolean).join(' · '))}</p>
+          <p class="related-card-price">${esc(price)}</p>
+        </div>
+      </a>`
+    }).join('')
+  }
+
+  if (OFFICE) { if (OFFICE.isSlug(pianoSlug)) loadFromOffice(pianoSlug) }
+  else if (pianoId) loadPiano()
 </script>
 
 <div class="sp-bottombar" role="navigation" aria-label="Quick contact">
