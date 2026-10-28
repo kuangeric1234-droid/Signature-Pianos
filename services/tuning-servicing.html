@@ -1784,6 +1784,8 @@
   /* -------- THE OFFICE (S3.4): the tuning or service form as the office takes it --------
      Its consent words and version beside a box to tick, its hidden box and its bot check. */
   const OFFICE = window.SPOffice && window.SPOffice.on ? window.SPOffice : null
+  // the switch on but js/office.js never loaded: said so, never the old ways
+  const OFFICE_DOWN = !OFFICE && !!(window.SP_OFFICE_CONFIG && window.SP_OFFICE_CONFIG.origin)
   let officeTick = null, officeHp = null, officeCheck = null
   if (OFFICE) {
     const row = document.createElement('div')
@@ -1846,6 +1848,11 @@
       }
     })
     if (firstBad) { firstBad.focus(); return }
+    if (OFFICE_DOWN) {
+      errEl.textContent = 'Sorry, that didn’t go through. Please try again, or call us on 0479 128 955.'
+      errEl.style.display = 'block'
+      return
+    }
     if (OFFICE && !officeTick.checked) {
       officeTick.closest('.ts-consent').classList.add('is-invalid')
       errEl.textContent = 'Please tick the box so we may arrange your tuning or service.'

@@ -172,7 +172,7 @@
     }
     root.hidden = false;
     lockScroll(true);
-    office().then(function (o) { if (o) fitForOffice(o); else loadSupabase(); });
+    office().then(function (o) { if (o === DOWN) return; if (o) fitForOffice(o); else loadSupabase(); });
 
     var backdrop = root.querySelector('.sp-book-backdrop');
     if (openAnim) openAnim.cancel();
@@ -229,7 +229,10 @@
 
   /* ---------- The office (S3.4), on demand ---------- */
   var officeReady = null;
-  /** the office's client where its origin is set, else null (the old ways) */
+  /** the switch on (an origin set) but js/office.js not there: said so, never the old ways */
+  var DOWN = 'down';
+  var meant = function () { return !!(window.SP_OFFICE_CONFIG && window.SP_OFFICE_CONFIG.origin); };
+  /** the office's client where its origin is set, else null (the old ways), or DOWN */
   function office() {
     if (officeReady) return officeReady;
     var on = function () { return window.SPOffice && window.SPOffice.on ? window.SPOffice : null; };
@@ -239,10 +242,14 @@
           var cfg = window.SP_OFFICE_CONFIG;
           return cfg && cfg.origin ? loadScript('/js/office.js') : null;
         })
-    ).then(on, function (err) {
+    ).then(function () {
+      var o = on();
+      if (!o && meant()) { console.error('[book] the office is set but js/office.js did not load'); officeReady = null; return DOWN; }
+      return o;
+    }, function (err) {
       console.error('[book] the office setting could not be loaded', err);
       officeReady = null;
-      return null;
+      return meant() ? DOWN : null;
     });
     return officeReady;
   }
@@ -339,6 +346,11 @@
     btn.classList.add('is-sending');
     var settle = function () { btn.disabled = false; btn.classList.remove('is-sending'); };
     office().then(function (o) {
+      if (o === DOWN) {
+        err.textContent = 'Sorry, that didn’t go through. Please try again, or call us on 0479 128 955.';
+        err.hidden = false;
+        return settle();
+      }
       if (!o) return sendOld(btn);
       return sendToOffice(o, btn, err).then(settle, settle);
     });

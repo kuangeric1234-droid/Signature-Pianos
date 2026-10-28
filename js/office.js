@@ -21,6 +21,7 @@
 
   var cfg = window.SP_OFFICE_CONFIG || {};
   var ORIGIN = originOf(cfg.origin);
+  if (cfg.origin && !ORIGIN) console.error('[office] js/office-config.js names an origin this page will not use: https, an origin alone');
   var SITE_KEY = typeof cfg.turnstileSiteKey === 'string' && /^[0-9A-Za-z_-]{10,100}$/.test(cfg.turnstileSiteKey)
     ? cfg.turnstileSiteKey : '';
 
@@ -316,12 +317,17 @@
     crypto.getRandomValues(a);
     return Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
   }
-  /** the submission's id: kept while the words are the same, so a send whose
-      answer was lost is answered by the office as kept, never kept twice */
+  var SENT_KEY = 'sp-office-sent';
+  try { sent = JSON.parse(sessionStorage.getItem(SENT_KEY) || '{}') || {}; } catch (e) { sent = {}; }
+  /** the submission's id: kept while the words are the same (in this visit's
+      storage too, so a reload keeps it), so a send whose answer was lost is
+      answered by the office as kept, never kept twice; other words, a new id */
   function idFor(key, body) {
     var digest = JSON.stringify(body);
-    if (sent[key] && sent[key].digest === digest) return sent[key].id;
+    var had = sent[key];
+    if (had && had.digest === digest && typeof had.id === 'string' && /^[A-Za-z0-9-]{8,128}$/.test(had.id)) return had.id;
     sent[key] = { digest: digest, id: newId() };
+    try { sessionStorage.setItem(SENT_KEY, JSON.stringify(sent)); } catch (e) { /* this page alone */ }
     return sent[key].id;
   }
 
@@ -444,7 +450,9 @@
   }
 
   window.SPOffice = Object.freeze({
-    on: !!ORIGIN,
+    /* on wherever an origin is set, a wrong one among them: then every call fails
+       in words, never falling back to the old ways the switch turned off */
+    on: typeof cfg.origin === 'string' && cfg.origin.trim() !== '',
     origin: ORIGIN,
     CONSENT: CONSENT,
     WORDS: WORDS,

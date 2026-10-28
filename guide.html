@@ -395,6 +395,8 @@
   var thanks = document.getElementById('gdThanks');
   var lead = null;
   var OFFICE = window.SPOffice && window.SPOffice.on ? window.SPOffice : null;
+  // the switch on but js/office.js never loaded: said so, never the old ways
+  var OFFICE_DOWN = !OFFICE && !!(window.SP_OFFICE_CONFIG && window.SP_OFFICE_CONFIG.origin);
   var check = null;
 
   /* The office (S3.4): its guide form's consent words and version, its hidden box,
@@ -479,6 +481,11 @@
     submit.disabled = true;
     submit.textContent = 'One moment…';
     if (OFFICE) return sendToOffice(f);
+    if (OFFICE_DOWN) {
+      submit.disabled = false;
+      submit.innerHTML = 'Get the guide <i class="ti ti-arrow-right" aria-hidden="true"></i>';
+      return showError(errorEl, 'Sorry, that didn’t go through. Please try again, or call us on 0479 128 955.');
+    }
 
     fetch(API, {
       method: 'POST',

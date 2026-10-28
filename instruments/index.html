@@ -773,6 +773,8 @@
 
   /* -------- PIANO GRID: load from the office's stock feed (S3.4), else Supabase; render by category -------- */
   const OFFICE = window.SPOffice && window.SPOffice.on ? window.SPOffice : null
+  // the switch on but js/office.js never loaded: said so, never the old ways
+  const OFFICE_DOWN = !OFFICE && !!(window.SP_OFFICE_CONFIG && window.SP_OFFICE_CONFIG.origin)
   // Section order (matches the filter pill order). Each section heading
   // shows above its own card grid when no type filter is active.
   const CATEGORY_SECTIONS = [
@@ -794,9 +796,10 @@
 
     try {
       let data, error
-      if (OFFICE) {
+      if (OFFICE || OFFICE_DOWN) {
         // The office's feed: the pianos for sale and reserved, newest listed first, in the cards' shape
         try {
+          if (!OFFICE) throw new Error('the office is set but js/office.js did not load')
           const all = (await OFFICE.pianos()).map(OFFICE.asStock)
           data = filters.type ? all.filter(p => p.type === filters.type) : all
         } catch (err) { error = err }
@@ -815,8 +818,8 @@
       if (seq !== loadSeq) return
 
       if (error) {
-        console.error(OFFICE ? '[instruments] the office feed failed' : '[instruments] supabase query failed', error)
-        grid.innerHTML = OFFICE ? notLoadedMessage() : emptyMessage()
+        console.error(OFFICE || OFFICE_DOWN ? '[instruments] the office feed failed' : '[instruments] supabase query failed', error)
+        grid.innerHTML = OFFICE || OFFICE_DOWN ? notLoadedMessage() : emptyMessage()
         return
       }
       if (!data.length) {

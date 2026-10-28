@@ -1227,11 +1227,13 @@ function upsertSeoMeta(title, desc){
 
   /* -------- Load a single piano: by ?slug= from the office, or by ?id= from Supabase. -------- */
   const OFFICE = window.SPOffice && window.SPOffice.on ? window.SPOffice : null
+  // the switch on but js/office.js never loaded: the page says so, never falling back to the old ways
+  const OFFICE_DOWN = !OFFICE && !!(window.SP_OFFICE_CONFIG && window.SP_OFFICE_CONFIG.origin)
   const params = new URLSearchParams(window.location.search)
   const pianoId = params.get('id')
   const pianoSlug = params.get('slug')
 
-  if (OFFICE ? !OFFICE.isSlug(pianoSlug) : !pianoId) {
+  if (!OFFICE_DOWN && (OFFICE ? !OFFICE.isSlug(pianoSlug) : !pianoId)) {
     window.location.replace('instruments/index.html')
   }
 
@@ -1592,15 +1594,19 @@ function upsertSeoMeta(title, desc){
       piano = await OFFICE.piano(slug)
     } catch (err) {
       console.error('[piano] the office feed failed', err)
-      document.getElementById('productName').textContent = 'This piano could not be loaded'
-      document.getElementById('breadcrumbName').textContent = ''
-      const actions = document.getElementById('productActions')
-      actions.replaceChildren(el('p', { class: 'sp-note' }, 'Its details could not be loaded just now. Please try again in a minute, or call us on 0479 128 955.'))
+      notLoaded()
       return
     }
     if (!piano) { window.location.replace('/instruments/'); return }
     renderOfficePiano(piano)
     loadOfficeRelated(piano)
+  }
+
+  function notLoaded() {
+    document.getElementById('productName').textContent = 'This piano could not be loaded'
+    document.getElementById('breadcrumbName').textContent = ''
+    const actions = document.getElementById('productActions')
+    actions.replaceChildren(el('p', { class: 'sp-note' }, 'Its details could not be loaded just now. Please try again in a minute, or call us on 0479 128 955.'))
   }
 
   function renderOfficePiano(p) {
@@ -1797,14 +1803,19 @@ function upsertSeoMeta(title, desc){
         // Kept: the office's answer, its terms among its words, then its own pay page
         for (const n of [head, name.box, pair, terms, box, send]) n.hidden = true
         actions.querySelector('.sp-pay-choice')?.remove()
-        say(answer, out.said || `Order ${out.order || ''}`)
+        if (out.duplicate && !out.pay) {
+          // sent again after its answer was lost: the office kept the first, and answers this one without its pay link
+          say(answer, 'Your checkout for this piano has started already. If its payment page didn’t open, call us on 0479 128 955.', true)
+          return
+        }
+        say(answer, out.said || '')
         if (out.pay) {
           const go = el('a', { class: 'sp-go', href: out.pay }, `Pay ${OFFICE.money(out.amount_cents) || ''} now`.replace('  ', ' '))
           form.append(go)
           go.focus({ preventScroll: true })
         } else {
           form.append(el('p', { class: 'sp-answer is-refused' },
-            `We could not open the payment page from here. Call us on 0479 128 955 and quote order ${out.order || 'number above'}.`))
+            `We could not open the payment page from here. Call us on 0479 128 955${out.order ? ` and quote order ${out.order}` : ''}.`))
         }
       } catch (err) {
         send.disabled = false
@@ -1924,7 +1935,8 @@ function upsertSeoMeta(title, desc){
     }).join('')
   }
 
-  if (OFFICE) { if (OFFICE.isSlug(pianoSlug)) loadFromOffice(pianoSlug) }
+  if (OFFICE_DOWN) { console.error('[piano] the office is set but js/office.js did not load'); notLoaded() }
+  else if (OFFICE) { if (OFFICE.isSlug(pianoSlug)) loadFromOffice(pianoSlug) }
   else if (pianoId) loadPiano()
 </script>
 

@@ -53,6 +53,8 @@
   function loadStock() {
     if (stock) return Promise.resolve(stock);
     var office = window.SPOffice && window.SPOffice.on ? window.SPOffice : null;
+    // the switch on but js/office.js never loaded: said so, never the old ways
+    if (!office && window.SP_OFFICE_CONFIG && window.SP_OFFICE_CONFIG.origin) return Promise.reject(new Error('the office is set but js/office.js did not load'));
     if (office) {
       return office.pianos().then(function (list) {
         stock = list.filter(function (p) { return p.status === 'For sale' && p.priceCents; }).map(office.asStock);

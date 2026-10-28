@@ -2577,6 +2577,8 @@
     function load() {
       if (started) return;
       started = true;
+      // the switch on but js/office.js never loaded: the showroom cards stay, never the old ways
+      if (!OFFICE && !!(window.SP_OFFICE_CONFIG && window.SP_OFFICE_CONFIG.origin)) return console.error('[home] the office is set but js/office.js did not load');
       if (OFFICE) {
         // The office's feed: for sale and reserved, newest listed first
         OFFICE.pianos()
@@ -2624,6 +2626,7 @@
   /* The office (S3.4): its guide form's consent words and version word for word, its hidden box and bot check, and
      its answer (a confirm email may come first, so the guide is sent, not downloaded here) */
   const GUIDE_OFFICE = window.SPOffice && window.SPOffice.on ? window.SPOffice : null;
+  const GUIDE_OFFICE_DOWN = !GUIDE_OFFICE && !!(window.SP_OFFICE_CONFIG && window.SP_OFFICE_CONFIG.origin);
   let guideCheck = null;
   if (playableGuideForm && GUIDE_OFFICE) {
     playableGuideForm.querySelector('.pg-consent span').textContent = GUIDE_OFFICE.CONSENT.guide.words;
@@ -2656,6 +2659,11 @@
       playableGuideSubmit.innerHTML = 'Sending…';
       playableGuideStatus.hidden = true;
 
+      if (GUIDE_OFFICE_DOWN) {
+        playableGuideSubmit.disabled = false;
+        playableGuideSubmit.innerHTML = originalLabel;
+        return showGuideStatus('Sorry, that didn’t go through. Please try again, or call us on 0479 128 955.', true);
+      }
       if (GUIDE_OFFICE) {
         try {
           const out = await GUIDE_OFFICE.sendForm('guide', {
