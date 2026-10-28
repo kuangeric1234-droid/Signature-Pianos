@@ -55,7 +55,9 @@
     /* this site's own words where the office's consent words could not be read: the form is not sent without them */
     noConsent: 'This form can’t be sent just now. Please try again later, or call us on 0479 128 955.',
     /* the box shown but not ticked */
-    tick: 'Please tick the box to send this.'
+    tick: 'Please tick the box to send this.',
+    /* the office's words changed between showing them and sending: the new ones shown, the box unticked */
+    changed: 'The words beside the box have changed. Please read them, tick the box again and send.'
   };
 
   /** a refusal: the office's own words and the field they are about, or none
@@ -112,8 +114,8 @@
       local purchase, in the office's words; a trade-in, or a word it doesn't
       know, is not said (Eric's to decide, office Q88) */
   function fromWhere(v) {
-    var t = text(v);
-    return t && /^(import|local purchase)$/i.test(t) ? t : null;
+    var t = (text(v) || '').toLowerCase();
+    return t === 'import' ? 'Import' : t === 'local purchase' ? 'Local purchase' : null;
   }
   function kindKey(kind) {
     return /grand/i.test(kind) ? 'grand' : /upright/i.test(kind) ? 'upright' : /digital/i.test(kind) ? 'digital' : '';
@@ -134,7 +136,7 @@
       kindKey: kindKey(kind),
       year: typeof p.year === 'number' && isFinite(p.year) ? p.year : null,
       /* its model's height and story, as the office keeps them */
-      heightCm: typeof p.height_cm === 'number' && isFinite(p.height_cm) && p.height_cm > 0 ? Math.round(p.height_cm) : null,
+      heightCm: typeof p.height_cm === 'number' && isFinite(p.height_cm) && p.height_cm > 0 && p.height_cm < 400 ? Math.round(p.height_cm) : null,
       story: text(p.story),
       finish: text(p.finish),
       condition: text(p.condition),
@@ -379,23 +381,32 @@
       they are read, and the version shown is the one sent. Where they can't be
       read, it says the form can't be sent just now, with no box to tick.
       Resolves true once shown */
+  var LABELS = {};
+  /** words put beside a form's box: other words than it showed, the box unticked */
+  function putWords(form, label, w) {
+    var box = label.querySelector('input');
+    if (!SHOWN[form] || SHOWN[form].version !== w.version) box.checked = false;
+    label.querySelector('span').textContent = w.words;
+    box.hidden = false;
+    label.classList.remove('is-unavailable');
+    label.style.display = '';
+  }
   function showConsent(form, label) {
     var box = label && label.querySelector('input');
     var span = label && label.querySelector('span');
     if (!box || !span) return Promise.resolve(false);
+    LABELS[form] = LABELS[form] || [];
+    if (LABELS[form].indexOf(label) < 0) LABELS[form].push(label);
     if (!SHOWN[form]) label.style.display = 'none';
     return consentWords().then(function (all) {
       var w = all[form];
       if (!w) throw new Refused(0, null);
-      if (!SHOWN[form] || SHOWN[form].version !== w.version) box.checked = false;
-      span.textContent = w.words;
-      box.hidden = false;
-      label.classList.remove('is-unavailable');
-      label.style.display = '';
+      putWords(form, label, w);
       SHOWN[form] = w;
       return true;
     }).catch(function (err) {
       console.error('[office] the consent words could not be read', err);
+      // words the office gave already stay: their version is one it keeps
       if (SHOWN[form]) { label.style.display = ''; return true; }
       span.textContent = WORDS.noConsent;
       box.checked = false;
@@ -415,15 +426,27 @@
   function sendForm(form, fields, check) {
     var shown = SHOWN[form];
     if (!shown) return Promise.reject(new Refused(0, WORDS.noConsent));
-    var body = { consent: true, consent_version: shown.version, page: location.pathname };
-    FIELDS.forEach(function (k) {
-      var v = fields[k];
-      if (typeof v === 'string' && v.trim()) body[k] = v.trim();
+    /* the words read again as it is sent: changed since they were shown, the new ones go beside an unticked box and
+       nothing is sent; not read now, the version shown stands (the office keeps every version it has shown) */
+    consentRead = null;
+    return consentWords().then(function (all) {
+      var now = all[form];
+      if (now && now.version !== shown.version) {
+        (LABELS[form] || []).forEach(function (l) { putWords(form, l, now); });
+        SHOWN[form] = now;
+        throw new Refused(0, WORDS.changed);
+      }
+    }, function () { /* not read just now: the words shown stand */ }).then(function () {
+      var body = { consent: true, consent_version: shown.version, page: location.pathname };
+      FIELDS.forEach(function (k) {
+        var v = fields[k];
+        if (typeof v === 'string' && v.trim()) body[k] = v.trim();
+      });
+      var from = cameFrom();
+      if (from.placement) body.placement = from.placement;
+      if (Object.keys(from.utm).length) body.utm = from.utm;
+      return post('/public/m/sales/' + form, 'form:' + form, body, check);
     });
-    var from = cameFrom();
-    if (from.placement) body.placement = from.placement;
-    if (Object.keys(from.utm).length) body.utm = from.utm;
-    return post('/public/m/sales/' + form, 'form:' + form, body, check);
   }
 
   /** the office's pay page for a checkout: its own origin and /pay/<token>, never
