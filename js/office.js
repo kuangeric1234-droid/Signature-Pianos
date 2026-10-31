@@ -112,11 +112,12 @@
   }
   /** a piano's photos as the pages use them: each address, and beside it the words
       an illustration must carry (S1.32: a generated picture, never passed off as
-      this piano; the office's caption, or these where it sends none) */
+      this piano). The sentence is the office's caption; the bare word stands in
+      only so a blank caption can't leave an illustration unmarked */
   function photosOf(p) {
     return (Array.isArray(p.photos) ? p.photos : []).map(function (f) {
       var url = f && photoUrl(f.url);
-      return url ? { url: url, note: f.illustration === true ? (text(f.caption) || 'Illustration. Real photos when it arrives.') : null } : null;
+      return url ? { url: url, note: f.illustration === true ? (text(f.caption) || 'Illustration') : null } : null;
     }).filter(Boolean);
   }
   /** a piano at sea, as the website says it: "Arriving December 2026" from its due
