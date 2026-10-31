@@ -53,6 +53,19 @@
   function pianoName(p) { return [p.brand, p.model].filter(Boolean).join(' '); }
   function pianoFacts(p) { return [p.year, p.finish, p.height_cm ? p.height_cm + ' cm' : null].filter(Boolean).join(', '); }
   function firstPhoto(p) { return p.photos && p.photos[0] ? p.photos[0] : null; }
+  /* a piano's first photo; an illustration says so on it, as the piano pages do, and is never passed off as this piano */
+  function photoOf(p, cls) {
+    var photo = firstPhoto(p);
+    if (!photo) return null;
+    var frame = el('span', 'rp-photo');
+    var img = el('img', cls);
+    img.src = photo.url;
+    img.alt = pianoName(p) + (photo.note ? ', an illustration' : '');
+    img.loading = 'lazy';
+    frame.appendChild(img);
+    if (photo.note) frame.appendChild(el('span', 'sp-illustration', 'Illustration'));
+    return frame;
+  }
   function lowestRent(p) {
     return p.plans.reduce(function (low, plan) { return low == null || plan.rent_cents < low ? plan.rent_cents : low; }, null);
   }
@@ -66,14 +79,8 @@
       out.pianos.forEach(function (p) {
         var a = el('a', 'rp-piano');
         a.href = '/piano-rental/start?piano=' + encodeURIComponent(p.slug);
-        var photo = firstPhoto(p);
-        if (photo) {
-          var img = el('img', 'rp-piano-photo');
-          img.src = photo.url;
-          img.alt = photo.alt || pianoName(p);
-          img.loading = 'lazy';
-          a.appendChild(img);
-        }
+        var photo = photoOf(p, 'rp-piano-photo');
+        if (photo) a.appendChild(photo);
         a.appendChild(el('span', 'rp-piano-name', pianoName(p)));
         a.appendChild(el('span', 'rp-piano-line', pianoFacts(p) + '. ' + money(lowestRent(p)) + ' a month.'));
         a.appendChild(el('span', 'rp-link', 'Rent this piano'));
@@ -118,15 +125,12 @@
     summary.textContent = '';
     if (!state.piano) { summary.hidden = true; return; }
     var p = state.piano;
-    var photo = firstPhoto(p);
-    if (photo) {
-      var img = el('img');
-      img.src = photo.url;
-      img.alt = photo.alt || pianoName(p);
-      summary.appendChild(img);
-    }
+    var photo = photoOf(p);
+    if (photo) summary.appendChild(photo);
     summary.appendChild(el('h2', null, pianoName(p)));
     summary.appendChild(el('p', 'rp-small', pianoFacts(p)));
+    var shown = firstPhoto(p);
+    if (shown && shown.note && shown.note !== 'Illustration') summary.appendChild(el('p', 'rp-small', shown.note));
     var plan = state.plan;
     if (plan) {
       var t = state.terms;

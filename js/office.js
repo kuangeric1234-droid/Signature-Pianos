@@ -561,10 +561,7 @@
     return {
       slug: p.slug, brand: text(p.brand), model: text(p.model), year: typeof p.year === 'number' ? p.year : null,
       finish: text(p.finish), height_cm: typeof p.height_cm === 'number' ? p.height_cm : null,
-      photos: (Array.isArray(p.photos) ? p.photos : []).map(function (x) {
-        var url = x ? photoUrl(x.url) : null;
-        return url ? { url: url, alt: text(x.alt) } : null;
-      }).filter(Boolean),
+      photos: photosOf(p),
       plans: plans
     };
   }

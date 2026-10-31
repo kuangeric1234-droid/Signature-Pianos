@@ -175,7 +175,9 @@ a { color: inherit; }
 .rp-submit { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; margin-top: 30px; }
 .rp-small { font-size: 14px; margin: 14px 0 0; }
 .rp-summary { position: sticky; top: 120px; padding: 26px 26px 22px; background: var(--sp-white); }
-.rp-summary img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; margin-bottom: 16px; }
+.rp-photo { display: block; position: relative; }
+.rp-summary .rp-photo { margin-bottom: 16px; }
+.rp-summary img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
 .rp-summary h2 { margin: 0 0 6px; font-family: var(--sp-font-display); font-stretch: 62.5%; font-variation-settings: 'wdth' 62.5; font-size: 34px; font-weight: 500; line-height: .95; text-transform: uppercase; color: var(--sp-ink); }
 .rp-summary dl { margin: 16px 0 0; }
 .rp-summary dl div { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-top: 1px solid var(--sp-rule); font-size: 15.5px; }
