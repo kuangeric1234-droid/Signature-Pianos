@@ -51,20 +51,20 @@
     return n;
   }
   function pianoName(p) { return [p.brand, p.model].filter(Boolean).join(' '); }
-  function pianoFacts(p) { return [p.year, p.finish, p.height_cm ? p.height_cm + ' cm' : null].filter(Boolean).join(', '); }
+  /* as the collection's cards say it */
+  function pianoFacts(p) { return [p.year, p.height_cm ? p.height_cm + ' cm tall' : null, p.finish].filter(Boolean).join(' · '); }
+  function kindWord(p) { return p.kind ? p.kind + ' piano' : 'Piano'; }
   function firstPhoto(p) { return p.photos && p.photos[0] ? p.photos[0] : null; }
-  /* a piano's first photo; an illustration says so on it, as the piano pages do, and is never passed off as this piano */
-  function photoOf(p, cls) {
+  /* a piano's first photo, its cover; an illustration says so on it, as the piano pages do, and is never passed off as this piano */
+  function photoIn(box, p) {
     var photo = firstPhoto(p);
-    if (!photo) return null;
-    var frame = el('span', 'rp-photo');
-    var img = el('img', cls);
+    if (!photo) return;
+    var img = el('img');
     img.src = photo.url;
     img.alt = pianoName(p) + (photo.note ? ', an illustration' : '');
     img.loading = 'lazy';
-    frame.appendChild(img);
-    if (photo.note) frame.appendChild(el('span', 'sp-illustration', 'Illustration'));
-    return frame;
+    box.appendChild(img);
+    if (photo.note) box.appendChild(el('span', 'sp-illustration', 'Illustration'));
   }
   function lowestRent(p) {
     return p.plans.reduce(function (low, plan) { return low == null || plan.rent_cents < low ? plan.rent_cents : low; }, null);
@@ -77,15 +77,28 @@
       if (!out.offered || !out.pianos.length) return;
       var list = document.getElementById('rp-live-list');
       out.pianos.forEach(function (p) {
-        var a = el('a', 'rp-piano');
+        var a = el('a', 'piano-card');
         a.href = '/piano-rental/start?piano=' + encodeURIComponent(p.slug);
-        var photo = photoOf(p, 'rp-piano-photo');
-        if (photo) a.appendChild(photo);
-        a.appendChild(el('span', 'rp-piano-name', pianoName(p)));
-        a.appendChild(el('span', 'rp-piano-line', pianoFacts(p) + '. ' + money(lowestRent(p)) + ' a month.'));
-        a.appendChild(el('span', 'rp-link', 'Rent this piano'));
+        var image = el('div', 'card-image');
+        photoIn(image, p);
+        a.appendChild(image);
+        var body = el('div', 'card-body');
+        body.appendChild(el('span', 'card-tag', kindWord(p)));
+        body.appendChild(el('h3', 'card-name', pianoName(p)));
+        body.appendChild(el('p', 'card-facts', pianoFacts(p)));
+        var row = el('div', 'card-row');
+        row.appendChild(el('span', 'card-price', money(lowestRent(p)) + ' a month'));
+        var link = el('span', 'card-link', 'Rent this piano');
+        var arrow = el('i', 'ti ti-arrow-right');
+        arrow.setAttribute('aria-hidden', 'true');
+        link.appendChild(arrow);
+        row.appendChild(link);
+        body.appendChild(row);
+        a.appendChild(body);
         list.appendChild(a);
       });
+      var count = document.getElementById('rp-live-count');
+      if (count) count.textContent = out.pianos.length + (out.pianos.length === 1 ? ' instrument' : ' instruments');
       liveBox.hidden = false;
       var note = document.getElementById('rp-table-note');
       if (note) note.textContent = 'The list above is what is ready to rent now. The table shows what each model rents for.';
@@ -106,6 +119,7 @@
   var check = null;
 
   function showOff() {
+    document.getElementById('rp-start').classList.add('rp-start--off');
     off.hidden = false;
     form.hidden = true;
     summary.hidden = true;
@@ -125,29 +139,53 @@
     summary.textContent = '';
     if (!state.piano) { summary.hidden = true; return; }
     var p = state.piano;
-    var photo = photoOf(p);
-    if (photo) summary.appendChild(photo);
-    summary.appendChild(el('h2', null, pianoName(p)));
-    summary.appendChild(el('p', 'rp-small', pianoFacts(p)));
-    var shown = firstPhoto(p);
-    if (shown && shown.note && shown.note !== 'Illustration') summary.appendChild(el('p', 'rp-small', shown.note));
-    var plan = state.plan;
-    if (plan) {
-      var t = state.terms;
-      var dl = el('dl');
-      var row = function (k, v, cls) {
-        var d = el('div', cls);
-        d.appendChild(el('dt', null, k));
-        d.appendChild(el('dd', null, v));
-        dl.appendChild(d);
-      };
-      row(plan.name, money(plan.rent_cents) + ' a month');
-      row('Delivery', money(t.delivery_cents));
-      row('Bond, returned', money(t.bond_cents));
-      row('First day', money(plan.today_cents), 'rp-today');
-      summary.appendChild(dl);
+    var photo = firstPhoto(p);
+    if (photo) {
+      var image = el('div', 'product-image-main');
+      photoIn(image, p);
+      summary.appendChild(image);
+      if (photo.note && photo.note !== 'Illustration') summary.appendChild(el('p', 'rp-photo-note', photo.note));
     }
+    var see = el('a', 'rp-link rp-gallery-link', 'See this piano');
+    see.href = '/piano.html?slug=' + encodeURIComponent(p.slug);
+    summary.appendChild(see);
     summary.hidden = false;
+    drawMoney();
+  }
+
+  /* what the chosen plan comes to, under the plans */
+  function drawMoney() {
+    var dl = document.getElementById('rp-money');
+    dl.textContent = '';
+    var plan = state.plan, t = state.terms;
+    if (!plan || !t) return;
+    var row = function (k, v, cls) {
+      var d = el('div', cls);
+      d.appendChild(el('dt', null, k));
+      d.appendChild(el('dd', null, v));
+      dl.appendChild(d);
+    };
+    row('Delivery', money(t.delivery_cents));
+    row('Bond, returned', money(t.bond_cents));
+    row('First month', money(plan.rent_cents));
+    row('First day', money(plan.today_cents), 'rp-today');
+  }
+
+  /* the piano page's lines, for the piano this form is for */
+  function drawPiano(p) {
+    document.getElementById('rp-start-kind').textContent = kindWord(p);
+    document.getElementById('rp-start-title').textContent = 'Rent this ' + pianoName(p);
+    document.getElementById('rp-crumb').textContent = [pianoName(p), p.year].filter(Boolean).join(' ');
+    var meta = document.getElementById('rp-start-meta');
+    meta.textContent = '';
+    [['Height', p.height_cm ? p.height_cm + ' cm' : null], ['Year', p.year], ['Finish', p.finish]].forEach(function (m) {
+      if (!m[1]) return;
+      var d = el('div', 'product-meta');
+      d.appendChild(el('div', 'product-meta-label', m[0]));
+      d.appendChild(el('div', 'product-meta-value', String(m[1])));
+      meta.appendChild(d);
+    });
+    meta.hidden = !meta.firstChild;
   }
 
   function choosePlan(key) {
@@ -185,6 +223,7 @@
   function usePiano(piano, terms) {
     state.piano = piano;
     state.terms = terms;
+    drawPiano(piano);
     var on = document.getElementById('rp-start-on');
     on.min = terms.earliest_start;
     if (terms.latest_start) on.max = terms.latest_start;

@@ -559,7 +559,7 @@
       return x && typeof x.key === 'string' && typeof x.name === 'string' && cents(x.rent_cents) && cents(x.total_cents) && cents(x.today_cents);
     });
     return {
-      slug: p.slug, brand: text(p.brand), model: text(p.model), year: typeof p.year === 'number' ? p.year : null,
+      slug: p.slug, brand: text(p.brand), model: text(p.model), kind: text(p.kind), year: typeof p.year === 'number' ? p.year : null,
       finish: text(p.finish), height_cm: typeof p.height_cm === 'number' ? p.height_cm : null,
       photos: photosOf(p),
       plans: plans

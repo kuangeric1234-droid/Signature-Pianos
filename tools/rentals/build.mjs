@@ -63,11 +63,21 @@ const FOOTER = cut('<footer class="sp-footer">', '<script>\n  /* -------- NAV')
 const BOTTOM = cut('<div class="sp-bottombar"', '<script src="/js/signature-nav.js"')
 
 /* ---------- pieces ---------- */
-const crossing = (tag, big, script, cls = '') =>
-  `<${tag}${cls ? ` class="${cls}"` : ''}><span class="sp-display">${big}</span> <span class="sp-script">${script}</span></${tag}>`
+/** the collection page's hero and section head, by its own classes: the script word sits on the line, as it does there */
+const hero = ({ eyebrow, big, script, sub, actions = '' }) => `<section class="ins-hero">
+  <div class="ins-hero-inner">
+    <div class="ins-hero-eyebrow">${eyebrow}</div>
+    <h1 class="ins-hero-h1">${big} <em>${script}</em>.</h1>
+    <p class="ins-hero-sub">${sub}</p>${actions ? `\n    <div class="ins-hero-actions">${actions}</div>` : ''}
+  </div>
+</section>`
+const head = (big, script, note = '') => `<header class="cat-section-header">
+    <h2 class="cat-section-title">${big} <em>${script}</em></h2>${note ? `\n    ${note.startsWith('<') ? note : `<span class="cat-section-count">${note}</span>`}` : ''}
+  </header>`
+const CHOOSE = '<a class="rp-btn" href="/piano-rental#pianos">Choose a piano</a>'
 
-const table = (head, rows, numeric = [], wide = false) => `<div class="rp-table-wrap"><table class="rp-table${wide ? ' rp-table--wide' : ''}">
-<thead><tr>${head.map((h, i) => `<th scope="col"${numeric.includes(i) ? ' class="rp-num"' : ''}>${h}</th>`).join('')}</tr></thead>
+const table = (cols, rows, numeric = [], wide = false) => `<div class="rp-table-wrap"><table class="rp-table${wide ? ' rp-table--wide' : ''}">
+<thead><tr>${cols.map((h, i) => `<th scope="col"${numeric.includes(i) ? ' class="rp-num"' : ''}>${h}</th>`).join('')}</tr></thead>
 <tbody>
 ${rows.map((r) => `<tr>${r.map((c, i) => (i === 0 ? `<th scope="row">${c}</th>` : `<td${numeric.includes(i) ? ' class="rp-num"' : ''}>${c}</td>`)).join('')}</tr>`).join('\n')}
 </tbody></table></div>`
@@ -82,18 +92,11 @@ const faqSchema = (faqs) => ({
   mainEntity: faqs.map(([q, a]) => ({ '@type': 'Question', name: plainText(q), acceptedAnswer: { '@type': 'Answer', text: plainText(a) } })),
 })
 
-const CLOSE = `<section class="rp-close">
-  <div>
-    ${crossing('h2', 'Come and', 'play one')}
-    <p>Our showroom is in Mount Waverley. Sit down at the pianos, ask anything, and choose the one you would like to rent.</p>
-    <a class="rp-btn" href="/services/book-a-viewing.html">Book a visit</a>
+const CLOSE = `<section class="rp-section rp-section--deep">
+  <div class="rp-inner">
+  ${head('Come and', 'play one', '<a class="card-link" href="/services/book-a-viewing.html">Book a visit<i class="ti ti-arrow-right" aria-hidden="true"></i></a>')}
+  <p class="rp-lead">Our showroom is in Mount Waverley. Sit down at the pianos, ask anything, and choose the one you would like to rent.</p>
   </div>
-  <address>
-    Signature Pianos<br>
-    <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a><br>
-    <a href="tel:+61479128955">0479 128 955</a><br>
-    <a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a>
-  </address>
 </section>`
 
 const MORE = (skip) => {
@@ -211,28 +214,20 @@ shell({
   schema: [SERVICE, faqSchema(hubFaqs)],
   scripts: '<script src="/js/office-config.js"></script>\n<script src="/js/office.js"></script>\n<script src="/js/rentals.js" defer></script>\n',
   body: `
-<section class="rp-hero">
-  <div>
-    <p class="rp-label">Pre-loved Yamaha uprights</p>
-    ${crossing('h1', 'Piano rental', 'in Melbourne')}
-    <p class="rp-hero-lead">Yamaha uprights hand-picked in Japan and checked in Melbourne, from ${money(FROM)} a month. Choose your piano, sign on your phone and pay once. We tune it, bring it to you and look after it while it is with you.</p>
-    <div class="rp-hero-actions">
-      <a class="rp-btn" href="#pianos">Choose a piano</a>
-      <a class="rp-link" href="/piano-rental/terms">Read the terms</a>
-    </div>
-  </div>
-  <figure class="rp-arch"><img src="/media/home/unit-yu33.webp" width="1200" height="1200" alt="A pre-loved Yamaha upright in polished ebony, photographed in Japan" fetchpriority="high"></figure>
-</section>
+${hero({ eyebrow: 'Pre-loved Yamaha uprights', big: 'Piano rental', script: 'in Melbourne',
+  sub: `Yamaha uprights hand-picked in Japan and checked in Melbourne, from ${money(FROM)} a month. Choose your piano, sign on your phone and pay once. We tune it, bring it to you and look after it while it is with you.`,
+  actions: '<a class="rp-btn" href="#pianos">Choose a piano</a><a class="rp-link" href="/piano-rental/terms">Read the terms</a>' })}
 
-<dl class="rp-facts">
+<dl class="rp-strip">
   <div><dt>Rent from</dt><dd>${money(FROM)} a month</dd></div>
   <div><dt>Fixed terms</dt><dd>3, 6 or 12 months</dd></div>
   <div><dt>Or own it</dt><dd>Rent-to-buy</dd></div>
   <div><dt>Fees and interest</dt><dd>None</dd></div>
 </dl>
 
-<section class="rp-section rp-wrap" id="options">
-  ${crossing('h2', 'Three ways', 'to rent', 'rp-h2')}
+<section class="rp-section" id="options">
+  <div class="rp-inner">
+  ${head('Three ways', 'to rent')}
   <p class="rp-lead">Every option has a clear end and a total you can add up before you sign. There is no admin fee, no late fee and no interest on any of them.</p>
   <div class="rp-options">
     <article class="rp-option">
@@ -273,21 +268,25 @@ shell({
     </article>
   </div>
   <p class="rp-note">A short hire or a rental gives you no right to buy the piano. If you may want to keep it, choose rent-to-buy from the start.</p>
+  </div>
 </section>
 
-<section class="rp-section rp-section--mist rp-wrap" id="pianos">
-  ${crossing('h2', 'What each model', 'rents for', 'rp-h2')}
+<section class="rp-section" id="pianos">
+  <div class="rp-inner">
+  <section class="cat-section" id="rp-live" hidden>
+    ${head('Ready', 'to rent', '<span class="cat-section-count" id="rp-live-count"></span>')}
+    <div class="cat-grid" id="rp-live-list"></div>
+  </section>
+  ${head('What each model', 'rents for')}
   <p class="rp-lead">All Yamaha, all hand-picked in Japan and checked in Melbourne. Rent follows each piano's age and condition, so two of the same model can differ.</p>
-  <div id="rp-live" hidden>
-    <h3 class="rp-label" style="margin-top:44px">Ready to rent</h3>
-    <div class="rp-pianos" id="rp-live-list"></div>
-  </div>
   ${table(['Model', 'Height', 'Made', 'Rent a month'], MODELS, [3])}
   <p class="rp-note">GST is included. <span id="rp-table-note">To hear what is ready to rent now, call <a href="tel:+61479128955">0479 128 955</a> or <a href="/services/book-a-viewing.html">book a visit</a>.</span> Not sure which? <a href="/piano-rental/yamaha-u1-u3">We compare them here.</a></p>
+  </div>
 </section>
 
-<section class="rp-section rp-wrap">
-  ${crossing('h2', 'Five steps', 'from your phone', 'rp-h2')}
+<section class="rp-section rp-section--deep">
+  <div class="rp-inner">
+  ${head('Five steps', 'from your phone')}
   <ol class="rp-steps">
     <li><h3>Choose</h3><p>Pick a piano and how long you want it. You see the rent, the total and what you pay today before you go any further.</p></li>
     <li><h3>Sign</h3><p>Read the agreement and sign it on your phone or computer. A copy stays on your own page.</p></li>
@@ -295,13 +294,15 @@ shell({
     <li><h3>Pick your day</h3><p>Choose a delivery day from those on offer and tell us about the way in.</p></li>
     <li><h3>Play</h3><p>Our mover brings the piano, places it and photographs its condition. Your page shows your agreement, payments and what comes next.</p></li>
   </ol>
+  </div>
 </section>
 
-<section class="rp-section rp-section--deep rp-wrap">
+<section class="rp-section">
+  <div class="rp-inner">
   <div class="rp-split">
-    <img src="/media/home/detail-action.webp" width="1600" height="1000" alt="The action of a piano, its hammers and felts up close" loading="lazy">
+    <img src="/media/home/unit-yu33.webp" width="1200" height="1200" alt="A pre-loved Yamaha upright in polished ebony, photographed in Japan" loading="lazy">
     <div>
-      ${crossing('h2', 'What comes', 'with it', 'rp-h2')}
+      ${head('What comes', 'with it')}
       <ul class="rp-list">
         <li>A piano checked in Melbourne and tuned before it leaves us</li>
         <li>A stool with every rental</li>
@@ -311,12 +312,15 @@ shell({
       </ul>
     </div>
   </div>
+  </div>
 </section>
 
-<section class="rp-section rp-wrap">
-  ${crossing('h2', 'Questions', 'we hear most', 'rp-h2')}
+<section class="rp-section">
+  <div class="rp-inner">
+  ${head('Questions', 'we hear most')}
   ${faqBlock(hubFaqs)}
   ${MORE('/piano-rental')}
+  </div>
 </section>
 
 ${CLOSE}`,
@@ -332,24 +336,21 @@ shell({
   crumbs: [['Piano rental', '/piano-rental'], ['Prices', '/piano-rental/prices']],
   schema: [SERVICE, faqSchema(priceFaqs)],
   body: `
-<section class="rp-hero rp-hero--long">
-  <div>
-    <p class="rp-label">Pre-loved Yamaha uprights</p>
-    ${crossing('h1', 'Piano rental prices', 'in Melbourne')}
-    <p class="rp-hero-lead">Our Yamaha uprights, hand-picked in Japan and checked in Melbourne, rent from ${money(FROM)} to ${money(TOP)} a month with GST included. Here is every cost, added up.</p>
-    <div class="rp-hero-actions"><a class="rp-btn" href="/piano-rental#pianos">Choose a piano</a></div>
-  </div>
-  <figure class="rp-arch"><img src="/media/home/detail-keys-ebony.webp" width="1600" height="1000" alt="The black and white keys of a piano, up close" fetchpriority="high"></figure>
-</section>
+${hero({ eyebrow: 'Pre-loved Yamaha uprights', big: 'Piano rental prices', script: 'in Melbourne',
+  sub: `Our Yamaha uprights, hand-picked in Japan and checked in Melbourne, rent from ${money(FROM)} to ${money(TOP)} a month with GST included. Here is every cost, added up.`,
+  actions: CHOOSE })}
 
-<section class="rp-section rp-section--mist rp-wrap">
-  ${crossing('h2', 'Rent', 'by model', 'rp-h2')}
+<section class="rp-section rp-section--deep">
+  <div class="rp-inner">
+  ${head('Rent', 'by model')}
   <p class="rp-lead">Rent follows each piano's age and condition, so two of the same model can differ. Published rents in Melbourne for the same Yamaha models ran from $120 to $140 a month when we checked in October 2026.</p>
   ${table(['Model', 'Height', 'Made', 'Rent a month'], MODELS, [3])}
+  </div>
 </section>
 
-<section class="rp-section rp-wrap">
-  ${crossing('h2', 'Worked', 'totals', 'rp-h2')}
+<section class="rp-section">
+  <div class="rp-inner">
+  ${head('Worked', 'totals')}
   <p class="rp-lead">A ${EX.name}, which rents for ${money(EX.rent)} a month and sells for ${money(EX.price)}. The bond is kept apart because it comes back.</p>
   ${table(['Option', 'Rent a month', 'Rent over the term', 'Delivery and collection', 'All in', 'First day'], [
     ['Short hire, 3 months', money(EX.rent), money(EX.rent * 3), money(DELIVERY + COLLECTION), money(allIn(3)), money(dayOne)],
@@ -358,21 +359,26 @@ shell({
     ['Rent-to-buy', money(toOwn(EX.price)), `${money(EX.price - DELIVERY)} over ${payments(EX.price)} payments`, `${money(DELIVERY)}, counted`, `${money(EX.price)}, and it is yours`, money(toOwn(EX.price) + DELIVERY + BOND)],
   ], [1, 4, 5], true)}
   <p class="rp-note">The first day is the first month, the delivery fee and the ${money(BOND)} bond. Delivery and collection cover a ground-floor room in metro Melbourne with up to 4 steps to get in.</p>
+  </div>
 </section>
 
-<section class="rp-section rp-section--deep rp-wrap">
+<section class="rp-section rp-section--deep">
+  <div class="rp-inner">
   <div class="rp-prose">
-    ${crossing('h2', 'Renting', 'or buying', 'rp-h2')}
+    ${head('Renting', 'or buying')}
     <p>Renting suits you when you do not yet know how long a piano will stay in your life. Buying suits you once you do.</p>
     <p>On the ${EX.name}, two 12-month rentals in a row would come to about ${money(EX.rent * 24 + DELIVERY + COLLECTION)}, and the piano goes back at the end. Buying it costs ${money(EX.price)} plus delivery, and it stays yours. So if you expect to play for more than two years, buying usually costs less.</p>
     <p>If you are somewhere between the two, <a href="/piano-rental/rent-to-buy">rent-to-buy</a> counts every dollar toward the price and lets you stop after 3 months.</p>
   </div>
+  </div>
 </section>
 
-<section class="rp-section rp-wrap">
-  ${crossing('h2', 'Price', 'questions', 'rp-h2')}
+<section class="rp-section">
+  <div class="rp-inner">
+  ${head('Price', 'questions')}
   ${faqBlock(priceFaqs)}
   ${MORE('/piano-rental/prices')}
+  </div>
 </section>
 
 ${CLOSE}`,
@@ -395,26 +401,23 @@ shell({
   crumbs: [['Piano rental', '/piano-rental'], ['Rent-to-buy', '/piano-rental/rent-to-buy']],
   schema: [{ ...SERVICE, name: 'Rent-to-buy a piano in Melbourne', serviceType: 'Piano rent-to-buy' }, faqSchema(ownFaqs)],
   body: `
-<section class="rp-hero rp-hero--long">
-  <div>
-    <p class="rp-label">Pre-loved Yamaha uprights</p>
-    ${crossing('h1', 'Rent to buy a piano', 'in Melbourne')}
-    <p class="rp-hero-lead">Take a Yamaha upright, hand-picked in Japan and checked in Melbourne, home now and pay for it month by month. Every dollar counts toward a price fixed the day you sign. No fee, no interest, and you can stop after 3 months.</p>
-    <div class="rp-hero-actions"><a class="rp-btn" href="/piano-rental#pianos">Choose a piano</a><a class="rp-link" href="/piano-rental/terms#rent-to-buy">Read the agreement</a></div>
-  </div>
-  <figure class="rp-arch"><img src="/media/home/hands.webp" width="1600" height="1000" alt="Hands playing a piano" fetchpriority="high"></figure>
-</section>
+${hero({ eyebrow: 'Pre-loved Yamaha uprights', big: 'Rent to buy a piano', script: 'in Melbourne',
+  sub: 'Take a Yamaha upright, hand-picked in Japan and checked in Melbourne, home now and pay for it month by month. Every dollar counts toward a price fixed the day you sign. No fee, no interest, and you can stop after 3 months.',
+  actions: `${CHOOSE}<a class="rp-link" href="/piano-rental/terms#rent-to-buy">Read the agreement</a>` })}
 
-<section class="rp-section rp-section--mist rp-wrap">
-  ${crossing('h2', 'How it', 'adds up', 'rp-h2')}
+<section class="rp-section rp-section--deep">
+  <div class="rp-inner">
+  ${head('How it', 'adds up')}
   <p class="rp-lead">The monthly payment is the price divided by 24, rounded up to the next $5. The ${money(DELIVERY)} delivery fee counts toward the price too, so most pianos are paid off a little sooner.</p>
   ${table(['Piano', 'Price, fixed', 'A month', 'Payments', 'First day'], OWN.map(([name, price]) => [name, money(price), money(toOwn(price)), String(payments(price)), money(toOwn(price) + DELIVERY + BOND)]), [1, 2, 3, 4])}
   <p class="rp-note">GST is included. The first day is the first month, the delivery fee and the ${money(BOND)} bond. The bond does not count as rent: when you own the piano we put it toward your last payment or refund it, as you choose.</p>
+  </div>
 </section>
 
-<section class="rp-section rp-wrap">
+<section class="rp-section">
+  <div class="rp-inner">
   <div class="rp-prose">
-    ${crossing('h2', 'The promises', 'in writing', 'rp-h2')}
+    ${head('The promises', 'in writing')}
     <ul>
       <li><strong>Every dollar counts.</strong> All your rent and the delivery fee go toward the price.</li>
       <li><strong>The price cannot go up.</strong> It is fixed the day you sign.</li>
@@ -426,12 +429,15 @@ shell({
     <h2>Rent-to-buy, or a rental?</h2>
     <p>A rental costs less each month, but the piano goes back at the end and you have no right to buy it. Rent-to-buy costs more each month because every dollar is working toward owning the piano. If you are fairly sure you will keep playing, it is the better fit. If you only need a piano for a while, <a href="/piano-rental">a rental</a> is.</p>
   </div>
+  </div>
 </section>
 
-<section class="rp-section rp-section--deep rp-wrap">
-  ${crossing('h2', 'Rent-to-buy', 'questions', 'rp-h2')}
+<section class="rp-section rp-section--deep">
+  <div class="rp-inner">
+  ${head('Rent-to-buy', 'questions')}
   ${faqBlock(ownFaqs)}
   ${MORE('/piano-rental/rent-to-buy')}
+  </div>
 </section>
 
 ${CLOSE}`,
@@ -447,19 +453,14 @@ shell({
   crumbs: [['Piano rental', '/piano-rental'], ['Short term hire', '/piano-rental/short-term']],
   schema: [{ ...SERVICE, name: 'Short term piano hire in Melbourne', serviceType: 'Short term piano hire' }, faqSchema(shortFaqs)],
   body: `
-<section class="rp-hero rp-hero--long">
-  <div>
-    <p class="rp-label">Pre-loved Yamaha uprights</p>
-    ${crossing('h1', 'Short term piano hire', 'in Melbourne')}
-    <p class="rp-hero-lead">A real Yamaha upright, hand-picked in Japan and checked in Melbourne, in your home for 3 months. It arrives tuned, and we collect it at the end.</p>
-    <div class="rp-hero-actions"><a class="rp-btn" href="/piano-rental#pianos">Choose a piano</a></div>
-  </div>
-  <figure class="rp-arch"><img src="/media/home/strings.webp" width="1600" height="1000" alt="The strings and tuning pins inside a piano, up close" fetchpriority="high"></figure>
-</section>
+${hero({ eyebrow: 'Pre-loved Yamaha uprights', big: 'Short term piano hire', script: 'in Melbourne',
+  sub: 'A real Yamaha upright, hand-picked in Japan and checked in Melbourne, in your home for 3 months. It arrives tuned, and we collect it at the end.',
+  actions: CHOOSE })}
 
-<section class="rp-section rp-section--mist rp-wrap">
+<section class="rp-section rp-section--deep">
+  <div class="rp-inner">
   <div class="rp-prose">
-    ${crossing('h2', 'Who it', 'suits', 'rp-h2')}
+    ${head('Who it', 'suits')}
     <ul>
       <li>A child starting lessons, for a first term on a real piano</li>
       <li>A student with an exam or audition coming up</li>
@@ -471,12 +472,15 @@ shell({
     <h2>When the 3 months end</h2>
     <p>Your hire has a fixed end date and does not roll on. About 30 days before it, we ask what you would like. We collect the piano, or we both sign a new agreement for a new fixed term.</p>
   </div>
+  </div>
 </section>
 
-<section class="rp-section rp-wrap">
-  ${crossing('h2', 'Short hire', 'questions', 'rp-h2')}
+<section class="rp-section">
+  <div class="rp-inner">
+  ${head('Short hire', 'questions')}
   ${faqBlock(shortFaqs)}
   ${MORE('/piano-rental/short-term')}
+  </div>
 </section>
 
 ${CLOSE}`,
@@ -497,19 +501,14 @@ shell({
   crumbs: [['Piano rental', '/piano-rental'], ['Which Yamaha to rent', '/piano-rental/yamaha-u1-u3']],
   schema: [SERVICE, faqSchema(modelFaqs)],
   body: `
-<section class="rp-hero rp-hero--long">
-  <div>
-    <p class="rp-label">Hand-picked in Japan</p>
-    ${crossing('h1', 'Rent a Yamaha U1 or U3', 'in Melbourne')}
-    <p class="rp-hero-lead">The U1 and the U3 are the uprights most people ask for, and the two heights you will meet in every Yamaha below. Here is how the models we rent compare.</p>
-    <div class="rp-hero-actions"><a class="rp-btn" href="/piano-rental#pianos">Choose a piano</a></div>
-  </div>
-  <figure class="rp-arch"><img src="/media/home/detail-hammers.webp" width="1600" height="1000" alt="The felt hammers and action inside an upright piano" fetchpriority="high"></figure>
-</section>
+${hero({ eyebrow: 'Hand-picked in Japan', big: 'Rent a Yamaha U1 or U3', script: 'in Melbourne',
+  sub: 'The U1 and the U3 are the uprights most people ask for, and the two heights you will meet in every Yamaha below. Here is how the models we rent compare.',
+  actions: CHOOSE })}
 
-<section class="rp-section rp-section--mist rp-wrap">
+<section class="rp-section rp-section--deep">
+  <div class="rp-inner">
   <div class="rp-prose">
-    ${crossing('h2', '121 cm', 'or 131 cm', 'rp-h2')}
+    ${head('121 cm', 'or 131 cm')}
     <p>Height is the first choice. A taller upright has longer strings, which gives a fuller bass and a bigger sound. A 121 cm piano sits more easily under a window and suits a smaller room. A 131 cm piano suits a player who wants the sound to fill the room. Both weigh well over 200 kg, which is why only our mover moves them.</p>
   </div>
   ${table(['Model', 'Height', 'What sets it apart', 'Rent a month'], [
@@ -528,12 +527,15 @@ shell({
     ['YUS3', '131 cm', 'The higher grade of Yamaha\'s modern 131 cm line, made 2016', '$190'],
   ], [3])}
   <p class="rp-note">Rent differs with each piano's age and condition. All-underfelt means an extra layer of felt under each hammer. An agraffe is a small metal guide that holds a string in exact position.</p>
+  </div>
 </section>
 
-<section class="rp-section rp-wrap">
-  ${crossing('h2', 'Yamaha', 'questions', 'rp-h2')}
+<section class="rp-section">
+  <div class="rp-inner">
+  ${head('Yamaha', 'questions')}
   ${faqBlock(modelFaqs)}
   ${MORE('/piano-rental/yamaha-u1-u3')}
+  </div>
 </section>
 
 ${CLOSE}`,
@@ -583,18 +585,14 @@ shell({
   description: 'The full terms of our piano rentals and rent-to-buy in Melbourne, in plain English: the rent, bond, delivery, early return, damage and what happens at the end.',
   crumbs: [['Piano rental', '/piano-rental'], ['Terms', '/piano-rental/terms']],
   body: `
-<section class="rp-hero rp-hero--plain">
-  <div>
-    <p class="rp-label">Version 1</p>
-    ${crossing('h1', 'Rental terms', 'and conditions')}
-    <p class="rp-hero-lead">These are the words you sign. The figures for your piano are filled in and shown before you sign, and a copy stays on your own page.</p>
-    <div class="rp-terms-toc"><a class="rp-link" href="#summary">In short</a><a class="rp-link" href="#rental">Short hire and rental</a><a class="rp-link" href="#rent-to-buy">Rent-to-buy</a></div>
-  </div>
-</section>
+${hero({ eyebrow: 'Version 1', big: 'Rental terms', script: 'and conditions',
+  sub: 'These are the words you sign. The figures for your piano are filled in and shown before you sign, and a copy stays on your own page.',
+  actions: '<a class="rp-link" href="#summary">In short</a><a class="rp-link" href="#rental">Short hire and rental</a><a class="rp-link" href="#rent-to-buy">Rent-to-buy</a>' })}
 
-<section class="rp-section rp-section--mist rp-wrap" id="summary">
+<section class="rp-section rp-section--deep" id="summary">
+  <div class="rp-inner">
   <div class="rp-prose">
-    ${crossing('h2', 'In', 'short', 'rp-h2')}
+    ${head('In', 'short')}
     <ul>
       <li>Every rental has an end date: 3, 6 or 12 months, or up to 24 months on rent-to-buy. Nothing rolls on.</li>
       <li>The first month, the ${money(DELIVERY)} delivery fee and the ${money(BOND)} bond are paid before we book delivery.</li>
@@ -607,19 +605,24 @@ shell({
     </ul>
     <p>This summary is a guide. The agreement below is what binds us both. Nothing here takes away your rights under the Australian Consumer Law.</p>
   </div>
-</section>
-
-<section class="rp-section rp-wrap" id="rental">
-  ${crossing('h2', 'Short hire', 'and rental', 'rp-h2')}
-  <div class="rp-agreement">
-${agreement(plainWords)}
   </div>
 </section>
 
-<section class="rp-section rp-section--deep rp-wrap" id="rent-to-buy">
-  ${crossing('h2', 'Rent-to-buy', 'agreement', 'rp-h2')}
+<section class="rp-section" id="rental">
+  <div class="rp-inner">
+  ${head('Short hire', 'and rental')}
+  <div class="rp-agreement">
+${agreement(plainWords)}
+  </div>
+  </div>
+</section>
+
+<section class="rp-section rp-section--deep" id="rent-to-buy">
+  <div class="rp-inner">
+  ${head('Rent-to-buy', 'agreement')}
   <div class="rp-agreement">
 ${agreement(ownWords)}
+  </div>
   </div>
 </section>
 
@@ -636,17 +639,20 @@ shell({
   noindex: true,
   scripts: '<script src="/js/office-config.js"></script>\n<script src="/js/office.js"></script>\n<script src="/js/rentals.js" defer></script>\n',
   body: `
-<div class="rp-start" id="rp-start">
-  <div class="rp-start-head">
-    ${crossing('h1', 'Rent', 'this piano')}
-    <p class="rp-lead" id="rp-start-lead">Choose how long you want it and tell us where it is going. You read and sign the agreement on the next page.</p>
+<div class="rp-crumb" role="navigation" aria-label="Breadcrumb"><a href="/piano-rental">Piano rental</a> · <span id="rp-crumb">Rent this piano</span></div>
+<section class="product-hero" id="rp-start">
+<div class="product-hero-inner">
+  <aside class="product-gallery" id="rp-summary" hidden aria-live="polite"></aside>
+  <div class="product-info">
+    <div class="product-eyebrow" id="rp-start-kind">Piano rental</div>
+    <h1 class="product-name" id="rp-start-title">Rent this piano</h1>
+    <p class="product-brand" id="rp-start-lead">Choose how long you want it and tell us where it is going. You read and sign the agreement on the next page.</p>
+    <div class="product-meta-row" id="rp-start-meta" hidden></div>
 
     <div id="rp-start-off" hidden>
       <p class="rp-stop">We cannot take a rental online just now. Call us on <a href="tel:+61479128955">0479 128 955</a> or <a href="/services/book-a-viewing.html">book a visit</a> and we will sort it out with you.</p>
     </div>
-  </div>
 
-  <div class="rp-start-body">
     <form id="rp-form" novalidate hidden>
       <fieldset class="rp-fieldset" id="rp-piano-pick" hidden>
         <legend>Your piano</legend>
@@ -657,6 +663,7 @@ shell({
         <legend>How long</legend>
         <div class="rp-plans" id="rp-plans"></div>
       </fieldset>
+      <dl class="rp-money" id="rp-money"></dl>
 
       <fieldset class="rp-fieldset">
         <legend>You</legend>
@@ -696,9 +703,8 @@ shell({
       </fieldset>
     </form>
   </div>
-
-  <aside class="rp-summary" id="rp-summary" hidden aria-live="polite"></aside>
-</div>`,
+</div>
+</section>`,
 })
 
 console.log('built piano-rental/ from', path.relative(ROOT, draftAt))

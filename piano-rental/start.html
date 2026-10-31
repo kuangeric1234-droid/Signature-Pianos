@@ -151,17 +151,20 @@
 </nav>
 
 <main>
-<div class="rp-start" id="rp-start">
-  <div class="rp-start-head">
-    <h1><span class="sp-display">Rent</span> <span class="sp-script">this piano</span></h1>
-    <p class="rp-lead" id="rp-start-lead">Choose how long you want it and tell us where it is going. You read and sign the agreement on the next page.</p>
+<div class="rp-crumb" role="navigation" aria-label="Breadcrumb"><a href="/piano-rental">Piano rental</a> · <span id="rp-crumb">Rent this piano</span></div>
+<section class="product-hero" id="rp-start">
+<div class="product-hero-inner">
+  <aside class="product-gallery" id="rp-summary" hidden aria-live="polite"></aside>
+  <div class="product-info">
+    <div class="product-eyebrow" id="rp-start-kind">Piano rental</div>
+    <h1 class="product-name" id="rp-start-title">Rent this piano</h1>
+    <p class="product-brand" id="rp-start-lead">Choose how long you want it and tell us where it is going. You read and sign the agreement on the next page.</p>
+    <div class="product-meta-row" id="rp-start-meta" hidden></div>
 
     <div id="rp-start-off" hidden>
       <p class="rp-stop">We cannot take a rental online just now. Call us on <a href="tel:+61479128955">0479 128 955</a> or <a href="/services/book-a-viewing.html">book a visit</a> and we will sort it out with you.</p>
     </div>
-  </div>
 
-  <div class="rp-start-body">
     <form id="rp-form" novalidate hidden>
       <fieldset class="rp-fieldset" id="rp-piano-pick" hidden>
         <legend>Your piano</legend>
@@ -172,6 +175,7 @@
         <legend>How long</legend>
         <div class="rp-plans" id="rp-plans"></div>
       </fieldset>
+      <dl class="rp-money" id="rp-money"></dl>
 
       <fieldset class="rp-fieldset">
         <legend>You</legend>
@@ -211,9 +215,8 @@
       </fieldset>
     </form>
   </div>
-
-  <aside class="rp-summary" id="rp-summary" hidden aria-live="polite"></aside>
 </div>
+</section>
 </main>
 
 <footer class="sp-footer">
