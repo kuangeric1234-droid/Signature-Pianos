@@ -16,7 +16,7 @@ const xmlEscape = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').
 const STATIC_PATHS = [
   '/', '/instruments/', '/services/book-a-viewing.html', '/services/delivery-warranty.html',
   '/services/tuning-servicing.html', '/serial-number-lookup.html', '/guide', '/teachers.html', '/about.html', '/blog',
-  '/piano-rental', '/piano-rental/prices', '/piano-rental/short-term',
+  '/privacy', '/piano-rental', '/piano-rental/prices', '/piano-rental/short-term',
   '/piano-rental/yamaha-u1-u3', '/piano-rental/terms',
 ]
 

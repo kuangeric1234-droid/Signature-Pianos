@@ -115,7 +115,7 @@ const MORE = (skip) => {
   return `<div class="rp-more">${links.map(([href, t, s]) => `<a href="${href}">${t}<small>${s}</small></a>`).join('')}</div>`
 }
 
-function shell({ file, url, title, description, body, schema = [], crumbs = [], noindex = false, scripts = '' }) {
+function shell({ file, url, title, description, body, schema = [], crumbs = [], noindex = false, scripts = '', dir = OUT }) {
   if (title.length > 60) throw new Error(`title over 60: ${title}`)
   if (description.length > 160) throw new Error(`description over 160 (${description.length}): ${title}`)
   const canonical = SITE + url
@@ -174,8 +174,8 @@ ${scripts}</body>
     const m = text.match(bad)
     if (m) throw new Error(`${file}: ${why}: "${text.slice(Math.max(0, m.index - 40), m.index + 40)}"`)
   }
-  fs.mkdirSync(OUT, { recursive: true })
-  fs.writeFileSync(path.join(OUT, file), html.replace(/\n/g, '\n'))
+  fs.mkdirSync(dir, { recursive: true })
+  fs.writeFileSync(path.join(dir, file), html.replace(/\n/g, '\n'))
 }
 
 const SERVICE = {
@@ -637,6 +637,79 @@ ${agreement(ownWords)}
 ${CLOSE}`,
 })
 
+/* ---------- /privacy: every line a fact of the site or the office; change it when they change ---------- */
+shell({
+  file: 'privacy.html',
+  dir: ROOT,
+  url: '/privacy',
+  title: 'Privacy Policy | Signature Pianos',
+  description: 'What Signature Pianos collects when you enquire, buy or rent a piano, why we need it, who sees it, and how to see, change or remove it.',
+  crumbs: [['Privacy policy', '/privacy']],
+  body: `
+${hero({ eyebrow: 'Signature Pianos', big: 'Privacy', script: 'policy',
+  sub: 'What we collect when you enquire, buy or rent a piano, why we need it, who sees it, and how to see, change or remove it.' })}
+
+<section class="rp-section">
+  <div class="rp-inner">
+  <div class="rp-prose">
+    <h2>Who we are</h2>
+    <p>Signature Pianos is the trading name of Parke Music Group Pty Ltd, ABN 94 702 480 340, of 63 Blackburn Road, Mount Waverley VIC 3149. In this policy, we and us mean that company.</p>
+
+    <h2>What we collect</h2>
+    <ul>
+      <li><strong>Enquiries and visits:</strong> your name, email, phone, what you ask us, the pianos you are interested in and the day you would like to come.</li>
+      <li><strong>The buyer's guide and piano questions:</strong> your name, email, phone if you give it, and your answers about budget, space, who is playing and when you hope to buy.</li>
+      <li><strong>Tuning and servicing:</strong> your name, contact details, suburb and details of your piano.</li>
+      <li><strong>Teacher matching:</strong> your suburb, the price you have in mind and your answers about lessons.</li>
+      <li><strong>Buying or renting a piano:</strong> your name, email, phone, delivery address and the way in, what you bought or rented, your payments, your agreement and your signature, and when you signed.</li>
+      <li><strong>Delivery and collection:</strong> our mover records that the piano arrived and photographs its condition. At a rental's delivery the mover sees your photo ID. We keep no copy, only a note that it was checked.</li>
+      <li><strong>How you found us:</strong> what you tell us, the page you came from, and any campaign tag on the link you followed, such as one from a Google or Facebook ad.</li>
+      <li><strong>Keeping our forms safe:</strong> our systems count the forms sent from each internet address, and keep a scrambled copy of that address for a short time, to stop automated abuse.</li>
+    </ul>
+    <p>Your card or bank details go straight to Stripe, our payment provider. We never see the full number. We keep the kind of card or account and its last digits, so we can tell you which one is saved.</p>
+
+    <h2>Why we need it</h2>
+    <ul>
+      <li>To answer you, and to arrange your visit, delivery, tuning or service.</li>
+      <li>To sell or rent you a piano, take payment, and keep your agreement, receipts and warranty.</li>
+      <li>To look after a piano while it is with you, and to contact you about it.</li>
+      <li>To keep the records the law asks of a business.</li>
+      <li>To see which of our pages and advertising bring people to us.</li>
+    </ul>
+
+    <h2>Who sees it</h2>
+    <p>We do not sell your information. It is seen by our own people, and by others only as far as each needs it:</p>
+    <ul>
+      <li><strong>Movers and tuners:</strong> your name, contact details, address and the way in, for the job they are doing.</li>
+      <li><strong>Stripe:</strong> takes and holds your payment details.</li>
+      <li><strong>Resend:</strong> sends our emails.</li>
+      <li><strong>Vercel, Railway and Supabase:</strong> host our website, our office system and its records.</li>
+      <li><strong>Cloudflare:</strong> checks that a form is being sent by a person.</li>
+      <li><strong>Our accountant and advisers,</strong> when we need them, and anyone the law requires us to tell.</li>
+    </ul>
+    <p>Some of these providers store or handle information outside Australia, including in the United States.</p>
+
+    <h2>Emails and messages</h2>
+    <p>We send the messages your enquiry, order or rental needs. We send news and offers only if you agreed to them, and you can tell us to stop at any time. We value your privacy and will never spam you.</p>
+
+    <h2>Cookies and this website</h2>
+    <p>This website runs no advertising or analytics trackers. It keeps small notes in your browser while you visit, such as where you came from, and a sign-in cookie on your own customer page. Fonts and icons load from Google Fonts and jsDelivr, and payment pages from Stripe, and those services see your internet address as they do. Other websites we link to, such as TeachMusic, have their own privacy policies.</p>
+
+    <h2>How long we keep it</h2>
+    <p>We keep your details for as long as we need them to look after you and your piano, its warranty and your account, and for as long as the law requires. Tax records, for example, are kept for at least five years.</p>
+
+    <h2>Seeing, changing or removing it</h2>
+    <p>You can ask to see what we hold about you, ask us to correct it, or ask us to remove it. Some records we must keep by law, and if so we tell you which. Email <a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a> or call <a href="tel:+61479128955">0479 128 955</a>.</p>
+
+    <h2>If you have a complaint</h2>
+    <p>Tell us first, at the same address, and we will look into it and reply. If you are not happy with our answer, you can go to the Office of the Australian Information Commissioner at <a href="https://www.oaic.gov.au">oaic.gov.au</a> or on 1300 363 992.</p>
+
+    <p class="rp-note">Last updated 1 November 2026.</p>
+  </div>
+  </div>
+</section>`,
+})
+
 /* ---------- /piano-rental/start: renting a piano ---------- */
 shell({
   file: 'start.html',
@@ -707,7 +780,7 @@ shell({
         <div class="rp-submit">
           <button class="rp-btn" id="rp-go" type="submit">Continue to sign</button>
         </div>
-        <p class="rp-small">Nothing is charged yet. We hold the piano for you while you sign. We value your privacy and will never spam you.</p>
+        <p class="rp-small">Nothing is charged yet. We hold the piano for you while you sign. <a href="/privacy">We value your privacy</a> and will never spam you.</p>
       </fieldset>
     </form>
   </div>
