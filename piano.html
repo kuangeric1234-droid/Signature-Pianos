@@ -1621,17 +1621,50 @@ function upsertSeoMeta(title, desc){
     actions.replaceChildren(el('p', { class: 'sp-note' }, 'Its details could not be loaded just now. Please try again in a minute, or call us on 0479 128 955.'))
   }
 
+  /* What Google reads of the piano. Its real photos only: a search result shows a picture with no label, so an illustration
+     there would be an AI piano passed off as this one (ACL ss 18, 29). */
+  function putPianoSchema(p, title, description) {
+    const offers = p.priceCents ? {
+      '@type': 'Offer',
+      url: location.href,
+      price: (p.priceCents / 100).toFixed(2),
+      priceCurrency: 'AUD',
+      itemCondition: `https://schema.org/${p.classWord === 'New' ? 'NewCondition' : 'UsedCondition'}`,
+      availability: `https://schema.org/${p.status === 'Sold' ? 'SoldOut' : p.status === 'Reserved' ? 'Reserved' : p.arrivingSaid ? 'PreOrder' : 'InStock'}`,
+      seller: { '@type': 'Organization', name: 'Signature Pianos', url: location.origin },
+    } : null
+    const real = p.photos.filter((_, i) => !p.photoNotes[i])
+    const schema = {
+      '@context': 'https://schema.org', '@type': 'Product', name: title, description,
+      brand: { '@type': 'Brand', name: p.brand }, model: p.model, category: p.kind ? `${p.kind} piano` : 'Piano',
+      ...(real.length ? { image: real } : {}), ...(offers ? { offers } : {}),
+    }
+    let tag = document.getElementById('pianoSchema')
+    if (!tag) {
+      tag = document.createElement('script')
+      tag.type = 'application/ld+json'
+      tag.id = 'pianoSchema'
+      document.head.append(tag)
+    }
+    tag.textContent = JSON.stringify(schema)
+  }
+
   function renderOfficePiano(p) {
     const title = [p.name, p.year].filter(Boolean).join(' ')
     const kindWords = p.kind ? p.kind.toLowerCase() + ' piano' : 'piano'
-    document.title = `${title} | Signature Pianos Melbourne`
+    // the model, the year, the kind and the suburb people search by, within 60 characters
+    document.title = `${title}${p.kind ? ' ' + p.kind + ' Piano' : ''} Melbourne | Signature Pianos`
     const said = p.status === 'Sold' ? 'Sold.' : p.status === 'Reserved' ? 'Reserved.' : (p.priceCents ? OFFICE.money(p.priceCents) + '.' : '')
     const facts = `${p.name} ${kindWords}${p.year ? ', made in ' + p.year : ''}${p.finish ? ', ' + p.finish.toLowerCase() : ''}. ${said} Signature Pianos, Mount Waverley.`
-    // its model's story where the office keeps one, cut at a word near 155 characters; else the facts
+    // its model's story where the office keeps one: its first sentence, written to stand alone in a search result; cut at
+    // a word near 155 characters where it runs longer. Else the facts
     const story = p.story ? p.story.replace(/\s+/g, ' ').trim() : ''
-    const desc = (story ? (story.length > 155 ? story.slice(0, 155).replace(/\s+\S*$/, '') + '…' : story) : facts).replace(/\s+/g, ' ').trim()
+    const first = story.split(/(?<=\.)\s/)[0]
+    const lead = first.length > 155 ? first.slice(0, 155).replace(/\s+\S*$/, '') + '…' : first
+    const desc = (story ? lead : facts).replace(/\s+/g, ' ').trim()
     document.getElementById('docDesc')?.setAttribute('content', desc)
     upsertSeoMeta(document.title, desc)
+    putPianoSchema(p, title, story || facts)
 
     const cat = document.getElementById('breadcrumbCat')
     cat.textContent = p.kind ? p.kind + ' pianos' : 'Pianos'

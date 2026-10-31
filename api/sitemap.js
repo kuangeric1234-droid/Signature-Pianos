@@ -1,11 +1,15 @@
 /*
  * Signature Pianos — sitemap.xml (/sitemap.xml)
  * ---------------------------------------------
- * Lists core pages + every published blog post so search engines crawl new
- * articles quickly. Served dynamically from Supabase.
+ * Lists core pages, every published blog post and every piano on the website
+ * so search engines crawl them quickly. Posts come from Supabase, pianos from
+ * the office's feed.
  */
 
 const { supabaseAdmin, SITE_URL } = require('../lib/ai')
+
+// The office's address, as js/office-config.js has it: change the two together
+const OFFICE_ORIGIN = process.env.OFFICE_ORIGIN || 'https://office-production-949d.up.railway.app'
 
 const xmlEscape = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
 
@@ -28,8 +32,18 @@ module.exports = async (req, res) => {
     console.error('[sitemap] load failed', err)
   }
 
+  let pianos = []
+  try {
+    const feed = await fetch(`${OFFICE_ORIGIN}/public/m/stock/pianos`, { headers: { Origin: SITE_URL } })
+    if (!feed.ok) throw new Error(`the office answered ${feed.status}`)
+    pianos = (await feed.json()).pianos || []
+  } catch (err) {
+    console.error('[sitemap] pianos load failed', err)
+  }
+
   const urls = [
     ...STATIC_PATHS.map((p) => ({ loc: SITE_URL + p })),
+    ...pianos.map((p) => ({ loc: `${SITE_URL}/piano.html?slug=${encodeURIComponent(p.slug)}` })),
     ...posts.map((p) => ({
       loc: `${SITE_URL}/blog/${encodeURIComponent(p.slug)}`,
       lastmod: (p.updated_at || p.published_at || '').slice(0, 10),
