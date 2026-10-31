@@ -14,6 +14,10 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const SITE = 'https://signaturepianos.com.au'
 const OUT = path.join(ROOT, 'piano-rental')
 
+/* Eric, 1 Nov 2026 (office E112): plain rentals first. Rent-to-buy stays built and off; true brings back its page, links and
+   words, once office S6.19, the PPSR account and the accountant's answer on GST are done. */
+const RENT_TO_BUY = false
+
 /* ---------- the figures ---------- */
 const DELIVERY = 200
 const COLLECTION = 200
@@ -103,7 +107,7 @@ const MORE = (skip) => {
   const links = [
     ['/piano-rental', 'Piano rental in Melbourne', 'The options, the pianos and how it works'],
     ['/piano-rental/prices', 'Rental prices', 'Rent by model, worked totals, renting or buying'],
-    ['/piano-rental/rent-to-buy', 'Rent-to-buy', 'Every dollar counts toward a price fixed at signing'],
+    ...(RENT_TO_BUY ? [['/piano-rental/rent-to-buy', 'Rent-to-buy', 'Every dollar counts toward a price fixed at signing']] : []),
     ['/piano-rental/short-term', 'Short term hire', 'A pre-loved Yamaha for 3 months'],
     ['/piano-rental/yamaha-u1-u3', 'Which Yamaha to rent', 'U1, U3, UX and YU compared'],
     ['/piano-rental/terms', 'Rental terms', 'Every word you would sign'],
@@ -193,7 +197,9 @@ const SERVICE = {
 /* ---------- the questions ---------- */
 const FAQ_COST = [`How much does it cost to rent a piano in Melbourne?`, `Our Yamaha uprights rent from ${money(FROM)} to ${money(TOP)} a month, GST included. Delivery is ${money(DELIVERY)}, collection is ${money(COLLECTION)} and a ${money(BOND)} bond comes back at the end. A ${EX.name} at ${money(EX.rent)} a month comes to ${money(allIn(6))} over 6 months, plus the bond.`]
 const FAQ_MIN = [`What is the minimum rental?`, `3 months. Every rental has a fixed end date of 3, 6 or 12 months. After the first 3 months you can return the piano early on 14 days' notice, and rent stops the day it is collected.`]
-const FAQ_KEEP = [`Can I buy the piano I am renting?`, `Only on <a href="/piano-rental/rent-to-buy">rent-to-buy</a>. A short hire or a rental gives you no right to buy the piano. If you may want to keep it, choose rent-to-buy from the start.`]
+const FAQ_KEEP = RENT_TO_BUY
+  ? [`Can I buy the piano I am renting?`, `Only on <a href="/piano-rental/rent-to-buy">rent-to-buy</a>. A short hire or a rental gives you no right to buy the piano. If you may want to keep it, choose rent-to-buy from the start.`]
+  : [`Can I buy the piano I am renting?`, `No. A short hire or a rental gives you no right to buy the piano.`]
 const FAQ_CHECK = [`Do you run a credit check?`, `No. You need to be over 18, live in metro Melbourne and show photo ID to our mover at delivery. We check it and keep no copy.`]
 const FAQ_SOON = [`How soon can I have a piano?`, `You can sign and pay online today and choose a start date from a week away. We then offer you delivery days around that date.`]
 const FAQ_STAIRS = [`What if I have stairs?`, `The ${money(DELIVERY)} covers a ground-floor room in metro Melbourne with up to 4 steps to get in. For anything more we quote before we book. If you do not accept the quote, we cancel and refund everything you have paid.`]
@@ -209,7 +215,7 @@ shell({
   file: 'index.html',
   url: '/piano-rental',
   title: `Piano Rental Melbourne from ${money(FROM)} a Month | Signature Pianos`,
-  description: `Rent a pre-loved Yamaha upright in Melbourne from ${money(FROM)} a month. Hand-picked in Japan, tuned and delivered. Sign online and pay once. Rental or rent-to-buy.`,
+  description: `Rent a pre-loved Yamaha upright in Melbourne from ${money(FROM)} a month. Hand-picked in Japan, tuned and delivered. Sign online and pay once.${RENT_TO_BUY ? ' Rental or rent-to-buy.' : ''}`,
   crumbs: [['Piano rental', '/piano-rental']],
   schema: [SERVICE, faqSchema(hubFaqs)],
   scripts: '<script src="/js/office-config.js"></script>\n<script src="/js/office.js"></script>\n<script src="/js/rentals.js" defer></script>\n',
@@ -221,15 +227,15 @@ ${hero({ eyebrow: 'Pre-loved Yamaha uprights', big: 'Piano rental', script: 'in 
 <dl class="rp-strip">
   <div><dt>Rent from</dt><dd>${money(FROM)} a month</dd></div>
   <div><dt>Fixed terms</dt><dd>3, 6 or 12 months</dd></div>
-  <div><dt>Or own it</dt><dd>Rent-to-buy</dd></div>
+  ${RENT_TO_BUY ? '<div><dt>Or own it</dt><dd>Rent-to-buy</dd></div>' : `<div><dt>Bond, returned</dt><dd>${money(BOND)}</dd></div>`}
   <div><dt>Fees and interest</dt><dd>None</dd></div>
 </dl>
 
 <section class="rp-section" id="options">
   <div class="rp-inner">
-  ${head('Three ways', 'to rent')}
+  ${head(RENT_TO_BUY ? 'Three ways' : 'Two ways', 'to rent')}
   <p class="rp-lead">Every option has a clear end and a total you can add up before you sign. There is no admin fee, no late fee and no interest on any of them.</p>
-  <div class="rp-options">
+  <div class="rp-options${RENT_TO_BUY ? '' : ' rp-options--two'}">
     <article class="rp-option">
       <h3>Short hire</h3>
       <p>3 months, for a term of lessons, an exam or a long stay in Melbourne.</p>
@@ -254,7 +260,7 @@ ${hero({ eyebrow: 'Pre-loved Yamaha uprights', big: 'Piano rental', script: 'in 
       </ul>
       <a class="rp-link" href="/piano-rental/prices">See the prices</a>
     </article>
-    <article class="rp-option rp-option--felt">
+    ${RENT_TO_BUY ? `    <article class="rp-option rp-option--felt">
       <h3>Rent-to-buy</h3>
       <p>Every dollar you pay counts toward a price fixed the day you sign. Give it back after 3 months if you change your mind.</p>
       <ul>
@@ -265,9 +271,9 @@ ${hero({ eyebrow: 'Pre-loved Yamaha uprights', big: 'Piano rental', script: 'in 
         <li><span>${EX.name}</span><span>${money(toOwn(EX.price))} a month</span></li>
       </ul>
       <a class="rp-link" href="/piano-rental/rent-to-buy">How rent-to-buy works</a>
-    </article>
+    </article>` : ''}
   </div>
-  <p class="rp-note">A short hire or a rental gives you no right to buy the piano. If you may want to keep it, choose rent-to-buy from the start.</p>
+  ${RENT_TO_BUY ? '<p class="rp-note">A short hire or a rental gives you no right to buy the piano. If you may want to keep it, choose rent-to-buy from the start.</p>' : ''}
   </div>
 </section>
 
@@ -307,7 +313,7 @@ ${hero({ eyebrow: 'Pre-loved Yamaha uprights', big: 'Piano rental', script: 'in 
         <li>A piano checked in Melbourne and tuned before it leaves us</li>
         <li>A stool with every rental</li>
         <li>Faults from normal use fixed at our cost</li>
-        <li>A home tuning on 12-month rentals and rent-to-buy</li>
+        <li>A home tuning on 12-month rentals${RENT_TO_BUY ? ' and rent-to-buy' : ''}</li>
         <li>Your own page, with your agreement, payments and delivery in one place</li>
       </ul>
     </div>
@@ -356,7 +362,7 @@ ${hero({ eyebrow: 'Pre-loved Yamaha uprights', big: 'Piano rental prices', scrip
     ['Short hire, 3 months', money(EX.rent), money(EX.rent * 3), money(DELIVERY + COLLECTION), money(allIn(3)), money(dayOne)],
     ['Rental, 6 months', money(EX.rent), money(EX.rent * 6), money(DELIVERY + COLLECTION), money(allIn(6)), money(dayOne)],
     ['Rental, 12 months', money(EX.rent), money(EX.rent * 12), money(DELIVERY + COLLECTION), money(allIn(12)), money(dayOne)],
-    ['Rent-to-buy', money(toOwn(EX.price)), `${money(EX.price - DELIVERY)} over ${payments(EX.price)} payments`, `${money(DELIVERY)}, counted`, `${money(EX.price)}, and it is yours`, money(toOwn(EX.price) + DELIVERY + BOND)],
+    ...(RENT_TO_BUY ? [['Rent-to-buy', money(toOwn(EX.price)), `${money(EX.price - DELIVERY)} over ${payments(EX.price)} payments`, `${money(DELIVERY)}, counted`, `${money(EX.price)}, and it is yours`, money(toOwn(EX.price) + DELIVERY + BOND)]] : []),
   ], [1, 4, 5], true)}
   <p class="rp-note">The first day is the first month, the delivery fee and the ${money(BOND)} bond. Delivery and collection cover a ground-floor room in metro Melbourne with up to 4 steps to get in.</p>
   </div>
@@ -368,7 +374,7 @@ ${hero({ eyebrow: 'Pre-loved Yamaha uprights', big: 'Piano rental prices', scrip
     ${head('Renting', 'or buying')}
     <p>Renting suits you when you do not yet know how long a piano will stay in your life. Buying suits you once you do.</p>
     <p>On the ${EX.name}, two 12-month rentals in a row would come to about ${money(EX.rent * 24 + DELIVERY + COLLECTION)}, and the piano goes back at the end. Buying it costs ${money(EX.price)} plus delivery, and it stays yours. So if you expect to play for more than two years, buying usually costs less.</p>
-    <p>If you are somewhere between the two, <a href="/piano-rental/rent-to-buy">rent-to-buy</a> counts every dollar toward the price and lets you stop after 3 months.</p>
+    ${RENT_TO_BUY ? '<p>If you are somewhere between the two, <a href="/piano-rental/rent-to-buy">rent-to-buy</a> counts every dollar toward the price and lets you stop after 3 months.</p>' : ''}
   </div>
   </div>
 </section>
@@ -393,7 +399,7 @@ const ownFaqs = [
   [`Why do you need my date of birth?`, `Until the piano is yours we record our interest in it on the Personal Property Securities Register, a national register, and that record needs your date of birth. We remove it when you own the piano.`],
   FAQ_CHECK,
 ]
-shell({
+if (RENT_TO_BUY) shell({
   file: 'rent-to-buy.html',
   url: '/piano-rental/rent-to-buy',
   title: 'Rent to Buy a Piano in Melbourne | Signature Pianos',
@@ -442,6 +448,8 @@ ${hero({ eyebrow: 'Pre-loved Yamaha uprights', big: 'Rent to buy a piano', scrip
 
 ${CLOSE}`,
 })
+
+if (!RENT_TO_BUY) fs.rmSync(path.join(OUT, 'rent-to-buy.html'), { force: true })
 
 /* ---------- /piano-rental/short-term ---------- */
 const shortFaqs = [FAQ_MIN, [`Can I extend a short hire?`, `Yes, by signing a new agreement for a new fixed term before this one ends. It does not roll on by itself.`], FAQ_EVENT, FAQ_STAIRS, FAQ_CANCEL]
@@ -582,26 +590,26 @@ shell({
   file: 'terms.html',
   url: '/piano-rental/terms',
   title: 'Piano Rental Terms and Conditions | Signature Pianos',
-  description: 'The full terms of our piano rentals and rent-to-buy in Melbourne, in plain English: the rent, bond, delivery, early return, damage and what happens at the end.',
+  description: `The full terms of our piano rentals${RENT_TO_BUY ? ' and rent-to-buy' : ''} in Melbourne, in plain English: the rent, bond, delivery, early return, damage and what happens at the end.`,
   crumbs: [['Piano rental', '/piano-rental'], ['Terms', '/piano-rental/terms']],
   body: `
 ${hero({ eyebrow: 'Version 1', big: 'Rental terms', script: 'and conditions',
   sub: 'These are the words you sign. The figures for your piano are filled in and shown before you sign, and a copy stays on your own page.',
-  actions: '<a class="rp-link" href="#summary">In short</a><a class="rp-link" href="#rental">Short hire and rental</a><a class="rp-link" href="#rent-to-buy">Rent-to-buy</a>' })}
+  actions: '<a class="rp-link" href="#summary">In short</a><a class="rp-link" href="#rental">Short hire and rental</a>' + (RENT_TO_BUY ? '<a class="rp-link" href="#rent-to-buy">Rent-to-buy</a>' : '') })}
 
 <section class="rp-section rp-section--deep" id="summary">
   <div class="rp-inner">
   <div class="rp-prose">
     ${head('In', 'short')}
     <ul>
-      <li>Every rental has an end date: 3, 6 or 12 months, or up to 24 months on rent-to-buy. Nothing rolls on.</li>
+      <li>Every rental has an end date: 3, 6 or 12 months${RENT_TO_BUY ? ', or up to 24 months on rent-to-buy' : ''}. Nothing rolls on.</li>
       <li>The first month, the ${money(DELIVERY)} delivery fee and the ${money(BOND)} bond are paid before we book delivery.</li>
       <li>You can cancel for a full refund at any time before the piano leaves us.</li>
       <li>The rent for the first 3 months is payable whatever happens. After that you can return the piano on 14 days' notice.</li>
       <li>There is no admin fee, no late fee and no interest.</li>
       <li>Faults from normal use and fair wear and tear are ours. Damage beyond that is yours, itemised with photos.</li>
       <li>You must be over 18, live in metro Melbourne and show photo ID at delivery.</li>
-      <li>A short hire or a rental gives you no right to buy the piano. Rent-to-buy does.</li>
+      <li>A short hire or a rental gives you no right to buy the piano.${RENT_TO_BUY ? ' Rent-to-buy does.' : ''}</li>
     </ul>
     <p>This summary is a guide. The agreement below is what binds us both. Nothing here takes away your rights under the Australian Consumer Law.</p>
   </div>
@@ -617,14 +625,14 @@ ${agreement(plainWords)}
   </div>
 </section>
 
-<section class="rp-section rp-section--deep" id="rent-to-buy">
+${RENT_TO_BUY ? `<section class="rp-section rp-section--deep" id="rent-to-buy">
   <div class="rp-inner">
   ${head('Rent-to-buy', 'agreement')}
   <div class="rp-agreement">
 ${agreement(ownWords)}
   </div>
   </div>
-</section>
+</section>` : ''}
 
 ${CLOSE}`,
 })
@@ -671,7 +679,7 @@ shell({
           <div class="rp-field rp-field--wide"><label for="rp-name">Full name</label><input id="rp-name" name="name" autocomplete="name" required></div>
           <div class="rp-field"><label for="rp-email">Email</label><input id="rp-email" name="email" type="email" autocomplete="email" required></div>
           <div class="rp-field"><label for="rp-phone">Mobile</label><input id="rp-phone" name="phone" type="tel" autocomplete="tel" required></div>
-          <div class="rp-field" id="rp-dob-field" hidden><label for="rp-dob">Date of birth</label><input id="rp-dob" name="date_of_birth" type="date" autocomplete="bday"><span class="rp-field-help">Rent-to-buy only: we need it to record our interest in the piano on a national register until it is yours.</span></div>
+          <div class="rp-field" id="rp-dob-field" hidden><label for="rp-dob">Date of birth</label><input id="rp-dob" name="date_of_birth" type="date" autocomplete="bday">${RENT_TO_BUY ? '<span class="rp-field-help">Rent-to-buy only: we need it to record our interest in the piano on a national register until it is yours.</span>' : ''}</div>
         </div>
       </fieldset>
 

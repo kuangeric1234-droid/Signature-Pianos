@@ -72,6 +72,7 @@ a { color: inherit; }
 
 /* the three options, set out as the cards are */
 .rp-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, auto); gap: 0 40px; margin-top: 40px; }
+.rp-options--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .rp-option { position: relative; display: grid; grid-row: span 4; grid-template-rows: subgrid; }
 .rp-option h3 { margin: 0 0 12px; font-size: 30px; line-height: .9; color: var(--sp-ink); }
 .rp-option p { margin: 0 0 18px; color: var(--sp-ink-soft); }
@@ -186,7 +187,7 @@ a { color: inherit; }
   .cat-section-header { margin-bottom: 24px; padding-bottom: 14px; }
   .cat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px 20px; }
   .card-name { font-size: 26px; }
-  .rp-options { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; gap: 40px; }
+  .rp-options, .rp-options--two { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; gap: 40px; }
   .rp-option { display: block; grid-row: auto; }
   .rp-split { grid-template-columns: minmax(0, 1fr); gap: 32px; }
   .rp-steps { grid-template-columns: minmax(0, 1fr); gap: 20px; }
