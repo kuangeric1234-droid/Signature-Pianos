@@ -876,7 +876,7 @@
   function renderPianoCard(piano) {
     const name = `${piano.brand || ''} ${piano.model || ''}`.trim()
     const height = parseDims(piano.dimensions_cm).height
-    const facts = [piano.year, height ? `${height} cm tall` : '', piano.finish || piano.colour]
+    const facts = [piano.arriving, piano.year, height ? `${height} cm tall` : '', piano.finish || piano.colour]
       .filter(Boolean).join(' · ')
     const price = piano.status === 'Reserved' ? 'Reserved'
       : Number(piano.sale_price) > 0 ? '$' + Number(piano.sale_price).toLocaleString('en-AU') : 'Price on request'
@@ -884,7 +884,7 @@
     // an office photo's address is read again if it runs out (js/office.js)
     const fresh = piano.slug ? ` data-office-slug="${esc(piano.slug)}" data-office-photo="0"` : ''
     const image = photo
-      ? `<img src="${esc(photo)}" alt="${esc(name)}" loading="lazy"${fresh}>`
+      ? `<img src="${esc(photo)}" alt="${esc(name)}" loading="lazy"${fresh}>${piano.illustrated ? '<span class="sp-illustration">Illustration</span>' : ''}`
       : `<img src="/media/brand/monogram-ink.svg" alt=""><span>Photographs soon</span>`
     const href = piano.href || `/piano.html?id=${encodeURIComponent(piano.id)}`
     return `

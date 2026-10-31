@@ -1366,6 +1366,16 @@ function upsertSeoMeta(title, desc){
         main.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;"><i class="ti ti-camera" style="font-size:48px;color:rgba(22, 34, 46, 0.3);"></i></div>`
       })
       main.replaceChildren(img)
+      // S1.32: a generated picture says so, under the picture it is, and goes as a real photo takes its place
+      const words = piano.notes && piano.notes[index]
+      let note = document.getElementById('productImageNote')
+      if (words && !note) {
+        note = document.createElement('p')
+        note.id = 'productImageNote'
+        note.className = 'sp-image-note'
+        main.after(note)
+      }
+      if (note) { note.textContent = words || ''; note.hidden = !words }
       document.querySelectorAll('.thumb-item').forEach((t, i) => {
         t.style.borderColor = i === index
           ? 'rgba(22, 34, 46, 0.8)'
@@ -1633,10 +1643,10 @@ function upsertSeoMeta(title, desc){
     document.getElementById('productBrand').textContent = p.model ? `${p.brand} · Model ${p.model}` : p.brand
 
     // The facts under the name where the old page had height, year and origin: what the feed holds, nothing guessed
-    // (where it came from only as an import or a local purchase, office Q88; never a country it doesn't say)
+    // (its origin only where the office has one: never a country it doesn't say, E62, ACL s 29)
     const meta = document.querySelector('.product-meta-row')
     const height = p.heightCm ? `${p.heightCm} cm` : null
-    const shown = [['Height', height], ['Year', p.year], ['Came from', p.cameFrom]].filter(([, v]) => v != null && v !== '')
+    const shown = [['Height', height], ['Year', p.year], ['Origin', p.origin]].filter(([, v]) => v != null && v !== '')
     meta.replaceChildren(...shown.map(([label, value]) => {
       const box = el('div', { class: 'product-meta' })
       box.append(el('div', { class: 'product-meta-label' }, label), el('div', { class: 'product-meta-value' }, String(value)))
@@ -1661,8 +1671,8 @@ function upsertSeoMeta(title, desc){
       document.querySelector('.product-details-inner').style.gridTemplateColumns = '1fr'
     }
     document.getElementById('specsTable').innerHTML = [
-      ['Brand', p.brand], ['Model', p.model], ['Type', p.kind], ['Year made', p.year], ['Came from', p.cameFrom],
-      ['Height', height], ['Finish', p.finish], ['Condition', p.condition],
+      ['Brand', p.brand], ['Model', p.model], ['Type', p.kind], ['Year made', p.year], ['Origin', p.origin],
+      ['Height', height], ['Finish', p.finish], ['Condition', p.classWord],
     ].filter(([, v]) => v != null && v !== '').map(([label, value]) => `
       <tr>
         <th style="color:#3A4855;font-weight:400;font-size:12px;padding:8px 12px;
@@ -1673,13 +1683,17 @@ function upsertSeoMeta(title, desc){
       </tr>`).join('')
 
     // Its photos: the office's signed addresses, read again if they run out while the page is open
-    const gallery = { brand: p.brand, model: p.model, year: p.year, images: p.photos.slice() }
+    const gallery = { brand: p.brand, model: p.model, year: p.year, images: p.photos.slice(), notes: p.photoNotes.slice() }
     gallery.refresh = () => OFFICE.piano(p.slug).then((fresh) => {
       if (!fresh || !fresh.photos.length) throw new Error('no photos now')
       gallery.images.splice(0, gallery.images.length, ...fresh.photos)
+      gallery.notes.splice(0, gallery.notes.length, ...fresh.photoNotes)
     })
     renderGallery(gallery)
     renderOfficeActions(p)
+    // delivery, the first tuning and a stool are charged now (E39): the old page's "What's included" is not said
+    const included = document.querySelector('.whats-included')
+    if (included) included.style.display = 'none'
 
     // "Book a visit" from this page carries the piano: its name for the message, its address for the office
     document.querySelectorAll('a[href*="book-a-viewing"]').forEach(a => {
@@ -1702,32 +1716,30 @@ function upsertSeoMeta(title, desc){
     label.textContent = 'Price'
     price.textContent = p.priceCents ? OFFICE.money(p.priceCents) : 'Price on request'
     if (p.status === 'Reserved') row.append(el('span', { class: 'sp-status' }, 'Reserved'))
+    else if (p.arrivingSaid) row.append(el('span', { class: 'sp-status' }, p.arrivingSaid))
   }
 
-  /* The actions: Buy and Reserve start the office's checkout; a reserved piano, or a checkout the office refuses,
-     offers the question form for this piano, so the office keeps the person as interested in it (S3.W finding 3). */
+  /* The actions: Reserve starts the office's checkout, a deposit being the website's one way to pay (S3.9); a reserved
+     piano, one that takes no deposit online, or a checkout the office refuses, offers the question form for this piano,
+     so the office keeps the person as interested in it (S3.W finding 3). */
   function renderOfficeActions(p) {
     const actions = document.getElementById('productActions')
     actions.className = 'sp-office-actions'
     actions.replaceChildren()
 
-    if (p.status === 'For sale' && p.priceCents) {
+    if (p.status === 'For sale' && p.priceCents && p.depositCents) {
       const choice = el('div', { class: 'sp-pay-choice' })
-      const full = el('button', { type: 'button', class: 'sp-pay-btn', 'aria-pressed': 'false' }, `Buy now: ${OFFICE.money(p.priceCents)}`)
-      choice.append(full)
-      let deposit = null
-      if (p.depositCents) {
-        deposit = el('button', { type: 'button', class: 'sp-pay-btn sp-pay-btn--quiet', 'aria-pressed': 'false' }, `Reserve with a ${OFFICE.money(p.depositCents)} deposit`)
-        choice.append(deposit)
-      }
+      const deposit = el('button', { type: 'button', class: 'sp-pay-btn', 'aria-pressed': 'false' }, `Reserve with a ${OFFICE.money(p.depositCents)} deposit`)
+      choice.append(deposit)
       actions.append(choice)
       // the deposit's terms before the form, in the words the office's checkout gives them
       if (p.depositTerms) actions.append(el('p', { class: 'sp-terms' }, p.depositTerms))
-      actions.append(el('p', { class: 'sp-fine' }, 'Secure payment via Stripe · 10-year warranty included · Complimentary first tuning'))
+      actions.append(el('p', { class: 'sp-fine' }, 'Secure payment via Stripe · The balance is paid before delivery'))
       const form = checkoutForm(p, actions)
       actions.append(form.node)
-      full.addEventListener('click', () => { form.open('full'); full.setAttribute('aria-pressed', 'true'); deposit?.setAttribute('aria-pressed', 'false') })
-      deposit?.addEventListener('click', () => { form.open('deposit'); deposit.setAttribute('aria-pressed', 'true'); full.setAttribute('aria-pressed', 'false') })
+      deposit.addEventListener('click', () => { form.open('deposit'); deposit.setAttribute('aria-pressed', 'true') })
+    } else if (p.status === 'For sale' && p.priceCents) {
+      actions.append(questionForm(p, { intro: 'Ask us about this piano.' }).node)
     } else if (p.status === 'Reserved') {
       actions.append(el('p', { class: 'sp-note' }, 'This piano is reserved just now.'))
       actions.append(questionForm(p, { intro: 'Ask us about it.' }).node)
@@ -1782,14 +1794,12 @@ function upsertSeoMeta(title, desc){
     const pair = el('div', { class: 'sp-pair' })
     pair.append(email.box, phone.box)
     form.append(head, name.box, pair, box, send, answer)
-    let pay = 'full'
+    let pay = 'deposit'
     let check = null
 
     function open(how) {
       pay = how
-      head.textContent = how === 'deposit'
-        ? `Reserve the ${p.name} with a ${OFFICE.money(p.depositCents)} deposit`
-        : `Buy the ${p.name} for ${OFFICE.money(p.priceCents)}`
+      head.textContent = `Reserve the ${p.name} with a ${OFFICE.money(p.depositCents)} deposit`
       // the deposit's terms are said once, under the buttons, before this form
       say(answer, '')
       for (const n of [name.box, pair, send]) n.hidden = false
@@ -1937,16 +1947,17 @@ function upsertSeoMeta(title, desc){
     grid.innerHTML = related.map((x) => {
       const photo = x.photos[0]
       const price = x.status === 'Reserved' ? 'Reserved' : x.priceCents ? OFFICE.money(x.priceCents) : 'Price on request'
+      const facts = [x.arrivingSaid, x.year, x.kind].filter(Boolean).join(' · ')
       return `
       <a class="related-card" href="${esc(x.href)}">
         <div class="related-card-image">
           ${photo
-            ? `<img src="${esc(photo)}" alt="${esc(x.name)}" loading="lazy">`
+            ? `<img src="${esc(photo)}" alt="${esc(x.name)}" loading="lazy">${x.photoNotes[0] ? '<span class="sp-illustration">Illustration</span>' : ''}`
             : `<div class="sp-photo-empty"><img src="/media/brand/monogram-ink.svg" alt=""><span>Photographs soon</span></div>`}
         </div>
         <div class="related-card-body">
           <h3 class="related-card-name">${esc(x.name)}</h3>
-          <p class="related-card-facts">${esc([x.year, x.kind].filter(Boolean).join(' · '))}</p>
+          <p class="related-card-facts">${esc(facts)}</p>
           <p class="related-card-price">${esc(price)}</p>
         </div>
       </a>`

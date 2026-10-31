@@ -1114,3 +1114,18 @@ body.home .matcher .sp-match-photo.is-empty img { filter: brightness(0) invert(1
 .nav-cta:hover,
 .bl-empty .bl-button:hover,
 .sn-next .sp-button:hover { background: transparent; color: var(--sp-charcoal); }
+
+/* S1.32: a generated picture of a piano still at sea always says so, on a card and under the gallery */
+:has(> .sp-illustration) { position: relative; }
+.sp-illustration {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--sp-charcoal);
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+.sp-image-note { margin: 8px 0 0; font-size: 13px; line-height: 1.5; color: var(--sp-charcoal); }

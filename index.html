@@ -2517,12 +2517,12 @@
     const figure = (p, alt) => {
       const photo = Array.isArray(p.images) && p.images[0];
       return photo
-        ? `<figure><img src="${esc(photo)}" loading="lazy" alt="${esc(alt)}"${fresh(p)}></figure>`
+        ? `<figure><img src="${esc(photo)}" loading="lazy" alt="${esc(alt)}"${fresh(p)}>${p.illustrated ? '<span class="sp-illustration">Illustration</span>' : ''}</figure>`
         : '<figure class="is-empty"><img src="/media/brand/monogram-ink.svg" alt=""><span>Photographs soon</span></figure>';
     };
     const grandCard = (p) => {
       const name = [p.brand, p.model].filter(Boolean).join(' ');
-      const facts = [p.year, p.finish || p.colour, price(p)].filter(Boolean).join(' · ');
+      const facts = [p.arriving, p.year, p.finish || p.colour, price(p)].filter(Boolean).join(' · ');
       return `<article class="h-grand" data-piano="${esc(name + (p.year ? ' (' + p.year + ')' : ''))}"${p.slug ? ` data-piano-slug="${esc(p.slug)}"` : ''}>
         <a href="${esc(href(p))}">
           ${figure(p, name + ' grand piano')}
@@ -2536,7 +2536,7 @@
     const uprightCard = (p) => {
       const name = [p.brand, p.model].filter(Boolean).join(' ');
       const height = dims(p.dimensions_cm).height;
-      const facts = [p.year, TYPE[p.type] || '', height ? height + ' cm tall' : '', p.finish || p.colour, price(p)].filter(Boolean).join(' · ');
+      const facts = [p.arriving, p.year, TYPE[p.type] || '', height ? height + ' cm tall' : '', p.finish || p.colour, price(p)].filter(Boolean).join(' · ');
       return `<a class="h-card" href="${esc(href(p))}" data-piano="${esc(name + (p.year ? ' (' + p.year + ')' : ''))}"${p.slug ? ` data-piano-slug="${esc(p.slug)}"` : ''}>
         ${figure(p, name + ' piano')}
         <div class="h-card-meta"><div><h3>${esc(name)}</h3><p>${esc(facts)}</p></div><span class="h-card-cta">View piano</span></div>

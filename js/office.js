@@ -110,12 +110,21 @@
   function photoUrl(u) {
     return typeof u === 'string' && /^\/public\/file\?[A-Za-z0-9_.~=&%-]+$/.test(u) ? ORIGIN + u : null;
   }
-  /** where a piano came from, as the website says it for now: an import or a
-      local purchase, in the office's words; a trade-in, or a word it doesn't
-      know, is not said (Eric's to decide, office Q88) */
-  function fromWhere(v) {
-    var t = (text(v) || '').toLowerCase();
-    return t === 'import' ? 'Import' : t === 'local purchase' ? 'Local purchase' : null;
+  /** a piano's photos as the pages use them: each address, and beside it the words
+      an illustration must carry (S1.32: a generated picture, never passed off as
+      this piano; the office's caption, or these where it sends none) */
+  function photosOf(p) {
+    return (Array.isArray(p.photos) ? p.photos : []).map(function (f) {
+      var url = f && photoUrl(f.url);
+      return url ? { url: url, note: f.illustration === true ? (text(f.caption) || 'Illustration. Real photos when it arrives.') : null } : null;
+    }).filter(Boolean);
+  }
+  /** a piano at sea, as the website says it: "Arriving December 2026" from its due
+      day, "Arriving soon" where it has none */
+  function arrivingWords(p) {
+    if (p.arriving !== true) return null;
+    var due = typeof p.due_on === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.due_on) ? new Date(p.due_on + 'T12:00:00') : null;
+    return due && !isNaN(due) ? 'Arriving ' + due.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' }) : 'Arriving soon';
   }
   function kindKey(kind) {
     return /grand/i.test(kind) ? 'grand' : /upright/i.test(kind) ? 'upright' : /digital/i.test(kind) ? 'digital' : '';
@@ -127,6 +136,7 @@
     var brand = text(p.brand) || '';
     var model = text(p.model) || '';
     var kind = text(p.kind) || '';
+    var photos = photosOf(p);
     return {
       slug: p.slug,
       name: (brand + ' ' + model).trim() || 'Piano',
@@ -139,16 +149,18 @@
       heightCm: typeof p.height_cm === 'number' && isFinite(p.height_cm) && p.height_cm > 0 && p.height_cm < 400 ? Math.round(p.height_cm) : null,
       story: text(p.story),
       finish: text(p.finish),
-      condition: text(p.condition),
-      cameFrom: fromWhere(p.came_from),
+      /* New or Pre-loved, and its own origin only where the office has one (S1.23) */
+      classWord: text(p.class),
+      origin: text(p.origin),
+      arrivingSaid: arrivingWords(p),
       defects: text(p.defects_told),
       status: p.status,
       priceCents: p.status === 'Sold' ? null : cents(p.price_cents),
       depositCents: p.status === 'For sale' ? cents(p.deposit_cents) : null,
       /* the deposit's terms, in the words the checkout's answer gives them */
       depositTerms: p.status === 'For sale' && cents(p.deposit_cents) ? text(p.deposit_terms) : null,
-      photos: (Array.isArray(p.photos) ? p.photos : [])
-        .map(function (f) { return f && photoUrl(f.url); }).filter(Boolean),
+      photos: photos.map(function (f) { return f.url; }),
+      photoNotes: photos.map(function (f) { return f.note; }),
       href: '/piano.html?slug=' + encodeURIComponent(p.slug)
     };
   }
@@ -190,7 +202,8 @@
       id: null, slug: p.slug, href: p.href, status: p.status,
       type: OLD_TYPE[p.kindKey] || '', brand: p.brand, model: p.model, year: p.year,
       dimensions_cm: p.heightCm ? { height: p.heightCm } : null, finish: p.finish, colour: null,
-      sale_price: p.priceCents ? p.priceCents / 100 : 0, images: p.photos, featured: false
+      sale_price: p.priceCents ? p.priceCents / 100 : 0, images: p.photos, featured: false,
+      illustrated: Boolean(p.photoNotes[0]), arriving: p.arrivingSaid
     };
   }
 
@@ -458,10 +471,10 @@
     } catch (e) { return false; }
   }
 
-  /** a checkout started for a piano: a deposit or the full price. Its answer's
+  /** a checkout started for a piano: a deposit, the website's one way (S3.9). Its answer's
       `pay` is kept only where it is the office's own pay page */
   function checkout(fields, check) {
-    if (!isSlug(fields.piano) || (fields.pay !== 'deposit' && fields.pay !== 'full')) return Promise.reject(new Refused(0, null));
+    if (!isSlug(fields.piano) || fields.pay !== 'deposit') return Promise.reject(new Refused(0, null));
     var body = { piano: fields.piano, pay: fields.pay, name: (fields.name || '').trim(), email: (fields.email || '').trim() };
     if (fields.phone && fields.phone.trim()) body.phone = fields.phone.trim();
     return post('/public/m/orders/checkout', 'checkout', body, check).then(function (out) {

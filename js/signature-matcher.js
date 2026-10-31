@@ -132,7 +132,7 @@
     var p = m.piano;
     var name = ((p.brand || '') + ' ' + (p.model || '')).trim();
     var photo = p.images && p.images[0];
-    var facts = [p.year, m.height ? m.height + ' cm tall' : '', p.finish || p.colour].filter(Boolean).join(' · ');
+    var facts = [p.arriving, p.year, m.height ? m.height + ' cm tall' : '', p.finish || p.colour].filter(Boolean).join(' · ');
     var href = esc(p.href || '/piano.html?id=' + encodeURIComponent(p.id));
     // an office piano: its address for the visit card, and its photo read again if its address runs out
     var slug = p.slug ? ' data-piano-slug="' + esc(p.slug) + '"' : '';
@@ -140,7 +140,7 @@
     return '' +
       '<article class="sp-match-card" data-piano="' + esc(name + (p.year ? ' (' + p.year + ')' : '')) + '"' + slug + '>' +
         '<a class="sp-match-photo' + (photo ? '' : ' is-empty') + '" href="' + href + '" tabindex="-1" aria-hidden="true">' +
-          (photo ? '<img src="' + esc(photo) + '" alt="" loading="lazy"' + fresh + '>'
+          (photo ? '<img src="' + esc(photo) + '" alt="" loading="lazy"' + fresh + '>' + (p.illustrated ? '<span class="sp-illustration">Illustration</span>' : '')
                  : '<img src="/media/brand/monogram-ink.svg" alt=""><span>Photographs soon</span>') +
         '</a>' +
         '<div class="sp-match-body">' +
