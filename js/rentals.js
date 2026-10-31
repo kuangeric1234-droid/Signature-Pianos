@@ -187,6 +187,7 @@
     state.terms = terms;
     var on = document.getElementById('rp-start-on');
     on.min = terms.earliest_start;
+    if (terms.latest_start) on.max = terms.latest_start;
     if (!on.value || on.value < terms.earliest_start) on.value = terms.earliest_start;
     drawPlans();
     form.hidden = false;
