@@ -85,7 +85,7 @@ const faqSchema = (faqs) => ({
 const CLOSE = `<section class="rp-close">
   <div>
     ${crossing('h2', 'Come and', 'play one')}
-    <p>Our showroom is in Mount Waverley. Sit down at the pianos, ask anything, and rent on the day if one suits.</p>
+    <p>Our showroom is in Mount Waverley. Sit down at the pianos, ask anything, and choose the one you would like to rent.</p>
     <a class="rp-btn" href="/services/book-a-viewing.html">Book a visit</a>
   </div>
   <address>
