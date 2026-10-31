@@ -106,9 +106,13 @@
 
   function text(v) { return typeof v === 'string' && v.trim() ? v.trim() : null; }
   function cents(v) { return typeof v === 'number' && isFinite(v) && v > 0 ? Math.round(v) : null; }
-  /** a photo's address: the office's own signed path for a file, nothing else */
+  /** a photo's address, the office's own and nothing else: the lasting one a listed
+      piano's photo has (E42: whole on the office's PUBLIC_URL, or the path alone
+      where that isn't set), or a signed one for a file */
   function photoUrl(u) {
-    return typeof u === 'string' && /^\/public\/file\?[A-Za-z0-9_.~=&%-]+$/.test(u) ? ORIGIN + u : null;
+    if (typeof u !== 'string') return null;
+    var path = u.indexOf(ORIGIN + '/') === 0 ? u.slice(ORIGIN.length) : u;
+    return /^\/public\/(file|shown)\?[A-Za-z0-9_.~=&%-]+$/.test(path) ? ORIGIN + path : null;
   }
   /** a piano's photos as the pages use them: each address, and beside it the words
       an illustration must carry (S1.32: a generated picture, never passed off as
