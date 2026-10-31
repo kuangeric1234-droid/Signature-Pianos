@@ -543,6 +543,57 @@
     return input.value;
   }
 
+  /* ---------- rentals: what the office offers, and a rental started (office S6.14) ---------- */
+
+  /** the office's own signing page, never another address */
+  function isSignLink(u) {
+    try {
+      var x = new URL(u);
+      return x.origin === ORIGIN && /^\/sign-rental\/[A-Za-z0-9_-]{22,128}$/.test(x.pathname) && !x.search && !x.hash;
+    } catch (e) { return false; }
+  }
+  /** a piano on offer, field by field: nothing here but what the pages draw */
+  function rentalPiano(p) {
+    if (!p || !isSlug(p.slug)) return null;
+    var plans = (Array.isArray(p.plans) ? p.plans : []).filter(function (x) {
+      return x && typeof x.key === 'string' && typeof x.name === 'string' && cents(x.rent_cents) && cents(x.total_cents) && cents(x.today_cents);
+    });
+    return {
+      slug: p.slug, brand: text(p.brand), model: text(p.model), year: typeof p.year === 'number' ? p.year : null,
+      finish: text(p.finish), height_cm: typeof p.height_cm === 'number' ? p.height_cm : null,
+      photos: (Array.isArray(p.photos) ? p.photos : []).map(function (x) {
+        var url = x ? photoUrl(x.url) : null;
+        return url ? { url: url, alt: text(x.alt) } : null;
+      }).filter(Boolean),
+      plans: plans
+    };
+  }
+  function rentalOffers() {
+    if (!ORIGIN) return Promise.reject(new Refused(0, null));
+    return call('/public/m/rentals/offers').then(function (r) {
+      if (!r.ok || !r.body) throw refusedBy(r);
+      if (r.body.offered !== true) return { offered: false, pianos: [], terms: null };
+      return { offered: true, terms: r.body.terms, pianos: (r.body.pianos || []).map(rentalPiano).filter(Boolean) };
+    });
+  }
+  function rentalOffer(slug) {
+    if (!ORIGIN) return Promise.reject(new Refused(0, null));
+    if (!isSlug(slug)) return Promise.resolve(null);
+    return call('/public/m/rentals/offer?slug=' + encodeURIComponent(slug)).then(function (r) {
+      if (r.status === 404) return null;
+      if (!r.ok || !r.body) throw refusedBy(r);
+      if (r.body.offered !== true) return { offered: false };
+      return { offered: true, terms: r.body.terms, piano: rentalPiano(r.body.piano) };
+    });
+  }
+  /** a rental started: its answer's `sign_url` kept only where it is the office's own signing page */
+  function startRental(fields, check) {
+    return post('/public/m/rentals/start', 'rental', fields, check).then(function (out) {
+      if (!isSignLink(out.sign_url)) out.sign_url = null;
+      return out;
+    });
+  }
+
   window.SPOffice = Object.freeze({
     /* on wherever an origin is set, a wrong one among them: then every call fails
        in words, never falling back to the old ways the switch turned off */
@@ -565,6 +616,9 @@
     visitTime: visitTime,
     fitTimes: fitTimes,
     honeypot: honeypot,
-    cameFrom: cameFrom
+    cameFrom: cameFrom,
+    rentalOffers: rentalOffers,
+    rentalOffer: rentalOffer,
+    startRental: startRental
   });
 })();

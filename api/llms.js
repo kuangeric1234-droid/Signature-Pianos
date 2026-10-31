@@ -37,6 +37,8 @@ module.exports = async (req, res) => {
     '## Key pages',
     `- [Browse pianos](${SITE_URL}/instruments/): Pre-loved Japanese upright and grand pianos in stock.`,
     `- [Book a visit](${SITE_URL}/services/book-a-viewing.html): Play the pianos in the Mount Waverley showroom.`,
+    `- [Piano rental](${SITE_URL}/piano-rental): Rent a pre-loved Yamaha upright in Melbourne on a fixed term, or rent-to-buy.`,
+    `- [Piano rental prices](${SITE_URL}/piano-rental/prices): Monthly rent by Yamaha model, with worked totals.`,
     `- [Delivery and warranty](${SITE_URL}/services/delivery-warranty.html): White-glove delivery and the 10-year warranty.`,
     `- [Tuning and servicing](${SITE_URL}/services/tuning-servicing.html): Tuning and care for pianos across Melbourne.`,
     `- [How old is my piano?](${SITE_URL}/serial-number-lookup.html): Yamaha and Kawai serial number lookup, from the makers' own charts.`,

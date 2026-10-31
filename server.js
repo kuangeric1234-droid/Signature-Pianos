@@ -32,6 +32,9 @@ http.createServer((req, res) => {
     res.writeHead(400); return res.end('Bad request');
   }
   if (urlPath === '/') urlPath = '/index.html';
+  // as vercel.json's rewrites do
+  if (urlPath === '/piano-rental') urlPath = '/piano-rental/index.html';
+  else if (/^\/piano-rental\/[a-z0-9-]+$/.test(urlPath)) urlPath += '.html';
 
   // A local run against a local office (S3.4): OFFICE_ORIGIN, and TURNSTILE_SITE_KEY for its bot check, answer
   // js/office-config.js in place of the file, so the switch is never edited to try it. Unset, the file as it is.

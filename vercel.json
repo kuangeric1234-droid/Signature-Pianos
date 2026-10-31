@@ -16,6 +16,9 @@
     { "source": "/llms.txt",    "destination": "/api/llms"                 },
     { "source": "/guide",       "destination": "/guide.html"               },
 
+    { "source": "/piano-rental",       "destination": "/piano-rental/index.html" },
+    { "source": "/piano-rental/:page", "destination": "/piano-rental/:page.html" },
+
     { "source": "/delivery/accept/:token", "destination": "/delivery/accept.html?token=:token"  },
     { "source": "/delivery/drop/:token",   "destination": "/delivery/dropoff.html?token=:token" },
     { "source": "/delivery/:token",        "destination": "/delivery/pickup.html?token=:token"  },

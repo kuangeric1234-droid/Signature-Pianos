@@ -7,5 +7,6 @@ Disallow: /tuner/
 Disallow: /payment-plan-sign.html
 Disallow: /delivery-preferences.html
 Disallow: /checkout-success.html
+Disallow: /piano-rental/start
 
 Sitemap: https://signaturepianos.com.au/sitemap.xml

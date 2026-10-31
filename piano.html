@@ -992,6 +992,8 @@ function upsertSeoMeta(title, desc){
       </div>
     </div>
 
+    <a href="/piano-rental" class="nav-link-plain">Rent a piano</a>
+
     <a href="/about.html" class="nav-link-plain">About</a>
   </div>
 
@@ -1165,6 +1167,7 @@ function upsertSeoMeta(title, desc){
     <p class="sp-footer-tagline">Pre-loved Japanese pianos, hand-picked in Japan and checked in Melbourne.</p>
     <div class="sp-footer-links" role="navigation" aria-label="Footer">
       <a href="/instruments/">Pianos</a>
+      <a href="/piano-rental">Rent a piano</a>
       <a href="/services/book-a-viewing.html">Book a visit</a>
       <a href="/services/tuning-servicing.html">Tuning</a>
       <a href="/services/delivery-warranty.html">Delivery &amp; warranty</a>
@@ -1768,6 +1771,16 @@ function upsertSeoMeta(title, desc){
       // the deposit's terms before the form, in the words the office's checkout gives them
       if (p.depositTerms) actions.append(el('p', { class: 'sp-terms' }, p.depositTerms))
       actions.append(el('p', { class: 'sp-fine' }, 'Secure payment via Stripe · The balance is paid before delivery'))
+      // E108: where the office offers this piano for rent, the way to; nothing shown where it doesn't
+      const rent = el('p', { class: 'sp-fine', hidden: '' })
+      actions.append(rent)
+      OFFICE.rentalOffer(p.slug).then((out) => {
+        const plans = out && out.offered && out.piano ? out.piano.plans : []
+        if (!plans.length) return
+        const low = Math.min(...plans.map((x) => x.rent_cents))
+        rent.append(el('a', { href: `/piano-rental/start?piano=${encodeURIComponent(p.slug)}`, style: 'color:#16222E' }, `Or rent this piano from ${OFFICE.money(low)} a month`))
+        rent.hidden = false
+      }).catch(() => {})
       const form = checkoutForm(p, actions)
       actions.append(form.node)
       deposit.addEventListener('click', () => { form.open('deposit'); deposit.setAttribute('aria-pressed', 'true') })
