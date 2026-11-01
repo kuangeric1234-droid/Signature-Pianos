@@ -44,14 +44,15 @@ const MODELS = [
   ['Yamaha UX30A', '131 cm', '1992', '$165'],
   ['Yamaha YUS3', '131 cm', '2016', '$190'],
 ]
-const EX = { name: 'Yamaha U1A, 1985', rent: 125, price: 4190 }
+/* the only sale prices on these pages: they are the office's (E123, 1 Nov 2026), so a change of price there is a change here */
+const EX = { name: 'Yamaha U1A, 1985', rent: 125, price: 4290 }
 const allIn = (months) => EX.rent * months + DELIVERY + COLLECTION
 const dayOne = EX.rent + DELIVERY + BOND
 const OWN = [
-  ['Yamaha U1A, 1983', 2790],
-  ['Yamaha U1A, 1985', 4190],
-  ['Yamaha UX5, 1983', 6990],
-  ['Yamaha YUS3, 2016', 11990],
+  ['Yamaha U1H, 1979', 2990],
+  ['Yamaha U1A, 1985', 4290],
+  ['Yamaha UX5, 1983', 7380],
+  ['Yamaha YUS3, 2016', 13390],
 ]
 
 /* ---------- the shell, cut from a page of the site ---------- */
@@ -373,7 +374,7 @@ ${hero({ eyebrow: 'Pre-loved Yamaha uprights', big: 'Piano rental prices', scrip
   <div class="rp-prose">
     ${head('Renting', 'or buying')}
     <p>Renting suits you when you do not yet know how long a piano will stay in your life. Buying suits you once you do.</p>
-    <p>On the ${EX.name}, two 12-month rentals in a row would come to about ${money(EX.rent * 24 + DELIVERY + COLLECTION)}, and the piano goes back at the end. Buying it costs ${money(EX.price)} plus delivery, and it stays yours. So if you expect to play for more than two years, buying usually costs less.</p>
+    <p>On the ${EX.name}, two 12-month rentals in a row would come to about ${money(EX.rent * 24 + DELIVERY + COLLECTION)}, and the piano goes back at the end. Buying it costs ${money(EX.price)} plus delivery, and it stays yours. So on this piano, if you expect to play for about three years or more, buying costs less.</p>
     ${RENT_TO_BUY ? '<p>If you are somewhere between the two, <a href="/piano-rental/rent-to-buy">rent-to-buy</a> counts every dollar toward the price and lets you stop after 3 months.</p>' : ''}
   </div>
   </div>
