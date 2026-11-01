@@ -28,17 +28,17 @@ const payments = (price) => Math.ceil((price - DELIVERY) / toOwn(price))
 
 const FROM = 115
 const TOP = 190
-/** what each model rents for, from office discovery/drafts/rental-rates.md */
+/** what each model rents for: the ladder in office discovery/drafts/rental-rates.md at the office's prices of E123 (Eric, E124, 2 Nov 2026) */
 const MODELS = [
-  ['Yamaha U10', '121 cm', '1987 to 1993', '$115 to $120'],
   ['Yamaha U1', '121 cm', '1979 to 1986', '$115 to $125'],
-  ['Yamaha UX1', '121 cm', '1982 to 1983', '$120'],
-  ['Yamaha U3', '131 cm', '1979 to 1986', '$120 to $140'],
   ['Yamaha YM5', '121 cm', '2004 to 2006', '$125'],
-  ['Yamaha UX3', '131 cm', '1983 to 1985', '$130 to $140'],
-  ['Yamaha U30A', '131 cm', '1990 to 1991', '$140'],
-  ['Yamaha UX5', '131 cm', '1983', '$140'],
+  ['Yamaha U10', '121 cm', '1987 to 1993', '$125 to $130'],
+  ['Yamaha U3', '131 cm', '1979 to 1986', '$125 to $130'],
+  ['Yamaha UX1', '121 cm', '1982 to 1983', '$130'],
   ['Yamaha YU10', '121 cm', '2002', '$140'],
+  ['Yamaha U30A', '131 cm', '1990 to 1991', '$150'],
+  ['Yamaha UX3', '131 cm', '1983 to 1985', '$150'],
+  ['Yamaha UX5', '131 cm', '1983', '$150'],
   ['Yamaha U300', '131 cm', '1995', '$150'],
   ['Yamaha YU11', '121 cm', '2007 to 2023', '$150'],
   ['Yamaha UX30A', '131 cm', '1992', '$165'],
@@ -521,16 +521,16 @@ ${hero({ eyebrow: 'Hand-picked in Japan', big: 'Rent a Yamaha U1 or U3', script:
     <p>Height is the first choice. A taller upright has longer strings, which gives a fuller bass and a bigger sound. A 121 cm piano sits more easily under a window and suits a smaller room. A 131 cm piano suits a player who wants the sound to fill the room. Both weigh well over 200 kg, which is why only our mover moves them.</p>
   </div>
   ${table(['Model', 'Height', 'What sets it apart', 'Rent a month'], [
-    ['U10 (U10Bl, U10A)', '121 cm', 'Yamaha called the U10A its standard 121 cm model', '$115 to $120'],
+    ['U10 (U10Bl, U10A)', '121 cm', 'Yamaha called the U10A its standard 121 cm model', '$125 to $130'],
     ['U1 (U1H, U1M, U1A)', '121 cm', 'The classic 121 cm Yamaha', '$115 to $125'],
-    ['UX1', '121 cm', 'X-type back post and all-underfelt hammers', '$120'],
+    ['UX1', '121 cm', 'X-type back post and all-underfelt hammers', '$130'],
     ['YM5', '121 cm', 'A newer piano, made 2004 to 2006', '$125'],
     ['YU10', '121 cm', 'All-underfelt hammers and a soft-landing fallboard', '$140'],
     ['YU11', '121 cm', 'The 121 cm piano of the U series from 2006, with a soft-landing fallboard', '$150'],
-    ['U3 (U3H, U3M, U3A)', '131 cm', 'The classic 131 cm Yamaha', '$120 to $140'],
-    ['UX3', '131 cm', 'X-type back post, with slits beside the upper panel to let the sound out', '$130 to $140'],
-    ['U30A', '131 cm', 'All 88 hammers underfelted', '$140'],
-    ['UX5', '131 cm', 'Agraffes in the tenor and bass, and a music desk that slides forward', '$140'],
+    ['U3 (U3H, U3M, U3A)', '131 cm', 'The classic 131 cm Yamaha', '$125 to $130'],
+    ['UX3', '131 cm', 'X-type back post, with slits beside the upper panel to let the sound out', '$150'],
+    ['U30A', '131 cm', 'All 88 hammers underfelted', '$150'],
+    ['UX5', '131 cm', 'Agraffes in the tenor and bass, and a music desk that slides forward', '$150'],
     ['U300', '131 cm', 'The last of its line, made 1994 to 1997', '$150'],
     ['UX30A', '131 cm', 'Agraffes in the tenor and bass, and walnut hammer mouldings', '$165'],
     ['YUS3', '131 cm', 'The higher grade of Yamaha\'s modern 131 cm line, made 2016', '$190'],
