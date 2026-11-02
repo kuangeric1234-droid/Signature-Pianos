@@ -881,7 +881,7 @@
     const height = parseDims(piano.dimensions_cm).height
     const facts = [piano.arriving, piano.year, height ? `${height} cm tall` : '', piano.finish || piano.colour]
       .filter(Boolean).join(' · ')
-    const price = piano.status === 'Reserved' ? 'Reserved'
+    const price = piano.status === 'Sold' ? 'Sold' : piano.status === 'Reserved' ? 'Reserved'
       : Number(piano.sale_price) > 0 ? '$' + Number(piano.sale_price).toLocaleString('en-AU') : 'Price on request'
     const photo = piano.images && piano.images[0]
     // an office photo's address is read again if it runs out (js/office.js)

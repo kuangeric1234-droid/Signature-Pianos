@@ -1987,7 +1987,8 @@ function upsertSeoMeta(title, desc){
     const grid = document.getElementById('relatedGrid')
     let list = []
     try { list = await OFFICE.pianos() } catch (err) { console.error('[piano] the office feed failed for related pianos', err) }
-    const others = list.filter((x) => x.slug !== piano.slug)
+    // a sold piano is shown on the collection (E127), never suggested beside another
+    const others = list.filter((x) => x.slug !== piano.slug && x.status !== 'Sold')
     const related = others.filter((x) => x.kindKey === piano.kindKey).concat(others.filter((x) => x.kindKey !== piano.kindKey)).slice(0, 3)
     if (!related.length) { section.style.display = 'none'; return }
     grid.innerHTML = related.map((x) => {

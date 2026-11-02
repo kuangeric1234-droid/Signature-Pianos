@@ -2511,7 +2511,7 @@
     const TYPE = { acoustic_upright: 'Upright', acoustic_grand: 'Grand piano', digital: 'Digital piano' };
     const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
     const dims = (d) => { if (typeof d === 'string') { try { return JSON.parse(d) || {}; } catch (e) { return {}; } } return d || {}; };
-    const price = (p) => p.status === 'Reserved' ? 'Reserved'
+    const price = (p) => p.status === 'Sold' ? 'Sold' : p.status === 'Reserved' ? 'Reserved'
       : Number(p.sale_price) > 0 ? '$' + Number(p.sale_price).toLocaleString('en-AU') : 'Price on request';
     const href = (p) => p.href || '/piano.html?id=' + encodeURIComponent(p.id);
     // an office photo's address is read again if it runs out (js/office.js)
