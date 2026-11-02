@@ -9,7 +9,7 @@
 const { supabaseAdmin, SITE_URL } = require('../lib/ai')
 
 // The office's address, as js/office-config.js has it: change the two together
-const OFFICE_ORIGIN = process.env.OFFICE_ORIGIN || 'https://office-production-949d.up.railway.app'
+const OFFICE_ORIGIN = process.env.OFFICE_ORIGIN || 'https://portal.signaturepianos.com.au'
 
 const xmlEscape = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
 
