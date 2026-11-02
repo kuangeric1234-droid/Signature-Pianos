@@ -1794,6 +1794,7 @@ function upsertSeoMeta(title, desc){
       const more = el('a', { class: 'btn-link', href: '/instruments/' }, 'See the pianos for sale ')
       more.append(el('i', { class: 'ti ti-arrow-right', 'aria-hidden': 'true' }))
       actions.append(more)
+      return
     } else {
       const note = el('p', { class: 'sp-note' }, 'Price on request. Call us on ')
       note.append(el('a', { href: 'tel:+61479128955' }, '0479 128 955'), document.createTextNode(' or come and play it.'))

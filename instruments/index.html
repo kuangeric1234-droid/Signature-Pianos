@@ -836,8 +836,11 @@
         grid.innerHTML = renderSection(cat ? cat.title : 'Available pianos', data)
       } else {
         // All categories — one section per type in spec order, hiding any
-        // type that currently has zero stock.
-        grid.innerHTML = CATEGORY_SECTIONS
+        // type that currently has zero stock. A type with only sold pianos
+        // left goes after those with one to buy (office E127).
+        const onlySold = cat => data.filter(p => p.type === cat.key).every(p => p.status === 'Sold')
+        grid.innerHTML = [...CATEGORY_SECTIONS]
+          .sort((a, b) => onlySold(a) - onlySold(b))
           .map(cat => {
             const matching = data.filter(p => p.type === cat.key)
             return matching.length ? renderSection(cat.title, matching) : ''
