@@ -219,7 +219,7 @@
     var lx = 0, px = 0, py = 0, shown = false;
     $$('a[data-preview]', list).forEach(function (a) {
       a.addEventListener('pointerenter', function () {
-        img.src = a.getAttribute('data-preview');
+        img.removeAttribute('srcset'); img.src = a.getAttribute('data-preview');
         if (!shown) { shown = true; gsap.to(box, { autoAlpha: 1, scale: 1, duration: 0.5, ease: EASE, overwrite: 'auto' }); }
       });
     });
@@ -368,12 +368,14 @@
         $$('.pp-thumbs button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
         // an illustration carries its words under it, the office's own
         if (note) { var w = b.getAttribute('data-note') || ''; note.textContent = w; note.hidden = !w; }
-        var src = b.getAttribute('data-src'); if (!main || main.getAttribute('src') === src) return;
+        var src = b.getAttribute('data-src'), set = b.getAttribute('data-srcset') || '';
+        if (!main || main.getAttribute('src') === src) return;
         var illus = $('.pp-main .illus'); if (illus) illus.hidden = !b.getAttribute('data-note');
-        if (!on()) { main.src = src; return; }
-        var n = main.cloneNode(); n.src = src; n.removeAttribute('fetchpriority');
+        function put(im) { if (set) im.srcset = set; else im.removeAttribute('srcset'); im.src = src; }
+        if (!on()) { put(main); return; }
+        var n = main.cloneNode(); put(n); n.removeAttribute('fetchpriority');
         Object.assign(n.style, { position: 'absolute', inset: '0' }); main.parentElement.appendChild(n);
-        gsap.fromTo(n, { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.8, ease: EASE, onComplete: function () { main.src = src; n.remove(); } });
+        gsap.fromTo(n, { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.8, ease: EASE, onComplete: function () { put(main); n.remove(); } });
       });
     });
     $$('[data-open-act]').forEach(function (b) {

@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
+const zlib = require('zlib');
 
 // Local preview. Bound to loopback so the working tree (.env.local included) is
 // never reachable from the network. It answers as vercel.json does for the pages
@@ -71,7 +72,11 @@ function runSite(req, res, query) {
     statusCode: 200, headers: {},
     setHeader(k, v) { this.headers[k] = v; },
     status(c) { this.statusCode = c; return this; },
-    send(body) { res.writeHead(this.statusCode, Object.assign({ 'Cache-Control': 'no-store' }, this.headers, { 'Cache-Control': 'no-store' })); res.end(body); },
+    send(body) {
+      const h = Object.assign({}, this.headers, { 'Cache-Control': 'no-store' });
+      if (/gzip/.test(req.headers['accept-encoding'] || '')) { h['Content-Encoding'] = 'gzip'; body = zlib.gzipSync(body); }
+      res.writeHead(this.statusCode, h); res.end(body);
+    },
   };
   req.query = query;
   Promise.resolve(site(req, out)).catch((err) => { console.error(err); res.writeHead(500); res.end('Server error'); });
@@ -87,6 +92,15 @@ http.createServer((req, res) => {
   }
   const to = redirectFor(u);
   if (to) { res.writeHead(301, { Location: to }); return res.end(); }
+
+  // Vercel's image service: here, the original (the office's own address, or a file of this site)
+  if (u.pathname === '/_vercel/image') {
+    const src = u.searchParams.get('url') || '';
+    if (/^https:\/\/portal\.signaturepianos\.com\.au\/public\//.test(src) || (process.env.OFFICE_ORIGIN && src.indexOf(process.env.OFFICE_ORIGIN + '/public/') === 0) || /^\/[a-z0-9/_.-]+$/i.test(src)) {
+      res.writeHead(302, { Location: src }); return res.end();
+    }
+    res.writeHead(400); return res.end('Bad image address');
+  }
 
   const pg = pageFor(u.pathname);
   if (pg) return runSite(req, res, pg);
@@ -123,11 +137,13 @@ http.createServer((req, res) => {
   fs.stat(filePath, (err, stat) => {
     if (err || !stat.isFile()) return runSite(req, res, { page: '404' });
     const ext = path.extname(filePath).toLowerCase();
-    res.writeHead(200, {
+    const zip = /^\.(html|css|js|json|svg|txt|xml)$/.test(ext) && /gzip/.test(req.headers['accept-encoding'] || '');
+    res.writeHead(200, Object.assign({
       'Content-Type': TYPES[ext] || 'application/octet-stream',
       'Cache-Control': 'no-store',
-    });
-    fs.createReadStream(filePath).pipe(res);
+    }, zip ? { 'Content-Encoding': 'gzip' } : {}));
+    const stream = fs.createReadStream(filePath);
+    (zip ? stream.pipe(zlib.createGzip()) : stream).pipe(res);
   });
 }).listen(PORT, HOST, () => {
   console.log(`Signature Pianos → http://${HOST}:${PORT}`);
