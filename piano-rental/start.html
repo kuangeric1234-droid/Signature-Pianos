@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- sp:head -->
+<link rel="preload" href="/media/fonts/NotoSerifDisplay-ExtraCondensedMedium.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/media/fonts/Jost-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/css/chrome.css">
+<script src="/js/analytics.js"></script>
+<!-- /sp:head -->
 <title>Rent this piano | Signature Pianos</title>
 <meta name="description" content="Choose how long you want your piano, tell us where it is going, and sign." />
 <meta name="robots" content="noindex, follow" />
@@ -17,9 +23,6 @@
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Rent this piano | Signature Pianos" />
 <meta name="twitter:description" content="Choose how long you want your piano, tell us where it is going, and sign." />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Italianno&amp;family=Jost:wght@300..500&amp;family=Noto+Serif+Display:wdth,wght@62.5,400..500&amp;display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://signaturepianos.com.au/"},{"@type":"ListItem","position":2,"name":"Piano rental","item":"https://signaturepianos.com.au/piano-rental"},{"@type":"ListItem","position":3,"name":"Rent this piano","item":"https://signaturepianos.com.au/piano-rental/start"}]}]}</script>
 <link rel="stylesheet" href="/css/rentals-base.css" />
@@ -31,124 +34,27 @@
 </head>
 <body>
 
-<div class="sp-topbar" role="region" aria-label="Contact details">
-  <span>Pianos imported direct from Japan</span>
-  <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley</a>
-  <a class="sp-topbar-phone" href="tel:+61479128955">0479 128 955</a>
+<!-- sp:header -->
+<div class="spc spc-chrome">
+<div class="spc-top"><div class="spc-wrap"><span>Pianos imported direct from Japan</span><span><a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley</a><i aria-hidden="true">·</i><a href="tel:+61479128955">0479 128 955</a></span></div></div>
+<header class="spc-hdr"><div class="spc-wrap spc-nav">
+<button type="button" class="spc-burger" aria-expanded="false" aria-controls="spc-sheet"><svg class="spc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16M4 15h16"/></svg><span class="spc-burger-l">Menu</span></button>
+<nav class="spc-navl" aria-label="Main"><div class="spc-dd" data-dd="pianos"><button type="button" class="spc-ddt" aria-expanded="false" aria-controls="spc-dd-pianos">Pianos<svg class="spc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="spc-ddp spc-ddp-pianos" id="spc-dd-pianos"><div class="spc-ddcol"><p class="spc-lbl spc-ddh">The pianos</p><a class="spc-ddl" href="/pianos/uprights/" data-label="Uprights"><strong>Pre-loved Japanese uprights</strong><span>Hand-picked in Japan, checked in Melbourne</span></a><a class="spc-ddl" href="/pianos/grands/" data-label="Grands"><strong>Pre-loved Japanese grands</strong><span>Salon and concert grands from Yamaha and Kawai</span></a><a class="spc-ddl" href="/pianos/#digital" data-label="The pianos"><strong>Digital pianos</strong><span>Roland, Kawai, Casio and Yamaha, coming soon</span></a></div><div class="spc-ddcol"><p class="spc-lbl spc-ddh">By maker</p><a class="spc-ddl" href="/pianos/yamaha/" data-label="Yamaha"><strong>Yamaha pianos</strong><span>Uprights and grands chosen in Japan</span></a><a class="spc-ddl" href="/pianos/kawai/" data-label="Kawai"><strong>Kawai pianos</strong><span>Kawai uprights and grands, hand-picked</span></a><a class="spc-ddl" href="/pianos/" data-label="The pianos"><strong>Every piano for sale</strong><span>All of them, each with its price</span></a></div><div class="spc-ddcol"><p class="spc-lbl spc-ddh">Before you buy</p><a class="spc-ddl" href="/blog"><strong>Buying advice</strong><span>Plain answers before you choose a piano</span></a><a class="spc-ddl" href="/serial-number-lookup.html"><strong>How old is my piano?</strong><span>Look up a Yamaha or Kawai serial number</span></a><a class="spc-ddl" href="/#guide" data-label="Signature"><strong>Free Yamaha buyer's guide</strong><span>Every Yamaha upright and grand from 1970 to today</span></a></div></div></div><div class="spc-dd" data-dd="services"><button type="button" class="spc-ddt" aria-expanded="false" aria-controls="spc-dd-services">Services<svg class="spc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="spc-ddp spc-ddp-services" id="spc-dd-services"><a class="spc-ddl" href="/services/delivery-warranty.html"><strong>Delivery &amp; warranty</strong><span>White-glove delivery and a 10-year warranty</span></a><a class="spc-ddl" href="/services/book-a-viewing.html"><strong>Book a visit</strong><span>Play the pianos in our Mount Waverley showroom</span></a><a class="spc-ddl" href="/services/tuning-servicing.html"><strong>Tuning &amp; servicing</strong><span>Tuning and care for pianos across Melbourne</span></a></div></div><div class="spc-dd" data-dd="teachers"><button type="button" class="spc-ddt" aria-expanded="false" aria-controls="spc-dd-teachers">Teachers<svg class="spc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="spc-ddp spc-ddp-teachers" id="spc-dd-teachers"><div class="spc-ddcol"><p class="spc-lbl spc-ddh">For students</p><a class="spc-ddl" href="/teachers.html"><strong>Find a teacher</strong><span>Piano teachers across Melbourne, via TeachMusic</span></a><a class="spc-ddl" href="/teachers-match.html"><strong>Match me with a teacher</strong><span>A few quick questions, three suggestions</span></a></div><div class="spc-ddcol"><p class="spc-lbl spc-ddh">For teachers</p><a class="spc-ddl" href="https://www.teachmusic.com.au/for-teachers"><strong>List your studio</strong><span>Reach new students on TeachMusic, our sister platform</span></a><a class="spc-ddl" href="https://www.teachmusic.com.au/login"><strong>Teacher log in</strong><span>Your studio, bookings and students on TeachMusic</span></a></div></div></div><a href="/blog">Blog</a><a href="/piano-rental">Rent a piano</a><a href="/about.html">About</a></nav>
+<a class="spc-lockup" href="/" data-label="Signature"><img src="/media/brand/logo-ink.svg" alt="Signature Pianos home" width="1542" height="592"></a>
+<div class="spc-navr"><a class="spc-phone" href="tel:+61479128955"><svg class="spc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 3.5h3.2l1.8 4.6-2.2 1.4a11.5 11.5 0 0 0 6.2 6.2l1.4-2.2 4.6 1.8v3.2a2 2 0 0 1-2 2A16.5 16.5 0 0 1 3.5 5.5a2 2 0 0 1 2-2z"/></svg>0479 128 955</a><a class="spc-acct" href="/portal" aria-label="Customer portal"><svg class="spc-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5c1.4-3.6 4.3-5.5 7.5-5.5s6.1 1.9 7.5 5.5"/></svg></a><a class="spc-btn" href="/services/book-a-viewing.html">Book a visit</a><a class="spc-callic" href="tel:+61479128955" aria-label="Call 0479 128 955"><svg class="spc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 3.5h3.2l1.8 4.6-2.2 1.4a11.5 11.5 0 0 0 6.2 6.2l1.4-2.2 4.6 1.8v3.2a2 2 0 0 1-2 2A16.5 16.5 0 0 1 3.5 5.5a2 2 0 0 1 2-2z"/></svg></a></div>
+</div></header>
+<div class="spc-sheet" id="spc-sheet" data-lenis-prevent hidden>
+<div class="spc-shg" data-sh="pianos"><button type="button" class="spc-sht" aria-expanded="false">Pianos<svg class="spc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="spc-shb"><div class="spc-ddcol"><p class="spc-lbl spc-ddh">The pianos</p><a class="spc-ddl" href="/pianos/uprights/" data-label="Uprights"><strong>Pre-loved Japanese uprights</strong><span>Hand-picked in Japan, checked in Melbourne</span></a><a class="spc-ddl" href="/pianos/grands/" data-label="Grands"><strong>Pre-loved Japanese grands</strong><span>Salon and concert grands from Yamaha and Kawai</span></a><a class="spc-ddl" href="/pianos/#digital" data-label="The pianos"><strong>Digital pianos</strong><span>Roland, Kawai, Casio and Yamaha, coming soon</span></a></div><div class="spc-ddcol"><p class="spc-lbl spc-ddh">By maker</p><a class="spc-ddl" href="/pianos/yamaha/" data-label="Yamaha"><strong>Yamaha pianos</strong><span>Uprights and grands chosen in Japan</span></a><a class="spc-ddl" href="/pianos/kawai/" data-label="Kawai"><strong>Kawai pianos</strong><span>Kawai uprights and grands, hand-picked</span></a><a class="spc-ddl" href="/pianos/" data-label="The pianos"><strong>Every piano for sale</strong><span>All of them, each with its price</span></a></div><div class="spc-ddcol"><p class="spc-lbl spc-ddh">Before you buy</p><a class="spc-ddl" href="/blog"><strong>Buying advice</strong><span>Plain answers before you choose a piano</span></a><a class="spc-ddl" href="/serial-number-lookup.html"><strong>How old is my piano?</strong><span>Look up a Yamaha or Kawai serial number</span></a><a class="spc-ddl" href="/#guide" data-label="Signature"><strong>Free Yamaha buyer's guide</strong><span>Every Yamaha upright and grand from 1970 to today</span></a></div></div></div>
+<div class="spc-shg" data-sh="services"><button type="button" class="spc-sht" aria-expanded="false">Services<svg class="spc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="spc-shb"><a class="spc-ddl" href="/services/delivery-warranty.html"><strong>Delivery &amp; warranty</strong><span>White-glove delivery and a 10-year warranty</span></a><a class="spc-ddl" href="/services/book-a-viewing.html"><strong>Book a visit</strong><span>Play the pianos in our Mount Waverley showroom</span></a><a class="spc-ddl" href="/services/tuning-servicing.html"><strong>Tuning &amp; servicing</strong><span>Tuning and care for pianos across Melbourne</span></a></div></div>
+<div class="spc-shg" data-sh="teachers"><button type="button" class="spc-sht" aria-expanded="false">Teachers<svg class="spc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="spc-shb"><div class="spc-ddcol"><p class="spc-lbl spc-ddh">For students</p><a class="spc-ddl" href="/teachers.html"><strong>Find a teacher</strong><span>Piano teachers across Melbourne, via TeachMusic</span></a><a class="spc-ddl" href="/teachers-match.html"><strong>Match me with a teacher</strong><span>A few quick questions, three suggestions</span></a></div><div class="spc-ddcol"><p class="spc-lbl spc-ddh">For teachers</p><a class="spc-ddl" href="https://www.teachmusic.com.au/for-teachers"><strong>List your studio</strong><span>Reach new students on TeachMusic, our sister platform</span></a><a class="spc-ddl" href="https://www.teachmusic.com.au/login"><strong>Teacher log in</strong><span>Your studio, bookings and students on TeachMusic</span></a></div></div></div>
+<div class="spc-shg"><a class="spc-sht" href="/blog">Blog</a></div>
+<div class="spc-shg"><a class="spc-sht" href="/piano-rental">Rent a piano</a></div>
+<div class="spc-shg"><a class="spc-sht" href="/about.html">About</a></div>
+<div class="spc-shacts"><a class="spc-btn" href="/services/book-a-viewing.html">Book a visit</a><a class="spc-btn spc-ol" href="tel:+61479128955">Call 0479 128 955</a><a class="spc-btn spc-ol" href="/portal">Customer portal</a></div>
+<p class="spc-shaddr">63 Blackburn Road, Mount Waverley VIC 3149<br>Monday to Saturday, 9 am to 5 pm. Sunday by appointment.</p>
 </div>
-
-<nav id="nav">
-  <a href="/" class="logo" aria-label="Signature Pianos home">Signature <span>Pianos</span></a>
-  <div class="nav-links">
-
-    <div class="nav-item nav-item--dropdown">
-      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
-        Pianos <i class="ti ti-chevron-down nav-chevron"></i>
-      </button>
-      <div class="nav-dropdown nav-dropdown--pianos" role="menu">
-        <a href="/instruments/?cat=upright" class="nav-dd-item">
-          <i class="ti ti-bookmark nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Pre-loved Japanese uprights</h4><p>Hand-picked in Japan, checked in Melbourne</p></div>
-        </a>
-        <a href="/instruments/?cat=grand" class="nav-dd-item">
-          <i class="ti ti-crown nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Pre-loved Japanese grands</h4><p>Salon and concert grands from Yamaha and Kawai</p></div>
-        </a>
-        <a href="/instruments/?cat=digital" class="nav-dd-item">
-          <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Digital pianos</h4><p>Roland, Kawai, Casio and Yamaha, coming soon</p></div>
-        </a>
-        <a href="/blog" class="nav-dd-item">
-          <i class="ti ti-book nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Buying advice</h4><p>Plain answers before you choose a piano</p></div>
-        </a>
-        <a href="/serial-number-lookup.html" class="nav-dd-item nav-dd-item--wide">
-          <i class="ti ti-calendar-search nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>How old is my piano?</h4><p>Look up a Yamaha or Kawai serial number</p></div>
-        </a>
-      </div>
-    </div>
-
-    <div class="nav-item nav-item--dropdown">
-      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
-        Services <i class="ti ti-chevron-down nav-chevron"></i>
-      </button>
-      <div class="nav-dropdown nav-dropdown--services" role="menu">
-        <a href="/services/delivery-warranty.html" class="nav-dd-item">
-          <i class="ti ti-truck-delivery nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Delivery &amp; warranty</h4><p>White-glove delivery and a 10-year warranty</p></div>
-        </a>
-        <a href="/services/book-a-viewing.html" class="nav-dd-item">
-          <i class="ti ti-calendar-event nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Book a visit</h4><p>Play the pianos in our Mount Waverley showroom</p></div>
-        </a>
-        <a href="/services/tuning-servicing.html" class="nav-dd-item">
-          <i class="ti ti-tool nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Tuning &amp; servicing</h4><p>Tuning and care for pianos across Melbourne</p></div>
-        </a>
-      </div>
-    </div>
-
-    <div class="nav-item nav-item--dropdown">
-      <button class="nav-link-trigger" type="button" aria-expanded="false" aria-haspopup="true">
-        Teachers <i class="ti ti-chevron-down nav-chevron"></i>
-      </button>
-      <div class="nav-dropdown nav-dropdown--teachers" role="menu">
-        <div class="nav-dd-section">
-          <div class="nav-dd-section-label">For students</div>
-          <div class="nav-dd-grid">
-            <a href="/teachers.html" class="nav-dd-item">
-              <i class="ti ti-search nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Find a teacher</h4><p>Piano teachers across Melbourne, via TeachMusic</p></div>
-            </a>
-            <a href="/teachers-match.html" class="nav-dd-item">
-              <i class="ti ti-map-pin nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Match me with a teacher</h4><p>A few quick questions, three suggestions</p></div>
-            </a>
-          </div>
-        </div>
-        <div class="nav-dd-section">
-          <div class="nav-dd-section-label">For teachers</div>
-          <div class="nav-dd-grid">
-            <a href="https://www.teachmusic.com.au/for-teachers" class="nav-dd-item" target="_blank" rel="noopener">
-              <i class="ti ti-list-details nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>List your studio</h4><p>Reach new students on TeachMusic, our sister platform</p></div>
-            </a>
-            <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
-              <i class="ti ti-layout-grid nav-dd-icon"></i>
-              <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <a href="/piano-rental" class="nav-link-plain">Rent a piano</a>
-
-    <a href="/about.html" class="nav-link-plain">About</a>
-  </div>
-
-  <div class="nav-ctas">
-    <div class="nav-item nav-item--dropdown nav-item--account">
-      <button class="nav-account-trigger" type="button" aria-expanded="false" aria-haspopup="true" aria-label="Account">
-        <i class="ti ti-user"></i>
-      </button>
-      <div class="nav-dropdown nav-dropdown--account" role="menu">
-        <a href="/portal" class="nav-dd-item">
-          <i class="ti ti-user nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Customer portal</h4><p>Track your delivery and warranty</p></div>
-        </a>
-        <a href="https://www.teachmusic.com.au/login" class="nav-dd-item" target="_blank" rel="noopener">
-          <i class="ti ti-music nav-dd-icon"></i>
-          <div class="nav-dd-text"><h4>Teacher log in</h4><p>Your studio, bookings and students on TeachMusic</p></div>
-        </a>
-      </div>
-    </div>
-    <a class="nav-cta" href="/services/book-a-viewing.html">Book a visit</a>
-  </div>
-  <button class="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
-  <a class="sp-nav-call" href="tel:+61479128955" aria-label="Call Signature Pianos on 0479 128 955"><i class="ti ti-phone" aria-hidden="true"></i></a>
-</nav>
+</div>
+<!-- /sp:header -->
 
 <main>
 <div class="rp-crumb" role="navigation" aria-label="Breadcrumb"><a href="/piano-rental">Piano rental</a> · <span id="rp-crumb">Rent this piano</span></div>
@@ -219,33 +125,27 @@
 </section>
 </main>
 
-<footer class="sp-footer">
-  <div class="sp-footer-inner">
-    <a href="/" class="sp-footer-logo"><img src="/media/brand/logo-ink.svg" width="1542" height="592" alt="Signature Pianos"></a>
-    <p class="sp-footer-tagline">Pre-loved Japanese pianos, hand-picked in Japan and checked in Melbourne.</p>
-    <div class="sp-footer-links" role="navigation" aria-label="Footer">
-      <a href="/instruments/">Pianos</a>
-      <a href="/piano-rental">Rent a piano</a>
-      <a href="/services/book-a-viewing.html">Book a visit</a>
-      <a href="/services/tuning-servicing.html">Tuning</a>
-      <a href="/services/delivery-warranty.html">Delivery &amp; warranty</a>
-      <a href="/teachers.html">Teachers</a>
-      <a href="/blog">Blog</a>
-      <a href="/about.html">About</a>
-    </div>
-    <address class="sp-footer-contact">
-      <span class="sp-line"><a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener">63 Blackburn Road, Mount Waverley VIC 3149</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="tel:+61479128955">0479 128 955</a></span><span class="sp-dot">·</span><span class="sp-line"><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></span>
-    </address>
-  </div>
-  <div class="sp-footer-bottom">© 2026 Signature Pianos · <a href="/privacy">Privacy</a> · <a href="#">Terms</a></div>
+<!-- sp:footer -->
+<footer class="spc-footer">
+<div class="spc spc-end">
+<div class="spc-sign spc-wrap" aria-hidden="true"><span class="spc-s">Signature</span><span class="spc-cover"></span></div>
+<div class="spc-wrap spc-foot"><div class="spc-cols">
+<div><p class="spc-lbl">Pianos</p><ul><li><a href="/pianos/" data-label="The pianos">All pianos for sale</a></li><li><a href="/pianos/uprights/" data-label="Uprights">Uprights</a></li><li><a href="/pianos/grands/" data-label="Grands">Grands</a></li><li><a href="/pianos/yamaha/" data-label="Yamaha">Yamaha</a></li><li><a href="/pianos/kawai/" data-label="Kawai">Kawai</a></li></ul></div>
+<div><p class="spc-lbl">Services</p><ul><li><a href="/services/book-a-viewing.html">Book a visit</a></li><li><a href="/services/delivery-warranty.html">Delivery and warranty</a></li><li><a href="/services/tuning-servicing.html">Tuning and servicing</a></li><li><a href="/piano-rental">Rent a piano</a></li></ul></div>
+<div><p class="spc-lbl">Learn</p><ul><li><a href="/blog">Buying advice</a></li><li><a href="/serial-number-lookup.html">How old is my piano?</a></li><li><a href="/#guide" data-label="Signature">Free Yamaha buyer's guide</a></li><li><a href="/teachers.html">Find a teacher</a></li></ul></div>
+<div><p class="spc-lbl">Signature Pianos</p><ul><li><a href="/about.html">About</a></li><li><a href="/portal">Customer portal</a></li><li><a href="/privacy">Privacy</a></li><li><a href="tel:+61479128955">0479 128 955</a></li><li><a href="mailto:info@signaturepianos.com.au">info@signaturepianos.com.au</a></li></ul></div>
+</div>
+<p class="spc-small"><span>© 2026 Parke Music Group Pty Ltd · ABN 94 702 480 340</span><span>Signature Pianos, 63 Blackburn Road, Mount Waverley VIC 3149</span></p></div>
+</div>
 </footer>
+<!-- /sp:footer -->
 
 <div class="sp-bottombar" role="navigation" aria-label="Quick contact">
   <a href="tel:+61479128955"><i class="ti ti-phone" aria-hidden="true"></i>Call</a>
   <a href="https://www.google.com/maps/dir/?api=1&amp;destination=63+Blackburn+Road+Mount+Waverley+VIC+3149" target="_blank" rel="noopener"><i class="ti ti-map-pin" aria-hidden="true"></i>Directions</a>
   <a class="sp-bottombar-book" href="/services/book-a-viewing.html">Book a visit</a>
 </div>
-<script src="/js/signature-nav.js" defer></script>
+<script src="/js/chrome.js" defer></script>
 <script src="/js/signature-book.js" defer></script>
 <script src="/js/office-config.js"></script>
 <script src="/js/office.js"></script>

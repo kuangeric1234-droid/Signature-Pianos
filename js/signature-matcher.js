@@ -192,10 +192,10 @@
       render(head +
         '<div class="sp-match-grid">' + top.map(function (m) { return card(m, space); }).join('') + '</div>' +
         grandNote +
-        '<p class="sp-match-foot">Matched against the ' + list.length + ' piano' + (list.length === 1 ? '' : 's') + ' in stock today. <a href="/instruments/">See them all</a></p>');
+        '<p class="sp-match-foot">Matched against the ' + list.length + ' piano' + (list.length === 1 ? '' : 's') + ' in stock today. <a href="/pianos/">See them all</a></p>');
     }).catch(function (err) {
       console.error('[matcher] stock load failed', err);
-      render('<p class="sp-match-note">We could not load our stock just now. <a href="/instruments/">See all pianos</a>, or call <a href="tel:+61479128955">0479 128 955</a>.</p>');
+      render('<p class="sp-match-note">We could not load our stock just now. <a href="/pianos/">See all pianos</a>, or call <a href="tel:+61479128955">0479 128 955</a>.</p>');
     }).then(function () {
       btn.disabled = false;
       btn.classList.remove('is-loading');

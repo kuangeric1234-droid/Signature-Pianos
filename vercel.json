@@ -5,7 +5,18 @@
   "redirects": [
     { "source": "/",              "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }], "destination": "/admin/index.html",    "permanent": false },
     { "source": "/index.html",    "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }], "destination": "/admin/index.html",    "permanent": false },
-    { "source": "/teachers.html", "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }], "destination": "/admin/teachers.html", "permanent": false }
+    { "source": "/teachers.html", "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }], "destination": "/admin/teachers.html", "permanent": false },
+
+    { "source": "/piano.html", "has": [{ "type": "query", "key": "slug", "value": "(?<slug>[a-z0-9]+(?:-[a-z0-9]+)*)" }], "destination": "/pianos/:slug", "permanent": true },
+    { "source": "/piano.html",          "destination": "/pianos/",          "permanent": true },
+    { "source": "/instruments/:path*",  "has": [{ "type": "query", "key": "cat", "value": "upright" }], "destination": "/pianos/uprights/", "permanent": true },
+    { "source": "/instruments/:path*",  "has": [{ "type": "query", "key": "cat", "value": "grand" }],   "destination": "/pianos/grands/",   "permanent": true },
+    { "source": "/instruments",         "destination": "/pianos/",          "permanent": true },
+    { "source": "/instruments/:path*",  "destination": "/pianos/",          "permanent": true },
+    { "source": "/instruments.html",    "destination": "/pianos/",          "permanent": true },
+    { "source": "/index.html",          "destination": "/",                 "permanent": true },
+    { "source": "/pianos",              "destination": "/pianos/",          "permanent": true },
+    { "source": "/pianos/:cat(uprights|grands|yamaha|kawai)", "destination": "/pianos/:cat/", "permanent": true }
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
@@ -46,7 +57,12 @@
       "source": "/(.*)",
       "has": [{ "type": "host", "value": "admin.signaturepianos.com.au" }],
       "destination": "/admin/$1"
-    }
+    },
+
+    { "source": "/",        "destination": "/api/site?page=home" },
+    { "source": "/pianos/", "destination": "/api/site?page=collection" },
+    { "source": "/pianos/:cat(uprights|grands|yamaha|kawai)/", "destination": "/api/site?page=collection&cat=:cat" },
+    { "source": "/pianos/:slug", "destination": "/api/site?page=piano&slug=:slug" }
   ],
   "functions": {
     "api/stripe-webhook.js": {
@@ -59,6 +75,18 @@
     "api/seo-engine.js": { "maxDuration": 60 }
   },
   "headers": [
+    {
+      "source": "/media/fonts/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/js/v/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }]
+    },
+    {
+      "source": "/media/site/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }]
+    },
     {
       "source": "/(.*)",
       "headers": [

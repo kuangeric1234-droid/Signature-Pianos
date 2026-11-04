@@ -147,7 +147,7 @@
       if (photo.note && photo.note !== 'Illustration') summary.appendChild(el('p', 'rp-photo-note', photo.note));
     }
     var see = el('a', 'rp-link rp-gallery-link', 'See this piano');
-    see.href = '/piano.html?slug=' + encodeURIComponent(p.slug);
+    see.href = '/pianos/' + encodeURIComponent(p.slug);
     summary.appendChild(see);
     summary.hidden = false;
     drawMoney();

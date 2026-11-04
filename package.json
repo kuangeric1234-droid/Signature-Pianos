@@ -10,5 +10,10 @@
     "resend": "^3.0.0",
     "stripe": "^14.0.0",
     "twilio": "^4.0.0"
+  },
+  "scripts": {
+    "check": "node tools/check.js",
+    "chrome": "node tools/site-chrome.js",
+    "dev": "node server.js"
   }
 }

@@ -8,13 +8,14 @@
 
 const { supabaseAdmin, SITE_URL } = require('../lib/ai')
 
-// The office's address, as js/office-config.js has it: change the two together
-const OFFICE_ORIGIN = process.env.OFFICE_ORIGIN || 'https://portal.signaturepianos.com.au'
+// The office's feed, read as the pages read it (its address: lib/site/feed.js, with js/office-config.js; change them
+// together, or set OFFICE_ORIGIN on Vercel)
+const siteFeed = require('../lib/site/feed')
 
 const xmlEscape = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
 
 const STATIC_PATHS = [
-  '/', '/instruments/', '/services/book-a-viewing.html', '/services/delivery-warranty.html',
+  '/', '/pianos/', '/services/book-a-viewing.html', '/services/delivery-warranty.html',
   '/services/tuning-servicing.html', '/serial-number-lookup.html', '/guide', '/teachers.html', '/about.html', '/blog',
   '/privacy', '/piano-rental', '/piano-rental/prices', '/piano-rental/short-term',
   '/piano-rental/yamaha-u1-u3', '/piano-rental/terms',
@@ -34,18 +35,19 @@ module.exports = async (req, res) => {
     console.error('[sitemap] load failed', err)
   }
 
-  let pianos = []
-  try {
-    const feed = await fetch(`${OFFICE_ORIGIN}/public/m/stock/pianos`, { headers: { Origin: SITE_URL } })
-    if (!feed.ok) throw new Error(`the office answered ${feed.status}`)
-    pianos = (await feed.json()).pianos || []
-  } catch (err) {
-    console.error('[sitemap] pianos load failed', err)
-  }
+  // every piano on the website at its own address, and the uprights, grands, Yamaha and Kawai pages that have one
+  // for sale (an empty one is noindex: lib/site/render.js)
+  const pianos = (await siteFeed.pianos()) || []
+  const forSale = pianos.filter((p) => p.status !== 'Sold')
+  const cats = [
+    ['uprights', (p) => p.kindKey === 'upright'], ['grands', (p) => p.kindKey === 'grand'],
+    ['yamaha', (p) => /yamaha/i.test(p.brand)], ['kawai', (p) => /kawai/i.test(p.brand)],
+  ].filter(([, has]) => forSale.some(has)).map(([c]) => `/pianos/${c}/`)
 
   const urls = [
     ...STATIC_PATHS.map((p) => ({ loc: SITE_URL + p })),
-    ...pianos.map((p) => ({ loc: `${SITE_URL}/piano.html?slug=${encodeURIComponent(p.slug)}` })),
+    ...cats.map((p) => ({ loc: SITE_URL + p })),
+    ...pianos.map((p) => ({ loc: `${SITE_URL}/pianos/${encodeURIComponent(p.slug)}` })),
     ...posts.map((p) => ({
       loc: `${SITE_URL}/blog/${encodeURIComponent(p.slug)}`,
       lastmod: (p.updated_at || p.published_at || '').slice(0, 10),

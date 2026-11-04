@@ -1,0 +1,329 @@
+/* ==========================================================================
+   Signature Pianos · the "Book a visit" card (js/signature-book.js), for the
+   redesigned pages
+   --------------------------------------------------------------------------
+   A copy of the card's rules in css/signature-theme.css (which the static pages
+   load), with the tokens they read set on the card itself and its charcoal
+   look, so the redesigned pages can open the same card without the old theme.
+   Change the card in both files.
+   ========================================================================== */
+.sp-book {
+  --ink: #16222E; --ink-2: #3A4855; --felt: #4A1520; --mist-2: #2B2D30;
+  --ease: cubic-bezier(.4, 0, .1, 1);
+  --font-body: 'Jost', 'Jost Fallback', 'Helvetica Neue', Arial, sans-serif;
+  --font-script: 'Italianno', 'Snell Roundhand', 'Apple Chancery', cursive;
+  --sp-font-display: 'Noto Serif Display', 'Bodoni Moda', Didot, Georgia, serif;
+  --sp-charcoal: #2B2D30; --sp-charcoal-raised: #37393D; --sp-on-charcoal: #FFFFFF; --sp-on-charcoal-soft: #C9CBCE;
+  font-family: var(--font-body);
+}
+/* ==========================================================================
+   "Book a visit" postcard (js/signature-book.js)
+   A pale mist card: the title and notes on the left, a hairline with the
+   seal in the middle, the form on the right. Flies in from above.
+   ========================================================================== */
+html.sp-book-open,
+html.sp-book-open body { overflow: hidden; }
+
+.sp-book {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.sp-book[hidden] { display: none !important; }
+.sp-book-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 34, 46, 0.42);
+  -webkit-backdrop-filter: blur(3px);
+          backdrop-filter: blur(3px);
+}
+.sp-book-card {
+  position: relative;
+  width: min(1060px, 100%);
+  min-height: min(600px, calc(100vh - 48px));
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1.12fr);
+  background: var(--mist-2);
+  color: var(--ink);
+  box-shadow: 0 50px 90px -40px rgba(10, 16, 24, 0.55);
+  overflow: hidden;
+  transform-origin: 50% 40%;
+  will-change: transform;
+}
+/* a fine inner border, like the edge of a printed card */
+.sp-book-card::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(22, 34, 46, 0.16);
+  pointer-events: none;
+}
+.sp-book-close {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.4s linear, transform 0.6s var(--ease);
+}
+.sp-book-close svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 1.4; fill: none; }
+.sp-book-close:hover { background: rgba(22, 34, 46, 0.08); transform: rotate(90deg); }
+
+.sp-book-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 58px 48px 52px 60px;
+}
+.sp-book-title { margin: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.sp-book-script {
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-size: clamp(96px, 10vw, 150px);
+  line-height: 0.7;
+  text-transform: none;
+  letter-spacing: 0;
+  margin: 0;
+}
+.sp-book-display {
+  margin: 10px 0 0 0.35em;
+  font-family: var(--sp-font-display);
+  font-weight: 500;
+  font-size: clamp(38px, 3.6vw, 56px);
+  line-height: 0.9;
+}
+.sp-book-notes { max-width: 34ch; }
+.sp-book-notes p { margin: 0 0 12px; font-size: 14.5px; line-height: 1.65; color: var(--ink-2); }
+.sp-book-notes p:last-child { margin-bottom: 0; }
+.sp-book-direct a { color: var(--ink); font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
+
+.sp-book-rule {
+  position: relative;
+  background: rgba(22, 34, 46, 0.22);
+  margin: 40px 0;
+}
+.sp-book-seal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 72px;
+  padding: 14px 12px;
+  transform: translate(-50%, -50%);
+  background: var(--mist-2);
+}
+.sp-book-seal img { display: block; width: 100%; height: auto; }
+
+.sp-book-form,
+.sp-book-success {
+  padding: 74px 64px 48px 60px;
+  overflow-y: auto;
+}
+.sp-book-form { display: flex; flex-direction: column; gap: 22px; }
+.sp-book-form[hidden],
+.sp-book-success[hidden] { display: none; }
+.sp-book-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 28px; }
+.sp-book-field { position: relative; display: flex; flex-direction: column; min-width: 0; margin: 0; padding: 0; border: 0; }
+.sp-book-field label,
+.sp-book-field legend {
+  padding: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.sp-book-field label small { font-size: inherit; letter-spacing: 0.1em; text-transform: none; opacity: 0.8; }
+.sp-book-field input,
+.sp-book-field select,
+.sp-book-field textarea {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 0 9px;
+  border: 0;
+  border-bottom: 1px solid rgba(22, 34, 46, 0.4);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.4;
+  outline: none;
+  transition: border-color 0.4s linear;
+  -webkit-appearance: none;
+          appearance: none;
+}
+.sp-book-field textarea { resize: none; min-height: 40px; }
+.sp-book-field select {
+  cursor: pointer;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2316222E' stroke-width='1.3'/%3E%3C/svg%3E") no-repeat right 2px center;
+  padding-right: 22px;
+}
+.sp-book-field input:focus,
+.sp-book-field select:focus,
+.sp-book-field textarea:focus { border-bottom-color: var(--ink); box-shadow: 0 1px 0 var(--ink); }
+.sp-book-field.is-invalid input,
+.sp-book-field.is-invalid select { border-bottom-color: var(--felt); box-shadow: 0 1px 0 var(--felt); }
+.sp-book-field.is-invalid label::after { content: ' \00B7  required'; letter-spacing: 0.1em; text-transform: none; }
+
+.sp-book-chips { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+.sp-book-chips legend { width: 100%; margin-bottom: 10px; }
+.sp-book-chips label {
+  position: relative;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+.sp-book-chips input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.sp-book-chips span {
+  display: inline-block;
+  padding: 9px 16px 8px;
+  border: 1px solid rgba(22, 34, 46, 0.4);
+  border-radius: 0;
+  transition: background 0.4s linear, color 0.4s linear, border-color 0.4s linear;
+}
+.sp-book-chips label:hover span { border-color: var(--ink); }
+.sp-book-chips input:checked + span { background: var(--ink); border-color: var(--ink); color: #FFFFFF; }
+.sp-book-chips input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+.sp-book-foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+.sp-book-privacy { margin: 0; max-width: 30ch; font-size: 12.5px; line-height: 1.6; color: var(--ink-2); }
+/* The office (S3.4): the visit form's consent box, its hidden box and its bot check */
+.sp-book-consent { display: grid; grid-template-columns: 18px 1fr; gap: 12px; align-items: start; margin-top: 2px; font-size: 13px; line-height: 1.55; color: var(--ink); cursor: pointer; }
+.sp-book-consent input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--ink); }
+.sp-book-consent.is-invalid span { text-decoration: underline; text-decoration-color: var(--felt); text-underline-offset: 4px; }
+.sp-book-consent.is-unavailable { grid-template-columns: 1fr; opacity: 0.85; }
+.sp-book-hp { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; }
+.sp-book-check { min-height: 65px; }
+.sp-book-check[hidden] { display: none; }
+.sp-book-error { display: block; margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--felt); color: var(--ink); font-weight: 500; }
+.sp-book-error[hidden] { display: none; }
+.sp-book-send {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.4s linear, color 0.4s linear, transform 0.6s var(--ease);
+}
+.sp-book-send span { margin-right: -0.22em; }
+.sp-book-send:hover { background: transparent; color: var(--ink); transform: scale(1.05); }
+.sp-book-send:disabled { cursor: progress; opacity: 0.7; }
+.sp-book-send.is-sending span { animation: sp-book-pulse 1s ease-in-out infinite; }
+@keyframes sp-book-pulse { 50% { opacity: 0.35; } }
+
+.sp-book-success {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 18px;
+}
+.sp-book-success .sp-book-script { font-size: clamp(90px, 9vw, 130px); line-height: 0.8; }
+.sp-book-success-text { margin: 0; max-width: 34ch; font-size: 18px; line-height: 1.6; color: var(--ink-2); }
+.sp-book-done {
+  margin-top: 10px;
+  padding: 16px 30px 14px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.4s linear, color 0.4s linear;
+}
+.sp-book-done:hover { background: var(--ink); color: #FFFFFF; }
+
+@media (max-width: 860px) {
+  .sp-book { padding: 10px; }
+  .sp-book-card {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+    min-height: 0;
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .sp-book-card::before { inset: 8px; }
+  .sp-book-side { padding: 44px 28px 0; gap: 18px; }
+  .sp-book-script { font-size: 96px; }
+  .sp-book-display { font-size: 34px; }
+  .sp-book-notes p { font-size: 14px; }
+  .sp-book-notes p:nth-child(2) { display: none; }
+  .sp-book-rule { height: 1px; margin: 26px 28px 0; }
+  .sp-book-seal { display: none; }
+  .sp-book-form,
+  .sp-book-success { padding: 24px 28px 34px; overflow: visible; }
+  .sp-book-pair { grid-template-columns: 1fr; gap: 22px; }
+  .sp-book-send { width: 84px; height: 84px; }
+  .sp-book-close { top: 14px; right: 14px; }
+}
+
+/* charcoal, as the live site's card (signature-theme.css, "Trial: dark charcoal") */
+.sp-book-card {
+  background-color: var(--sp-charcoal);
+  color: var(--sp-on-charcoal);
+  --ink: var(--sp-on-charcoal);
+  --ink-2: var(--sp-on-charcoal-soft);
+  --felt: #D9A0A9;
+  --mist-2: var(--sp-charcoal);
+}
+.sp-book-send,
+.sp-book-chips input:checked + span { color: var(--sp-charcoal); }
+.sp-book-send:hover { color: var(--sp-on-charcoal); }
+.sp-book-done:hover { color: var(--sp-charcoal); }
+.sp-book-card::before { border-color: rgba(255, 255, 255, 0.16); }
+.sp-book-close:hover { background: rgba(255, 255, 255, 0.08); }
+.sp-book-rule { background: rgba(255, 255, 255, 0.22); }
+.sp-book-field input,
+.sp-book-field select,
+.sp-book-field textarea,
+.sp-book-chips span { border-color: rgba(255, 255, 255, 0.4); }
+.sp-book-field input:focus,
+.sp-book-field select:focus,
+.sp-book-field textarea:focus,
+.sp-book-chips label:hover span,
+.sp-book-chips input:checked + span { border-color: var(--sp-on-charcoal); }
+.sp-book-field.is-invalid input,
+.sp-book-field.is-invalid select { border-bottom-color: var(--felt); }
+.sp-book-field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23FFFFFF' stroke-width='1.3'/%3E%3C/svg%3E");
+}
+.sp-book-field select option { background: var(--sp-charcoal); color: var(--sp-on-charcoal); }
+.sp-book-seal img { filter: brightness(0) invert(1); }
+.sp-book-card h2, .sp-book-card h3 { margin: 0; }

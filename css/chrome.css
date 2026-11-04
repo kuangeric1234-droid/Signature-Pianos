@@ -1,0 +1,161 @@
+/* ==========================================================================
+   Signature Pianos · the header and footer on every page
+   --------------------------------------------------------------------------
+   One header and one footer for the whole site (redesign, 5 Nov 2026), written
+   by lib/site/render.js and put into the static pages by tools/site-chrome.js.
+   Every class here starts with spc- and every token lives on .spc, so nothing
+   here reaches a page's own content and no page's rules reach in.
+
+   The fonts are served from this site (media/fonts), and every page that loads
+   this file gets them.
+
+   Colour: Ink for type and the logo, Key Ivory for the ground, charcoal
+   (#2B2D30) for every dark surface, Hammer Felt used small. No Mist blue.
+   Motion: transform and opacity only, and none at all under reduced motion.
+   ========================================================================== */
+
+@font-face { font-family: 'Jost'; src: url('/media/fonts/Jost-Light.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Jost'; src: url('/media/fonts/Jost-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Jost'; src: url('/media/fonts/Jost-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Noto Serif Display'; src: url('/media/fonts/NotoSerifDisplay-ExtraCondensedMedium.woff2') format('woff2'); font-weight: 400 600; font-stretch: 50% 75%; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Italianno'; src: url('/media/fonts/Italianno-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+/* Jost's fallback sized to Jost's width (measured: 93.2% of Arial), so text wraps the same before and after the font arrives */
+@font-face { font-family: 'Jost Fallback'; src: local('Arial'), local('ArialMT'), local('Helvetica'); size-adjust: 93.2%; }
+
+.spc {
+  --spc-ink: #16222E; --spc-soft: #3A4855; --spc-ivory: #F3F0E9; --spc-deep: #E9E5DB;
+  --spc-ch: #2B2D30; --spc-ch-r: #37393D; --spc-on-ch: #FFFFFF; --spc-on-ch-soft: #C9CBCE;
+  --spc-felt: #4A1520; --spc-rule: rgba(22, 34, 46, .12); --spc-rule2: rgba(22, 34, 46, .22);
+  --spc-script: 'Italianno', 'Snell Roundhand', 'Apple Chancery', cursive;
+  --spc-display: 'Noto Serif Display', 'Bodoni Moda', Didot, Georgia, serif;
+  --spc-text: 'Jost', 'Jost Fallback', 'Helvetica Neue', Arial, sans-serif;
+  --spc-ease: cubic-bezier(.4, 0, .1, 1); --spc-press: cubic-bezier(.3, 0, .2, 1); --spc-release: cubic-bezier(.25, 1.45, .45, 1);
+  --spc-g: clamp(20px, 3.34vw, 64px); --spc-cg: clamp(12px, 1.67vw, 28px);
+  --spc-top: 34px; --spc-nav: 80px;
+  font-family: var(--spc-text); font-weight: 400; font-style: normal; color: var(--spc-ink); letter-spacing: normal; text-transform: none; -webkit-font-smoothing: antialiased;
+}
+@media (max-width: 899px) { .spc { --spc-top: 0px; --spc-nav: 60px; } }
+.spc-chrome { display: contents; }
+/* the resets weigh nothing (:where), so every spc- class below wins over them; they still win over a page's bare
+   element rules, which come before the class in the cascade only where the page says so */
+:where(.spc) *, :where(.spc) *::before, :where(.spc) *::after { box-sizing: border-box; }
+:where(.spc) :where(p, ul, ol, li, h2, h3, h4, figure, dl, dd, dt) { margin: 0; padding: 0; list-style: none; font: inherit; color: inherit; letter-spacing: inherit; text-transform: none; }
+:where(.spc) :where(a) { color: inherit; text-decoration: none; }
+:where(.spc) :where(button) { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-transform: inherit; letter-spacing: inherit; }
+:where(.spc) :where(img) { display: block; max-width: 100%; height: auto; }
+.spc :focus-visible { outline: 2px solid var(--spc-felt); outline-offset: 3px; }
+.spc-ic { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: square; flex: none; }
+.spc-wrap { padding-inline: var(--spc-g); }
+.spc-lbl { font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--spc-soft); line-height: 1.5; font-weight: 400; }
+
+/* ---------- the top bar: charcoal, what we do, where we are, a number to tap ---------- */
+.spc-top { background: var(--spc-ch); color: var(--spc-on-ch-soft); font-size: 12.5px; line-height: 1.4; letter-spacing: .06em; }
+.spc-top .spc-wrap { display: flex; justify-content: space-between; align-items: center; height: var(--spc-top); gap: 20px; }
+.spc-top i { font-style: normal; margin: 0 .7em; }
+.spc-top a { display: inline-block; padding: 4px 0; background: linear-gradient(currentColor 0 0) left calc(100% - 3px) / 0% 1px no-repeat; transition: color .4s linear, background-size .5s var(--spc-ease); }
+@media (hover: hover) { .spc-top a:hover { color: var(--spc-on-ch); background-size: 100% 1px; } }
+.spc-top a:focus-visible { color: var(--spc-on-ch); background-size: 100% 1px; }
+
+/* ---------- the header: it never hides and never pops ---------- */
+.spc-hdr { position: fixed; left: 0; right: 0; top: var(--spc-top); z-index: 100; background: var(--spc-ivory); border-bottom: 1px solid var(--spc-rule); margin: 0; padding: 0; }
+.spc-top { position: fixed; left: 0; right: 0; top: 0; z-index: 101; }
+/* the redesigned pages: in the flow, the bar scrolls away and the header holds at the top */
+.sp-new .spc-top { position: relative; z-index: 51; }
+.sp-new .spc-hdr { position: sticky; top: 0; z-index: 50; }
+.spc-hdr::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 100vh; background: rgba(43, 45, 48, .2); opacity: 0; pointer-events: none; transition: opacity .35s linear; z-index: 1; }
+.spc-hdr:has(.spc-dd.open)::after { opacity: 1; }
+@media (max-width: 899px) { .spc-hdr::after { display: none; } }
+.spc-nav { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: var(--spc-nav); }
+/* a page's own `nav { position: fixed }` must not reach the menu */
+.spc nav.spc-navl { position: static; inset: auto; z-index: auto; display: flex; gap: clamp(14px, 1.6vw, 26px); align-items: center; justify-content: flex-start; white-space: nowrap; padding: 0; margin: 0; background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; transition: none; }
+.spc-navl > a, .spc-ddt { position: relative; display: inline-flex; align-items: center; gap: 6px; height: 44px; font-size: 12px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; line-height: 1; color: var(--spc-ink); }
+.spc-navl > a::after, .spc-ddt::after { content: ''; position: absolute; left: 0; right: 0; bottom: 8px; height: 1px; background: currentColor; scale: 0 1; transform-origin: left; transition: scale .5s var(--spc-ease); }
+@media (hover: hover) { .spc-navl > a:hover::after, .spc-ddt:hover::after { scale: 1 1; } }
+.spc-navl > a:focus-visible::after, .spc-ddt:focus-visible::after, .spc-dd.open .spc-ddt::after, .spc-navl > a[aria-current]::after { scale: 1 1; }
+.spc-ddt .spc-ic { width: 11px; height: 11px; transition: rotate .4s var(--spc-ease); }
+.spc-dd.open .spc-ddt .spc-ic { rotate: 180deg; }
+.spc-lockup { justify-self: center; display: block; width: clamp(150px, 12.5vw, 184px); transition: translate .7s var(--spc-release); }
+.spc-lockup img { width: 100%; }
+@media (hover: hover) { .spc-lockup:hover { translate: 0 3px; transition: translate .14s var(--spc-press); } }
+.spc-lockup:focus-visible { translate: 0 3px; }
+.spc-lockup:active { translate: 0 5px; }
+.spc-navr { justify-self: end; display: flex; align-items: center; gap: 18px; }
+.spc-phone { display: inline-flex; align-items: center; gap: 9px; padding: 8px 0; font-size: 13px; letter-spacing: .06em; background: linear-gradient(currentColor 0 0) left calc(100% - 5px) / 0% 1px no-repeat; transition: background-size .5s var(--spc-ease); }
+@media (hover: hover) { .spc-phone:hover { background-size: 100% 1px; } }
+.spc-acct { width: 40px; height: 40px; border: 1px solid var(--spc-rule2); border-radius: 50%; display: grid; place-items: center; transition: border-color .4s linear; }
+.spc-acct .spc-ic { width: 17px; height: 17px; }
+@media (hover: hover) { .spc-acct:hover { border-color: var(--spc-ink); } }
+.spc-burger, .spc-callic { display: none; }
+
+/* buttons: a charcoal fill that drops away on hover */
+.spc-btn { position: relative; isolation: isolate; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 46px; padding: 14px 24px 12px; font-size: 12.5px; font-weight: 500; line-height: 1; letter-spacing: .2em; text-transform: uppercase; color: var(--spc-on-ch); background: transparent; border: 1px solid var(--spc-ch); transition: color .4s linear, translate .12s var(--spc-press); white-space: nowrap; }
+.spc-btn::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--spc-ch); transition: translate .55s var(--spc-ease); }
+@media (hover: hover) { .spc-btn:hover { color: var(--spc-ink); } .spc-btn:hover::before { translate: 0 101%; } }
+.spc-btn:focus-visible { color: var(--spc-ink); } .spc-btn:focus-visible::before { translate: 0 101%; }
+.spc-btn:active { translate: 0 2px; transition: translate .09s var(--spc-press); }
+.spc-btn.spc-ol { color: var(--spc-ink); }
+.spc-btn.spc-ol::before { translate: 0 101%; }
+@media (hover: hover) { .spc-btn.spc-ol:hover { color: var(--spc-on-ch); } .spc-btn.spc-ol:hover::before { translate: 0 0; } }
+.spc-btn.spc-ol:focus-visible { color: var(--spc-on-ch); } .spc-btn.spc-ol:focus-visible::before { translate: 0 0; }
+
+/* the dropdowns */
+.spc-ddp { overflow: hidden; z-index: 2; position: absolute; left: 0; right: 0; top: 100%; background: var(--spc-ivory); border-bottom: 1px solid var(--spc-rule); padding: 34px var(--spc-g) 40px; display: grid; gap: var(--spc-cg); opacity: 0; visibility: hidden; translate: 0 -10px; transition: opacity .3s linear, translate .45s var(--spc-ease), visibility 0s .45s; white-space: normal; text-align: left; }
+.spc-dd.open .spc-ddp { opacity: 1; visibility: visible; translate: 0 0; transition: opacity .3s linear, translate .45s var(--spc-ease), visibility 0s; }
+.spc-ddp-pianos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.spc-ddp-services { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.spc-ddp-teachers { grid-template-columns: repeat(2, minmax(0, 1fr)) 1fr; }
+.spc-ddh { margin: 0 0 12px; }
+.spc-ddcol { min-width: 0; }
+.spc-ddl { display: block; padding: 12px 0 14px; border-top: 1px solid var(--spc-rule); }
+.spc-ddl strong { display: block; font-size: 15px; line-height: 1.5; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--spc-ink); transition: translate .5s var(--spc-ease); }
+.spc-ddl span { display: block; font-size: 13.5px; line-height: 1.5; color: var(--spc-soft); letter-spacing: 0; text-transform: none; }
+@media (hover: hover) { .spc-ddl:hover strong { translate: 6px 0; } }
+.spc-ddl:focus-visible strong { translate: 6px 0; }
+
+/* the phone sheet */
+.spc-sheet { position: fixed; inset: var(--spc-nav) 0 0 0; z-index: 99; background: var(--spc-ivory); overflow-y: auto; overscroll-behavior: contain; padding: 8px var(--spc-g) 40px; }
+.sp-new .spc-sheet { z-index: 49; }
+.spc-sheet[hidden] { display: none; }
+.spc-sht { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 0 14px; border-bottom: 1px solid var(--spc-rule); font-family: var(--spc-display); font-weight: 500; font-stretch: 62.5%; text-transform: uppercase; font-size: 34px; line-height: 1; text-align: left; color: var(--spc-ink); }
+.spc-sht .spc-ic { width: 18px; height: 18px; transition: rotate .4s var(--spc-ease); }
+.spc-shg.open .spc-sht .spc-ic { rotate: 180deg; }
+.spc-shb { display: none; padding: 6px 0 14px; }
+.spc-shg.open .spc-shb { display: block; }
+.spc-shb .spc-ddh { margin-top: 14px; }
+.spc-shacts { display: grid; gap: 12px; margin-top: 26px; }
+.spc-shacts .spc-btn { width: 100%; min-height: 52px; }
+.spc-shaddr { margin-top: 22px; font-size: 14px; line-height: 1.6; color: var(--spc-soft); }
+html.spc-locked, html.spc-locked body { overflow: hidden; }
+
+/* ---------- the footer: the signature, then the links ---------- */
+.spc-end { display: block; background: var(--spc-ivory); color: var(--spc-ink); font-size: 14px; line-height: 1.6; }
+.spc-sign { position: relative; overflow: hidden; margin-top: clamp(40px, 6vw, 90px); }
+.spc-sign .spc-s { display: block; font-family: var(--spc-script); font-weight: 400; font-size: clamp(120px, 27vw, 520px); line-height: .9; padding: 0 0 .12em .02em; color: var(--spc-ink); white-space: nowrap; }
+.spc-cover { position: absolute; inset: 0; background: var(--spc-ivory); transform-origin: right; display: none; }
+.spc-foot { border-top: 1px solid var(--spc-rule); padding-block: 36px 40px; }
+.spc-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: var(--spc-cg); }
+.spc-cols .spc-lbl { margin-bottom: 10px; }
+.spc-cols li a { display: inline-block; padding: 4px 0; color: var(--spc-soft); transition: color .4s linear; }
+@media (hover: hover) { .spc-cols li a:hover { color: var(--spc-ink); } }
+.spc-small { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--spc-rule); font-size: 12.5px; color: var(--spc-soft); }
+
+/* ---------- phone ---------- */
+@media (max-width: 899px) {
+  .spc-top { display: none; }
+  .spc-hdr { top: 0; }
+  .spc nav.spc-navl, .spc-phone, .spc-acct, .spc-navr .spc-btn, .spc-ddp { display: none; }
+  .spc-burger { display: inline-flex; align-items: center; gap: 10px; height: 44px; font-size: 12px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--spc-ink); }
+  .spc-burger .spc-ic { width: 20px; height: 20px; }
+  .spc-callic { display: grid; place-items: center; width: 44px; height: 44px; justify-self: end; }
+  .spc-callic .spc-ic { width: 20px; height: 20px; }
+  .spc-lockup { width: 128px; }
+  .spc-sign .spc-s { font-size: 33vw; }
+  .spc-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 18px; }
+}
+
+/* ---------- reduced motion: nothing travels ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .spc *, .spc *::before, .spc *::after { transition-duration: .01s !important; transition-delay: 0s !important; animation: none !important; }
+  .spc-btn, .spc-lockup, .spc-ddl strong, .spc-ddp { translate: none !important; }
+  .spc-dd:not(.open) .spc-ddp { display: none; }
+}

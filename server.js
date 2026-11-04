@@ -1,10 +1,17 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { URL } = require('url');
 
-// Local static preview only (no api/ functions). Bound to loopback so the
-// working tree (.env.local included) is never reachable from the network.
-const PORT = 5173;
+// Local preview. Bound to loopback so the working tree (.env.local included) is
+// never reachable from the network. It answers as vercel.json does for the pages
+// people see: the redirects, the redesigned pages through api/site.js (home, the
+// collection, a piano's page, the 404), and the static files. The other api/
+// functions don't run here.
+//   PORT           the port (5173 by default; other sessions often hold it)
+//   OFFICE_ORIGIN  the office to read and send to (a local office for a test run);
+//                  unset, js/office-config.js and the feed use the live office
+const PORT = Number(process.env.PORT) || 5173;
 const HOST = '127.0.0.1';
 const ROOT = __dirname;
 
@@ -22,19 +29,74 @@ const TYPES = {
   '.woff': 'font/woff',
   '.woff2': 'font/woff2',
   '.mp3': 'audio/mpeg',
+  '.mp4': 'video/mp4',
+  '.txt': 'text/plain; charset=utf-8',
+  '.xml': 'application/xml; charset=utf-8',
 };
 
+const site = require('./api/site');
+const CATS = 'uprights|grands|yamaha|kawai';
+
+/** vercel.json's redirects, the ones a visitor meets */
+function redirectFor(u) {
+  const p = u.pathname, q = u.searchParams;
+  if (p === '/piano.html') return q.get('slug') ? '/pianos/' + encodeURIComponent(q.get('slug')) : '/pianos/';
+  if (p === '/instruments' || p === '/instruments/' || p === '/instruments/index.html' || p === '/instruments.html') {
+    const cat = q.get('cat');
+    return cat === 'upright' ? '/pianos/uprights/' : cat === 'grand' ? '/pianos/grands/' : '/pianos/';
+  }
+  if (p === '/index.html') return '/';
+  if (p === '/pianos') return '/pianos/';
+  const m = p.match(new RegExp('^/pianos/(' + CATS + ')$'));
+  if (m) return '/pianos/' + m[1] + '/';
+  const s = p.match(/^\/pianos\/([a-z0-9-]+)\/$/);
+  if (s && !new RegExp('^(' + CATS + ')$').test(s[1])) return '/pianos/' + s[1];
+  return null;
+}
+
+/** vercel.json's rewrites to api/site.js */
+function pageFor(p) {
+  if (p === '/') return { page: 'home' };
+  if (p === '/pianos/') return { page: 'collection' };
+  const c = p.match(new RegExp('^/pianos/(' + CATS + ')/$'));
+  if (c) return { page: 'collection', cat: c[1] };
+  const s = p.match(/^\/pianos\/([^/]+)$/);
+  if (s) return { page: 'piano', slug: decodeURIComponent(s[1]) };
+  return null;
+}
+
+/** a Vercel function called the way Vercel calls it */
+function runSite(req, res, query) {
+  const out = {
+    statusCode: 200, headers: {},
+    setHeader(k, v) { this.headers[k] = v; },
+    status(c) { this.statusCode = c; return this; },
+    send(body) { res.writeHead(this.statusCode, Object.assign({ 'Cache-Control': 'no-store' }, this.headers, { 'Cache-Control': 'no-store' })); res.end(body); },
+  };
+  req.query = query;
+  Promise.resolve(site(req, out)).catch((err) => { console.error(err); res.writeHead(500); res.end('Server error'); });
+}
+
 http.createServer((req, res) => {
-  let urlPath;
+  let u;
   try {
-    urlPath = decodeURIComponent(req.url.split('?')[0]);
+    u = new URL(req.url, 'http://' + HOST);
+    decodeURIComponent(u.pathname);
   } catch {
     res.writeHead(400); return res.end('Bad request');
   }
-  if (urlPath === '/') urlPath = '/index.html';
-  // as vercel.json's rewrites do
+  const to = redirectFor(u);
+  if (to) { res.writeHead(301, { Location: to }); return res.end(); }
+
+  const pg = pageFor(u.pathname);
+  if (pg) return runSite(req, res, pg);
+
+  let urlPath = decodeURIComponent(u.pathname);
   if (urlPath === '/piano-rental') urlPath = '/piano-rental/index.html';
   else if (/^\/piano-rental\/[a-z0-9-]+$/.test(urlPath)) urlPath += '.html';
+  else if (urlPath === '/privacy') urlPath = '/privacy.html';
+  else if (urlPath === '/guide') urlPath = '/guide.html';
+  else if (urlPath === '/portal') urlPath = '/portal/index.html';
 
   // A local run against a local office (S3.4): OFFICE_ORIGIN, and TURNSTILE_SITE_KEY for its bot check, answer
   // js/office-config.js in place of the file, so the switch is never edited to try it. Unset, the file as it is.
@@ -59,10 +121,7 @@ http.createServer((req, res) => {
   }
 
   fs.stat(filePath, (err, stat) => {
-    if (err || !stat.isFile()) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      return res.end('Not found');
-    }
+    if (err || !stat.isFile()) return runSite(req, res, { page: '404' });
     const ext = path.extname(filePath).toLowerCase();
     res.writeHead(200, {
       'Content-Type': TYPES[ext] || 'application/octet-stream',

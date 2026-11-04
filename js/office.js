@@ -166,7 +166,7 @@
       depositTerms: p.status === 'For sale' && cents(p.deposit_cents) ? text(p.deposit_terms) : null,
       photos: photos.map(function (f) { return f.url; }),
       photoNotes: photos.map(function (f) { return f.note; }),
-      href: '/piano.html?slug=' + encodeURIComponent(p.slug)
+      href: '/pianos/' + encodeURIComponent(p.slug)
     };
   }
 
@@ -362,6 +362,16 @@
     });
   }
 
+  /* A form the office kept counts as a lead for the site's analytics (js/analytics.js): its type only, never what
+     was typed. Pages without js/analytics.js lose nothing. */
+  var LEAD_TYPE = { guide: 'guide', visit: 'viewing', service: 'enquiry', question: 'enquiry' };
+  function lead(type) {
+    try {
+      if (typeof window.spTrack === 'function') window.spTrack('generate_lead', { form_type: type, page_path: location.pathname });
+      else (window.dataLayer = window.dataLayer || []).push({ event: 'generate_lead', form_type: type, page_path: location.pathname });
+    } catch (e) { /* analytics never stops a form */ }
+  }
+
   /** what the office answered a kept form, in its words */
   function answerWords(out) {
     return out && typeof out.said === 'string' && out.said ? out.said : WORDS.kept;
@@ -463,7 +473,10 @@
       var from = cameFrom();
       if (from.placement) body.placement = from.placement;
       if (Object.keys(from.utm).length) body.utm = from.utm;
-      return post('/public/m/sales/' + form, 'form:' + form, body, check);
+      return post('/public/m/sales/' + form, 'form:' + form, body, check).then(function (out) {
+        lead(LEAD_TYPE[form] || 'enquiry');
+        return out;
+      });
     });
   }
 
@@ -483,6 +496,7 @@
     var body = { piano: fields.piano, pay: fields.pay, name: (fields.name || '').trim(), email: (fields.email || '').trim() };
     if (fields.phone && fields.phone.trim()) body.phone = fields.phone.trim();
     return post('/public/m/orders/checkout', 'checkout', body, check).then(function (out) {
+      if (!out.duplicate) lead('reservation');
       if (!isPayLink(out.pay)) out.pay = null;
       return out;
     });
@@ -586,6 +600,7 @@
   /** a rental started: its answer's `sign_url` kept only where it is the office's own signing page */
   function startRental(fields, check) {
     return post('/public/m/rentals/start', 'rental', fields, check).then(function (out) {
+      lead('rental');
       if (!isSignLink(out.sign_url)) out.sign_url = null;
       return out;
     });
