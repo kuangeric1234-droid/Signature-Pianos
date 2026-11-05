@@ -101,7 +101,8 @@ html.pt-in .fallboard { visibility: visible; }
 html.pt { --d0: .32s; }
 html.intro h1 .mk > span { animation: rise 1.15s var(--ease) both; animation-delay: calc(var(--d0, 0s) + .06s + var(--i, 0) * 90ms); }
 html.intro [data-felt] { animation: draw 1.25s var(--ease) both; animation-delay: calc(var(--d0, 0s) + .28s); }
-html.intro .hero .key-in, html.intro .hero .key-all { animation: riseKey .95s cubic-bezier(.2, .9, .25, 1) both; animation-delay: calc(var(--d0, 0s) + .36s + var(--i, 0) * 42ms); }
+/* the run up the keys on a desktop; on a phone the photos are there at the first paint */
+@media (min-width: 900px) { html.intro .hero .key-in, html.intro .hero .key-all { animation: riseKey .95s cubic-bezier(.2, .9, .25, 1) both; animation-delay: calc(var(--d0, 0s) + .36s + var(--i, 0) * 42ms); } }
 html.intro [data-in] { animation: fadeUp .85s var(--ease) both; animation-delay: calc(var(--d0, 0s) + .34s + var(--i, 0) * 70ms); }
 html.intro .ring { animation: fadeIn 1.2s linear both; animation-delay: calc(var(--d0, 0s) + .5s); }
 .ghost { position: fixed; z-index: 46; margin: 0; overflow: hidden; pointer-events: none; background: var(--ivory-deep); }

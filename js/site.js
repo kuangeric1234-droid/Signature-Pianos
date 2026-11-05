@@ -544,10 +544,18 @@
     anchors();
     forms();
     if (G) {
-      smooth(); fallboard(); intro(); keys(); preview(); story(); counts(); signoff(); parallax(); cursor(); filters(); pianoPage(); book();
-      reveals();
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
-      addEventListener('load', function () { ScrollTrigger.refresh(); });
+      // what a visitor needs at once: the fallboard's lift, the intro's release, the filters, the photos
+      fallboard(); intro(); filters(); pianoPage();
+      // the motion that answers scrolling waits until the page has loaded and the browser is idle, so the first
+      // screen paints without it (nothing hides that is already in view: reveals() leaves it be)
+      var go = function () {
+        smooth(); keys(); preview(); story(); counts(); signoff(); parallax(); cursor(); book();
+        reveals();
+        ScrollTrigger.refresh();
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
+      };
+      var later = function () { (window.requestIdleCallback || function (f) { return setTimeout(f, 1); })(go, { timeout: 1200 }); };
+      if (document.readyState === 'complete') later(); else addEventListener('load', later, { once: true });
     } else {
       H.classList.remove('intro', 'pt-in', 'pt-photo');
       keys(); story(); counts(); filters(); pianoPage(); book();

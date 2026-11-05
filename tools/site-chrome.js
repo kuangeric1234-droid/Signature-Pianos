@@ -32,7 +32,7 @@ const ANALYTICS_ONLY = ['guide.html']
 
 const ROOT = path.join(__dirname, '..')
 const check = process.argv.includes('--check')
-const HEAD = `<!-- sp:head -->\n${FONT_PRELOADS}\n<link rel="stylesheet" href="/css/chrome.css">\n<script src="/js/analytics.js"></script>\n<!-- /sp:head -->`
+const HEAD = `<!-- sp:head -->\n${FONT_PRELOADS}\n<link rel="stylesheet" href="/css/chrome.css">\n<script src="/js/analytics.js" async></script>\n<!-- /sp:head -->`
 const HEADER = `<!-- sp:header -->\n${header()}\n<!-- /sp:header -->`
 const FOOTER = `<!-- sp:footer -->\n<footer class="spc-footer">\n${footer()}\n</footer>\n<!-- /sp:footer -->`
 const GOOGLE_FONTS = /[ \t]*<link[^>]+(?:fonts\.googleapis\.com|fonts\.gstatic\.com)[^>]*>\s*\n?/g
