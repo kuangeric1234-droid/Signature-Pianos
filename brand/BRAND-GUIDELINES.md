@@ -187,12 +187,12 @@ We sound like a good piano technician explaining things to a parent: patient, ex
 | 1. Lead with Japan | "Hand-picked in Japan, checked in our Mount Waverley workshop." | "Melbourne's best piano store." |
 | 2. Name the piano | "Yamaha YUS5, 2008, walnut. In the showroom now." | "Stunning premium upright in amazing condition!" |
 | 3. Explain once, simply | "A silent system lets you play with headphones, so the house stays quiet." | "Features SH2 silent technology with CFX binaural sampling." |
-| 4. Reassure with facts | "A 10-year warranty on every piano. Delivery and tuning are quoted with your piano." | "Total peace of mind, guaranteed." |
+| 4. Reassure with facts | "10-year warranty. First tuning included, three to four weeks after delivery." | "Total peace of mind, guaranteed." |
 | 5. Real people, real reviews | A Google review quoted word for word, with the reviewer's name as it appears there | Invented testimonials, or reviews rewritten to sound better. Australian Consumer Law treats both as misleading. |
 | 6. One next step | "Book a visit." One primary action per page, repeated at the end. | Three competing buttons in the hero |
 
 **Words we use:** pre-loved · hand-picked · imported direct · checked in our workshop · showroom · play it ·
-book a visit · white-glove delivery · quoted with your piano.
+book a visit · first tuning included · white-glove delivery.
 
 **Words we avoid:** used · second-hand · cheap · bargain · best · world-class · unbeatable · stunning ·
 amazing · exclamation marks · "Buy now".
@@ -202,8 +202,9 @@ request" while a piano is in the workshop. Dates as 19 September 2026, times as 
 0479 128 955. Pianos as maker, model, year, finish: Yamaha U3H, 1981, polished ebony.
 
 **Promises we can make** (from the website): white-glove delivery, a 10-year warranty emailed on delivery
-(every piano, every year of make), delivery booked and tracked in the customer portal. The price is for the
-piano alone: delivery, tuning and a stool are quoted with it, never "included" or "free" (Eric, 5 Nov 2026).
+(every piano, every year of make), the first tuning included three to four weeks after delivery (every
+piano), delivery booked and tracked in the customer portal. Delivery and a stool are quoted with the piano,
+never "included" or "free" (Eric, 5 Nov 2026).
 Nothing beyond these without checking with the brand guardian.
 
 ---

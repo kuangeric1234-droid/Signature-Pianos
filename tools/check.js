@@ -9,7 +9,8 @@
  *   4. the redesigned pages, rendered from a made-up feed that has a piano in every state, keep the rules:
  *      one H1; a title of 60 characters or fewer and a description of 160 or fewer; a canonical address;
  *      structured data that parses, with no illustration in a Product's images; no em dash; no free
- *      tuning or included delivery; every price is the piano's own; a sold piano offers no visit
+ *      or included delivery (the first tuning is included, Eric 5 Nov 2026); every price is the piano's own;
+ *      a sold piano offers no visit
  *   5. no Mist blue in the new stylesheets (charcoal in its place, Eric 5 Nov 2026)
  * Exit 1 on any failure.
  */
@@ -67,7 +68,7 @@ const pages = [
   ['404 static', render.notFound(render.stock([]))],
 ]
 const strip = (h) => h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/\s+/g, ' ')
-const PROMISE = /first tuning (is )?included|complimentary|tuning included|free delivery|delivery included|included in the price/i
+const PROMISE = /free delivery|delivery (is )?included|free tuning|complimentary/i
 for (const [name, html] of pages) {
   const errs = []
   const h1 = (html.match(/<h1[\s>]/g) || []).length
@@ -79,7 +80,8 @@ for (const [name, html] of pages) {
   if (!desc || desc.length > 160) errs.push(`description ${desc.length}`)
   if (!name.startsWith('404') && !/<link rel="canonical"/.test(html)) errs.push('no canonical')
   if (/—/.test(html)) errs.push('an em dash')
-  if (PROMISE.test(strip(html))) errs.push('a free tuning or included delivery: ' + strip(html).match(PROMISE)[0])
+  if (PROMISE.test(strip(html))) errs.push('free or included delivery: ' + strip(html).match(PROMISE)[0])
+  if (name.startsWith('piano/') && !/Sold/.test(name) && FIXTURE.find((x) => 'piano/' + x.slug === name).status !== 'Sold' && !/first tuning/i.test(strip(html))) errs.push('the included first tuning is not said')
   for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
     let o; try { o = JSON.parse(m[1]) } catch (e) { errs.push('structured data does not parse'); continue }
     if (o['@type'] === 'Product') {
