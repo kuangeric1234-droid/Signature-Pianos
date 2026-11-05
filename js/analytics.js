@@ -34,7 +34,9 @@
     asked = sessionStorage.getItem('sp-gtm') === '1';
   } catch (e) { /* no storage */ }
 
-  w.dataLayer.push({ traffic_type: live ? 'external' : 'internal' });
+  // a hit from anywhere but the live site is GA4's "internal" traffic; the live site sends no traffic_type at all, so
+  // GA4's own internal-traffic rules (the office's address) still apply to it (ANALYTICS_SETUP.md)
+  if (!live) w.dataLayer.push({ traffic_type: 'internal' });
   if (GTM_ID && (live || asked)) {
     w.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
     var s = document.createElement('script');
