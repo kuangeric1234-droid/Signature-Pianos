@@ -15,6 +15,9 @@
 
     { "source": "/piano.html", "has": [{ "type": "query", "key": "slug", "value": "(?<slug>[a-z0-9]+(?:-[a-z0-9]+)*)" }], "destination": "/pianos/:slug", "permanent": true },
     { "source": "/piano.html",          "destination": "/pianos/",          "permanent": true },
+    { "source": "/instruments/",        "has": [{ "type": "query", "key": "cat", "value": "upright" }], "destination": "/pianos/uprights/", "permanent": true },
+    { "source": "/instruments/",        "has": [{ "type": "query", "key": "cat", "value": "grand" }],   "destination": "/pianos/grands/",   "permanent": true },
+    { "source": "/instruments/",        "destination": "/pianos/",          "permanent": true },
     { "source": "/instruments/:path*",  "has": [{ "type": "query", "key": "cat", "value": "upright" }], "destination": "/pianos/uprights/", "permanent": true },
     { "source": "/instruments/:path*",  "has": [{ "type": "query", "key": "cat", "value": "grand" }],   "destination": "/pianos/grands/",   "permanent": true },
     { "source": "/instruments",         "destination": "/pianos/",          "permanent": true },
