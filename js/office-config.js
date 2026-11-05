@@ -16,5 +16,5 @@
    OFFICE_ORIGIN and TURNSTILE_SITE_KEY without editing it. */
 window.SP_OFFICE_CONFIG = Object.freeze({
   origin: 'https://portal.signaturepianos.com.au',
-  turnstileSiteKey: ''
+  turnstileSiteKey: '0x4AAAAAAFzKzrW25DFjoqo9'
 });
