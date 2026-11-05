@@ -83,39 +83,26 @@ button { background: none; border: 0; padding: 0; cursor: pointer; }
 .ul { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .22em; text-decoration-color: var(--rule-2); transition: text-decoration-color .4s linear; }
 @media (hover: hover) { .ul:hover { text-decoration-color: currentColor; } }
 
-/* ---------- the felt line and the fallboard band ---------- */
+/* ---------- the felt line ---------- */
 .felt { height: 3px; background: var(--felt); transform-origin: left center; }
-.fallboard { position: fixed; inset: 0; z-index: 45; background: var(--charcoal); color: var(--white); display: grid; place-items: center; visibility: hidden; pointer-events: none; }
-.fallboard::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--felt); }
-.fallboard .fb-l { font-family: var(--f-script); font-size: clamp(64px, 9vw, 150px); line-height: 1; padding: 0 .3em .1em; white-space: nowrap; }
-html.pt-in .fallboard { visibility: visible; }
-.fallboard.fb-side { place-items: start end; padding: calc(var(--top) + var(--nav) + 120px) calc(var(--g) + 12px) 0; }
-.fallboard.fb-side .fb-l { padding-right: 0; }
-@media (max-width: 899px) { .fallboard.fb-side { place-items: start center; padding-top: calc(var(--nav) + 49px + (100vw - 2 * var(--g)) * .75 + 24px); } .fallboard .fb-l { font-size: 17vw; } }
 /* the intro runs in CSS from the first paint: no wait for scripts, nothing in the lead hidden */
 @keyframes rise { from { transform: translateY(108%); } }
 @keyframes riseKey { from { transform: translateY(104%); } }
 @keyframes draw { from { transform: scaleX(0); } }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } }
 @keyframes fadeIn { from { opacity: 0; } }
-html.pt { --d0: .32s; }
 html.intro h1 .mk > span { animation: rise 1.15s var(--ease) both; animation-delay: calc(var(--d0, 0s) + .06s + var(--i, 0) * 90ms); }
 html.intro [data-felt] { animation: draw 1.25s var(--ease) both; animation-delay: calc(var(--d0, 0s) + .28s); }
 /* the run up the keys on a desktop; on a phone the photos are there at the first paint */
 @media (min-width: 900px) { html.intro .hero .key-in, html.intro .hero .key-all { animation: riseKey .95s cubic-bezier(.2, .9, .25, 1) both; animation-delay: calc(var(--d0, 0s) + .36s + var(--i, 0) * 42ms); } }
 html.intro [data-in] { animation: fadeUp .85s var(--ease) both; animation-delay: calc(var(--d0, 0s) + .34s + var(--i, 0) * 70ms); }
 html.intro .ring { animation: fadeIn 1.2s linear both; animation-delay: calc(var(--d0, 0s) + .5s); }
-.ghost { position: fixed; z-index: 46; margin: 0; overflow: hidden; pointer-events: none; background: var(--ivory-deep); }
-.ghost img { width: 100%; height: 100%; object-fit: cover; }
-html.pt-photo .pp-main { z-index: 47; }
-.pp-probe { position: fixed; left: 0; right: 0; top: calc(var(--top) + var(--nav) + 1px + 48px); visibility: hidden; pointer-events: none; z-index: -1; }
 
 /* ---------- the keys: pianos as a keyboard ---------- */
 .keys-wrap { position: relative; }
 .keys { display: flex; gap: 2px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; padding: 0 var(--g); scroll-padding-inline: var(--g); overscroll-behavior-x: contain; }
 .keys::-webkit-scrollbar { display: none; }
 .keys > li { flex: 0 0 var(--kw, calc((100vw - 2 * var(--g)) / 6.6)); overflow: hidden; }
-.keys.dragging { cursor: grabbing; user-select: none; }
 .key { display: block; height: 100%; transition: translate .7s var(--release); }
 .key-in { display: block; height: 100%; }
 .key-ph { position: relative; display: block; aspect-ratio: 1; overflow: hidden; background: var(--ivory-deep); }
@@ -315,7 +302,7 @@ html.pt-photo .pp-main { z-index: 47; }
 .pp-top { align-items: start; }
 .pp-photo { grid-column: 1 / span 7; }
 .pp-main { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; background: var(--ivory-deep); }
-.pp-main img { width: 100%; height: 100%; object-fit: cover; }
+.pp-main img { width: 100%; height: 100%; object-fit: cover; view-transition-name: pp-photo; }
 .pp-thumbs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; margin-top: 2px; }
 .pp-thumbs button { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: var(--ivory-deep); }
 .pp-thumbs button img { width: 100%; height: 100%; object-fit: cover; transition: scale 1.2s var(--ease), opacity .3s linear; opacity: .72; }
@@ -461,7 +448,7 @@ html.pt-photo .pp-main { z-index: 47; }
 html.rm *, html.rm *::before, html.rm *::after { animation: none !important; transition-duration: .01s !important; transition-delay: 0s !important; }
 html.rm .key, html.rm .key-all, html.rm .btn, html.rm .chip, html.rm .pl-m { translate: none !important; }
 html.rm .key-ph img, html.rm .pp-thumbs img { scale: none !important; }
-html.rm .fallboard, html.rm .cursor, html.rm .preview { display: none !important; }
+html.rm .cursor, html.rm .preview { display: none !important; }
 html.rm .spc-cover { display: none !important; }
 
 /* ---------- the buyer's guide, as a book drawn in HTML: its real cover, sharp at any size ---------- */

@@ -153,6 +153,17 @@ html.spc-locked, html.spc-locked body { overflow: hidden; }
   .spc-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 18px; }
 }
 
+/* ---------- moving between pages: the browser's own transition (Chrome, Edge, Safari 18.2+; others just load) ----------
+   The browser keeps the old page until the new one has painted, then crossfades; the header holds still, and a piano's
+   photo glides from its card into place on its page (js/site.js names the card's photo as it is clicked). */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .spc-hdr { view-transition-name: spc-hdr; }
+  ::view-transition-group(root) { animation-duration: .42s; animation-timing-function: cubic-bezier(.4, 0, .1, 1); }
+  ::view-transition-group(pp-photo) { animation-duration: .6s; animation-timing-function: cubic-bezier(.4, 0, .1, 1); }
+  ::view-transition-old(pp-photo), ::view-transition-new(pp-photo) { height: 100%; object-fit: cover; overflow: clip; }
+}
+
 /* ---------- reduced motion: nothing travels ---------- */
 @media (prefers-reduced-motion: reduce) {
   .spc *, .spc *::before, .spc *::after { transition-duration: .01s !important; transition-delay: 0s !important; animation: none !important; }

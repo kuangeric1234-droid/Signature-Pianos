@@ -10,7 +10,7 @@
   function $(s, r) { return (r || document).querySelector(s); }
   function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
 
-  var dds = $$('.spc-dd'), closeT = 0;
+  var dds = $$('.spc-dd'), closeT = 0, switchT = 0;
   function setDD(dd, open) {
     dd.classList.toggle('open', open);
     var t = $('.spc-ddt', dd);
@@ -22,8 +22,20 @@
     if (!t) return;
     t.addEventListener('click', function (e) { e.stopPropagation(); var o = !dd.classList.contains('open'); closeAll(dd); setDD(dd, o); });
     if (FINE) {
-      dd.addEventListener('pointerenter', function () { clearTimeout(closeT); closeAll(dd); setDD(dd, true); });
-      dd.addEventListener('pointerleave', function () { closeT = setTimeout(function () { setDD(dd, false); }, 220); });
+      // Hover intent: with a menu open, the next one takes over only if the pointer rests on it (180 ms). A hand moving
+      // from "Pianos" down and to the right toward the open panel crosses "Services" on the way; that crossing must not
+      // swap the menus. Coming back into the open menu cancels the swap.
+      dd.addEventListener('pointerenter', function () {
+        clearTimeout(closeT); clearTimeout(switchT);
+        var open = dds.filter(function (d) { return d.classList.contains('open'); })[0];
+        if (!open || open === dd) { closeAll(dd); setDD(dd, true); return; }
+        switchT = setTimeout(function () { closeAll(dd); setDD(dd, true); }, 180);
+      });
+      // leaving any menu closes whichever is open after a moment, unless the pointer comes back into one
+      dd.addEventListener('pointerleave', function () {
+        clearTimeout(switchT); clearTimeout(closeT);
+        closeT = setTimeout(function () { closeAll(); }, 260);
+      });
     }
     // leaving the panel by keyboard closes it
     dd.addEventListener('focusout', function (e) { if (!dd.contains(e.relatedTarget)) setDD(dd, false); });

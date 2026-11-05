@@ -1,4 +1,4 @@
-/* Signature Pianos · the redesigned pages: lift like a fallboard, press like a key
+/* Signature Pianos · the redesigned pages: press like a key
    ----------------------------------------------------------------------------
    Home, the collection, a piano's page and the 404 (lib/site/render.js writes
    them; every word is in the HTML before this runs). One clock (gsap.ticker),
@@ -63,77 +63,23 @@
     });
   }
 
-  /* ---------- the fallboard: it lowers under the header, the next page lifts it ---------- */
-  /* only between the redesigned pages: the others load as they always have */
-  function isNewPage(path) { return path === '/' || path === '/index.html' || /^\/pianos(\/|$)/.test(path); }
-  function fallboard() {
-    var fb = $('.fallboard'); if (!fb) return;
-    var label = $('.fb-l', fb);
-    function reset() { if (G) gsap.set(fb, { yPercent: -101, visibility: 'hidden' }); $$('.ghost').forEach(function (g) { g.remove(); }); }
-    window.addEventListener('pageshow', function (e) { if (e.persisted) reset(); });
-    if (H.classList.contains('pt-in')) {
-      var lb = null; try { lb = sessionStorage.getItem('sp-pt-label'); } catch (e) { /* none */ }
-      if (lb && label) label.textContent = lb;
-      fb.classList.toggle('fb-side', H.classList.contains('pt-photo'));
-      if (on()) {
-        gsap.set(fb, { yPercent: 0, visibility: 'visible' });
-        H.classList.remove('pt-in');
-        var photoUp = H.classList.contains('pt-photo');
-        gsap.to(fb, { yPercent: -101, duration: 0.7, ease: EASE, delay: 0.06, onComplete: function () { gsap.set(fb, { visibility: 'hidden' }); H.classList.remove('pt-photo'); } });
-        if (!photoUp) gsap.from($('main'), { y: 40, duration: 0.9, ease: EASE, delay: 0.06, clearProps: 'transform' });
-      } else H.classList.remove('pt-in', 'pt-photo');
-    }
-    if (!on()) return;
+  /* ---------- moving to a piano: its card's photo becomes the piano page's photo ----------
+     The browser's page transition (css/chrome.css) morphs whatever carries view-transition-name: pp-photo on the old
+     page into the piano page's photo. Only the clicked card's photo carries it, and only for that moment. */
+  function photoHandoff() {
+    function clear() { $$('[data-vt]').forEach(function (i) { i.style.viewTransitionName = ''; i.removeAttribute('data-vt'); }); }
     document.addEventListener('click', function (e) {
-      var a = e.target.closest && e.target.closest('a[href]');
+      var a = e.target.closest && e.target.closest('a[data-piano]');
       if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      if (a.target || a.hasAttribute('download')) return;
-      var url; try { url = new URL(a.href, location.href); } catch (err) { return; }
-      if (url.origin !== location.origin || !isNewPage(url.pathname)) return;
-      if (url.pathname === location.pathname) return;
-      e.preventDefault();
-      leave(url.href, a);
+      clear();
+      var img = $('.key-ph img, .pl-th img, img', a) || (a.closest('.pair-ph') && $('img', a.closest('.pair-ph')));
+      if (img) { img.style.viewTransitionName = 'pp-photo'; img.setAttribute('data-vt', ''); }
     });
-    function leave(href, a) {
-      var text = a.getAttribute('data-label') || 'Signature';
-      if (label) label.textContent = text;
-      var ph = a.matches('[data-piano]') ? $('.key-ph, .pl-th', a) : null;
-      if (ph && !$('img', ph)) ph = null;
-      fb.classList.toggle('fb-side', !!ph);
-      var stored = false;
-      try { sessionStorage.setItem('sp-pt', '1'); sessionStorage.setItem('sp-pt-label', text); sessionStorage.setItem('sp-pt-photo', ph ? '1' : '0'); stored = sessionStorage.getItem('sp-pt') === '1'; } catch (err) { /* none */ }
-      if (!stored) { location.href = href; return; }
-      gsap.set(fb, { yPercent: -101, visibility: 'visible' });
-      var tl = gsap.timeline({ onComplete: function () { location.href = href; } });
-      tl.to(fb, { yPercent: 0, duration: 0.5, ease: 'power3.inOut' }, 0);
-      if (ph) tl.add(flight(ph), 0);
-    }
-    /* the card's photo flies to where the piano page shows it; transforms only */
-    function flight(ph) {
-      var probe = $('.pp-probe .pp-main'); var img = $('img', ph);
-      if (!probe || !img) return gsap.timeline();
-      var s = ph.getBoundingClientRect(), t = probe.getBoundingClientRect();
-      var ghost = document.createElement('div'); ghost.className = 'ghost';
-      var gi = document.createElement('img'); gi.src = img.currentSrc || img.src; gi.alt = '';
-      var W0 = s.height * 4 / 3, H0 = s.height, ox0 = -(W0 - s.width) * 0.47;
-      Object.assign(ghost.style, { left: '0px', top: '0px', width: s.width + 'px', height: s.height + 'px', transformOrigin: '0 0' });
-      Object.assign(gi.style, { position: 'absolute', left: '0px', top: '0px', width: W0 + 'px', height: H0 + 'px', maxWidth: 'none', transformOrigin: '0 0' });
-      ghost.appendChild(gi); document.body.appendChild(ghost);
-      var SX = t.width / s.width, SY = t.height / s.height, M = t.width / W0;
-      var o = { p: 0 };
-      function draw() {
-        var p = o.p, sx = 1 + (SX - 1) * p, sy = 1 + (SY - 1) * p, m = 1 + (M - 1) * p;
-        var x = s.left + (t.left - s.left) * p, y = s.top + (t.top - s.top) * p;
-        ghost.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + sx + ',' + sy + ')';
-        gi.style.transform = 'translate(' + (ox0 * (1 - p)) / sx + 'px,0) scale(' + m / sx + ',' + m / sy + ')';
-      }
-      draw();
-      return gsap.to(o, { p: 1, duration: 0.62, ease: 'power3.inOut', onUpdate: draw });
-    }
+    window.addEventListener('pageshow', clear);
   }
 
   /* ---------- the intro runs in CSS (site.css, html.intro); this only releases it ---------- */
-  function intro() { setTimeout(function () { H.classList.remove('intro', 'pt'); }, RM ? 0 : 2600); }
+  function intro() { setTimeout(function () { H.classList.remove('intro'); }, RM ? 0 : 2600); }
 
   /* ---------- reveals: headings rise from their masks, panels lift off images ---------- */
   function reveals() {
@@ -165,7 +111,7 @@
     });
   }
 
-  /* ---------- keys: drag, arrows, and a wave that answers scroll speed ---------- */
+  /* ---------- keys: the arrows, and a wave that answers scroll speed ---------- */
   function keys() {
     $$('[data-keys]').forEach(function (wrap) {
       var row = $('.keys', wrap); if (!row) return;
@@ -176,14 +122,6 @@
           if (on()) gsap.to(row, { scrollLeft: to, duration: 0.9, ease: EASE, overwrite: true }); else row.scrollLeft = to;
         });
       });
-      $$('img', row).forEach(function (i) { i.draggable = false; });
-      if (FINE) {
-        var down = false, sx = 0, sl = 0, moved = 0, vx = 0, lx = 0, tw = null;
-        row.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'mouse' || e.button !== 0) return; down = true; sx = lx = e.clientX; sl = row.scrollLeft; moved = 0; vx = 0; if (tw) tw.kill(); });
-        addEventListener('pointermove', function (e) { if (!down) return; var dx = e.clientX - sx; moved = Math.max(moved, Math.abs(dx)); row.scrollLeft = sl - dx; vx = e.clientX - lx; lx = e.clientX; if (moved > 4) row.classList.add('dragging'); });
-        addEventListener('pointerup', function () { if (!down) return; down = false; if (on() && Math.abs(vx) > 1) tw = gsap.to(row, { scrollLeft: row.scrollLeft - vx * 16, duration: 1, ease: 'power3.out' }); setTimeout(function () { row.classList.remove('dragging'); }, 0); });
-        row.addEventListener('click', function (e) { if (moved > 6) { e.preventDefault(); e.stopPropagation(); moved = 0; } }, true);
-      }
       if (!on()) return;
       var ks = $$('.key, .key-all', row);
       var set = ks.map(function (k) { return gsap.quickSetter(k, 'y', 'px'); });
@@ -544,8 +482,8 @@
     anchors();
     forms();
     if (G) {
-      // what a visitor needs at once: the fallboard's lift, the intro's release, the filters, the photos
-      fallboard(); intro(); filters(); pianoPage();
+      // what a visitor needs at once: the intro's release, the filters, the photos and their hand-off
+      photoHandoff(); intro(); filters(); pianoPage();
       // the motion that answers scrolling waits until the page has loaded and the browser is idle, so the first
       // screen paints without it (nothing hides that is already in view: reveals() leaves it be)
       var go = function () {
@@ -557,7 +495,7 @@
       var later = function () { (window.requestIdleCallback || function (f) { return setTimeout(f, 1); })(go, { timeout: 1200 }); };
       if (document.readyState === 'complete') later(); else addEventListener('load', later, { once: true });
     } else {
-      H.classList.remove('intro', 'pt-in', 'pt-photo');
+      H.classList.remove('intro');
       keys(); story(); counts(); filters(); pianoPage(); book();
     }
   }
