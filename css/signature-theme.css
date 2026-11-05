@@ -1011,7 +1011,8 @@ body.home .matcher,
 .tp-piano,
 .bl-visit,
 .bl-inline-cta,
-.sn-arch {
+.sn-arch,
+.dw-tuner {
   background-color: var(--sp-charcoal);
   color: var(--sp-on-charcoal);
   --ink: var(--sp-on-charcoal);
