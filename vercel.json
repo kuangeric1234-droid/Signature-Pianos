@@ -1,6 +1,6 @@
 {
   "images": {
-    "sizes": [256, 384, 640, 960, 1280],
+    "sizes": [256, 384, 640, 960, 1280, 1920],
     "formats": ["image/avif", "image/webp"],
     "minimumCacheTTL": 86400,
     "remotePatterns": [{ "protocol": "https", "hostname": "portal.signaturepianos.com.au", "pathname": "/public/**" }]

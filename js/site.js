@@ -360,6 +360,28 @@
     if (start !== 'all') apply(start, false);
   }
 
+  /* ---------- the buyer's guide: a book that turns to the pointer and opens its cover ---------- */
+  function book() {
+    var st = $('[data-book]'); if (!st) return;
+    var bk = $('.bk', st);
+    // on a phone a tap opens the cover (with a mouse, hovering does)
+    st.addEventListener('click', function () { st.classList.toggle('open'); });
+    if (!on() || !bk) return;
+    gsap.set(bk, { rotationY: -24, rotationX: 5 });
+    gsap.from(st, { opacity: 0, duration: 1.1, ease: 'none', scrollTrigger: { trigger: st, start: 'top 85%', once: true } });
+    gsap.from(bk, { rotationY: -62, y: 50, duration: 1.7, ease: EASE, scrollTrigger: { trigger: st, start: 'top 85%', once: true } });
+    if (!FINE) return;
+    var ry = gsap.quickTo(bk, 'rotationY', { duration: 0.9, ease: 'power3.out' });
+    var rx = gsap.quickTo(bk, 'rotationX', { duration: 0.9, ease: 'power3.out' });
+    // open, the spread turns to face you; closed, the book stands at its angle
+    st.addEventListener('pointermove', function (e) {
+      var r = st.getBoundingClientRect();
+      ry(-8 + ((e.clientX - r.left) / r.width - 0.5) * 14);
+      rx(6 - ((e.clientY - r.top) / r.height - 0.5) * 8);
+    });
+    st.addEventListener('pointerleave', function () { ry(-24); rx(5); });
+  }
+
   /* ---------- a piano's page: photos, and the panels that hold its forms ---------- */
   function pianoPage() {
     var main = $('.pp-main img'), note = $('.pp-note');
@@ -522,13 +544,13 @@
     anchors();
     forms();
     if (G) {
-      smooth(); fallboard(); intro(); keys(); preview(); story(); counts(); signoff(); parallax(); cursor(); filters(); pianoPage();
+      smooth(); fallboard(); intro(); keys(); preview(); story(); counts(); signoff(); parallax(); cursor(); filters(); pianoPage(); book();
       reveals();
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
       addEventListener('load', function () { ScrollTrigger.refresh(); });
     } else {
       H.classList.remove('intro', 'pt-in', 'pt-photo');
-      keys(); story(); counts(); filters(); pianoPage();
+      keys(); story(); counts(); filters(); pianoPage(); book();
     }
   }
   start();
