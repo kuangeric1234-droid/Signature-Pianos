@@ -2,15 +2,16 @@
  * Signature Pianos — sitemap.xml (/sitemap.xml)
  * ---------------------------------------------
  * Lists core pages, every published blog post and every piano on the website
- * so search engines crawl them quickly. Posts come from Supabase, pianos from
- * the office's feed.
+ * so search engines crawl them quickly. Posts come from lib/journal-source.js
+ * (the old tables until the move, then the office), pianos from the office's feed.
  */
 
-const { supabaseAdmin, SITE_URL } = require('../lib/ai')
+const { sitemapEntries } = require('../lib/journal-source')
 
 // The office's feed, read as the pages read it (its address: lib/site/feed.js, with js/office-config.js; change them
 // together, or set OFFICE_ORIGIN on Vercel)
 const siteFeed = require('../lib/site/feed')
+const SITE_URL = siteFeed.SITE
 
 const xmlEscape = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
 
@@ -24,13 +25,7 @@ const STATIC_PATHS = [
 module.exports = async (req, res) => {
   let posts = []
   try {
-    const { data } = await supabaseAdmin
-      .from('blog_posts')
-      .select('slug, updated_at, published_at')
-      .eq('status', 'published')
-      .order('published_at', { ascending: false })
-      .limit(1000)
-    posts = data || []
+    posts = await sitemapEntries()
   } catch (err) {
     console.error('[sitemap] load failed', err)
   }

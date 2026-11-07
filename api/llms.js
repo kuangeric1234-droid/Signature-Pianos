@@ -6,20 +6,15 @@
  * robots.txt, but for LLMs). Generated from published posts.
  */
 
-const { supabaseAdmin, SITE_URL } = require('../lib/ai')
+// the articles come from lib/journal-source.js (the old tables until the move, then the office)
+const { llmsArticles } = require('../lib/journal-source')
+const { SITE: SITE_URL } = require('../lib/site/feed')
 
 module.exports = async (req, res) => {
   let posts = []
   let failed = false
   try {
-    const { data, error } = await supabaseAdmin
-      .from('blog_posts')
-      .select('slug, title, excerpt')
-      .eq('status', 'published')
-      .order('published_at', { ascending: false })
-      .limit(50)
-    if (error) throw error
-    posts = data || []
+    posts = await llmsArticles()
   } catch (err) {
     console.error('[llms] load failed', err)
     failed = true
