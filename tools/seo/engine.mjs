@@ -14,6 +14,7 @@
 //   node tools/seo/engine.mjs log <queue|review|error> --summary="..." [--report=<file.md>]
 //   node tools/seo/engine.mjs insights [--days=28]
 //   node tools/seo/engine.mjs ping
+//   node tools/seo/engine.mjs export <file.json>          # everything, read-only, for the move into the office
 //
 // Talks to https://signaturepianos.com.au/api/seo-engine with SEO_ENGINE_SECRET
 // (a cloud environment variable, or .env.local on this machine). --local runs
@@ -254,6 +255,14 @@ const commands = {
 
   async insights() {
     finish(await call('insights', { days: Number(flags.days) || 28 }), (r) => console.log(JSON.stringify(r, null, 2)))
+  },
+
+  async export() {
+    const file = args[0] || die('usage: export <file.json>')
+    finish(await call('export'), (r) => {
+      writeFileSync(file, JSON.stringify(r, null, 2))
+      console.log(`saved ${file}: ${r.posts.length} posts, ${r.seo.length} seo rows, ${r.topics.length} topics, ${r.runs.length} runs, ${r.covers.length} covers`)
+    })
   },
 
   async ping() {

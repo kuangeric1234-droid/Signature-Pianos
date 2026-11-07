@@ -83,19 +83,22 @@ function chrome(s, file) {
 let stale = 0
 for (const rel of PAGES.concat(ANALYTICS_ONLY)) {
   const file = path.join(ROOT, rel)
-  const was = fs.readFileSync(file, 'utf8')
+  // read and compared without carriage returns, so a checkout with Windows line endings (git's core.autocrlf) isn't
+  // called out of date; written back with the endings the file had
+  const raw = fs.readFileSync(file, 'utf8')
+  const was = raw.replace(/\r\n/g, '\n')
   const now = PAGES.includes(rel) ? chrome(was, rel) : headOnly(was, rel)
   if (now === was) continue
   stale++
   if (check) console.log('out of date:', rel)
-  else { fs.writeFileSync(file, now); console.log('written:', rel) }
+  else { fs.writeFileSync(file, raw.includes('\r\n') ? now.replace(/\n/g, '\r\n') : now); console.log('written:', rel) }
 }
 // the 404 Vercel serves for an address with no page: the redesigned one, without the day's pianos (a page for a
 // piano address that isn't there is made fresh by api/site.js, with them)
 {
   const file = path.join(ROOT, '404.html')
   const now = notFound(stock([]))
-  const was = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : ''
+  const was = fs.existsSync(file) ? fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n') : ''
   if (now !== was) {
     stale++
     if (check) console.log('out of date: 404.html')
