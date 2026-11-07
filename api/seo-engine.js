@@ -8,10 +8,19 @@
  *
  * Auth: Authorization: Bearer ${SEO_ENGINE_SECRET}. The same secret is set in
  * Vercel and in the routine's cloud environment, and nowhere else.
+ *
+ * READ-ONLY since the Journal moved into the office (Eric, 7 Nov 2026): the
+ * routine now works through the office's door
+ * (portal.signaturepianos.com.au/hooks/journal/seo-engine). Here only the
+ * reads answer (status, post, topic, insights, export); every write is refused,
+ * so nothing lands in the old tables the website no longer shows.
  */
 
 const crypto = require('crypto')
 const { handle } = require('../lib/seo-engine')
+
+const READS = new Set(['status', 'post', 'topic', 'insights', 'export'])
+const MOVED = 'The Journal moved into the office on 7 November 2026. The SEO engine works through https://portal.signaturepianos.com.au/hooks/journal/seo-engine now; this door only reads the old Journal.'
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' })
@@ -25,6 +34,7 @@ module.exports = async (req, res) => {
   }
 
   const { action, ...params } = req.body || {}
+  if (!READS.has(action)) return res.status(410).json({ error: MOVED })
   try {
     return res.status(200).json(await handle(action, params))
   } catch (err) {

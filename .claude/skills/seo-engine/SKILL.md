@@ -1,20 +1,24 @@
 ---
 name: seo-engine
-description: The Signature Pianos SEO engine for The Journal (signaturepianos.com.au/blog). One run does the single most valuable job (monthly review, recheck a live article, write the next planned article, or research the topic plan) and hands the result to Eric as a draft or suggested update in the admin. Runs every second day as a cloud routine. Use for "run the seo engine", "next article", "write the next blog", "refresh the blog", "seo review", or any Journal content job.
+description: The Signature Pianos SEO engine for The Journal (signaturepianos.com.au/blog). One run does the single most valuable job (monthly review, recheck a live article, write the next planned article, or research the topic plan) and hands the result to Eric as a draft or suggested update in the office's Journal (portal.signaturepianos.com.au). Runs every second day as a cloud routine. Use for "run the seo engine", "next article", "write the next blog", "refresh the blog", "seo review", or any Journal content job.
 ---
 
 # The Signature Pianos SEO engine
 
 The engine researches, writes, runs the mechanical checks and files the result.
 **Eric judges and publishes.** The engine reaches the site only through
-`node tools/seo/engine.mjs`, which calls `/api/seo-engine` with
-`SEO_ENGINE_SECRET`. That door can read the blog, save drafts, propose updates,
-work the topic plan and email Eric. Nothing else.
+`node tools/seo/engine.mjs`, which calls the office's Journal door
+(`portal.signaturepianos.com.au/hooks/journal/seo-engine`) with
+`SEO_ENGINE_SECRET`, the secret of the routine's own machine client in the
+office. That door can read the Journal, save drafts, suggest updates, work the
+topic plan and tell Eric (a card on his Today and an alert). Nothing else. The
+Journal moved there from the old site's database on 7 Nov 2026; the old site's
+door is read-only since.
 
 ## Rules that never bend
 
 1. **Nothing goes live from here.** You produce drafts and suggested updates;
-   Eric publishes in the admin. The door can't publish. Don't look for another way.
+   Eric publishes in the office's Journal. The door can't publish. Don't look for another way.
 2. **One run, one job**: the one `status` names. Don't write a second article
    in the same run. Put spare effort into making this one better.
 3. **Real facts or no facts.** Every price, rule, spec and date comes from a
@@ -135,11 +139,11 @@ in a way you can't fix within these rules, end with
    throughout, rewrite it to them. `notes` has one line per change: what
    changed, why, and the source. An update may also correct `tags` and
    `keywords` (older posts often carry tags outside the allowed list); the
-   admin applies those with the rest when Eric saves. If `post` prints
+   office applies those with the rest when Eric presses Apply. If `post` prints
    `cover: NONE`, add `hero_image_url` to the update, chosen as in the draft
    job (`covers`).
 5. `check-update`, fix, then `propose-update`. The live page doesn't change:
-   Eric loads the suggestion into the editor, reads it and saves. Done.
+   Eric reads the suggested update in the office and presses Apply. Done.
 
 ## Job: queue (get the next three articles ready)
 
@@ -250,16 +254,18 @@ pianos, Piano care, Melbourne, Lessons.
 ## Running it
 
 - **Cloud routine**: every second day at about 6am Melbourne time
-  (claude.ai/code/routines). Its environment holds `SEO_ENGINE_SECRET` and
-  must allow network access to signaturepianos.com.au and the web.
-  Setup notes are in `MARKETING_SETUP.md`.
+  (claude.ai/code/routines). Its environment holds `SEO_ENGINE_SECRET` (the
+  office machine client's secret) and must allow network access to
+  portal.signaturepianos.com.au and the web.
 - **By hand**: `/seo-engine` in Claude Code in this repo, with
-  `SEO_ENGINE_SECRET` in `.env.local`. `--local` on any `engine.mjs` command
-  runs `lib/seo-engine.js` in-process instead of calling the site (for testing
-  before a deploy; needs a live `SUPABASE_SERVICE_ROLE_KEY`).
-- The code: `lib/seo-engine.js` (the door's actions and the next-job choice),
-  `lib/seo-draft-check.js` (the checker), `api/seo-engine.js`,
-  `supabase/seo_engine.sql`.
+  `SEO_ENGINE_SECRET` in `.env.local`. `SEO_ENGINE_URL` points
+  `engine.mjs` at another door (a local office for testing).
+- The code: the office's `modules/journal/engine.ts` (the door's twelve
+  actions and the next-job choice) and `modules/journal/rules.ts` (the
+  checker), in the office's own repository. `lib/seo-engine.js`,
+  `lib/seo-draft-check.js` and `api/seo-engine.js` here are the old site's
+  door, read-only since the move; `lib/blog.js` keeps `WRITING_RULES`, the
+  rules every run reads.
 
 ## What the engine never does
 

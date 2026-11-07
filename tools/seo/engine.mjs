@@ -16,10 +16,17 @@
 //   node tools/seo/engine.mjs ping
 //   node tools/seo/engine.mjs export <file.json>          # everything, read-only, for the move into the office
 //
-// Talks to https://signaturepianos.com.au/api/seo-engine with SEO_ENGINE_SECRET
-// (a cloud environment variable, or .env.local on this machine). --local runs
-// lib/seo-engine.js in-process instead (needs node_modules and a live
-// SUPABASE_SERVICE_ROLE_KEY): for testing before a deploy.
+// Talks to the office's Journal door,
+// https://portal.signaturepianos.com.au/hooks/journal/seo-engine, with
+// SEO_ENGINE_SECRET: the secret of the machine client the owner made for the
+// routine in the office (Settings, Machine clients), granted the twelve journal
+// actions; a cloud environment variable, or .env.local on this machine. The
+// Journal moved there from the old site on Eric's word (7 Nov 2026).
+// SEO_ENGINE_URL points it elsewhere (a local office:
+// http://localhost:<port>/hooks/journal/seo-engine; the old site's door, read
+// only since the move: https://signaturepianos.com.au/api/seo-engine). --local
+// runs the old site's lib/seo-engine.js in-process (needs node_modules and a
+// live SUPABASE_SERVICE_ROLE_KEY): the old Journal only.
 //
 // A body can live beside its JSON as <same name>.html, so nobody has to
 // escape 1,000 words of HTML inside a JSON string. Exit 1 on any failure.
@@ -48,7 +55,7 @@ const flags = Object.fromEntries(argv.filter((a) => a.startsWith('--')).map((a) 
 }))
 const [cmd, ...args] = argv.filter((a) => !a.startsWith('--'))
 const LOCAL = flags.local || process.env.SEO_ENGINE_URL === 'local'
-const URL_ = process.env.SEO_ENGINE_URL && !LOCAL ? process.env.SEO_ENGINE_URL : 'https://signaturepianos.com.au/api/seo-engine'
+const URL_ = process.env.SEO_ENGINE_URL && !LOCAL ? process.env.SEO_ENGINE_URL : 'https://portal.signaturepianos.com.au/hooks/journal/seo-engine'
 
 function die(msg) {
   console.error(msg)
@@ -76,7 +83,7 @@ async function call(action, params = {}) {
       body: JSON.stringify({ action, ...params }),
     })
   } catch (err) {
-    die(`Couldn't reach ${URL_}: ${err.message}. In the cloud, the environment's network access must allow signaturepianos.com.au.`)
+    die(`Couldn't reach ${URL_}: ${err.message}. In the cloud, the environment's network access must allow portal.signaturepianos.com.au.`)
   }
   const text = await res.text()
   let json
