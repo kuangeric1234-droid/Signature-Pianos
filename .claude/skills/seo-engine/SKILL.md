@@ -220,7 +220,7 @@ some) or when the plan is empty.
 {
   "slug": "yamaha-u1-vs-u3",
   "update": { "title": "...", "meta_description": "...", "excerpt": "...", "hero_image_url": "/media/home/unit-u3h.webp", "faq": [], "tags": ["Yamaha", "Buying guide"], "keywords": [] },
-  "notes": ["Replaced the dead /pianos.html link with /instruments/.", "U1J price updated to $7,299 (dwmusic.com.au, September 2026)."],
+  "notes": ["Replaced the old /instruments/ link with /pianos/.", "U1J price updated to $7,299 (dwmusic.com.au, September 2026)."],
   "reverify_by": "2027-03-20",
   "reverify_notes": "What to recheck next time, with URLs.",
   "research_notes": "Optional: what ranks now."
@@ -245,7 +245,8 @@ some) or when the plan is empty.
 }]
 ```
 
-Allowed internal links: `/instruments/`, `/services/book-a-viewing.html`,
+Allowed internal links: `/pianos/` (the pianos for sale; never the old `/instruments/`,
+which only redirects there), `/services/book-a-viewing.html`,
 `/services/delivery-warranty.html`, `/services/tuning-servicing.html`,
 `/teachers.html`, `/about.html`, `/serial-number-lookup.html`, and published
 Journal posts (`/blog/<slug>`). Tags: Buying guide, Yamaha, Kawai, Grand
