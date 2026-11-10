@@ -160,6 +160,15 @@ for (const css of ['css/site.css', 'css/chrome.css', 'css/book.css']) {
     if (r.status !== want || !r.json || typeof r.json.error !== 'string' || r.json.html) errs.push(`${what}: ${r.status}, want ${want}`)
     if (want === 403 && r.headers['Access-Control-Allow-Origin']) errs.push(`${what}: allowed across origins`)
   }
+  // a crafted body near the limit is drawn quickly: before 10 Nov 2026 the renderer's tag and comment searches took
+  // tens of seconds on these (the preview's security review), on a door anyone can knock on
+  for (const unit of ['<a ', '<p><a ', '<!--', '<a b="<p x']) {
+    const body = unit.repeat(Math.floor((MOST - 2000) / (JSON.stringify(unit).length - 2)))
+    const t = Date.now()
+    const r = ask({ raw: JSON.stringify({ ...post, body_html: body }) })
+    const ms = Date.now() - t
+    if (r.status !== 200 || ms > 1500) errs.push(`a crafted body of ${JSON.stringify(unit)} answered ${r.status} in ${ms} ms`)
+  }
   const pre = answer({ method: 'OPTIONS', origin: OFFICE })
   if (pre.status !== 204 || pre.headers['Access-Control-Allow-Methods'] !== 'POST' || pre.json) errs.push('the preflight: ' + pre.status)
   if (answer({ method: 'OPTIONS', origin: 'https://example.com' }).status !== 403) errs.push("another address's preflight is not refused")
@@ -170,6 +179,8 @@ for (const css of ['css/site.css', 'css/chrome.css', 'css/book.css']) {
   const vj = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'))
   const fonts = (vj.headers || []).find((h) => h.source === '/media/fonts/(.*)')
   if (!fonts || !fonts.headers.some((h) => h.key === 'Access-Control-Allow-Origin' && h.value === '*')) errs.push("the site's fonts can't be read by the preview's frame")
+  const fn = (vj.functions || {})['api/blog-preview.js']
+  if (!fn || !(fn.maxDuration <= 10)) errs.push('the preview has no short time limit of its own')
   if (errs.length) fail(`the office's preview: ${errs.join('; ')}`)
   else ok(`the office's preview: a draft drawn as its page (${html.length} characters), kept from search, no analytics; ${refused.length + 1} refusals`)
 }

@@ -81,7 +81,8 @@
     "api/blog-generate.js": { "maxDuration": 300 },
     "api/run-blog-writer.js": { "maxDuration": 300 },
     "api/cron-blog-writer.js": { "maxDuration": 300 },
-    "api/seo-engine.js": { "maxDuration": 60 }
+    "api/seo-engine.js": { "maxDuration": 60 },
+    "api/blog-preview.js": { "maxDuration": 5 }
   },
   "headers": [
     {
