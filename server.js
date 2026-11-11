@@ -82,6 +82,18 @@ function runSite(req, res, query) {
   Promise.resolve(site(req, out)).catch((err) => { console.error(err); res.writeHead(500); res.end('Server error'); });
 }
 
+/** an api/ function that answers JSON, called the way Vercel calls it */
+function runApi(fn, req, res) {
+  const out = {
+    statusCode: 200, headers: {},
+    setHeader(k, v) { this.headers[k] = v; },
+    status(c) { this.statusCode = c; return this; },
+    json(v) { res.writeHead(this.statusCode, Object.assign({ 'Content-Type': 'application/json; charset=utf-8' }, this.headers)); res.end(JSON.stringify(v)); },
+    end() { res.writeHead(this.statusCode, this.headers); res.end(); },
+  };
+  Promise.resolve(fn(req, out)).catch((err) => { console.error(err); res.writeHead(500); res.end('Server error'); });
+}
+
 http.createServer((req, res) => {
   let u;
   try {
@@ -101,6 +113,9 @@ http.createServer((req, res) => {
     }
     res.writeHead(400); return res.end('Bad image address');
   }
+
+  // the office editor's preview of a post (api/blog-preview.js); PREVIEW_ORIGINS names a local office's address
+  if (u.pathname === '/api/blog-preview') return runApi(require('./api/blog-preview'), req, res);
 
   const pg = pageFor(u.pathname);
   if (pg) return runSite(req, res, pg);

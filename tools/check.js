@@ -109,5 +109,81 @@ for (const css of ['css/site.css', 'css/chrome.css', 'css/book.css']) {
   else ok(`${css}: no Mist blue`)
 }
 
+/* 6. the office editor's preview of a post (api/blog-preview.js, the office's S7.9) */
+{
+  const { answer, previewPage, MOST } = require('../lib/blog-preview')
+  const { renderPost } = require('../lib/blog-render')
+  const { shaped } = require('../lib/journal-source')
+  const OFFICE = 'https://portal.signaturepianos.com.au'
+  const post = {
+    slug: 'which-upright-for-a-small-room', title: 'Which upright suits a small room?', excerpt: 'A plain answer.',
+    tags: ['Buying guide'], author: 'Eric Kuang', published_at: null, updated_at: null, meta_description: 'How to choose.',
+    keywords: ['small room piano'], cover: { url: OFFICE + '/public/shown?f=abc123' },
+    body_html: '<h2>Measure first</h2><p>Allow <strong>1.5 m</strong>, and see <a href="/pianos/">the pianos</a>.</p><!-- VERIFY: the width -->',
+    faq: [{ question: 'Is a U1 too tall?', answer: 'Not for most rooms.' }],
+  }
+  const ask = (o) => answer({ method: 'POST', origin: OFFICE, contentType: 'application/json', raw: JSON.stringify(post), ...o })
+  const errs = []
+  const a = ask({})
+  const html = a.json && a.json.html
+  if (a.status !== 200 || typeof html !== 'string') errs.push(`a draft answered ${a.status}`)
+  else {
+    if (!html.includes('<base href="https://signaturepianos.com.au/" target="_blank">')) errs.push('no base address')
+    if (!/<meta name="robots" content="noindex, nofollow">/.test(html)) errs.push('not kept from search')
+    if (/analytics\.js|googletagmanager/i.test(html)) errs.push("the website's analytics are in it")
+    if (!/<h1[^>]*>[\s\S]*Which upright suits a small room\?/.test(html)) errs.push('its title is not the H1')
+    if (!html.includes('<h2>Measure first</h2>') || !html.includes('<strong>1.5 m</strong>')) errs.push('its body is not drawn')
+    if (!html.includes('Is a U1 too tall?')) errs.push('its questions are not drawn')
+    if (!html.includes('/public/shown?f=abc123')) errs.push('its cover is not drawn')
+    if (!html.includes(String(new Date().getFullYear()))) errs.push("a draft does not show today's date")
+  }
+  if (a.headers['Access-Control-Allow-Origin'] !== OFFICE || a.headers['Cache-Control'] !== 'no-store' || !/noindex/.test(a.headers['X-Robots-Tag'] || '')) errs.push('headers: ' + JSON.stringify(a.headers))
+  // a post on the website is drawn exactly as its page, the preview's three changes apart
+  const live = { ...post, published_at: '2026-10-01T00:00:00.000Z', updated_at: '2026-10-02T00:00:00.000Z' }
+  const page = renderPost(shaped(live, true), [])
+  const b = ask({ raw: JSON.stringify(live) })
+  if (!b.json || b.json.html !== previewPage(page)) errs.push('a published post is not drawn as its page')
+  if (!/\/js\/analytics\.js/.test(page)) errs.push("the page itself has no analytics (the comparison would prove nothing)")
+  const refused = [
+    ['another address', ask({ origin: 'https://example.com' }), 403],
+    ['no address', ask({ origin: undefined }), 403],
+    ['GET', ask({ method: 'GET' }), 405],
+    ['not JSON', ask({ contentType: 'text/plain' }), 415],
+    ['a form', ask({ contentType: 'application/x-www-form-urlencoded' }), 415],
+    ['too large', ask({ raw: JSON.stringify({ ...post, body_html: 'x'.repeat(MOST) }) }), 413],
+    ['cut off at its limit', ask({ raw: null }), 413],
+    ['broken JSON', ask({ raw: '{"title":' }), 400],
+    ['a list', ask({ raw: '[]' }), 400],
+    ['no title', ask({ raw: JSON.stringify({ ...post, title: ' ' }) }), 400],
+  ]
+  for (const [what, r, want] of refused) {
+    if (r.status !== want || !r.json || typeof r.json.error !== 'string' || r.json.html) errs.push(`${what}: ${r.status}, want ${want}`)
+    if (want === 403 && r.headers['Access-Control-Allow-Origin']) errs.push(`${what}: allowed across origins`)
+  }
+  // a crafted body near the limit is drawn quickly: before 10 Nov 2026 the renderer's tag and comment searches took
+  // tens of seconds on these (the preview's security review), on a door anyone can knock on
+  for (const unit of ['<a ', '<p><a ', '<!--', '<a b="<p x']) {
+    const body = unit.repeat(Math.floor((MOST - 2000) / (JSON.stringify(unit).length - 2)))
+    const t = Date.now()
+    const r = ask({ raw: JSON.stringify({ ...post, body_html: body }) })
+    const ms = Date.now() - t
+    if (r.status !== 200 || ms > 1500) errs.push(`a crafted body of ${JSON.stringify(unit)} answered ${r.status} in ${ms} ms`)
+  }
+  const pre = answer({ method: 'OPTIONS', origin: OFFICE })
+  if (pre.status !== 204 || pre.headers['Access-Control-Allow-Methods'] !== 'POST' || pre.json) errs.push('the preflight: ' + pre.status)
+  if (answer({ method: 'OPTIONS', origin: 'https://example.com' }).status !== 403) errs.push("another address's preflight is not refused")
+  const was = process.env.PREVIEW_ORIGINS
+  process.env.PREVIEW_ORIGINS = 'http://127.0.0.1:6293, http://localhost:6293/'
+  if (ask({ origin: 'http://localhost:6293' }).status !== 200) errs.push('a local office named in PREVIEW_ORIGINS is refused')
+  if (was === undefined) delete process.env.PREVIEW_ORIGINS; else process.env.PREVIEW_ORIGINS = was
+  const vj = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'))
+  const fonts = (vj.headers || []).find((h) => h.source === '/media/fonts/(.*)')
+  if (!fonts || !fonts.headers.some((h) => h.key === 'Access-Control-Allow-Origin' && h.value === '*')) errs.push("the site's fonts can't be read by the preview's frame")
+  const fn = (vj.functions || {})['api/blog-preview.js']
+  if (!fn || !(fn.maxDuration <= 10)) errs.push('the preview has no short time limit of its own')
+  if (errs.length) fail(`the office's preview: ${errs.join('; ')}`)
+  else ok(`the office's preview: a draft drawn as its page (${html.length} characters), kept from search, no analytics; ${refused.length + 1} refusals`)
+}
+
 console.log(failed ? `\n${failed} check(s) failed` : '\nall checks passed')
 process.exit(failed ? 1 : 0)
